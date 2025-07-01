@@ -30,8 +30,7 @@ namespace SymphonyFrameWork.System
             get => _data.Value.Instance;
         }
 
-        private static Lazy<ServiceLocatorData> _data =
-            new Lazy<ServiceLocatorData>(CreateData);
+        private static Lazy<ServiceLocatorData> _data;
 
         private class ServiceLocatorData : MonoBehaviour
         {
@@ -50,6 +49,11 @@ namespace SymphonyFrameWork.System
             private readonly Dictionary<Type, Action> _waitingActions = new();
             [Tooltip("シングルトン登録まで待機してから実行されるイベントのインスタンスを返すイベント")]
             private readonly Dictionary<Type, Delegate> _waitingActionsWithInstance = new();
+
+            public void Init(GameObject instance)
+            {
+                _instance = instance;
+            }
         }
 
         internal static void Initialize()
@@ -263,9 +267,11 @@ namespace SymphonyFrameWork.System
 
         private static ServiceLocatorData CreateData()
         {
-            var instance = new GameObject("ServiceLocatorData");
+            var instance = new GameObject(nameof(ServiceLocator));
+            ServiceLocatorData data = instance.AddComponent<ServiceLocatorData>();
+            data.Init(instance);
             SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
-            return instance.AddComponent<ServiceLocatorData>();
+            return data;
         }
     }
 }
