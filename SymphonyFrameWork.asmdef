@@ -1,0 +1,16 @@
+{
+    "name": "SymphonyFrameWork",
+    "rootNamespace": "SymphonyFrameWork",
+    "references": [
+        "GUID:b4e9782619c924d4fa0455d751d099be"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
