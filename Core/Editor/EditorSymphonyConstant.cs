@@ -30,9 +30,7 @@ namespace SymphonyFrameWork.Core
 
         #region 自動生成物のパス
         public static string RESOURCES_EDITOR_PATH = "Assets/Editor/" + SymphonyConstant.SYMPHONY_FRAMEWORK + "/Configs";
-        public static string ENUM_PATH = (IsPackage() ? 
-            "Assets/Scripts/" + SymphonyConstant.SYMPHONY_FRAMEWORK :
-            "Packages/" + SymphonyConstant.SYMPHONY_PACKAGE) + "/Enum";
+        public static string ENUM_PATH = "Assets/Scripts/" + SymphonyConstant.SYMPHONY_FRAMEWORK;
         #endregion
 
         public static string UITK_PATH = FRAMEWORK_PATH() + "/Editor/Administrator/UITK/";
