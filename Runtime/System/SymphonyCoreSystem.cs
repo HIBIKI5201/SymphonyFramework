@@ -1,4 +1,5 @@
-﻿using SymphonyFrameWork.Utility;
+﻿using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.Utility;
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -27,6 +28,8 @@ namespace SymphonyFrameWork.System
             ServiceLocator.Initialize();
             SceneLoader.Initialize();
             AudioManager.Initialize();
+
+            SymphonyDebugHUD.Initialize();
 
             GC.Collect();
         }
