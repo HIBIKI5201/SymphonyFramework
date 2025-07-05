@@ -13,8 +13,12 @@ namespace SymphonyFrameWork.System
     /// </summary>
     public static class SceneLoader
     {
+        public static Task InitializeScenesLoadTask => _initializeScenesLoadTask;
+
         private static readonly Dictionary<string, Scene> _sceneDict = new();
         private static readonly Dictionary<string, Action> _loadedActionDict = new();
+
+        private static Task _initializeScenesLoadTask;
 
         /// <summary>
         ///     コアシステムからの初期化
@@ -22,22 +26,45 @@ namespace SymphonyFrameWork.System
         internal static void Initialize()
         {
             _sceneDict.Clear();
-
-            //初期化シーンのロード開始
-            var config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
-            if (config)
-                foreach (var scene in config.InitializeSceneList)
-                    _ = LoadScene(scene);
+            _initializeScenesLoadTask = null;
         }
 
         /// <summary>
         ///     ゲーム開始時の初期化処理
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void AfterSceneLoad()
+        private static async Task AfterSceneLoad()
         {
-            var scene = SceneManager.GetActiveScene();
-            _sceneDict.Add(scene.name, scene);
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                //シーン名とシーン情報を辞書に保存
+                _sceneDict.TryAdd(scene.name, scene);
+            }
+
+            //初期化シーンのロード開始
+            var config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
+            if (!config) return;
+
+            List<string> initializeSceneList = config.InitializeSceneList;
+            int count = initializeSceneList.Count;
+
+            if (count <= 0) return;
+
+            //全てのロードを待機するタスクを作成
+            Task[] initializeTasks = new Task[count];
+            for(int i = 0; i < count; i++)
+            {
+                string sceneName = initializeSceneList[i];
+                initializeTasks[i] = LoadScene(sceneName);
+            }
+
+            _initializeScenesLoadTask = Task.WhenAll(initializeTasks);
+
+            await _initializeScenesLoadTask;
+
+            _initializeScenesLoadTask = Task.CompletedTask;
         }
 
         /// <summary>
@@ -104,6 +131,7 @@ namespace SymphonyFrameWork.System
                 await Awaitable.NextFrameAsync(token);
             }
 
+            //ロード完了後
             var loadedScene = SceneManager.GetSceneByName(sceneName);
 
             //シーン上のオブジェクトの初期化を実行する

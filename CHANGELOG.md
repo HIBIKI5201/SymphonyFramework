@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.23.4] - 2025-07-04
+### Fix
+- SceneLoader
+
 ## [1.23.3] - 2025-07-03
 ### Add
 - SymphonyDebugHUD
