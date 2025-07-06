@@ -38,6 +38,7 @@ namespace SymphonyFrameWork.Utility
 
         private void OnDestroy()
         {
+            if (Application.isEditor) return;
             if (!_autoDestroy) return;
             
             if (_target)
