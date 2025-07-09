@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.23.5] - 2025-07-09
+### Update
+- ServiceLocator
+
+## [1.23.4] - 2025-07-04
+### Fix
+- SceneLoader
+
+## [1.23.3] - 2025-07-03
+### Add
+- SymphonyDebugHUD
+
 ## [1.23.2] - 2025-07-03
 ### Fix
 - ServiceLocator
