@@ -328,7 +328,7 @@ namespace SymphonyFrameWork.System
         /// <summary>
         ///     ServiceLocatorのデータを保持するためのコンポーネント。
         /// </summary>
-        private class ServiceLocatorData : MonoBehaviour
+        public class ServiceLocatorData : MonoBehaviour
         {
             public GameObject Instance => _instance;
             public Dictionary<Type, object> SingletonObjects => _singletonObjects;
