@@ -28,7 +28,7 @@ namespace SymphonyFrameWork.Utility
                 //Targetのクラスをキャストして実行する
                 var targetType = _target.GetType();
                 var method = typeof(ServiceLocator)
-                    .GetMethod(nameof(ServiceLocator.SetInstance))
+                    .GetMethod(nameof(ServiceLocator.RegisterInstance))
                     ?.MakeGenericMethod(targetType);
 
                 method?.Invoke(null, new object[]
@@ -41,7 +41,7 @@ namespace SymphonyFrameWork.Utility
             if (Application.isEditor) return;
             if (!_autoDestroy) return;
             
-            if (_target)
+            if (_target != null)
             {
                 var targetType = _target.GetType();
 
@@ -57,7 +57,7 @@ namespace SymphonyFrameWork.Utility
                 
                 //ServiceLocator.DestroyInstanceを取得する
                 var destroyMethod = typeof(ServiceLocator)
-                    .GetMethod(nameof(ServiceLocator.DestroyInstance),
+                    .GetMethod(nameof(ServiceLocator.UnregisterInstance),
                         BindingFlags.Public | BindingFlags.Static,
                         null, Type.EmptyTypes, null)
                     ?.MakeGenericMethod(targetType);

@@ -44,53 +44,13 @@ namespace SymphonyFrameWork.System
             get => _data.Value.Instance;
         }
 
-        // Lazy<T> を使用して、ServiceLocatorData のインスタンスが必要になるまで生成を遅延させます。
-        private static Lazy<ServiceLocatorData> _data;
-
-        /// <summary>
-        ///     ServiceLocatorのデータを保持するためのMonoBehaviourです。
-        ///     Unityのライフサイクルイベントを利用するために使用されます。
-        /// </summary>
-        private class ServiceLocatorData : MonoBehaviour
-        {
-            public GameObject Instance => _instance;
-            public Dictionary<Type, object> SingletonObjects => _singletonObjects;
-            public Dictionary<Type, Action> WaitingActions => _waitingActions;
-            public Dictionary<Type, Delegate> WaitingActionsWithInstance => _waitingActionsWithInstance;
-
-            [Tooltip("シングルトン化するインスタンスのコンテナとなるGameObject")]
-            private GameObject _instance;
-
-            [Tooltip("登録されているインスタンスを型をキーにして保持する辞書")]
-            private readonly Dictionary<Type, object> _singletonObjects = new();
-
-            [Tooltip("インスタンス登録まで待機してから実行されるコールバックアクションを保持する辞書")]
-            private readonly Dictionary<Type, Action> _waitingActions = new();
-            [Tooltip("インスタンス登録まで待機し、登録されたインスタンスを引数として受け取るコールバックアクションを保持する辞書")]
-            private readonly Dictionary<Type, Delegate> _waitingActionsWithInstance = new();
-
-            public void Init(GameObject instance)
-            {
-                _instance = instance;
-            }
-        }
-
-        /// <summary>
-        ///     ServiceLocatorを初期化します。
-        ///     SymphonyCoreSystemから呼び出されることを想定しています。
-        /// </summary>
-        internal static void Initialize()
-        {
-            _data = new Lazy<ServiceLocatorData>(CreateData);
-        }
-
         /// <summary>
         ///     指定されたインスタンスをロケーターに登録します。
         /// </summary>
         /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
         /// <param name="instance">登録するインスタンス。</param>
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
-        public static void SetInstance<T>(T instance, LocateType type = LocateType.Locator) where T : class
+        public static void RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
         {
             // 既に同じ型のインスタンスが登録されている場合は、新しいインスタンスを登録せずに処理を中断します。
             // 登録しようとしたインスタンスがComponentだった場合は、そのGameObjectを破棄します。
@@ -99,6 +59,7 @@ namespace SymphonyFrameWork.System
                 if (instance is Component component)
                 {
                     Object.Destroy(component.gameObject);
+                    Debug.Log($"{typeof(T).Name}は既に登録されています。新しいインスタンスは破棄されました。");
                 }
                 return;
             }
@@ -137,6 +98,26 @@ namespace SymphonyFrameWork.System
             if (type == LocateType.Singleton && instance is Component componentInstance)
             {
                 componentInstance.transform.SetParent(Instance.transform);
+            }
+        }
+
+        public static void UnregisterInstance<T>(T instance) where T : class
+        {
+            // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
+            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md) && md == instance)
+            {
+                _data.Value.SingletonObjects.Remove(typeof(T));
+
+                // インスタンスがComponentで親がServiceLocatorなら、親子関係を解除します。
+                if (instance is Component component 
+                    && component.transform.parent == _data.Value.Instance.transform)
+                {
+                    component.transform.SetParent(null);
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"{typeof(T).Name}は登録されていません");
             }
         }
 
@@ -179,8 +160,6 @@ namespace SymphonyFrameWork.System
                 {
                     disposable.Dispose();
                 }
-
-                _data.Value.SingletonObjects.Remove(typeof(T));
 
 #if UNITY_EDITOR
                 //ログを出力
@@ -321,6 +300,56 @@ namespace SymphonyFrameWork.System
             }
 
             return null;
+        }
+
+        /// <summary>
+        ///     指定されたインスタンスをロケーターに登録します。
+        /// </summary>
+        /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
+        /// <param name="instance">登録するインスタンス。</param>
+        /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
+        [Obsolete("このメソッドは非推奨です。代わりにRegisterInstance<T>(T instance, LocateType type)を使用してください。")]
+        public static void SetInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
+        {
+            RegisterInstance(instance, type);
+        }
+
+        /// <summary>
+        ///     ServiceLocatorを初期化します。
+        ///     SymphonyCoreSystemから呼び出されることを想定しています。
+        /// </summary>
+        internal static void Initialize()
+        {
+            _data = new Lazy<ServiceLocatorData>(CreateData);
+        }
+
+        private static Lazy<ServiceLocatorData> _data;
+
+        /// <summary>
+        ///     ServiceLocatorのデータを保持するためのコンポーネント。
+        /// </summary>
+        private class ServiceLocatorData : MonoBehaviour
+        {
+            public GameObject Instance => _instance;
+            public Dictionary<Type, object> SingletonObjects => _singletonObjects;
+            public Dictionary<Type, Action> WaitingActions => _waitingActions;
+            public Dictionary<Type, Delegate> WaitingActionsWithInstance => _waitingActionsWithInstance;
+
+            [Tooltip("シングルトン化するインスタンスのコンテナとなるGameObject")]
+            private GameObject _instance;
+
+            [Tooltip("登録されているインスタンスを型をキーにして保持する辞書")]
+            private readonly Dictionary<Type, object> _singletonObjects = new();
+
+            [Tooltip("インスタンス登録まで待機してから実行されるコールバックアクションを保持する辞書")]
+            private readonly Dictionary<Type, Action> _waitingActions = new();
+            [Tooltip("インスタンス登録まで待機し、登録されたインスタンスを引数として受け取るコールバックアクションを保持する辞書")]
+            private readonly Dictionary<Type, Delegate> _waitingActionsWithInstance = new();
+
+            public void Init(GameObject instance)
+            {
+                _instance = instance;
+            }
         }
 
         /// <summary>
