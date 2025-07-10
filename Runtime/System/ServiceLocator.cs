@@ -107,6 +107,12 @@ namespace SymphonyFrameWork.System
             if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md) && md == instance)
             {
                 _data.Value.SingletonObjects.Remove(typeof(T));
+
+                // インスタンスがComponentなら、親子関係を解除します。
+                if (instance is Component component)
+                {
+                    component.transform.SetParent(null);
+                }
             }
             else
             {
