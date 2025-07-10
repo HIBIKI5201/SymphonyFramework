@@ -14,8 +14,8 @@ namespace SymphonyFrameWork.Editor
     [UxmlElement]
     public partial class ServiceLocatorWindow : SymphonyVisualElement
     {
-        private Dictionary<Type, Component> _locateDict;
-        private FieldInfo _locateInfo;
+        private Dictionary<Type, object> _locateDict; // Componentからobjectに変更
+        private FieldInfo _lazyDataField; // _locateInfoから_lazyDataFieldに変更
         private ListView _locateList;
 
         public ServiceLocatorWindow() : base(
@@ -26,10 +26,22 @@ namespace SymphonyFrameWork.Editor
 
         protected override Task Initialize_S(TemplateContainer container)
         {
-            _locateInfo =
-                typeof(ServiceLocator).GetField("_singletonObjects", BindingFlags.Static | BindingFlags.NonPublic);
+            _lazyDataField = typeof(ServiceLocator).GetField("_data", BindingFlags.Static | BindingFlags.NonPublic);
 
-            if (_locateInfo != null) _locateDict = (Dictionary<Type, Component>)_locateInfo.GetValue(null);
+            if (_lazyDataField != null)
+            {
+                // Lazy<ServiceLocatorData> のインスタンスを取得
+                var lazyData = (Lazy<ServiceLocator.ServiceLocatorData>)_lazyDataField.GetValue(null);
+                if (lazyData != null && lazyData.IsValueCreated)
+                {
+                    // ServiceLocatorData のインスタンスから _singletonObjects を取得
+                    var singletonObjectsField = typeof(ServiceLocator.ServiceLocatorData).GetField("_singletonObjects", BindingFlags.Instance | BindingFlags.NonPublic);
+                    if (singletonObjectsField != null)
+                    {
+                        _locateDict = (Dictionary<Type, object>)singletonObjectsField.GetValue(lazyData.Value);
+                    }
+                }
+            }
 
             _locateList = container.Q<ListView>("locate-list");
 
@@ -39,7 +51,9 @@ namespace SymphonyFrameWork.Editor
             _locateList.bindItem = (element, index) =>
             {
                 var kvp = GetLocateList()[index];
-                (element as Label).text = $"type : {kvp.Key.Name}\nobj : {kvp.Value.name}";
+                // Componentの場合のみnameプロパティにアクセス
+                string objName = (kvp.Value is Component component) ? component.name : kvp.Value.GetType().Name;
+                (element as Label).text = $"type : {kvp.Key.Name}\nobj : {objName}";
             };
             
             // データのセット
@@ -67,12 +81,23 @@ namespace SymphonyFrameWork.Editor
             return Task.CompletedTask;
         }
 
-        private List<KeyValuePair<Type, Component>> GetLocateList()
+        private List<KeyValuePair<Type, object>> GetLocateList() // Componentからobjectに変更
         {
-            if (_locateDict != null) _locateDict = (Dictionary<Type, Component>)_locateInfo.GetValue(null);
+            // _lazyDataFieldからLazy<ServiceLocatorData>のインスタンスを取得
+            var lazyData = (Lazy<ServiceLocator.ServiceLocatorData>)_lazyDataField.GetValue(null);
+            if (lazyData != null && lazyData.IsValueCreated)
+            {
+                // ServiceLocatorDataのインスタンスから_singletonObjectsを取得
+                var singletonObjectsField = typeof(ServiceLocator.ServiceLocatorData).GetField("_singletonObjects", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (singletonObjectsField != null)
+                {
+                    _locateDict = (Dictionary<Type, object>)singletonObjectsField.GetValue(lazyData.Value);
+                }
+            }
+
             return _locateDict != null
-                ? new List<KeyValuePair<Type, Component>>(_locateDict)
-                : new List<KeyValuePair<Type, Component>>();
+                ? new List<KeyValuePair<Type, object>>(_locateDict) // Componentからobjectに変更
+                : new List<KeyValuePair<Type, object>>(); // Componentからobjectに変更
         }
 
         public void Update()
