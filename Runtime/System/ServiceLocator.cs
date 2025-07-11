@@ -328,15 +328,13 @@ namespace SymphonyFrameWork.System
         /// <summary>
         ///     ServiceLocatorのデータを保持するためのコンポーネント。
         /// </summary>
-        public class ServiceLocatorData : MonoBehaviour
+        [Serializable]
+        private class ServiceLocatorData : MonoBehaviour
         {
-            public GameObject Instance => _instance;
+            public GameObject Instance => gameObject;
             public Dictionary<Type, object> SingletonObjects => _singletonObjects;
             public Dictionary<Type, Action> WaitingActions => _waitingActions;
             public Dictionary<Type, Delegate> WaitingActionsWithInstance => _waitingActionsWithInstance;
-
-            [Tooltip("シングルトン化するインスタンスのコンテナとなるGameObject")]
-            private GameObject _instance;
 
             [Tooltip("登録されているインスタンスを型をキーにして保持する辞書")]
             private readonly Dictionary<Type, object> _singletonObjects = new();
@@ -345,11 +343,6 @@ namespace SymphonyFrameWork.System
             private readonly Dictionary<Type, Action> _waitingActions = new();
             [Tooltip("インスタンス登録まで待機し、登録されたインスタンスを引数として受け取るコールバックアクションを保持する辞書")]
             private readonly Dictionary<Type, Delegate> _waitingActionsWithInstance = new();
-
-            public void Init(GameObject instance)
-            {
-                _instance = instance;
-            }
         }
 
         /// <summary>
@@ -360,7 +353,6 @@ namespace SymphonyFrameWork.System
         {
             var instance = new GameObject(nameof(ServiceLocator));
             ServiceLocatorData data = instance.AddComponent<ServiceLocatorData>();
-            data.Init(instance);
             SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
             return data;
         }
