@@ -109,8 +109,9 @@ namespace SymphonyFrameWork.System
                 _data.Value.SingletonObjects.Remove(typeof(T));
 
                 // インスタンスがComponentで親がServiceLocatorなら、親子関係を解除します。
-                if (instance is Component component 
-                    && component.transform.parent == _data.Value.Instance.transform)
+                if (instance is Component component
+                    && component != null && !component.Equals(null) //nullチェックを行う
+                    && component.transform.parent == _data.Value.Instance.transform) //親がロケーターのインスタンスか
                 {
                     component.transform.SetParent(null);
                 }
