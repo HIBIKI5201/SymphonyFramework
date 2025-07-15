@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.23.13] - 2025-07-16
+### Fix
+- ServiceLocator
+
+## [1.23.12] - 2025-07-16
+### Fix
+- SceneLoader
+
+## [1.23.11] - 2025-07-16
+### Fix
+- FolderGenerator
+
+## [1.23.10] - 2025-07-16
+### Fix
+- SymphonyLocate
+
+## [1.23.9] - 2025-07-16
+### Fix
+- SymphonyAdministrator
+
 ## [1.23.8] - 2025-07-11
 ### Fix
 - SymphonyLocate
