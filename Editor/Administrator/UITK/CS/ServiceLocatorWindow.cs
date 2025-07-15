@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -14,8 +14,8 @@ namespace SymphonyFrameWork.Editor
     [UxmlElement]
     public partial class ServiceLocatorWindow : SymphonyVisualElement
     {
-        private Dictionary<Type, Component> _locateDict;
-        private FieldInfo _locateInfo;
+        private Dictionary<Type, object> _locateDict;
+        private FieldInfo _lazyDataField;
         private ListView _locateList;
 
         public ServiceLocatorWindow() : base(
@@ -26,10 +26,9 @@ namespace SymphonyFrameWork.Editor
 
         protected override Task Initialize_S(TemplateContainer container)
         {
-            _locateInfo =
-                typeof(ServiceLocator).GetField("_singletonObjects", BindingFlags.Static | BindingFlags.NonPublic);
+            _lazyDataField = typeof(ServiceLocator).GetField("_data", BindingFlags.Static | BindingFlags.NonPublic);
 
-            if (_locateInfo != null) _locateDict = (Dictionary<Type, Component>)_locateInfo.GetValue(null);
+            UpdateLocateDict();
 
             _locateList = container.Q<ListView>("locate-list");
 
@@ -39,7 +38,14 @@ namespace SymphonyFrameWork.Editor
             _locateList.bindItem = (element, index) =>
             {
                 var kvp = GetLocateList()[index];
-                (element as Label).text = $"type : {kvp.Key.Name}\nobj : {kvp.Value.name}";
+                if (kvp.Value is UnityEngine.Object unityObject && unityObject == null)
+                {
+                    (element as Label).text = $"type : {kvp.Key.Name}\nobj : (Destroyed)";
+                    return;
+                }
+                // Componentの場合のみnameプロパティにアクセス
+                string objName = (kvp.Value is Component component) ? component.name : kvp.Value.GetType().Name;
+                (element as Label).text = $"type : {kvp.Key.Name}\nobj : {objName}";
             };
             
             // データのセット
@@ -67,12 +73,43 @@ namespace SymphonyFrameWork.Editor
             return Task.CompletedTask;
         }
 
-        private List<KeyValuePair<Type, Component>> GetLocateList()
+        private void UpdateLocateDict()
         {
-            if (_locateDict != null) _locateDict = (Dictionary<Type, Component>)_locateInfo.GetValue(null);
+            if (_lazyDataField == null) return;
+
+            var lazyData = _lazyDataField.GetValue(null);
+            if (lazyData == null) return;
+
+            var isValueCreatedProp = lazyData.GetType().GetProperty("IsValueCreated");
+            if (isValueCreatedProp == null || !(bool)isValueCreatedProp.GetValue(lazyData))
+            {
+                _locateDict = new Dictionary<Type, object>();
+                return;
+            }
+
+            var valueProp = lazyData.GetType().GetProperty("Value");
+            if (valueProp == null) return;
+            var serviceLocatorDataInstance = valueProp.GetValue(lazyData);
+            if (serviceLocatorDataInstance == null) return;
+
+            var singletonObjectsField = serviceLocatorDataInstance.GetType()
+                .GetField("_singletonObjects", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (singletonObjectsField != null)
+            {
+                _locateDict = (Dictionary<Type, object>)singletonObjectsField.GetValue(serviceLocatorDataInstance);
+            }
+            else
+            {
+                _locateDict = new Dictionary<Type, object>();
+            }
+        }
+
+        private List<KeyValuePair<Type, object>> GetLocateList()
+        {
+            UpdateLocateDict();
             return _locateDict != null
-                ? new List<KeyValuePair<Type, Component>>(_locateDict)
-                : new List<KeyValuePair<Type, Component>>();
+                ? new List<KeyValuePair<Type, object>>(_locateDict)
+                : new List<KeyValuePair<Type, object>>();
         }
 
         public void Update()
