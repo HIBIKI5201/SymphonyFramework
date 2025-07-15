@@ -19,7 +19,7 @@ namespace SymphonyFrameWork.Utility
         
         [SerializeField] private bool _autoSet = true;
         [SerializeField] private bool _autoDestroy = true;
-        private void Awake()
+        private void OnEnable()
         {
             if (!_autoSet) return;
             
@@ -36,9 +36,8 @@ namespace SymphonyFrameWork.Utility
             }
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
-            if (Application.isEditor) return;
             if (!_autoDestroy) return;
             
             if (_target != null)
