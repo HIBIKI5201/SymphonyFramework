@@ -21,53 +21,6 @@ namespace SymphonyFrameWork.System
         private static Task _initializeScenesLoadTask;
 
         /// <summary>
-        ///     コアシステムからの初期化
-        /// </summary>
-        internal static void Initialize()
-        {
-            _sceneDict.Clear();
-            _initializeScenesLoadTask = null;
-        }
-
-        /// <summary>
-        ///     ゲーム開始時の初期化処理
-        /// </summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static async Task AfterSceneLoad()
-        {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-
-                //シーン名とシーン情報を辞書に保存
-                _sceneDict.TryAdd(scene.name, scene);
-            }
-
-            //初期化シーンのロード開始
-            var config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
-            if (!config) return;
-
-            List<string> initializeSceneList = config.InitializeSceneList;
-            int count = initializeSceneList.Count;
-
-            if (count <= 0) return;
-
-            //全てのロードを待機するタスクを作成
-            Task[] initializeTasks = new Task[count];
-            for(int i = 0; i < count; i++)
-            {
-                string sceneName = initializeSceneList[i];
-                initializeTasks[i] = LoadScene(sceneName);
-            }
-
-            _initializeScenesLoadTask = Task.WhenAll(initializeTasks);
-
-            await _initializeScenesLoadTask;
-
-            _initializeScenesLoadTask = Task.CompletedTask;
-        }
-
-        /// <summary>
         ///     ロードされているシーンを返す
         ///     ない場合はnullを返す
         /// </summary>
@@ -255,6 +208,53 @@ namespace SymphonyFrameWork.System
             {
                 await Awaitable.NextFrameAsync();
             }
+        }
+
+        /// <summary>
+        ///     コアシステムからの初期化
+        /// </summary>
+        internal static void Initialize()
+        {
+            _sceneDict.Clear();
+            _initializeScenesLoadTask = null;
+        }
+
+        /// <summary>
+        ///     ゲーム開始時の初期化処理
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static async Task AfterSceneLoad()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                //シーン名とシーン情報を辞書に保存
+                _sceneDict.TryAdd(scene.name, scene);
+            }
+
+            //初期化シーンのロード開始
+            var config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
+            if (!config) return;
+
+            List<string> initializeSceneList = config.InitializeSceneList;
+            int count = initializeSceneList.Count;
+
+            if (count <= 0) return;
+
+            //全てのロードを待機するタスクを作成
+            Task[] initializeTasks = new Task[count];
+            for (int i = 0; i < count; i++)
+            {
+                string sceneName = initializeSceneList[i];
+                initializeTasks[i] = LoadScene(sceneName);
+            }
+
+            _initializeScenesLoadTask = Task.WhenAll(initializeTasks);
+
+            await _initializeScenesLoadTask;
+
+            _initializeScenesLoadTask = Task.CompletedTask;
         }
     }
 }
