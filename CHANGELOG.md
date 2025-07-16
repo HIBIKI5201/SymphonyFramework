@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.23.14] - 2025-07-17
+### Update
+- ServiceLocator
+
 ## [1.23.13] - 2025-07-16
 ### Fix
 - ServiceLocator
