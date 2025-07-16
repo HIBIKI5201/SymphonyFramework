@@ -25,11 +25,13 @@ namespace SymphonyFrameWork.Utility
         private void Awake()
         {
             _targetType = _target.GetType();
+            Debug.Assert(_targetType != null, "Target type is null. Please assign a valid component to the target field.");
         }
         private void OnEnable()
         {
             if (!_autoSet) return;
-            
+            if (_target == null) return;
+
             if (_target)
             {
                 //Targetのクラスをキャストして実行する
@@ -46,7 +48,8 @@ namespace SymphonyFrameWork.Utility
         private void OnDisable()
         {
             if (!_autoDestroy) return;
-            
+            if (_target == null) return;
+
             if (_target != null)
             {
                 //ロケーターに登録されているか確認する
