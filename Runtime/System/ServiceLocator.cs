@@ -136,11 +136,19 @@ namespace SymphonyFrameWork.System
                 {
                     component.transform.SetParent(null);
                 }
+
+#if UNITY_EDITOR
+                //ログを出力
+                if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
+                    EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
+                    Debug.Log($"{typeof(T).Name}が登録解除されました。");
+#endif
+
                 return true;
             }
             else
             {
-                Debug.LogWarning($"{typeof(T).Name}は登録されていません");
+                Debug.LogWarning($"{typeof(T).Name}は登録されていません。");
                 return false;
             }
         }
