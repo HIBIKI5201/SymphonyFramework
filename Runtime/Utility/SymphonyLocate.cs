@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SymphonyFrameWork.System;
+using System;
 using System.Reflection;
-using SymphonyFrameWork.System;
 using UnityEngine;
 
 namespace SymphonyFrameWork.Utility
@@ -11,14 +11,15 @@ namespace SymphonyFrameWork.Utility
     [HelpURL("https://www.notion.so/SymphonyLocate-19d7c2c6cc02809ea815c3a750fa95ca?pvs=4")]
     public class SymphonyLocate : MonoBehaviour
     {
-        [SerializeField] [Tooltip("ロケートするコンポーネント")]
+        [SerializeField]
+        [Tooltip("ロケートするコンポーネント")]
         private Component _target;
 
         [SerializeField]
         private ServiceLocator.LocateType _locateType = ServiceLocator.LocateType.Locator;
-        
-        [SerializeField] private bool _autoSet = true;
-        [SerializeField] private bool _autoDestroy = true;
+
+        [SerializeField] private bool _autoRegister = true;
+        [SerializeField] private bool _autoUnregister = true;
 
         private Type _targetType;
 
@@ -29,13 +30,13 @@ namespace SymphonyFrameWork.Utility
         }
         private void OnEnable()
         {
-            if (!_autoSet) return;
+            if (!_autoRegister) return;
             if (_target == null) return;
 
             if (_target)
             {
                 //Targetのクラスをキャストして実行する
-                
+
                 var method = typeof(ServiceLocator)
                     .GetMethod(nameof(ServiceLocator.RegisterInstance))
                     ?.MakeGenericMethod(_targetType);
@@ -47,7 +48,7 @@ namespace SymphonyFrameWork.Utility
 
         private void OnDisable()
         {
-            if (!_autoDestroy) return;
+            if (!_autoUnregister) return;
             if (_target == null) return;
 
             if (_target != null)
@@ -58,10 +59,10 @@ namespace SymphonyFrameWork.Utility
                         BindingFlags.Public | BindingFlags.Static,
                         null, Type.EmptyTypes, null)
                     ?.MakeGenericMethod(_targetType);
-                
+
                 var instance = getMethod?.Invoke(null, null);
                 if (instance == null) return; //登録されていなければ終了
-                
+
                 //ServiceLocator.DestroyInstanceを取得する
                 var destroyMethod = typeof(ServiceLocator)
                     .GetMethod(nameof(ServiceLocator.UnregisterInstance),
