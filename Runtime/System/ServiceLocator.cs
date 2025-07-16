@@ -50,7 +50,7 @@ namespace SymphonyFrameWork.System
         /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
         /// <param name="instance">登録するインスタンス。</param>
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
-        public static void RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
+        public static bool RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
         {
             // 既に同じ型のインスタンスが登録されている場合は、新しいインスタンスを登録せずに処理を中断します。
             // 登録しようとしたインスタンスがComponentだった場合は、そのGameObjectを破棄します。
@@ -61,7 +61,7 @@ namespace SymphonyFrameWork.System
                     Object.Destroy(component.gameObject);
                     Debug.Log($"{typeof(T).Name}は既に登録されています。新しいインスタンスは破棄されました。");
                 }
-                return;
+                return false;
             }
 
 #if UNITY_EDITOR
@@ -99,9 +99,17 @@ namespace SymphonyFrameWork.System
             {
                 componentInstance.transform.SetParent(Instance.transform);
             }
+
+            return true;
         }
 
-        public static void UnregisterInstance<T>(T instance) where T : class
+        /// <summary>
+        ///     指定したインスタンスをロケーターから登録解除します。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        public static bool UnregisterInstance<T>(T instance) where T : class
         {
             // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
             if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md) && md == instance)
@@ -115,10 +123,12 @@ namespace SymphonyFrameWork.System
                 {
                     component.transform.SetParent(null);
                 }
+                return true;
             }
             else
             {
                 Debug.LogWarning($"{typeof(T).Name}は登録されていません");
+                return false;
             }
         }
 
@@ -127,27 +137,20 @@ namespace SymphonyFrameWork.System
         /// </summary>
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
         /// <param name="instance">破棄の対象となるインスタンス。</param>
-        public static void DestroyInstance<T>(T instance) where T : class
+        public static bool DestroyInstance<T>(T instance) where T : class
         {
-            if (instance == null) return;
+            if (instance == null) return false;
 
-            // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
-            if (_data.Value.SingletonObjects
-                .TryGetValue(typeof(T), out var md) && md == instance)
-            {
-                DestroyInstance<T>();
-            }
-            else
-            {
-                Debug.LogWarning($"{typeof(T).Name}は登録されていません");
-            }
+            DestroyInstance<T>();
+
+            return true;
         }
 
         /// <summary>
         ///     指定した型のインスタンスを破棄します。
         /// </summary>
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
-        public static void DestroyInstance<T>() where T : class
+        public static bool DestroyInstance<T>() where T : class
         {
             if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md))
             {
@@ -168,11 +171,12 @@ namespace SymphonyFrameWork.System
                     EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
                     Debug.Log($"{typeof(T).Name}が破棄されました");
 #endif
-
+                return true;
             }
             else
             {
                 Debug.LogWarning($"{typeof(T).Name}は登録されていません");
+                return false;
             }
         }
 
@@ -228,6 +232,52 @@ namespace SymphonyFrameWork.System
         }
 
         /// <summary>
+        ///     指定した型のインスタンスが登録されているかどうかを確認し、登録されていればそのインスタンスを返します。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static bool TryGetInstance<T>(out T result) where T : class
+        {
+            result = GetInstance<T>();
+
+            if (result != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     指定した型のインスタンスが登録されるまで非同期で待機し、取得します。
+        /// </summary>
+        /// <typeparam name="T">取得したいインスタンスの型。</typeparam>
+        /// <param name="grace">最大待機時間（秒）。この時間を超えるとnullを返します。</param>
+        /// <param name="token">キャンセルトークン。</param>
+        /// <returns>指定した型のインスタンス。見つからない場合はnull。</returns>
+        public static async Task<T> GetInstanceAsync<T>(byte grace = 120, CancellationToken token = default) where T : class
+        {
+            float time = Time.time;
+
+            // 指定された時間が経過するまで、またはインスタンスが取得できるまでループします。
+            while (grace + time > Time.time)
+            {
+                T result = GetInstance<T>();
+
+                if (result != null)
+                {
+                    return result;
+                }
+
+                // 次のフレームまで待機します。
+                await Awaitable.NextFrameAsync(token);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         ///     指定した型のオブジェクトが登録された時に、指定したアクションを実行します。
         ///     既に登録済みの場合は即座に実行されます。
         /// </summary>
@@ -273,34 +323,6 @@ namespace SymphonyFrameWork.System
             {
                 _data.Value.WaitingActionsWithInstance[typeof(T)] = action;
             }
-        }
-
-        /// <summary>
-        ///     指定した型のインスタンスが登録されるまで非同期で待機し、取得します。
-        /// </summary>
-        /// <typeparam name="T">取得したいインスタンスの型。</typeparam>
-        /// <param name="grace">最大待機時間（秒）。この時間を超えるとnullを返します。</param>
-        /// <param name="token">キャンセルトークン。</param>
-        /// <returns>指定した型のインスタンス。見つからない場合はnull。</returns>
-        public static async Task<T> GetInstanceAsync<T>(byte grace = 120, CancellationToken token = default) where T : class
-        {
-            float time = Time.time;
-
-            // 指定された時間が経過するまで、またはインスタンスが取得できるまでループします。
-            while (grace + time > Time.time)
-            {
-                T result = GetInstance<T>();
-
-                if (result != null)
-                {
-                    return result;
-                }
-
-                // 次のフレームまで待機します。
-                await Awaitable.NextFrameAsync(token);
-            }
-
-            return null;
         }
 
         /// <summary>
