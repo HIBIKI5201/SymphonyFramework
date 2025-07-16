@@ -111,13 +111,26 @@ namespace SymphonyFrameWork.System
         /// <returns></returns>
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
+            if (instance == null) return false;
+
+            UnregisterInstance<T>();
+            return true;
+        }
+
+        /// <summary>
+        ///     指定した型のインスタンスをロケーターから登録解除します。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static bool UnregisterInstance<T>() where T : class
+        {
             // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
-            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md) && md == instance)
+            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md))
             {
                 _data.Value.SingletonObjects.Remove(typeof(T));
 
                 // インスタンスがComponentで親がServiceLocatorなら、親子関係を解除します。
-                if (instance is Component component
+                if (md is Component component
                     && component != null && !component.Equals(null) //nullチェックを行う
                     && component.transform.parent == _data.Value.Instance.transform) //親がロケーターのインスタンスか
                 {
