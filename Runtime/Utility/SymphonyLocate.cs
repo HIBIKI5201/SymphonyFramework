@@ -19,6 +19,13 @@ namespace SymphonyFrameWork.Utility
         
         [SerializeField] private bool _autoSet = true;
         [SerializeField] private bool _autoDestroy = true;
+
+        private Type _targetType;
+
+        private void Awake()
+        {
+            _targetType = _target.GetType();
+        }
         private void OnEnable()
         {
             if (!_autoSet) return;
@@ -26,10 +33,10 @@ namespace SymphonyFrameWork.Utility
             if (_target)
             {
                 //Targetのクラスをキャストして実行する
-                var targetType = _target.GetType();
+                
                 var method = typeof(ServiceLocator)
                     .GetMethod(nameof(ServiceLocator.RegisterInstance))
-                    ?.MakeGenericMethod(targetType);
+                    ?.MakeGenericMethod(_targetType);
 
                 method?.Invoke(null, new object[]
                     { _target, _locateType });
@@ -42,14 +49,12 @@ namespace SymphonyFrameWork.Utility
             
             if (_target != null)
             {
-                var targetType = _target.GetType();
-
                 //ロケーターに登録されているか確認する
                 var getMethod = typeof(ServiceLocator)
                     .GetMethod(nameof(ServiceLocator.GetInstance),
                         BindingFlags.Public | BindingFlags.Static,
                         null, Type.EmptyTypes, null)
-                    ?.MakeGenericMethod(targetType);
+                    ?.MakeGenericMethod(_targetType);
                 
                 var instance = getMethod?.Invoke(null, null);
                 if (instance == null) return; //登録されていなければ終了
@@ -59,7 +64,7 @@ namespace SymphonyFrameWork.Utility
                     .GetMethod(nameof(ServiceLocator.UnregisterInstance),
                         BindingFlags.Public | BindingFlags.Static,
                         null, Type.EmptyTypes, null)
-                    ?.MakeGenericMethod(targetType);
+                    ?.MakeGenericMethod(_targetType);
 
                 destroyMethod?.Invoke(null, null);
             }
