@@ -1,12 +1,12 @@
 {
-  "name": "symphony.framework",
+  "name": "symphonyframework",
   "version": "1.23.13",
   "displayName": "Symphony Framework",
   "description": "This is Symphony Framework",
   "unity": "6000.0",
   "author": {
-    "name": "HIBIKI_5201",
     "email": "takuto5201@gmail.com",
+    "name": "HIBIKI_5201",
     "url": "https://pastoral-hovercraft-db7.notion.site/1544374a1f768079bac2f25b6a716cba?pvs=4"
   },
   "dependencies": {
