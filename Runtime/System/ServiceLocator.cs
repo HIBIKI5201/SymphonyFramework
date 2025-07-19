@@ -111,23 +111,45 @@ namespace SymphonyFrameWork.System
         /// <returns></returns>
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
+            if (instance == null) return false;
+
+            UnregisterInstance<T>();
+            return true;
+        }
+
+        /// <summary>
+        ///     指定した型のインスタンスをロケーターから登録解除します。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static bool UnregisterInstance<T>() where T : class
+        {
             // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
-            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md) && md == instance)
+            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md))
             {
                 _data.Value.SingletonObjects.Remove(typeof(T));
 
                 // インスタンスがComponentで親がServiceLocatorなら、親子関係を解除します。
-                if (instance is Component component
+                if (_data.Value.IsValid() //ServiceLocatorのインスタンスが有効かどうか
+                    && md is Component component
                     && component != null && !component.Equals(null) //nullチェックを行う
                     && component.transform.parent == _data.Value.Instance.transform) //親がロケーターのインスタンスか
                 {
                     component.transform.SetParent(null);
                 }
+
+#if UNITY_EDITOR
+                //ログを出力
+                if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
+                    EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
+                    Debug.Log($"{typeof(T).Name}が登録解除されました。");
+#endif
+
                 return true;
             }
             else
             {
-                Debug.LogWarning($"{typeof(T).Name}は登録されていません");
+                Debug.LogWarning($"{typeof(T).Name}は登録されていません。");
                 return false;
             }
         }
@@ -366,6 +388,9 @@ namespace SymphonyFrameWork.System
             private readonly Dictionary<Type, Action> _waitingActions = new();
             [Tooltip("インスタンス登録まで待機し、登録されたインスタンスを引数として受け取るコールバックアクションを保持する辞書")]
             private readonly Dictionary<Type, Delegate> _waitingActionsWithInstance = new();
+
+            public bool IsValid() =>
+                Instance != null && Instance.activeInHierarchy && Instance.scene.isLoaded;
         }
 
         /// <summary>
