@@ -130,7 +130,8 @@ namespace SymphonyFrameWork.System
                 _data.Value.SingletonObjects.Remove(typeof(T));
 
                 // インスタンスがComponentで親がServiceLocatorなら、親子関係を解除します。
-                if (md is Component component
+                if (IsValidData() //ServiceLocatorのインスタンスが有効かどうか
+                    && md is Component component
                     && component != null && !component.Equals(null) //nullチェックを行う
                     && component.transform.parent == _data.Value.Instance.transform) //親がロケーターのインスタンスか
                 {
@@ -387,6 +388,9 @@ namespace SymphonyFrameWork.System
             private readonly Dictionary<Type, Action> _waitingActions = new();
             [Tooltip("インスタンス登録まで待機し、登録されたインスタンスを引数として受け取るコールバックアクションを保持する辞書")]
             private readonly Dictionary<Type, Delegate> _waitingActionsWithInstance = new();
+
+            public bool IsValid() =>
+                Instance != null && Instance.activeInHierarchy && Instance.scene.isLoaded;
         }
 
         /// <summary>
@@ -399,6 +403,11 @@ namespace SymphonyFrameWork.System
             ServiceLocatorData data = instance.AddComponent<ServiceLocatorData>();
             SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
             return data;
+        }
+
+        private static bool IsValidData()
+        {
+            return _data.IsValueCreated && _data.Value != null && _data.Value.IsValid();
         }
     }
 }
