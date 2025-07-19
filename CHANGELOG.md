@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.23.17] - 2025-07-19
+### Fix
+- ServiceLocator
+
 ## [1.23.16] - 2025-07-17
 ### Fix
 - SymphonyLocate
