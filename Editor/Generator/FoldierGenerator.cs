@@ -40,12 +40,12 @@ namespace SymphonyFrameWork.Editor
                 if (!AssetDatabase.IsValidFolder(path))
                 {
                     FolderCreate(path);
-                    SymphonyDebugLog.AddText($"フォルダ作成: {path}");
+                    SymphonyDebugLogger.AddText($"フォルダ作成: {path}");
                 }
             }
             AssetDatabase.Refresh();
 
-            SymphonyDebugLog.TextLog();
+            SymphonyDebugLogger.TextLog();
             EditorUtility.DisplayDialog("フォルダを生成", "フォルダを生成しました", "OK");
         }
 

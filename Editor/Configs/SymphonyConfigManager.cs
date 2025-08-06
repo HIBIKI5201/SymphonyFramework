@@ -60,7 +60,7 @@ namespace SymphonyFrameWork.Editor
             // アセットを保存
             AssetDatabase.SaveAssets();
 
-            SymphonyDebugLog.DirectLog($"'{path}' に新しい {typeof(T).Name} を作成しました。");
+            SymphonyDebugLogger.DirectLog($"'{path}' に新しい {typeof(T).Name} を作成しました。");
         }
 
         /// <summary>

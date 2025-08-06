@@ -41,7 +41,7 @@ namespace SymphonyFrameWork.Utility
 
                 if (result == null)
                 {
-                    SymphonyDebugLog.DirectLog($"{typeof(T).Name}型は{nameof(Tweening)}に対応していません");
+                    SymphonyDebugLogger.DirectLog($"{typeof(T).Name}型は{nameof(Tweening)}に対応していません");
                     return;
                 }
 
@@ -91,7 +91,7 @@ namespace SymphonyFrameWork.Utility
 
                 if (result == null)
                 {
-                    SymphonyDebugLog.DirectLog($"{typeof(T).Name}型は{nameof(Tweening)}に対応していません");
+                    SymphonyDebugLogger.DirectLog($"{typeof(T).Name}型は{nameof(Tweening)}に対応していません");
                     return;
                 }
 
@@ -129,7 +129,7 @@ namespace SymphonyFrameWork.Utility
 
                 if (result == null)
                 {
-                    SymphonyDebugLog.DirectLog($"{typeof(T).Name}型は{nameof(TweeningLerp)}に対応していません");
+                    SymphonyDebugLogger.DirectLog($"{typeof(T).Name}型は{nameof(TweeningLerp)}に対応していません");
                     return;
                 }
 
@@ -194,7 +194,7 @@ namespace SymphonyFrameWork.Utility
 
                 if (result == null)
                 {
-                    SymphonyDebugLog.DirectLog($"{typeof(T).Name}型は{nameof(TweeningCurve)}に対応していません");
+                    SymphonyDebugLogger.DirectLog($"{typeof(T).Name}型は{nameof(TweeningCurve)}に対応していません");
                     return;
                 }
 
