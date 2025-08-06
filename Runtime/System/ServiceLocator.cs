@@ -213,7 +213,7 @@ namespace SymphonyFrameWork.System
             //ログを出力
             if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorGetInstanceKey,
                 EditorSymphonyConstant.ServiceLocatorGetInstanceDefault))
-                SymphonyDebugLog.AddText($"ServiceLocator\n{typeof(T).Name}の取得がリクエストされました。");
+                SymphonyDebugLogger.AddText($"ServiceLocator\n{typeof(T).Name}の取得がリクエストされました。");
 #endif
 
             if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md))
@@ -222,7 +222,7 @@ namespace SymphonyFrameWork.System
                 // Componentの場合はその状態をチェックします。
                 if (md is Component component && !component)
                 {
-                    OutputLog($"{typeof(T).Name} は破棄されています。", SymphonyDebugLog.LogKind.Warning);
+                    OutputLog($"{typeof(T).Name} は破棄されています。", SymphonyDebugLogger.LogKind.Warning);
                     return null;
                 }
 
@@ -233,21 +233,21 @@ namespace SymphonyFrameWork.System
                     return (T)md;
                 }
 
-                OutputLog($"{typeof(T).Name} は破棄されています。", SymphonyDebugLog.LogKind.Warning);
+                OutputLog($"{typeof(T).Name} は破棄されています。", SymphonyDebugLogger.LogKind.Warning);
                 return null;
             }
 
-            OutputLog($"{typeof(T).Name} は登録されていません。", SymphonyDebugLog.LogKind.Warning);
+            OutputLog($"{typeof(T).Name} は登録されていません。", SymphonyDebugLogger.LogKind.Warning);
             return null;
 
-            void OutputLog(string text, SymphonyDebugLog.LogKind kind = SymphonyDebugLog.LogKind.Normal)
+            void OutputLog(string text, SymphonyDebugLogger.LogKind kind = SymphonyDebugLogger.LogKind.Normal)
             {
 #if UNITY_EDITOR
                 if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorGetInstanceKey,
                     EditorSymphonyConstant.ServiceLocatorGetInstanceDefault))
                 {
-                    SymphonyDebugLog.AddText(text);
-                    SymphonyDebugLog.TextLog(kind);
+                    SymphonyDebugLogger.AddText(text);
+                    SymphonyDebugLogger.TextLog(kind);
                 }
 #endif
             }

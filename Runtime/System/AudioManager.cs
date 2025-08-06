@@ -71,7 +71,7 @@ namespace SymphonyFrameWork.System
                 return;
             }
 
-            SymphonyDebugLog.AddText("Audio Managerを初期化しました。");
+            SymphonyDebugLogger.AddText("Audio Managerを初期化しました。");
 
             foreach (string name in _config.AudioGroupSettingList.Select(s => s.AudioGroupName))
                 
@@ -106,11 +106,11 @@ namespace SymphonyFrameWork.System
                         mixer.GetFloat(data.ExposedParameterName, out var value))
                     {
                         volume = value;
-                        SymphonyDebugLog.AddText($"{name}は正常に追加されました。volume : {volume}");
+                        SymphonyDebugLogger.AddText($"{name}は正常に追加されました。volume : {volume}");
                     }
                     else
                     {
-                        SymphonyDebugLog.AddText($"{name}のVolumeParameterが見つかりませんでした");
+                        SymphonyDebugLogger.AddText($"{name}のVolumeParameterが見つかりませんでした");
                     }
 
                     //各情報を追加
@@ -118,11 +118,11 @@ namespace SymphonyFrameWork.System
                 }
                 else
                 {
-                    SymphonyDebugLog.AddText($"{name} is not a valid AudioMixerGroup.");
+                    SymphonyDebugLogger.AddText($"{name} is not a valid AudioMixerGroup.");
                 }
             }
 
-            SymphonyDebugLog.TextLog();
+            SymphonyDebugLogger.TextLog();
         }
 
         /// <summary>
