@@ -8,8 +8,7 @@ namespace SymphonyFrameWork.Debugger
     /// <summary>
     ///     UnityEditor上のみのログを発行する
     /// </summary>
-    [Obsolete("Use SymphonyDebugLog instead. This class will be removed in the future. Please Use SymphonyDebugLogger")]
-    public static class SymphonyDebugLog
+    public static class SymphonyDebugLogger
     {
 #if UNITY_EDITOR
         private static string _logText = string.Empty;
