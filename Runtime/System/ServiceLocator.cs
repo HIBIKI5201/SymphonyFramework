@@ -280,14 +280,17 @@ namespace SymphonyFrameWork.System
         /// <returns>指定した型のインスタンス。見つからない場合はnull。</returns>
         public static Task<T> GetInstanceAsync<T>(byte grace = 120, CancellationToken token = default) where T : class
         {
+            // 既に登録されている場合は即座に返します。
             if (TryGetInstance<T>(out var instance))
                 return Task.FromResult(instance);
 
-            var tcs = new TaskCompletionSource<T>();
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            // 登録されるまで待機します。
+            TaskCompletionSource<T> tcs = new();
+            CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(token);
             cts.Token.Register(() => tcs.TrySetCanceled());
             cts.CancelAfter(grace * 1000);
 
+            // インスタンスが登録されたらタスクを完了させるアクションを登録します。
             RegisterAfterLocate<T>(t => tcs.TrySetResult(t));
             return tcs.Task;
         }
