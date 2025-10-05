@@ -23,7 +23,7 @@ namespace SymphonyFrameWork.System
             if (go) SceneManager.MoveGameObjectToScene(go, _systemScene.Value);
         }
 
-        public static T CreateSystemObject<T>() where T : Component
+        internal static T CreateSystemObject<T>() where T : Component
         {
             var go = new GameObject(typeof(T).Name);
             T component = go.AddComponent<T>();
