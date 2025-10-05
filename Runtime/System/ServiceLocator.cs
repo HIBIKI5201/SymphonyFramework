@@ -399,10 +399,7 @@ namespace SymphonyFrameWork.System
         /// <returns>初期化済みのServiceLocatorDataインスタンス。</returns>
         private static ServiceLocatorData CreateData()
         {
-            var instance = new GameObject(nameof(ServiceLocator));
-            ServiceLocatorData data = instance.AddComponent<ServiceLocatorData>();
-            SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
-            return data;
+            return SymphonyCoreSystem.CreateSystemObject<ServiceLocatorData>();
         }
 
         private static bool IsValidData()
