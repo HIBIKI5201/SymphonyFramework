@@ -1,6 +1,5 @@
 ﻿using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Debugger;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -46,7 +45,7 @@ namespace SymphonyFrameWork.System
         {
             if (_instance is not null) return;
 
-            var instance = new GameObject("AudioManager");
+            var instance = new GameObject(nameof(AudioManager));
 
             SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
             _instance = instance;
@@ -74,8 +73,8 @@ namespace SymphonyFrameWork.System
             SymphonyDebugLogger.AddText("Audio Managerを初期化しました。");
 
             foreach (string name in _config.AudioGroupSettingList.Select(s => s.AudioGroupName))
-                
-                
+
+
             {
                 if (string.IsNullOrEmpty(name))
                 {
