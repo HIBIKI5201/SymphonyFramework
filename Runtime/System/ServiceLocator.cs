@@ -278,25 +278,21 @@ namespace SymphonyFrameWork.System
         /// <param name="grace">最大待機時間（秒）。この時間を超えるとnullを返します。</param>
         /// <param name="token">キャンセルトークン。</param>
         /// <returns>指定した型のインスタンス。見つからない場合はnull。</returns>
-        public static async Task<T> GetInstanceAsync<T>(byte grace = 120, CancellationToken token = default) where T : class
+        public static Task<T> GetInstanceAsync<T>(byte grace = 120, CancellationToken token = default) where T : class
         {
-            float time = Time.time;
+            // 既に登録されている場合は即座に返します。
+            if (TryGetInstance<T>(out var instance))
+                return Task.FromResult(instance);
 
-            // 指定された時間が経過するまで、またはインスタンスが取得できるまでループします。
-            while (grace + time > Time.time)
-            {
-                T result = GetInstance<T>();
+            // 登録されるまで待機します。
+            TaskCompletionSource<T> tcs = new();
+            CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            cts.Token.Register(() => tcs.TrySetCanceled());
+            cts.CancelAfter(grace * 1000);
 
-                if (result != null)
-                {
-                    return result;
-                }
-
-                // 次のフレームまで待機します。
-                await Awaitable.NextFrameAsync(token);
-            }
-
-            return null;
+            // インスタンスが登録されたらタスクを完了させるアクションを登録します。
+            RegisterAfterLocate<T>(t => tcs.TrySetResult(t));
+            return tcs.Task;
         }
 
         /// <summary>
@@ -399,10 +395,7 @@ namespace SymphonyFrameWork.System
         /// <returns>初期化済みのServiceLocatorDataインスタンス。</returns>
         private static ServiceLocatorData CreateData()
         {
-            var instance = new GameObject(nameof(ServiceLocator));
-            ServiceLocatorData data = instance.AddComponent<ServiceLocatorData>();
-            SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
-            return data;
+            return SymphonyCoreSystem.CreateSystemObject<ServiceLocatorData>();
         }
 
         private static bool IsValidData()
