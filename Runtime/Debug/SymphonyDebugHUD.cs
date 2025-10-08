@@ -1,8 +1,5 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.System;
+﻿using SymphonyFrameWork.System;
 using System;
-using System.Text;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -11,115 +8,88 @@ namespace SymphonyFrameWork.Debugger
     /// <summary>
     ///     画面上にデバッグ用のHUDを表示するクラス
     /// </summary>
-    [DefaultExecutionOrder(1000)]
     public class SymphonyDebugHUD : MonoBehaviour
     {
         /// <summary>
-        ///     HUDを表示する。
-        /// </summary>
-        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Show))]
-        public static void Show()
-        {
-            _ = _debugHUD.Value; // アクセスしてインスタンスを作成。
-        }
-
-        /// <summary>
-        ///     HUDを非表示にする。
-        /// </summary>
-        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Hide))]
-        public static void Hide()
-        {
-            if (_debugHUD.IsValueCreated) // 既にインスタンスが作成されている場合のみ。
-            {
-                // インスタンスを破棄して非表示にする。
-                Destroy(_debugHUD.Value.gameObject);
-                _debugHUD = new Lazy<SymphonyDebugHUD>(CreateDebugHUD);
-            }
-        }
-
-        /// <summary>
-        ///     SymphonyDebugHUDに追加のテキストを追加する。
+        ///     SymphonyDebugHUDに追加のテキストを追加する
         /// </summary>
         /// <param name="text"></param>
-        public static void AddText(string text, Color color = default)
+        public static void AddText(string text)
         {
-            if (!_debugHUD.IsValueCreated) return; // インスタンスが作成されていない場合は何もしない。
+            _debugHUD.Value.AddText(text);
+        }
 
-            if (color != default) //カラーを指定する
+        private class SymphonyDebugHUDRenderer : MonoBehaviour
+        {
+            public void AddText(string text) => _extraText += text + "\n";
+
+            private float deltaTime = 0.0f;
+            private string _extraText = string.Empty;
+            private string _textToDisplay = string.Empty;
+
+            private void Update()
             {
-                string colorHex = ColorUtility.ToHtmlStringRGB(color);
-                text = $"<color=#{colorHex}>{text}</color>";
+                deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f; // デルタタイムの計算
+
+                _textToDisplay = GetProfilingText();
+
+                _textToDisplay += _extraText;
+                _extraText = string.Empty;
             }
 
-            _debugHUD.Value._extraText.AppendLine(text);
+            private void OnGUI()
+            {
+                int w = Screen.width, h = Screen.height;
+
+                Rect rect = new Rect(10, 10, w, h);
+
+                GUIStyle style = new GUIStyle();
+                style.alignment = TextAnchor.UpperLeft;
+                style.fontSize = h * 1 / 50;
+                style.normal.textColor = Color.white;
+
+                GUI.Label(rect, _textToDisplay, style);
+            }
+
+            private string GetProfilingText()
+            {
+                // OnGUIで使用する文字列をここで確定しておく
+                float msec = deltaTime * 1000.0f; // ミリ秒に変換
+                float fps = 1.0f / deltaTime; // FPSの計算
+
+                long monoMemory = Profiler.GetMonoUsedSizeLong(); // Monoの使用メモリ量を取得
+                long totalAllocated = Profiler.GetTotalAllocatedMemoryLong(); // 総アロケートメモリ量を取得
+                long totalReserved = Profiler.GetTotalReservedMemoryLong(); // 総リザーブメモリ量を取得
+
+                string text = string.Format(
+                    "FPS: {0:0.} ({1:0.0} ms)\n" +
+                    "Mono Memory: {2} MB\n" +
+                    "Total Allocated: {3} MB\n" +
+                    "Total Reserved: {4} MB\n",
+                    fps, msec,
+                    (monoMemory / (1024 * 1024)),
+                    (totalAllocated / (1024 * 1024)),
+                    (totalReserved / (1024 * 1024))
+                );
+
+                return text;
+            }
         }
 
         internal static void Initialize()
         {
-            _debugHUD = new Lazy<SymphonyDebugHUD>(CreateDebugHUD);
+            _debugHUD = new Lazy<SymphonyDebugHUDRenderer>(CreateDebugHUD);
         }
 
-        private static Lazy<SymphonyDebugHUD> _debugHUD;
+        private static Lazy<SymphonyDebugHUDRenderer> _debugHUD;
 
-        private static SymphonyDebugHUD CreateDebugHUD()
+        private static SymphonyDebugHUDRenderer CreateDebugHUD()
         {
-            return SymphonyCoreSystem.CreateSystemObject<SymphonyDebugHUD>();
-        }
-
-        private float _deltaTime = 0.0f;
-        private StringBuilder _extraText = new();
-        private StringBuilder _textToDisplay = null;
-
-        private Rect _rect;
-        private GUIStyle _style;
-
-        private void Awake()
-        {
-            int w = Screen.width, h = Screen.height;
-
-            Rect rect = new Rect(10, 10, w, h);
-
-            GUIStyle style = new GUIStyle();
-            style.alignment = TextAnchor.UpperLeft;
-            style.fontSize = h * 1 / 50;
-            style.normal.textColor = Color.white;
-
-            _rect = rect;
-            _style = style;
-        }
-
-        private void Update()
-        {
-            _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f; // デルタタイムの計算（タイムスケールに影響しない）
-
-            //基本テキストを取得。
-            _textToDisplay = new();
-            GetProfilingText(ref _textToDisplay);
-
-            // 追加テキストを追加。
-            _textToDisplay.AppendLine(_extraText.ToString());
-
-            _extraText = new();
-        }
-
-        private void GetProfilingText(ref StringBuilder text)
-        {
-            float msec = _deltaTime * 1000.0f; // ミリ秒に変換。
-            float fps = 1.0f / _deltaTime; // FPSの計算。
-
-            long monoMemory = Profiler.GetMonoUsedSizeLong(); // Monoの使用メモリ量を取得。
-            long totalAllocated = Profiler.GetTotalAllocatedMemoryLong(); // 総アロケートメモリ量を取得。
-            long totalReserved = Profiler.GetTotalReservedMemoryLong(); // 総リザーブメモリ量を取得。
-
-            text.AppendLine($"FPS: {fps:0.} ({msec:0.0} ms)");
-            text.AppendLine($"Mono Memory: {monoMemory / (1024 * 1024)} MB");
-            text.AppendLine($"Total Allocated: {totalAllocated / (1024 * 1024)} MB");
-            text.AppendLine($"Total Reserved: {totalReserved / (1024 * 1024)} MB");
-        }
-
-        private void OnGUI()
-        {
-            GUI.Label(_rect, _textToDisplay.ToString(), _style);
+            GameObject instance = new GameObject(nameof(SymphonyDebugHUD));
+            DontDestroyOnLoad(instance);
+            SymphonyDebugHUDRenderer debugHUD = instance.AddComponent<SymphonyDebugHUDRenderer>();
+            SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
+            return debugHUD;
         }
     }
 }
