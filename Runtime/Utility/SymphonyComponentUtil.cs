@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace SymphonyFrameWork
 {
@@ -12,7 +12,10 @@ namespace SymphonyFrameWork
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="gameObject"></param>
-        /// <returns></returns>
+        /// <summary>
+        /// Gets the component of type T from the GameObject, adding and returning a new one if none is present.
+        /// </summary>
+        /// <returns>The existing component of type T, or a newly added component if none was present.</returns>
         public static T GetOrAddComponent<T>(this GameObject gameObject) where T : Component
         {
             T component = gameObject.GetComponent<T>();
@@ -29,7 +32,12 @@ namespace SymphonyFrameWork
         /// <typeparam name="T"></typeparam>
         /// <param name="self"></param>
         /// <param name="includeInactive"></param>
-        /// <returns></returns>
+        /// <summary>
+        /// Finds a component of type <typeparamref name="T"/> in the descendants of this transform's immediate children, excluding the transform itself.
+        /// </summary>
+        /// <param name="self">The transform whose direct children will be searched (the transform itself is not inspected).</param>
+        /// <param name="includeInactive">If true, include inactive GameObjects in the search; otherwise ignore inactive GameObjects.</param>
+        /// <returns>The first matching component of type <typeparamref name="T"/> found in any descendant of a direct child, or <c>null</c> if none is found.</returns>
         public static T GetComponentInChildrenExcludeSelf<T>(this Transform self,
             bool includeInactive = false) 
             where T : Component
@@ -55,7 +63,11 @@ namespace SymphonyFrameWork
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="transform"></param>
-        /// <returns></returns>
+        /// <summary>
+        /// Searches upward from the specified transform through its parent hierarchy and returns the first component of type T found on a parent.
+        /// </summary>
+        /// <typeparam name="T">The component type to search for.</typeparam>
+        /// <returns>The first component of type T found on any parent transform, or null if none is found.</returns>
         public static T GetComponentInParents<T>(this Transform transform)
             where T : Component
         {
