@@ -1,6 +1,7 @@
 ﻿using SymphonyFrameWork.Core;
 using UnityEditor;
 using UnityEngine;
+using SymphonyFrameWork.Config;
 
 namespace SymphonyFrameWork.Editor
 {
@@ -11,6 +12,7 @@ namespace SymphonyFrameWork.Editor
         {
             DrawDefaultInspector();
 
+            // AudioGroupTypeEnumを再生成するボタン。
             if (GUILayout.Button($"{EditorSymphonyConstant.AudioGroupTypeEnumName}Enumを再生成"))
             {
                 AutoEnumGenerator.AudioEnumGenerate();

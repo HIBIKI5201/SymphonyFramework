@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.Serialization;
 
-namespace SymphonyFrameWork
+namespace SymphonyFrameWork.Config
 {
+    /// <summary>
+    ///     オーディオマネージャーの設定データを保持するクラス。
+    /// </summary>
     public class AudioManagerConfig : ScriptableObject
     {
         [SerializeField]
@@ -20,17 +21,18 @@ namespace SymphonyFrameWork
         [Serializable]
         public class AudioGroupSettings
         {
-            [SerializeField]
+            public string AudioGroupName => _audioGroupName;
+            public string ExposedVolumeParameterName => _exposedVolumeParameterName;
+            public bool IsLoop => _isLoop;
+
+            [SerializeField, Tooltip("オーディオグループの名前")]
             private string _audioGroupName = string.Empty;
-            public string AudioGroupName { get => _audioGroupName; }
 
-            [SerializeField]
-            private string _exposedParameterName = string.Empty;
-            public string ExposedParameterName { get => _exposedParameterName; }
+            [SerializeField, Tooltip("ボリュームのパラメータ名")]
+            private string _exposedVolumeParameterName = string.Empty;
 
-            [SerializeField]
+            [SerializeField, Tooltip("ループの有効化")]
             private bool _isLoop = false;
-            public bool IsLoop { get => _isLoop; }
         }
     }
 }
