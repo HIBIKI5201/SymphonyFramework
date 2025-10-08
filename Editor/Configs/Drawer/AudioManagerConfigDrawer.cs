@@ -8,6 +8,9 @@ namespace SymphonyFrameWork.Editor
     [CustomEditor(typeof(AudioManagerConfig))]
     public class AudioManagerConfigDrawer : UnityEditor.Editor
     {
+        /// <summary>
+        /// InspectorのGUIを上書きします。
+        /// </summary>
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
