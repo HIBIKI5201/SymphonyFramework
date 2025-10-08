@@ -11,7 +11,7 @@ namespace SymphonyFrameWork.Debugger
     /// <summary>
     ///     画面上にデバッグ用のHUDを表示するクラス
     /// </summary>
-    [DefaultExecutionOrder(1000)]
+    [DefaultExecutionOrder(1000)] // 他のシステムよりも後に実行されるようにする。
     public class SymphonyDebugHUD : MonoBehaviour
     {
         /// <summary>
@@ -67,8 +67,8 @@ namespace SymphonyFrameWork.Debugger
         }
 
         private float _deltaTime = 0.0f;
-        private StringBuilder _extraText = new();
-        private StringBuilder _textToDisplay = null;
+        private readonly StringBuilder _extraText = new();
+        private readonly StringBuilder _textToDisplay = new();
 
         private Rect _rect;
         private GUIStyle _style;
@@ -93,16 +93,16 @@ namespace SymphonyFrameWork.Debugger
             _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f; // デルタタイムの計算（タイムスケールに影響しない）
 
             //基本テキストを取得。
-            _textToDisplay = new();
-            GetProfilingText(ref _textToDisplay);
+            _textToDisplay.Clear();
+            GetProfilingText(_textToDisplay);
 
             // 追加テキストを追加。
             _textToDisplay.AppendLine(_extraText.ToString());
 
-            _extraText = new();
+            _extraText.Clear();
         }
 
-        private void GetProfilingText(ref StringBuilder text)
+        private void GetProfilingText(in StringBuilder text)
         {
             float msec = _deltaTime * 1000.0f; // ミリ秒に変換。
             float fps = 1.0f / _deltaTime; // FPSの計算。
