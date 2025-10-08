@@ -1,6 +1,5 @@
 ﻿using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Debugger;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -46,7 +45,7 @@ namespace SymphonyFrameWork.System
         {
             if (_instance is not null) return;
 
-            var instance = new GameObject("AudioManager");
+            var instance = new GameObject(nameof(AudioManager));
 
             SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
             _instance = instance;
@@ -74,15 +73,15 @@ namespace SymphonyFrameWork.System
             SymphonyDebugLogger.AddText("Audio Managerを初期化しました。");
 
             foreach (string name in _config.AudioGroupSettingList.Select(s => s.AudioGroupName))
-                
-                
+
+
             {
                 if (string.IsNullOrEmpty(name))
                 {
                     continue;
                 }
 
-                //Enum名からデータを取得
+                //グループ名からデータを取得
                 var data = _config.AudioGroupSettingList.Find(s => s.AudioGroupName == name);
 
                 if (data == null)
@@ -102,8 +101,8 @@ namespace SymphonyFrameWork.System
 
                     //初期のボリュームを取得
                     float? volume = null;
-                    if (!string.IsNullOrEmpty(data.ExposedParameterName) &&
-                        mixer.GetFloat(data.ExposedParameterName, out var value))
+                    if (!string.IsNullOrEmpty(data.ExposedVolumeParameterName) &&
+                        mixer.GetFloat(data.ExposedVolumeParameterName, out var value))
                     {
                         volume = value;
                         SymphonyDebugLogger.AddText($"{name}は正常に追加されました。volume : {volume}");
@@ -114,7 +113,7 @@ namespace SymphonyFrameWork.System
                     }
 
                     //各情報を追加
-                    _audioDict.Add(name, new AudioSettingData(group, source, data.ExposedParameterName, volume ?? 0));
+                    _audioDict.Add(name, new AudioSettingData(group, source, data.ExposedVolumeParameterName, volume ?? 0));
                 }
                 else
                 {
