@@ -11,26 +11,6 @@ namespace SymphonyFrameWork.System
     /// </summary>
     public static class SymphonyCoreSystem
     {
-        /// <summary>
-        ///     オブジェクトをSymphonySystemシーンに移動する
-        /// </summary>
-        /// <param name="go"></param>
-        public static async void MoveObjectToSymphonySystem(GameObject go)
-        {
-            //シーンが制作されているか、対象がnullになったら進む
-            await SymphonyTask.WaitUntil(() => _systemScene != null || go == null);
-
-            if (go) SceneManager.MoveGameObjectToScene(go, _systemScene.Value);
-        }
-
-        internal static T CreateSystemObject<T>() where T : Component
-        {
-            var go = new GameObject(typeof(T).Name);
-            T component = go.AddComponent<T>();
-            MoveObjectToSymphonySystem(go);
-            return component;
-        }
-
         private const string SYMPHONY_SCENE_NAME = "SymphonySystem";
 
         private static Scene? _systemScene;
@@ -52,6 +32,18 @@ namespace SymphonyFrameWork.System
             SymphonyDebugHUD.Initialize();
 
             GC.Collect();
+        }
+
+        /// <summary>
+        ///     オブジェクトをSymphonySystemシーンに移動する
+        /// </summary>
+        /// <param name="go"></param>
+        public static async void MoveObjectToSymphonySystem(GameObject go)
+        {
+            //シーンが制作されているか、対象がnullになったら進む
+            await SymphonyTask.WaitUntil(() => _systemScene != null || go == null);
+
+            if (go) SceneManager.MoveGameObjectToScene(go, _systemScene.Value);
         }
     }
 }
