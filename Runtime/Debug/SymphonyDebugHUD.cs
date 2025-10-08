@@ -14,13 +14,19 @@ namespace SymphonyFrameWork.Debugger
     [DefaultExecutionOrder(1000)]
     public class SymphonyDebugHUD : MonoBehaviour
     {
-        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + nameof(Show))]
+        /// <summary>
+        ///     HUDを表示する。
+        /// </summary>
+        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Show))]
         public static void Show()
         {
             _ = _debugHUD.Value; // アクセスしてインスタンスを作成。
         }
 
-        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + nameof(Hide))]
+        /// <summary>
+        ///     HUDを非表示にする。
+        /// </summary>
+        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Hide))]
         public static void Hide()
         {
             if (_debugHUD.IsValueCreated) // 既にインスタンスが作成されている場合のみ。
@@ -32,7 +38,7 @@ namespace SymphonyFrameWork.Debugger
         }
 
         /// <summary>
-        ///     SymphonyDebugHUDに追加のテキストを追加する
+        ///     SymphonyDebugHUDに追加のテキストを追加する。
         /// </summary>
         /// <param name="text"></param>
         public static void AddText(string text, Color color = default)
