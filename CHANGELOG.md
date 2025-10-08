@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.23.21] - 2025-10-08
+### Update
+- SymphonyDebugHUD
+
+## [1.23.20] - 2025-10-08
+### Update
+- ServiceLocator
+
+## [1.23.19] - 2025-10-08
+### Fix
+- ServiceLocator
+
 ## [1.23.18] - 2025-08-06
 ### Add
 - SymphonyDebugLogger
