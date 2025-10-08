@@ -61,16 +61,23 @@ namespace SymphonyFrameWork.System
                     Object.Destroy(component.gameObject);
                     Debug.Log($"{typeof(T).Name}は既に登録されています。新しいインスタンスは破棄されました。");
                 }
+
+                // IDisposableを実装していれば、Disposeメソッドを呼び出してリソースを解放します。
+                if (instance is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
                 return false;
             }
 
 #if UNITY_EDITOR
-            var instanceName = instance is Component c ? c.name : instance.GetType().Name;
-            //ログを出力
+
             if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorSetInstanceKey,
                 EditorSymphonyConstant.ServiceLocatorSetInstanceDefault))
-                Debug.Log($"{typeof(T).Name}クラスの{instanceName}が" +
-                    $"{type switch { LocateType.Locator => "ロケート", LocateType.Singleton => "シングルトン", _ => string.Empty }}登録されました");
+            {
+                string instanceName = instance is Component c ? c.name : instance.GetType().Name;
+                Debug.Log($"{typeof(T).Name}クラスの{instanceName}が{type switch { LocateType.Locator => "ロケート", LocateType.Singleton => "シングルトン", _ => string.Empty }}登録されました");
+            }
 #endif
 
             #region 待機中のイベントを発火
@@ -181,8 +188,9 @@ namespace SymphonyFrameWork.System
                 {
                     Object.Destroy(component.gameObject);
                 }
+
                 // IDisposableを実装していれば、Disposeメソッドを呼び出してリソースを解放します。
-                else if (md is IDisposable disposable)
+                if (md is IDisposable disposable)
                 {
                     disposable.Dispose();
                 }
@@ -278,7 +286,9 @@ namespace SymphonyFrameWork.System
         /// <param name="grace">最大待機時間（秒）。この時間を超えるとnullを返します。</param>
         /// <param name="token">キャンセルトークン。</param>
         /// <returns>指定した型のインスタンス。見つからない場合はnull。</returns>
-        public static Task<T> GetInstanceAsync<T>(byte grace = 120, CancellationToken token = default) where T : class
+        public static Task<T> GetInstanceAsync<T>(
+            byte grace = 120,
+            CancellationToken token = default) where T : class
         {
             // 既に登録されている場合は即座に返します。
             if (TryGetInstance<T>(out var instance))
@@ -293,6 +303,24 @@ namespace SymphonyFrameWork.System
             // インスタンスが登録されたらタスクを完了させるアクションを登録します。
             RegisterAfterLocate<T>(t => tcs.TrySetResult(t));
             return tcs.Task;
+        }
+
+        public static async Task<(bool success, T result)> TryGetInstanceAsync<T>(
+            byte grace = 120,
+            CancellationToken token = default)
+            where T : class
+        {
+            try
+            {
+                // 指定した型のインスタンスが登録されるまで待機し、取得します。
+                T result = await GetInstanceAsync<T>(grace, token);
+                return (result != null, result);
+            }
+            catch
+            {
+                // 例外をキャッチして失敗を返す
+                return (false, null);
+            }
         }
 
         /// <summary>
@@ -326,14 +354,14 @@ namespace SymphonyFrameWork.System
         public static void RegisterAfterLocate<T>(Action<T> action) where T : class
         {
             // 既にインスタンスが登録済みであれば、そのインスタンスを引数にして即座にアクションを実行します。
-            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var instance))
+            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out object instance))
             {
                 action?.Invoke((T)instance);
                 return;
             }
 
             // まだ登録されていなければ、待機リストに追加します。
-            if (_data.Value.WaitingActionsWithInstance.TryGetValue(typeof(T), out var existing))
+            if (_data.Value.WaitingActionsWithInstance.TryGetValue(typeof(T), out Delegate existing))
             {
                 _data.Value.WaitingActionsWithInstance[typeof(T)] = Delegate.Combine(existing, action);
             }
@@ -398,6 +426,10 @@ namespace SymphonyFrameWork.System
             return SymphonyCoreSystem.CreateSystemObject<ServiceLocatorData>();
         }
 
+        /// <summary>
+        ///     データが有効かどうかを確認します。
+        /// </summary>
+        /// <returns></returns>
         private static bool IsValidData()
         {
             return _data.IsValueCreated && _data.Value != null && _data.Value.IsValid();
