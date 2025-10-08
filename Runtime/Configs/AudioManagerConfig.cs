@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.Serialization;
 
 namespace SymphonyFrameWork
 {
@@ -11,7 +9,7 @@ namespace SymphonyFrameWork
     {
         public AudioMixer AudioMixer => _audioMixer;
         public List<AudioGroupSettings> AudioGroupSettingList => _audioGroupSettingList;
-        
+
         [SerializeField]
         private AudioMixer _audioMixer;
 
