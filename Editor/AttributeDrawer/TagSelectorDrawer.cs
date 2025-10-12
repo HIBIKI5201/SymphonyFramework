@@ -10,20 +10,19 @@ namespace SymphonyFrameWork.Editor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            // string型のみ対応
+            // string型のみ対応。
             if (property.propertyType == SerializedPropertyType.String)
             {
-                // Unityの全タグを取得
                 string[] tags = UnityEditorInternal.InternalEditorUtility.tags;
 
-                // 現在の値のインデックスを探す
+                // 現在の値のインデックスを探す。
                 int index = Array.IndexOf(tags, property.stringValue);
-                if (index < 0) index = 0;
+                if (index < 0) index = 0; // 見つからない場合は最初のタグを選択。
 
-                // プルダウンを表示
+                // プルダウンを表示。
                 int selectedIndex = EditorGUI.Popup(position, label.text, index, tags);
 
-                // 選択されたタグを文字列として保存
+                // 選択されたタグを文字列として保存。
                 property.stringValue = tags[selectedIndex];
             }
             else
