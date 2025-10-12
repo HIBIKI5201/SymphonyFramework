@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace SymphonyFrameWork.Attribute
+﻿namespace SymphonyFrameWork.Attribute
 {
     /// <summary>
     ///     String変数をタグのリストから選択できるようにする。
