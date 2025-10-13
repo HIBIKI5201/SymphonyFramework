@@ -7,5 +7,8 @@ namespace SymphonyFrameWork.Attribute
     /// </summary>
     public class ReadOnlyAttribute : PropertyAttribute
     {
+        public ReadOnlyAttribute()
+        {
+        }
     }
 }
