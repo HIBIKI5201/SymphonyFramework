@@ -61,12 +61,12 @@ namespace SymphonyFrameWork.Debugger
             bool clearText = true,
             UnityEngine.Object @object = null)
         {
-            if (_logText == null) return;
-            if (!string.IsNullOrEmpty(text)) _logText.AppendLine(text);
+            if (_logTextBuilder == null) return;
+            if (!string.IsNullOrEmpty(text)) _logTextBuilder.AppendLine(text);
 
-            LogDirect(_logText.ToString().TrimEnd(), kind, @object);
+            LogDirect(_logTextBuilder.ToString().TrimEnd(), kind, @object);
 
-            if (clearText) _logText = null;
+            if (clearText) _logTextBuilder = null;
         }
 
         /// <summary>
@@ -94,13 +94,13 @@ namespace SymphonyFrameWork.Debugger
         /// <param name="text"></param>
         public static void AddText(string text)
         {
-            if (_logText == null)
+            if (_logTextBuilder == null)
             {
-                _logText = new(text);
+                _logTextBuilder = new($"{text}\n"); // ログが無ければ新しく作る。
             }
             else
             {
-                _logText.AppendLine(text);
+                _logTextBuilder.AppendLine(text); // ログがあれば改行付きで追加。
             }
         }
 
@@ -125,9 +125,9 @@ namespace SymphonyFrameWork.Debugger
         public static void NewText(string text = null, bool isOldTextLog = false)
         {
             // 古いテキストがあれば出力する。
-            if (_logText != null && isOldTextLog) LogText();
+            if (_logTextBuilder != null && isOldTextLog) LogText();
 
-            _logText = string.IsNullOrEmpty(text) ? new() : new(text);
+            _logTextBuilder = string.IsNullOrEmpty(text) ? new() : new(text);
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace SymphonyFrameWork.Debugger
         }
 
         /// <summary> ログを管理する </summary>
-        private static StringBuilder _logText = null;
+        private static StringBuilder _logTextBuilder = null;
 
         #region Obsolete機能
         /// <summary>
