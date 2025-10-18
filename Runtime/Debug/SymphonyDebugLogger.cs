@@ -25,13 +25,13 @@ namespace SymphonyFrameWork.Debugger
         [HideInCallstack]
         public static void LogDirect(string text,
             LogKind kind = LogKind.Normal,
-            UnityEngine.Object @object = null)
+            UnityEngine.Object context = null)
         {
             switch (kind)
             {
-                case LogKind.Normal: Debug.Log(text, @object); break;
-                case LogKind.Warning: Debug.LogWarning(text, @object); break;
-                case LogKind.Error: Debug.LogError(text, @object); break;
+                case LogKind.Normal: Debug.Log(text, context); break;
+                case LogKind.Warning: Debug.LogWarning(text, context); break;
+                case LogKind.Error: Debug.LogError(text, context); break;
             }
         }
 
@@ -59,12 +59,12 @@ namespace SymphonyFrameWork.Debugger
         public static void LogText(LogKind kind = LogKind.Normal,
             string text = null,
             bool clearText = true,
-            UnityEngine.Object @object = null)
+            UnityEngine.Object context = null)
         {
             if (_logTextBuilder == null) return;
             if (!string.IsNullOrEmpty(text)) _logTextBuilder.AppendLine(text);
 
-            LogDirect(_logTextBuilder.ToString().TrimEnd(), kind, @object);
+            LogDirect(_logTextBuilder.ToString().TrimEnd(), kind, context);
 
             if (clearText) _logTextBuilder = null;
         }
@@ -81,10 +81,10 @@ namespace SymphonyFrameWork.Debugger
         public static void LogTextForEditor(LogKind kind = LogKind.Normal,
             string text = null,
             bool clearText = true,
-            UnityEngine.Object @object = null)
+            UnityEngine.Object context = null)
         {
 #if UNITY_EDITOR
-            LogText(kind, text, clearText, @object);
+            LogText(kind, text, clearText, context);
 #endif
         }
 
