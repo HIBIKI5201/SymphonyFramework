@@ -23,9 +23,16 @@ namespace SymphonyFrameWork.Debugger
         /// </summary>
         /// <param name="text"></param>
         [HideInCallstack]
-        public static void LogDirect(string text, LogKind kind = LogKind.Normal)
+        public static void LogDirect(string text,
+            LogKind kind = LogKind.Normal,
+            UnityEngine.Object @object = null)
         {
-            GetDebugActionByKind(kind)?.Invoke(text);
+            switch (kind)
+            {
+                case LogKind.Normal: Debug.Log(text, @object); break;
+                case LogKind.Warning: Debug.LogWarning(text, @object); break;
+                case LogKind.Error: Debug.LogError(text, @object); break;
+            }
         }
 
         /// <summary>
@@ -45,16 +52,39 @@ namespace SymphonyFrameWork.Debugger
         /// <summary>
         ///     追加されたメッセージをログに出力する。
         /// </summary>
+        /// <param name="kind"></param>
+        /// <param name="text"></param>
+        /// <param name="clearText"></param>
         [HideInCallstack]
         public static void LogText(LogKind kind = LogKind.Normal,
-            string text = null, 
-            bool clearText = true)
+            string text = null,
+            bool clearText = true,
+            UnityEngine.Object @object = null)
         {
             if (!string.IsNullOrEmpty(text)) _logText.AppendLine(text);
 
-            LogDirect(_logText.ToString().TrimEnd(), kind);
+            LogDirect(_logText.ToString().TrimEnd(), kind, @object);
 
             if (clearText) NewText();
+        }
+
+        /// <summary>
+        ///     追加されたメッセージをログに出力する。
+        ///     （エディタのみ）
+        /// </summary>
+        /// <param name="kind"></param>
+        /// <param name="text"></param>
+        /// <param name="clearText"></param>
+        [Conditional("UNITY_EDITOR")]
+        [HideInCallstack]
+        public static void LogTextForEditor(LogKind kind = LogKind.Normal,
+            string text = null,
+            bool clearText = true,
+            UnityEngine.Object @object = null)
+        {
+#if UNITY_EDITOR
+            LogText(kind, text, clearText, @object);
+#endif
         }
 
         /// <summary>
@@ -110,20 +140,6 @@ namespace SymphonyFrameWork.Debugger
 
         /// <summary> ログを管理する </summary>
         private static StringBuilder _logText = null;
-
-        /// <summary>
-        ///     LogKindからデバッグログのメソッドを返す。
-        /// </summary>
-        /// <param name="kind"></param>
-        /// <returns></returns>
-        private static Action<object> GetDebugActionByKind(LogKind kind) =>
-            kind switch
-            {
-                LogKind.Normal => Debug.Log,
-                LogKind.Warning => Debug.LogWarning,
-                LogKind.Error => Debug.LogError,
-                _ => Debug.Log
-            };
 
         #region Obsolete機能
         /// <summary>
