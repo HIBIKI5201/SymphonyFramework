@@ -19,10 +19,9 @@ namespace SymphonyFrameWork.Debugger
         }
 
         /// <summary>
-        ///     エディタ上でのみ出力されるデバッグログ
+        ///     直接出力されるデバッグログ。
         /// </summary>
         /// <param name="text"></param>
-        [Conditional("UNITY_EDITOR")]
         [HideInCallstack]
         public static void LogDirect(string text, LogKind kind = LogKind.Normal)
         {
@@ -30,9 +29,20 @@ namespace SymphonyFrameWork.Debugger
         }
 
         /// <summary>
-        ///     追加されたメッセージをログに出力する
+        ///     直接出力されるデバッグログ。
+        ///     （エディタのみ）
         /// </summary>
+        /// <param name="text"></param>
         [Conditional("UNITY_EDITOR")]
+        [HideInCallstack]
+        public static void LogDirectForEditor(string text, LogKind kind = LogKind.Normal)
+        {
+            GetDebugActionByKind(kind)?.Invoke(text);
+        }
+
+        /// <summary>
+        ///     追加されたメッセージをログに出力する。
+        /// </summary>
         [HideInCallstack]
         public static void LogText(LogKind kind = LogKind.Normal,
             string text = null, 
@@ -45,10 +55,9 @@ namespace SymphonyFrameWork.Debugger
         }
 
         /// <summary>
-        ///     ログのテキストにメッセージを追加する
+        ///     ログのテキストにメッセージを追加する。
         /// </summary>
         /// <param name="text"></param>
-        [Conditional("UNITY_EDITOR")]
         public static void AddText(string text)
         {
             if (_logText == null) NewText();
@@ -56,9 +65,21 @@ namespace SymphonyFrameWork.Debugger
         }
 
         /// <summary>
-        ///     追加されたメッセージを削除する
+        ///     ログのテキストにメッセージを追加する。
+        ///     （エディタのみ）
         /// </summary>
+        /// <param name="text"></param>
         [Conditional("UNITY_EDITOR")]
+        public static void AddTextForEditor(string text)
+        {
+#if UNITY_EDITOR
+            AddText(text);
+#endif
+        }
+
+        /// <summary>
+        ///     追加されたメッセージを削除し新しくする。
+        /// </summary>
         public static void NewText(string text = null)
         {
             _logText = string.IsNullOrEmpty(text) ? new() : new(text);
@@ -66,7 +87,7 @@ namespace SymphonyFrameWork.Debugger
 
         /// <summary>
         ///     コンポーネントがnullだった場合に警告を表示する。
-        ///     戻り値にnullだったかを返す
+        ///     戻り値にnullだったかを返す。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="object"></param>
@@ -84,8 +105,14 @@ namespace SymphonyFrameWork.Debugger
             return isNull;
         }
 
+        /// <summary> ログを管理する </summary>
         private static StringBuilder _logText = null;
 
+        /// <summary>
+        ///     LogKindからデバッグログのメソッドを返す。
+        /// </summary>
+        /// <param name="kind"></param>
+        /// <returns></returns>
         private static Action<object> GetDebugActionByKind(LogKind kind) =>
             kind switch
             {
