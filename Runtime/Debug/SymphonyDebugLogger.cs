@@ -61,11 +61,16 @@ namespace SymphonyFrameWork.Debugger
             bool clearText = true,
             UnityEngine.Object context = null)
         {
+            // ログが無ければ終了。
             if (_logTextBuilder == null) return;
+
+            // 追加テキストがあれば追加。
             if (!string.IsNullOrEmpty(text)) _logTextBuilder.AppendLine(text);
 
+            // ログビルダーを成形して出力。
             LogDirect(_logTextBuilder.ToString().TrimEnd(), kind, context);
 
+            // クリアフラグがあればログを破棄。
             if (clearText) _logTextBuilder = null;
         }
 
@@ -127,6 +132,7 @@ namespace SymphonyFrameWork.Debugger
             // 古いテキストがあれば出力する。
             if (_logTextBuilder != null && isOldTextLog) LogText();
 
+            // ビルダーを生成する。テキストがあれば追加する。
             _logTextBuilder = string.IsNullOrEmpty(text) ? new() : new(text);
         }
 
