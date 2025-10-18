@@ -151,7 +151,7 @@ namespace SymphonyFrameWork.Debugger
         public static void DirectLog(string text, LogKind kind = LogKind.Normal)
         {
 #if UNITY_EDITOR
-            GetDebugActionByKind(kind)?.Invoke(text);
+            LogDirect(text, kind);
 #endif
         }
 
@@ -164,8 +164,7 @@ namespace SymphonyFrameWork.Debugger
         public static void TextLog(LogKind kind = LogKind.Normal, bool clearText = true)
         {
 #if UNITY_EDITOR
-            GetDebugActionByKind(kind)?.Invoke(_logText);
-            if (clearText) NewText();
+            LogText(kind, clearText: clearText);
 #endif
         }
 
