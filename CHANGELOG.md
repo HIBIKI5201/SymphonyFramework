@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.24.1] - 2025-10-19
+### Add
+- TagSelectorAttribute
+
 ## [1.23.21] - 2025-10-08
 ### Update
 - SymphonyDebugHUD
