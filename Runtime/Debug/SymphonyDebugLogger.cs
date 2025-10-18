@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -22,10 +23,28 @@ namespace SymphonyFrameWork.Debugger
         /// </summary>
         /// <param name="text"></param>
         [Conditional("UNITY_EDITOR")]
-        public static void DirectLog(string text, LogKind kind = LogKind.Normal)
+        [HideInCallstack]
+        public static void LogDirect(string text, LogKind kind = LogKind.Normal)
         {
 #if UNITY_EDITOR
             GetDebugActionByKind(kind)?.Invoke(text);
+#endif
+        }
+
+        /// <summary>
+        ///     追加されたメッセージをログに出力する
+        /// </summary>
+        [Conditional("UNITY_EDITOR")]
+        [HideInCallstack]
+        public static void LogText(LogKind kind = LogKind.Normal,
+            string text = null, 
+            bool clearText = true)
+        {
+#if UNITY_EDITOR
+            if (!string.IsNullOrEmpty(text)) _logText.AppendLine(text);
+
+            GetDebugActionByKind(kind)?.Invoke(_logText.ToString());
+            if (clearText) NewText();
 #endif
         }
 
@@ -37,7 +56,8 @@ namespace SymphonyFrameWork.Debugger
         public static void AddText(string text)
         {
 #if UNITY_EDITOR
-            _logText += $"{text}\n";
+            if (_logText == null) NewText();
+            _logText.AppendLine(text);
 #endif
         }
 
@@ -45,22 +65,10 @@ namespace SymphonyFrameWork.Debugger
         ///     追加されたメッセージを削除する
         /// </summary>
         [Conditional("UNITY_EDITOR")]
-        public static void ClearText()
+        public static void NewText(string text = null)
         {
 #if UNITY_EDITOR
-            _logText = string.Empty;
-#endif
-        }
-
-        /// <summary>
-        ///     追加されたメッセージをログに出力する
-        /// </summary>
-        [Conditional("UNITY_EDITOR")]
-        public static void TextLog(LogKind kind = LogKind.Normal, bool clearText = true)
-        {
-#if UNITY_EDITOR
-            GetDebugActionByKind(kind)?.Invoke(_logText);
-            if (clearText) ClearText();
+            _logText = string.IsNullOrEmpty(text) ? new() : new(text);
 #endif
         }
 
@@ -85,7 +93,7 @@ namespace SymphonyFrameWork.Debugger
         }
 
 #if UNITY_EDITOR
-        private static string _logText = string.Empty;
+        private static StringBuilder _logText = null;
 
         private static Action<object> GetDebugActionByKind(LogKind kind) =>
             kind switch
@@ -97,11 +105,40 @@ namespace SymphonyFrameWork.Debugger
             };
 #endif
 
+        #region Obsolete機能
+        /// <summary>
+        ///     エディタ上でのみ出力されるデバッグログ
+        /// </summary>
+        /// <param name="text"></param>
+        [Obsolete("この機能は旧型式です。" + nameof(LogDirect) + "を使用してください)")]
+        [Conditional("UNITY_EDITOR")]
+        public static void DirectLog(string text, LogKind kind = LogKind.Normal)
+        {
+#if UNITY_EDITOR
+            GetDebugActionByKind(kind)?.Invoke(text);
+#endif
+        }
+
+        /// <summary>
+        ///     追加されたメッセージをログに出力する
+        /// </summary>
+        [Obsolete("この機能は旧型式です。" + nameof(LogText) + "を使用してください)")]
+        [Conditional("UNITY_EDITOR")]
+        [HideInCallstack]
+        public static void TextLog(LogKind kind = LogKind.Normal, bool clearText = true)
+        {
+#if UNITY_EDITOR
+            GetDebugActionByKind(kind)?.Invoke(_logText);
+            if (clearText) NewText();
+#endif
+        }
+
         /// <summary>
         ///     コンポーネントだった場合に警告を表示する
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="component"></param>
+        [Obsolete("この機能は旧型式です。" + nameof(LogAndCheckComponentNull) + "を使用してください。")]
         [Conditional("UNITY_EDITOR")]
         public static void CheckComponentNull<T>(this T component) where T : Component
         {
@@ -110,8 +147,7 @@ namespace SymphonyFrameWork.Debugger
 #endif
         }
 
-        #region Obsolete機能
-        [Obsolete("この機能は安全性が保障されていません。CheckComponentNullを使用してください")]
+        [Obsolete("この機能は安全性が保障されていません。" + nameof(LogAndCheckComponentNull) + "を使用してください")]
         public static bool IsComponentNotNull<T>(this T component) where T : Component
         {
             if (component == null)
