@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.1] - 2025-10-19
+### Add
+- SymphonyLocateObject
+
+## [1.24.2] - 2025-10-19
+### Update
+- SymphonyDebugLogger
+
 ## [1.24.1] - 2025-10-19
 ### Add
 - TagSelectorAttribute
