@@ -10,6 +10,17 @@ namespace SymphonyFrameWork.Utility
     public class SymphonyLocateObject<T> where T : class
     {
         /// <summary>
+        ///     インスタンスを初期化して生成する。
+        /// </summary>
+        public SymphonyLocateObject() => _instance = null;
+
+        /// <summary>
+        ///     初期インスタンスをセットして生成する。
+        /// </summary>
+        /// <param name="instance"></param>
+        public SymphonyLocateObject(T instance) => _instance = instance;
+
+        /// <summary>
         ///     取得する。
         /// </summary>
         /// <returns></returns>
