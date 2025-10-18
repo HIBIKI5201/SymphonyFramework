@@ -61,11 +61,12 @@ namespace SymphonyFrameWork.Debugger
             bool clearText = true,
             UnityEngine.Object @object = null)
         {
+            if (_logText == null) return;
             if (!string.IsNullOrEmpty(text)) _logText.AppendLine(text);
 
             LogDirect(_logText.ToString().TrimEnd(), kind, @object);
 
-            if (clearText) NewText();
+            if (clearText) _logText = null;
         }
 
         /// <summary>
@@ -93,8 +94,14 @@ namespace SymphonyFrameWork.Debugger
         /// <param name="text"></param>
         public static void AddText(string text)
         {
-            if (_logText == null) NewText();
-            _logText.AppendLine(text);
+            if (_logText == null)
+            {
+                _logText = new(text);
+            }
+            else
+            {
+                _logText.AppendLine(text);
+            }
         }
 
         /// <summary>
@@ -113,9 +120,26 @@ namespace SymphonyFrameWork.Debugger
         /// <summary>
         ///     追加されたメッセージを削除し新しくする。
         /// </summary>
-        public static void NewText(string text = null)
+        /// <param name="text"></param>
+        /// <param name="isOldTextLog">古いテキストが残っていたら出力するかどうか</param>
+        public static void NewText(string text = null, bool isOldTextLog = false)
         {
+            // 古いテキストがあれば出力する。
+            if (_logText != null && isOldTextLog) LogText();
+
             _logText = string.IsNullOrEmpty(text) ? new() : new(text);
+        }
+
+        /// <summary>
+        ///     追加されたメッセージを削除し新しくする。
+        ///     （エディタのみ）
+        /// </summary>
+        [Conditional("UNITY_EDITOR")]
+        public static void NewTextForEditor(string text = null)
+        {
+#if UNITY_EDITOR
+            NewText(text);
+#endif
         }
 
         /// <summary>
