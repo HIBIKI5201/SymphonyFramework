@@ -26,9 +26,7 @@ namespace SymphonyFrameWork.Debugger
         [HideInCallstack]
         public static void LogDirect(string text, LogKind kind = LogKind.Normal)
         {
-#if UNITY_EDITOR
             GetDebugActionByKind(kind)?.Invoke(text);
-#endif
         }
 
         /// <summary>
@@ -40,12 +38,10 @@ namespace SymphonyFrameWork.Debugger
             string text = null, 
             bool clearText = true)
         {
-#if UNITY_EDITOR
             if (!string.IsNullOrEmpty(text)) _logText.AppendLine(text);
 
-            GetDebugActionByKind(kind)?.Invoke(_logText.ToString());
+            GetDebugActionByKind(kind)?.Invoke(_logText.ToString().TrimEnd());
             if (clearText) NewText();
-#endif
         }
 
         /// <summary>
@@ -55,10 +51,8 @@ namespace SymphonyFrameWork.Debugger
         [Conditional("UNITY_EDITOR")]
         public static void AddText(string text)
         {
-#if UNITY_EDITOR
             if (_logText == null) NewText();
             _logText.AppendLine(text);
-#endif
         }
 
         /// <summary>
@@ -67,9 +61,7 @@ namespace SymphonyFrameWork.Debugger
         [Conditional("UNITY_EDITOR")]
         public static void NewText(string text = null)
         {
-#if UNITY_EDITOR
             _logText = string.IsNullOrEmpty(text) ? new() : new(text);
-#endif
         }
 
         /// <summary>
@@ -92,7 +84,6 @@ namespace SymphonyFrameWork.Debugger
             return isNull;
         }
 
-#if UNITY_EDITOR
         private static StringBuilder _logText = null;
 
         private static Action<object> GetDebugActionByKind(LogKind kind) =>
@@ -103,7 +94,6 @@ namespace SymphonyFrameWork.Debugger
                 LogKind.Error => Debug.LogError,
                 _ => Debug.Log
             };
-#endif
 
         #region Obsolete機能
         /// <summary>
