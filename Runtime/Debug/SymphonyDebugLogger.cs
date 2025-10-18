@@ -68,17 +68,6 @@ namespace SymphonyFrameWork.Debugger
             Error,
         }
 
-#if UNITY_EDITOR
-        private static Action<object> GetDebugActionByKind(LogKind kind) =>
-            kind switch
-            {
-                LogKind.Normal => Debug.Log,
-                LogKind.Warning => Debug.LogWarning,
-                LogKind.Error => Debug.LogError,
-                _ => Debug.Log
-            };
-#endif
-
         /// <summary>
         ///     コンポーネントだった場合に警告を表示する
         /// </summary>
@@ -92,6 +81,18 @@ namespace SymphonyFrameWork.Debugger
 #endif
         }
 
+#if UNITY_EDITOR
+        private static Action<object> GetDebugActionByKind(LogKind kind) =>
+            kind switch
+            {
+                LogKind.Normal => Debug.Log,
+                LogKind.Warning => Debug.LogWarning,
+                LogKind.Error => Debug.LogError,
+                _ => Debug.Log
+            };
+#endif
+
+        #region Obsolete機能
         [Obsolete("この機能は安全性が保障されていません。CheckComponentNullを使用してください")]
         public static bool IsComponentNotNull<T>(this T component) where T : Component
         {
@@ -103,5 +104,6 @@ namespace SymphonyFrameWork.Debugger
 
             return true;
         }
+        #endregion
     }
 }
