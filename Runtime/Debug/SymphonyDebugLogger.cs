@@ -10,9 +10,12 @@ namespace SymphonyFrameWork.Debugger
     /// </summary>
     public static class SymphonyDebugLogger
     {
-#if UNITY_EDITOR
-        private static string _logText = string.Empty;
-#endif
+        public enum LogKind
+        {
+            Normal,
+            Warning,
+            Error,
+        }
 
         /// <summary>
         ///     エディタ上でのみ出力されるデバッグログ
@@ -61,12 +64,38 @@ namespace SymphonyFrameWork.Debugger
 #endif
         }
 
-        public enum LogKind
+        /// <summary>
+        ///     コンポーネントがnullだった場合に警告を表示する。
+        ///     戻り値にnullだったかを返す
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="object"></param>
+        /// <returns>nullならtrue、nullではないならfalse</returns>
+        [HideInCallstack]
+        public static bool LogAndCheckComponentNull<T>(this T @object)
         {
-            Normal,
-            Warning,
-            Error,
+            bool isNull = @object == null;
+
+            if (isNull)
+            {
+                Debug.LogWarning($"<b>{typeof(T).Name}</b> is null");
+            }
+
+            return isNull;
         }
+
+#if UNITY_EDITOR
+        private static string _logText = string.Empty;
+
+        private static Action<object> GetDebugActionByKind(LogKind kind) =>
+            kind switch
+            {
+                LogKind.Normal => Debug.Log,
+                LogKind.Warning => Debug.LogWarning,
+                LogKind.Error => Debug.LogError,
+                _ => Debug.Log
+            };
+#endif
 
         /// <summary>
         ///     コンポーネントだった場合に警告を表示する
@@ -80,17 +109,6 @@ namespace SymphonyFrameWork.Debugger
             if (component == null) Debug.LogWarning($"The component {typeof(T).Name} of {component.name} is null.");
 #endif
         }
-
-#if UNITY_EDITOR
-        private static Action<object> GetDebugActionByKind(LogKind kind) =>
-            kind switch
-            {
-                LogKind.Normal => Debug.Log,
-                LogKind.Warning => Debug.LogWarning,
-                LogKind.Error => Debug.LogError,
-                _ => Debug.Log
-            };
-#endif
 
         #region Obsolete機能
         [Obsolete("この機能は安全性が保障されていません。CheckComponentNullを使用してください")]
