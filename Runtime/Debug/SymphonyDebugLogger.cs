@@ -37,7 +37,9 @@ namespace SymphonyFrameWork.Debugger
         [HideInCallstack]
         public static void LogDirectForEditor(string text, LogKind kind = LogKind.Normal)
         {
-            GetDebugActionByKind(kind)?.Invoke(text);
+#if UNITY_EDITOR
+            LogDirect(text, kind);
+#endif
         }
 
         /// <summary>
@@ -50,7 +52,8 @@ namespace SymphonyFrameWork.Debugger
         {
             if (!string.IsNullOrEmpty(text)) _logText.AppendLine(text);
 
-            GetDebugActionByKind(kind)?.Invoke(_logText.ToString().TrimEnd());
+            LogDirect(_logText.ToString().TrimEnd(), kind);
+
             if (clearText) NewText();
         }
 
