@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -10,57 +11,6 @@ namespace SymphonyFrameWork.Debugger
     /// </summary>
     public static class SymphonyDebugLogger
     {
-#if UNITY_EDITOR
-        private static string _logText = string.Empty;
-#endif
-
-        /// <summary>
-        ///     エディタ上でのみ出力されるデバッグログ
-        /// </summary>
-        /// <param name="text"></param>
-        [Conditional("UNITY_EDITOR")]
-        public static void DirectLog(string text, LogKind kind = LogKind.Normal)
-        {
-#if UNITY_EDITOR
-            GetDebugActionByKind(kind)?.Invoke(text);
-#endif
-        }
-
-        /// <summary>
-        ///     ログのテキストにメッセージを追加する
-        /// </summary>
-        /// <param name="text"></param>
-        [Conditional("UNITY_EDITOR")]
-        public static void AddText(string text)
-        {
-#if UNITY_EDITOR
-            _logText += $"{text}\n";
-#endif
-        }
-
-        /// <summary>
-        ///     追加されたメッセージを削除する
-        /// </summary>
-        [Conditional("UNITY_EDITOR")]
-        public static void ClearText()
-        {
-#if UNITY_EDITOR
-            _logText = string.Empty;
-#endif
-        }
-
-        /// <summary>
-        ///     追加されたメッセージをログに出力する
-        /// </summary>
-        [Conditional("UNITY_EDITOR")]
-        public static void TextLog(LogKind kind = LogKind.Normal, bool clearText = true)
-        {
-#if UNITY_EDITOR
-            GetDebugActionByKind(kind)?.Invoke(_logText);
-            if (clearText) ClearText();
-#endif
-        }
-
         public enum LogKind
         {
             Normal,
@@ -68,22 +18,192 @@ namespace SymphonyFrameWork.Debugger
             Error,
         }
 
-#if UNITY_EDITOR
-        private static Action<object> GetDebugActionByKind(LogKind kind) =>
-            kind switch
+        /// <summary>
+        ///     直接出力されるデバッグログ。
+        /// </summary>
+        /// <param name="text"></param>
+        [HideInCallstack]
+        public static void LogDirect(string text,
+            LogKind kind = LogKind.Normal,
+            UnityEngine.Object context = null)
+        {
+            switch (kind)
             {
-                LogKind.Normal => Debug.Log,
-                LogKind.Warning => Debug.LogWarning,
-                LogKind.Error => Debug.LogError,
-                _ => Debug.Log
-            };
+                case LogKind.Normal: Debug.Log(text, context); break;
+                case LogKind.Warning: Debug.LogWarning(text, context); break;
+                case LogKind.Error: Debug.LogError(text, context); break;
+            }
+        }
+
+        /// <summary>
+        ///     直接出力されるデバッグログ。
+        ///     （エディタのみ）
+        /// </summary>
+        /// <param name="text"></param>
+        [Conditional("UNITY_EDITOR")]
+        [HideInCallstack]
+        public static void LogDirectForEditor(string text, LogKind kind = LogKind.Normal)
+        {
+#if UNITY_EDITOR
+            LogDirect(text, kind);
 #endif
+        }
+
+        /// <summary>
+        ///     追加されたメッセージをログに出力する。
+        /// </summary>
+        /// <param name="kind"></param>
+        /// <param name="text"></param>
+        /// <param name="clearText"></param>
+        [HideInCallstack]
+        public static void LogText(LogKind kind = LogKind.Normal,
+            string text = null,
+            bool clearText = true,
+            UnityEngine.Object context = null)
+        {
+            // ログが無ければ終了。
+            if (_logTextBuilder == null) return;
+
+            // 追加テキストがあれば追加。
+            if (!string.IsNullOrEmpty(text)) _logTextBuilder.AppendLine(text);
+
+            // ログビルダーを成形して出力。
+            LogDirect(_logTextBuilder.ToString().TrimEnd(), kind, context);
+
+            // クリアフラグがあればログを破棄。
+            if (clearText) _logTextBuilder = null;
+        }
+
+        /// <summary>
+        ///     追加されたメッセージをログに出力する。
+        ///     （エディタのみ）
+        /// </summary>
+        /// <param name="kind"></param>
+        /// <param name="text"></param>
+        /// <param name="clearText"></param>
+        [Conditional("UNITY_EDITOR")]
+        [HideInCallstack]
+        public static void LogTextForEditor(LogKind kind = LogKind.Normal,
+            string text = null,
+            bool clearText = true,
+            UnityEngine.Object context = null)
+        {
+#if UNITY_EDITOR
+            LogText(kind, text, clearText, context);
+#endif
+        }
+
+        /// <summary>
+        ///     ログのテキストにメッセージを追加する。
+        /// </summary>
+        /// <param name="text"></param>
+        public static void AddText(string text)
+        {
+            if (_logTextBuilder == null)
+            {
+                _logTextBuilder = new($"{text}\n"); // ログが無ければ新しく作る。
+            }
+            else
+            {
+                _logTextBuilder.AppendLine(text); // ログがあれば改行付きで追加。
+            }
+        }
+
+        /// <summary>
+        ///     ログのテキストにメッセージを追加する。
+        ///     （エディタのみ）
+        /// </summary>
+        /// <param name="text"></param>
+        [Conditional("UNITY_EDITOR")]
+        public static void AddTextForEditor(string text)
+        {
+#if UNITY_EDITOR
+            AddText(text);
+#endif
+        }
+
+        /// <summary>
+        ///     追加されたメッセージを削除し新しくする。
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="isOldTextLog">古いテキストが残っていたら出力するかどうか</param>
+        public static void NewText(string text = null, bool isOldTextLog = false)
+        {
+            // 古いテキストがあれば出力する。
+            if (_logTextBuilder != null && isOldTextLog) LogText();
+
+            // ビルダーを生成する。テキストがあれば追加する。
+            _logTextBuilder = string.IsNullOrEmpty(text) ? new() : new(text);
+        }
+
+        /// <summary>
+        ///     追加されたメッセージを削除し新しくする。
+        ///     （エディタのみ）
+        /// </summary>
+        [Conditional("UNITY_EDITOR")]
+        public static void NewTextForEditor(string text = null)
+        {
+#if UNITY_EDITOR
+            NewText(text);
+#endif
+        }
+
+        /// <summary>
+        ///     コンポーネントがnullだった場合に警告を表示する。
+        ///     戻り値にnullだったかを返す。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="object"></param>
+        /// <returns>nullならtrue、nullではないならfalse</returns>
+        [HideInCallstack]
+        public static bool LogAndCheckComponentNull<T>(this T @object)
+        {
+            bool isNull = @object == null;
+
+            if (isNull)
+            {
+                Debug.LogWarning($"<b>{typeof(T).Name}</b> is null");
+            }
+
+            return isNull;
+        }
+
+        /// <summary> ログを管理する </summary>
+        private static StringBuilder _logTextBuilder = null;
+
+        #region Obsolete機能
+        /// <summary>
+        ///     エディタ上でのみ出力されるデバッグログ
+        /// </summary>
+        /// <param name="text"></param>
+        [Obsolete("この機能は旧型式です。" + nameof(LogDirect) + "を使用してください)")]
+        [Conditional("UNITY_EDITOR")]
+        public static void DirectLog(string text, LogKind kind = LogKind.Normal)
+        {
+#if UNITY_EDITOR
+            LogDirect(text, kind);
+#endif
+        }
+
+        /// <summary>
+        ///     追加されたメッセージをログに出力する
+        /// </summary>
+        [Obsolete("この機能は旧型式です。" + nameof(LogText) + "を使用してください)")]
+        [Conditional("UNITY_EDITOR")]
+        [HideInCallstack]
+        public static void TextLog(LogKind kind = LogKind.Normal, bool clearText = true)
+        {
+#if UNITY_EDITOR
+            LogText(kind, clearText: clearText);
+#endif
+        }
 
         /// <summary>
         ///     コンポーネントだった場合に警告を表示する
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="component"></param>
+        [Obsolete("この機能は旧型式です。" + nameof(LogAndCheckComponentNull) + "を使用してください。")]
         [Conditional("UNITY_EDITOR")]
         public static void CheckComponentNull<T>(this T component) where T : Component
         {
@@ -92,7 +212,7 @@ namespace SymphonyFrameWork.Debugger
 #endif
         }
 
-        [Obsolete("この機能は安全性が保障されていません。CheckComponentNullを使用してください")]
+        [Obsolete("この機能は安全性が保障されていません。" + nameof(LogAndCheckComponentNull) + "を使用してください")]
         public static bool IsComponentNotNull<T>(this T component) where T : Component
         {
             if (component == null)
@@ -103,5 +223,6 @@ namespace SymphonyFrameWork.Debugger
 
             return true;
         }
+        #endregion
     }
 }
