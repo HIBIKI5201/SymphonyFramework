@@ -2,7 +2,9 @@
 using SymphonyFrameWork.System;
 using System;
 using System.Text;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -17,7 +19,9 @@ namespace SymphonyFrameWork.Debugger
         /// <summary>
         ///     HUDを表示する。
         /// </summary>
+#if UNITY_EDITOR
         [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Show))]
+#endif
         public static void Show()
         {
             _ = _debugHUD.Value; // アクセスしてインスタンスを作成。
@@ -26,7 +30,9 @@ namespace SymphonyFrameWork.Debugger
         /// <summary>
         ///     HUDを非表示にする。
         /// </summary>
+#if UNITY_EDITOR
         [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Hide))]
+#endif
         public static void Hide()
         {
             if (_debugHUD.IsValueCreated) // 既にインスタンスが作成されている場合のみ。
@@ -111,10 +117,10 @@ namespace SymphonyFrameWork.Debugger
             long totalAllocated = Profiler.GetTotalAllocatedMemoryLong(); // 総アロケートメモリ量を取得。
             long totalReserved = Profiler.GetTotalReservedMemoryLong(); // 総リザーブメモリ量を取得。
 
-            text.AppendLine($"FPS: {fps:0.} ({msec:0.0} ms)");
-            text.AppendLine($"Mono Memory: {monoMemory / (1024 * 1024)} MB");
-            text.AppendLine($"Total Allocated: {totalAllocated / (1024 * 1024)} MB");
-            text.AppendLine($"Total Reserved: {totalReserved / (1024 * 1024)} MB");
+            text.AppendLine($"FPS: {fps.ToString("0.")} ({msec.ToString("0,0")} ms)");
+            text.AppendLine($"Mono Memory: {(monoMemory / (1024L * 1024L)).ToString()} MB");
+            text.AppendLine($"Total Allocated: {(totalAllocated / (1024L * 1024L)).ToString()} MB");
+            text.AppendLine($"Total Reserved: {(totalReserved / (1024L * 1024L)).ToString()} MB");
         }
 
         private void OnGUI()
