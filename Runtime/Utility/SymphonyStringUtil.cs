@@ -26,5 +26,12 @@ namespace SymphonyFrameWork
         /// <param name="text"></param>
         /// <returns></returns>
         public static string AddRichTextBold(this string text) => $"<b>{text}</b>";
+
+        /// <summary>
+        ///     リッチテキストに下線タグを挿入する。
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static string AddRichTextUnderline(this string text) => $"<u>{text}</u>";
     }
 }
