@@ -54,10 +54,10 @@ namespace SymphonyFrameWork
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static string RemoveRichTextUnderline(this string text)
+        public static string RemoveRichTextBold(this string text)
         {
             // 正規表現で太文字のタグを検索。
-            Regex outerBoldRegex = new Regex(@"^<b[^>]+>(.*)</b>$", RegexOptions.Singleline);
+            Regex outerBoldRegex = new Regex(@"^<b>(.*)</b>$", RegexOptions.Singleline);
             var match = outerBoldRegex.Match(text);
 
             if (match.Success)
@@ -83,10 +83,10 @@ namespace SymphonyFrameWork
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static string RemoveRichTextBold(this string text)
+        public static string RemoveRichTextUnderline(this string text)
         {
-            // 正規表現で太文字のタグを検索。
-            Regex outerUnderlineRegex = new Regex(@"^<u[^>]+>(.*)</u>$", RegexOptions.Singleline);
+            // 正規表現で下線のタグを検索。
+            Regex outerUnderlineRegex = new Regex(@"^<u>(.*)</u>$", RegexOptions.Singleline);
             var match = outerUnderlineRegex.Match(text);
 
             if (match.Success)
