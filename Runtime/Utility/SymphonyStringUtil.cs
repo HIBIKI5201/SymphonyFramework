@@ -17,7 +17,9 @@ namespace SymphonyFrameWork
         {
             // ColorをRGBに変換する。
             string htmlColor = ColorUtility.ToHtmlStringRGB(color);
-            return $"<color={htmlColor}>{text}</color>"; // タグに入れて返す。
+            return $"<color=#{htmlColor}>{text}</color>"; // タグに入れて返す。
         }
+
+
     }
 }
