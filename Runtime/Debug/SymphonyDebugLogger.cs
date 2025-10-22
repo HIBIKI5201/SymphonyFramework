@@ -132,8 +132,9 @@ namespace SymphonyFrameWork.Debugger
             // 古いテキストがあれば出力する。
             if (_logTextBuilder != null && isOldTextLog) LogText();
 
-            // ビルダーを生成する。テキストがあれば追加する。
-            _logTextBuilder = string.IsNullOrEmpty(text) ? new() : new(text);
+            // ビルダーを破棄する。テキストがあれば追加する。
+            _logTextBuilder = null;
+            AddText(text);
         }
 
         /// <summary>
