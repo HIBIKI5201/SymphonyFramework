@@ -9,7 +9,7 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     フォルダを生成する
     /// </summary>
-    public static class FolderGenerator
+    public class FolderGenerator : UnityEditor.Editor
     {
         /// <summary>
         ///     規定のディレクトリ構成を生成する
@@ -17,25 +17,14 @@ namespace SymphonyFrameWork.Editor
         [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(FolderGenerator), priority = 100)]
         public static void GenerateFolder()
         {
-            string assetsPath = "Assets";
-            string artPath = "Arts";
-            string animationPath = "Animation";
+            SymphonyDebugLogger.NewText($"[{nameof(GenerateFolder)}]");
 
-            string[] assetsFolders =
-                // アセット直下のフォルダ
-                new string[] { artPath, "AssetStoreTools", "Editor", "Resources", "Prefabs", "Scenes", "Scripts", "Settings" }
-                //Artフォルダ内のフォルダ
-                .Concat(new string[] { animationPath, "Audio", "Models", "Shaders", "Sprites" }
-                    .Select(s => $"{artPath}/{s}"))
-                //Animationのフォルダ
-                .Concat(new string[] { "Clips", "Controllers" }
-                    .Select(s => $"{artPath}/{animationPath}/{s}"))
-                .ToArray();
+            string[] assetsFolders = GetFolderPaths();
 
             //全てのフォルダを生成する
             foreach (string folder in assetsFolders)
             {
-                string path = $"{assetsPath}/{folder}";
+                string path = $"{ASSETS_PATH}/{folder}";
 
                 if (!AssetDatabase.IsValidFolder(path))
                 {
@@ -45,27 +34,61 @@ namespace SymphonyFrameWork.Editor
             }
             AssetDatabase.Refresh();
 
-            SymphonyDebugLogger.TextLog();
+            SymphonyDebugLogger.LogText();
             EditorUtility.DisplayDialog("フォルダを生成", "フォルダを生成しました", "OK");
         }
 
+        private const string ASSETS_PATH = "Assets";
+
         /// <summary>
-        ///     フォルダを生成する
+        ///     パスのフォルダを生成する。
         /// </summary>
         /// <param name="path"></param>
         private static void FolderCreate(string path)
         {
+            // フォルダがあれば終了。
             if (AssetDatabase.IsValidFolder(path)) return;
 
+            // パスをディレクトリとフォルダ名に分ける。
             string parent = Path.GetDirectoryName(path);
             string folderName = Path.GetFileName(path);
 
+            // ディレクトリが無ければ再帰的にフォルダを生成する。
             if (!AssetDatabase.IsValidFolder(parent))
             {
                 FolderCreate(parent);
             }
 
+            // パスのフォルダを作成。
             AssetDatabase.CreateFolder(parent, folderName);
+        }
+
+        /// <summary>
+        ///     全てのフォルダのパスを生成して返す。
+        /// </summary>
+        /// <returns></returns>
+        private static string[] GetFolderPaths()
+        {
+            string artPath = "Arts";
+            string animationPath = "Animation";
+
+            string[] assetsFolders =
+                // アセット直下のフォルダ
+                new string[] {
+                    artPath, "AssetStoreTools", "Editor", "Resources",
+                    "Prefabs", "Scenes", "Scripts", "Settings" }
+                
+                //Artフォルダ内のフォルダ
+                .Concat(new string[] { animationPath, "Audio", "Models", "Shaders", "Sprites" }
+                    .Select(s => $"{artPath}/{s}"))
+                
+                //Animationのフォルダ
+                .Concat(new string[] { "Clips", "Controllers" }
+                    .Select(s => $"{artPath}/{animationPath}/{s}"))
+                .ToArray();
+
+
+            return assetsFolders;
         }
     }
 }
