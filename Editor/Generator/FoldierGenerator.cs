@@ -71,20 +71,25 @@ namespace SymphonyFrameWork.Editor
         {
             string artPath = "Arts";
             string animationPath = "Animation";
+            string scriptsPath = "Scripts";
 
             string[] assetsFolders =
                 // アセット直下のフォルダ
                 new string[] {
                     artPath, "AssetStoreTools", "Editor", "Resources",
-                    "Prefabs", "Scenes", "Scripts", "Settings", "StreamingAssets" }
+                    "Prefabs", "Scenes", scriptsPath, "Settings", "StreamingAssets" }
                 
-                //Artフォルダ内のフォルダ
+                //Artsフォルダ内のフォルダ
                 .Concat(new string[] { animationPath, "Audio", "Models", "Shaders", "Sprites" }
                     .Select(s => $"{artPath}/{s}"))
                 
                 //Animationのフォルダ
                 .Concat(new string[] { "Clips", "Controllers" }
                     .Select(s => $"{artPath}/{animationPath}/{s}"))
+
+                //Scriptsのフォルダ
+                .Concat(new string[] {"Runtime", "Develop"}
+                    .Select(s => $"{scriptsPath}/{s}"))
                 .ToArray();
 
 
