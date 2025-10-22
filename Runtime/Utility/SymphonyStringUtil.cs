@@ -8,7 +8,7 @@ namespace SymphonyFrameWork
     public static class SymphonyStringUtil
     {
         /// <summary>
-        ///     リッチテキストの文字にカラータグを挿入する。
+        ///     リッチテキストにカラータグを挿入する。
         /// </summary>
         /// <param name="text"></param>
         /// <param name="color"></param>
@@ -20,6 +20,11 @@ namespace SymphonyFrameWork
             return $"<color=#{htmlColor}>{text}</color>"; // タグに入れて返す。
         }
 
-
+        /// <summary>
+        ///     リッチテキストに太文字タグを挿入する。
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static string AddRichTextBold(this string text) => $"<b>{text}</b>";
     }
 }
