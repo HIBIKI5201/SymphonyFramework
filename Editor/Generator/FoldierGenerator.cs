@@ -9,7 +9,7 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     フォルダを生成する
     /// </summary>
-    public class FolderGenerator : UnityEditor.Editor
+    public static class FolderGenerator
     {
         /// <summary>
         ///     規定のディレクトリ構成を生成する
@@ -76,7 +76,7 @@ namespace SymphonyFrameWork.Editor
                 // アセット直下のフォルダ
                 new string[] {
                     artPath, "AssetStoreTools", "Editor", "Resources",
-                    "Prefabs", "Scenes", "Scripts", "Settings" }
+                    "Prefabs", "Scenes", "Scripts", "Settings", "StreamingAssets" }
                 
                 //Artフォルダ内のフォルダ
                 .Concat(new string[] { animationPath, "Audio", "Models", "Shaders", "Sprites" }
