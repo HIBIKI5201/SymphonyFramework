@@ -99,6 +99,8 @@ namespace SymphonyFrameWork.Debugger
         /// <param name="text"></param>
         public static void AddText(string text)
         {
+            if (string.IsNullOrEmpty(text)) return;
+
             if (_logTextBuilder == null)
             {
                 _logTextBuilder = new($"{text}\n"); // ログが無ければ新しく作る。
