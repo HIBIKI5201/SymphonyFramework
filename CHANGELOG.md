@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.4] - 2025-10-23
+### Fix
+- SymphonyDebugLogger
+
+## [1.25.3] - 2025-10-23
+### Update
+- FoldierGenerator
+
 ## [1.25.2] - 2025-10-21
 ### Fix
 - SymphonyDebugHUD
