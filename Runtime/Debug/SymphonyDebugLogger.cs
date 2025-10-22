@@ -128,14 +128,12 @@ namespace SymphonyFrameWork.Debugger
         ///     追加されたメッセージを削除し新しくする。
         /// </summary>
         /// <param name="text"></param>
-        /// <param name="isOldTextLog">古いテキストが残っていたら出力するかどうか</param>
-        public static void NewText(string text = null, bool isOldTextLog = false)
+        public static void NewText(string text = null)
         {
-            // 古いテキストがあれば出力する。
-            if (_logTextBuilder != null && isOldTextLog) LogText();
-
-            // ビルダーを破棄する。テキストがあれば追加する。
+            // ビルダーを破棄する。
             _logTextBuilder = null;
+
+            // テキストがあれば追加する。
             AddText(text);
         }
 
