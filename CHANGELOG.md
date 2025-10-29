@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.26.0] - 2025-10-30
+### Add
+- SymphonyStringUtil
+
+## [1.25.4] - 2025-10-23
+### Fix
+- SymphonyDebugLogger
+
+## [1.25.3] - 2025-10-23
+### Update
+- FolderGenerator
+
+## [1.25.2] - 2025-10-21
+### Fix
+- SymphonyDebugHUD
+
 ## [1.25.1] - 2025-10-19
 ### Add
 - SymphonyLocateObject
