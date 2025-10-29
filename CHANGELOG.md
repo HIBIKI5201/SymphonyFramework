@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.26.0] - 2025-10-30
+### Add
+- SymphonyStringUtil
+
 ## [1.25.4] - 2025-10-23
 ### Fix
 - SymphonyDebugLogger
