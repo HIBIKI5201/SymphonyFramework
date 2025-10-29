@@ -10,7 +10,7 @@
 
 ## [1.25.3] - 2025-10-23
 ### Update
-- FoldierGenerator
+- FolderGenerator
 
 ## [1.25.2] - 2025-10-21
 ### Fix
