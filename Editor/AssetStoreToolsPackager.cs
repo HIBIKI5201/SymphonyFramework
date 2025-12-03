@@ -41,14 +41,27 @@ namespace SymphonyFrameWork.Editor
             string[] directories =
                 Directory.GetDirectories(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH);
 
+            if (directories.Length == 0)
+            {
+                Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
+                return;
+            }
+
             foreach (string dir in directories)
             {
-                // パッケージ化を実行。
-                AssetDatabase.ExportPackage(
-                    dir,
-                    Path.Combine(exportPath, $"{Path.GetFileName(dir)}.unitypackage"),
-                    ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
-                );
+                try
+                {
+                    // パッケージ化を実行。
+                    AssetDatabase.ExportPackage(
+                        dir,
+                        Path.Combine(exportPath, $"{Path.GetFileName(dir)}.unitypackage"),
+                        ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
+                        );
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"パッケージの出力に失敗しました: {dir}\n{e}");
+                }
             }
 
             Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {exportPath}\n\nexported\n{string.Join('\n', directories.Select(d => $"- {Path.GetFileName(d)}"))}");
