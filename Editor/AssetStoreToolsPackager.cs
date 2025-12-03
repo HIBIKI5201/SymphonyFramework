@@ -46,16 +46,17 @@ namespace SymphonyFrameWork.Editor
                 // パッケージ化を実行。
                 AssetDatabase.ExportPackage(
                     dir,
-                    $"{exportPath}/{Path.GetFileName(dir)}.unitypackage",
-                    ExportPackageOptions.Interactive | ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
+                    Path.Combine(exportPath, $"{Path.GetFileName(dir)}.unitypackage"),
+                    ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
                 );
             }
 
-            Debug.Log($"パッケージを出力しました: {exportPath}");
+            Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {exportPath}\n\nexported\n{string.Join('\n', directories.Select(d => $"- {Path.GetFileName(d)}"))}");
         }
+
+        private const string EXPORTED_PACKAGES = "ExportedPackages";
 
         private static string PackageName => 
             $"Export_{Path.GetFileName(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH)}_{DateTime.Now:yyyyMMdd_HHmmss}";
-        private const string EXPORTED_PACKAGES = "ExportedPackages";
     }
 }
