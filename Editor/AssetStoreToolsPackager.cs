@@ -41,6 +41,12 @@ namespace SymphonyFrameWork.Editor
             string[] directories =
                 Directory.GetDirectories(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH);
 
+            if (directories.Length == 0)
+            {
+                Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
+                return;
+            }
+
             foreach (string dir in directories)
             {
                 // パッケージ化を実行。
