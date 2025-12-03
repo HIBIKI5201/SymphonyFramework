@@ -1,6 +1,8 @@
 ﻿using SymphonyFrameWork.Core;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,14 +20,11 @@ namespace SymphonyFrameWork.Editor
         public static void ExportAssetStoreToolsFolder()
         {
             // パッケージ対象ディレクトリをバリデーションチェック。
-            if (!AssetDatabase.IsValidFolder(AssetStoreToolsPath))
+            if (!AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
             {
-                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {AssetStoreToolsPath}");
+                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH}");
                 return;
             }
-
-            // 出力ファイル名。
-            string exportPath = Path.Combine(EXPORTED_PACKAGES, PackageName);
 
             // ExportedPackages フォルダがなければ作成。
             string fullExportDir = Path.Combine(Application.dataPath, "..", EXPORTED_PACKAGES);
@@ -34,19 +33,43 @@ namespace SymphonyFrameWork.Editor
                 Directory.CreateDirectory(fullExportDir);
             }
 
-            // パッケージ化を実行。
-            AssetDatabase.ExportPackage(
-                AssetStoreToolsPath,
-                exportPath,
-                ExportPackageOptions.Interactive | ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
-            );
+            // 出力フォルダ名。
+            string exportPath = Path.Combine(EXPORTED_PACKAGES, PackageName);
+            Directory.CreateDirectory(exportPath);
 
-            Debug.Log($"パッケージを出力しました: {exportPath}");
+            // アセットごとのパスを生成。
+            string[] directories =
+                Directory.GetDirectories(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH);
+
+            if (directories.Length == 0)
+            {
+                Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
+                return;
+            }
+
+            foreach (string dir in directories)
+            {
+                try
+                {
+                    // パッケージ化を実行。
+                    AssetDatabase.ExportPackage(
+                        dir,
+                        Path.Combine(exportPath, $"{Path.GetFileName(dir)}.unitypackage"),
+                        ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
+                        );
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"パッケージの出力に失敗しました: {dir}\n{e}");
+                }
+            }
+
+            Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {exportPath}\n\nexported\n{string.Join('\n', directories.Select(d => $"- {Path.GetFileName(d)}"))}");
         }
 
-        private const string AssetStoreToolsPath = "Assets/AssetStoreTools";
-        private static string PackageName => 
-            $"Export_{Path.GetFileName(AssetStoreToolsPath)}_{DateTime.Now:yyyyMMdd_HHmmss}.unitypackage";
         private const string EXPORTED_PACKAGES = "ExportedPackages";
+
+        private static string PackageName => 
+            $"Export_{Path.GetFileName(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH)}_{DateTime.Now:yyyyMMdd_HHmmss}";
     }
 }

@@ -7,7 +7,6 @@ namespace SymphonyFrameWork.Core
     /// </summary>
     public static class EditorSymphonyConstant
     {
-#if UNITY_EDITOR
         public static bool IsPackage([CallerFilePath] string sourceFilePath = "") =>
             !sourceFilePath.Replace('\\', '/').Contains("/Assets/");
 
@@ -31,6 +30,8 @@ namespace SymphonyFrameWork.Core
         #region 自動生成物のパス
         public static string RESOURCES_EDITOR_PATH = "Assets/Editor/" + SymphonyConstant.SYMPHONY_FRAMEWORK + "/Configs";
         public static string ENUM_PATH = "Assets/Scripts/" + SymphonyConstant.SYMPHONY_FRAMEWORK;
+
+        public const string ASSET_STORE_TOOLS_PATH = "Assets/AssetStoreTools";
         #endregion
 
         public static string UITK_PATH = FRAMEWORK_PATH() + "/Editor/Administrator/UITK/";
@@ -50,6 +51,5 @@ namespace SymphonyFrameWork.Core
         public const string TagsEnumFileName = "Tags";
         public const string LayersEnumFileName = "Layers";
         #endregion
-#endif
     }
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.26.1] - 2025-12-03
+### Update
+- AssetStoreToolsPackager
+
 ## [1.26.0] - 2025-10-30
 ### Add
 - SymphonyStringUtil
