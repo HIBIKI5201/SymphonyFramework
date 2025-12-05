@@ -62,7 +62,8 @@ namespace SymphonyFrameWork.Editor
             if (currentTypeIndex != selectedTypeIndex)
             {
                 Type selectedType = inheritedTypes[selectedTypeIndex];
-                property.managedReferenceValue = selectedType == null ? null : Activator.CreateInstance(selectedType);
+                property.managedReferenceValue =
+                    selectedType == null ? null : Activator.CreateInstance(selectedType);
             }
 
             // <null>が選択されていない場合のみ、デフォルトのプロパティフィールドを描画する。
@@ -245,52 +246,90 @@ namespace SymphonyFrameWork.Editor
         {
             // 配列のパスを解析しやすいように置換する。 e.g. "array.Array.data[0]" -> "array[0]"
             string[] pathElements = property.propertyPath.Replace(".Array.data[", "[").Split('.');
-            Type currentType = property.serializedObject.targetObject.GetType();
-            FieldInfo field = null;
+            Type currentContainingType = property.serializedObject.targetObject.GetType(); // 現在のフィールドを含むオブジェクトの型
+            FieldInfo fieldAtLastElement = null; // パス内の最終要素に対応するFieldInfo
 
-            foreach (string element in pathElements)
+            for (int i = 0; i < pathElements.Length; i++)
             {
+                string element = pathElements[i];
+
                 if (element.Contains("["))
                 {
+                    // 配列/リスト要素のアクセス
                     string fieldName = element.Substring(0, element.IndexOf("["));
 
-                    // 基底クラスを遡ってフィールドを探す。
-                    field = null;
-                    for (Type t = currentType; field == null && t != null; t = t.BaseType)
+                    FieldInfo collectionField = null;
+                    for (Type t = currentContainingType; collectionField == null && t != null; t = t.BaseType)
                     {
-                        field = t.GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        collectionField = t.GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                     }
 
-                    if (field == null) return null;
+                    if (collectionField == null) return null; // コレクションフィールドが見つからない
 
-                    // 配列やリストの要素の型に更新する。
-                    Type fieldType = field.FieldType;
-                    if (fieldType.IsArray)
+                    Type elementType = null;
+                    if (collectionField.FieldType.IsArray)
                     {
-                        currentType = fieldType.GetElementType();
+                        elementType = collectionField.FieldType.GetElementType();
                     }
-                    else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                    else if (collectionField.FieldType.IsGenericType && collectionField.FieldType.GetGenericTypeDefinition() == typeof(List<>))
                     {
-                        currentType = fieldType.GetGenericArguments()[0];
+                        elementType = collectionField.FieldType.GetGenericArguments()[0];
                     }
                     else
                     {
                         return null; // 配列でもListでもない場合は解析不能。
                     }
+
+                    // 次の要素の探索のため、現在のコンテナ型を要素の型に更新
+                    currentContainingType = elementType;
+
+                    // もしこれがパスの最終要素であれば、fieldAtLastElementを更新する。
+                    // GetTypeでは配列/リストの型を取得して、そこから要素型を抽出する既存ロジックと整合性を維持する。
+                    if (i == pathElements.Length - 1)
+                    {
+                        fieldAtLastElement = collectionField; // この場合はコレクション自体のFieldInfoを返す
+                    }
                 }
                 else
                 {
-                    // 基底クラスを遡ってフィールドを探す。
-                    field = null;
-                    for (Type t = currentType; field == null && t != null; t = t.BaseType)
+                    // 通常のフィールドアクセス
+
+                    FieldInfo actualField = null;
+                    for (Type t = currentContainingType; actualField == null && t != null; t = t.BaseType)
                     {
-                        field = t.GetField(element, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        actualField = t.GetField(element, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                     }
-                    if (field == null) return null;
-                    currentType = field.FieldType;
+
+                    if (actualField == null) return null; // フィールドが見つからない
+
+                    if (i == pathElements.Length - 1)
+                    {
+                        // これがパスの最終要素であれば、このFieldInfoを返す
+                        fieldAtLastElement = actualField;
+                    }
+                    else
+                    {
+                        // 中間フィールドの場合、次のフィールドの探索のための型を更新する。
+                        // SerializedProperty.FindProperty は 'targetObject'から全てのパスを解決するので、
+                        // 中間パスを構築してそのプロパティを取得する。
+                        string intermediatePath = string.Join(".", pathElements.Take(i + 1));
+                        SerializedProperty intermediateProperty = property.serializedObject.FindProperty(intermediatePath);
+
+                        if (intermediateProperty != null && intermediateProperty.propertyType == SerializedPropertyType.ManagedReference)
+                        {
+                            // ManagedReferenceの場合、その参照が持つ実際のインスタンスの型を取得する。
+                            // インスタンスが存在しない場合は、宣言されたフィールドの型（インターフェースなど）にフォールバック。
+                            currentContainingType = intermediateProperty.managedReferenceValue?.GetType() ?? actualField.FieldType;
+                        }
+                        else
+                        {
+                            // ManagedReferenceでない場合は、フィールドの宣言型をそのまま使用。
+                            currentContainingType = actualField.FieldType;
+                        }
+                    }
                 }
             }
-            return field;
+            return fieldAtLastElement;
         }
 
         /// <summary>
