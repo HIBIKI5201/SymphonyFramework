@@ -14,22 +14,12 @@ namespace SymphonyFrameWork.Editor
     public class SubclassSelectorDrawer : PropertyDrawer
     {
         /// <summary>
-        /// 型情報をキャッシュするための静的な辞書。
-        /// Key: 基底クラスの型
-        /// Value: (派生型の配列, ポップアップ表示用の型名の配列, 完全修飾名の配列)
-        /// </summary>
-        private static readonly Dictionary<Type, (Type[] types, string[] names, string[] fullNames)> s_TypeCache = new();
-
-        /// <summary>
-        /// プロパティのGUIを描画する。
+        ///     プロパティのGUIを描画する。
         /// </summary>
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // ManagedReference型でない場合は処理を中断する。
-            if (property.propertyType != SerializedPropertyType.ManagedReference)
-            {
-                return;
-            }
+            if (property.propertyType != SerializedPropertyType.ManagedReference) { return; }
 
             // 型情報を取得し、キャッシュが存在しない場合は作成する。
             var baseType = GetType(property);
@@ -156,13 +146,12 @@ namespace SymphonyFrameWork.Editor
             return popupPosition;
         }
 
-        // 15. 内部メソッド、抽出メソッド
         /// <summary>
         ///     SerializedPropertyから、そのプロパティの基底となる型を取得する。
         /// </summary>
         /// <param name="property">対象のプロパティ。</param>
         /// <returns>プロパティの基底型。</returns>
-        public static Type GetType(SerializedProperty property)
+        private static Type GetType(SerializedProperty property)
         {
             FieldInfo fieldInfo = GetFieldInfo(property);
             if (fieldInfo == null)
@@ -193,7 +182,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         /// <param name="property">対象のプロパティ。</param>
         /// <returns>対応するFieldInfo。</returns>
-        public static FieldInfo GetFieldInfo(SerializedProperty property)
+        private static FieldInfo GetFieldInfo(SerializedProperty property)
         {
             string propertyPath = property.propertyPath;
             // 配列のパスを解析しやすいように置換する。 e.g. "array.Array.data[0]" -> "array[0]"
@@ -222,7 +211,7 @@ namespace SymphonyFrameWork.Editor
                     {
                         currentType = fieldType.GetElementType();
                     }
-                    else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(System.Collections.Generic.List<>))
+                    else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
                     {
                         currentType = fieldType.GetGenericArguments()[0];
                     }
@@ -245,5 +234,12 @@ namespace SymphonyFrameWork.Editor
             }
             return field;
         }
+
+        /// <summary>
+        ///     型情報をキャッシュするための静的な辞書。
+        ///     Key: 基底クラスの型
+        ///     Value: (派生型の配列, ポップアップ表示用の型名の配列, 完全修飾名の配列)
+        /// </summary>
+        private static readonly Dictionary<Type, (Type[] types, string[] names, string[] fullNames)> s_TypeCache = new();
     }
 }
