@@ -41,10 +41,12 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            if (!s_TypeCache.TryGetValue(baseType, out var cachedData))
+
+            var cacheKey = (baseType, ((SubclassSelectorAttribute)attribute).IsIncludeMono());
+            if (!s_TypeCache.TryGetValue(cacheKey, out var cachedData))
             {
-                cachedData = CreateInheritedTypesCache(baseType, ((SubclassSelectorAttribute)attribute).IsIncludeMono());
-                s_TypeCache.Add(baseType, cachedData);
+                cachedData = CreateInheritedTypesCache(baseType, cacheKey.Item2);
+                s_TypeCache.Add(cacheKey, cachedData);
             }
             var (inheritedTypes, typePopupNameArray, typeFullNameArray) = cachedData;
 
@@ -334,6 +336,6 @@ namespace SymphonyFrameWork.Editor
         ///     Key: 基底クラスの型
         ///     Value: (派生型の配列, ポップアップ表示用の型名の配列, 完全修飾名の配列)
         /// </summary>
-        private static readonly Dictionary<Type, (Type[] types, string[] names, string[] fullNames)> s_TypeCache = new();
+        private static readonly Dictionary<(Type, bool), (Type[] types, string[] names, string[] fullNames)> s_TypeCache = new();
     }
 }
