@@ -10,8 +10,8 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     サブクラスセレクターのカスタムプロパティドロワー。
     /// </summary>
-    [CustomPropertyDrawer(typeof(SymphonySubclassSelectorAttribute))]
-    public class SymphonySubclassSelectorDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(SubclassSelectorAttribute))]
+    public class SubclassSelectorDrawer : PropertyDrawer
     {
         /// <summary>
         /// 型情報をキャッシュするための静的な辞書。

@@ -4,9 +4,9 @@ using UnityEngine;
 namespace SymphonyFrameWork.Attribute
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class SymphonySubclassSelectorAttribute : PropertyAttribute
+    public class SubclassSelectorAttribute : PropertyAttribute
     {
-        public SymphonySubclassSelectorAttribute(bool includeMono = false)
+        public SubclassSelectorAttribute(bool includeMono = false)
         {
             _includeMono = includeMono;
         }
