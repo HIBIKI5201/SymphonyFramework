@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SymphonyFrameWork.Attribute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +10,7 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     サブクラスセレクターのカスタムプロパティドロワー。
     /// </summary>
-    [CustomPropertyDrawer(typeof(SubclassSelectorAttribute))]
+    [CustomPropertyDrawer(typeof(SymphonySubclassSelectorAttribute))]
     public class SymphonySubclassSelectorDrawer : PropertyDrawer
     {
         /// <summary>
