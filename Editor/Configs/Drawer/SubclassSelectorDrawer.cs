@@ -59,44 +59,56 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        /// プロパティの高さを取得する。
+        ///     指定された基底クラスを継承する全ての型情報を収集し、キャッシュデータを作成する。
         /// </summary>
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            return EditorGUI.GetPropertyHeight(property, true);
-        }
-
-        /// <summary>
-        /// 指定された基底クラスを継承する全ての型情報を収集し、キャッシュデータを作成する。
-        /// </summary>
-        /// <param name="baseType">基底クラスの型。</param>
-        /// <param name="includeMono">MonoBehaviourを継承する型を含めるかどうか。</param>
-        /// <returns>派生型情報のキャッシュデータ。</returns>
+        /// <param name="baseType"> 基底クラスの型。 </param>
+        /// <param name="includeMono"> MonoBehaviourを継承する型を含めるかどうか。 </param>
+        /// <returns> 派生型情報のキャッシュデータ。 </returns>
         private static (Type[], string[], string[]) CreateInheritedTypesCache(Type baseType, bool includeMono)
         {
             Type monoType = typeof(MonoBehaviour);
 
-            // 1. abstractクラスも含む、すべての派生型リストを作成する (カテゴリ判定用)
-            var allInheritedTypesWithAbstract = AppDomain.CurrentDomain.GetAssemblies()
+            // abstractクラスも含む、すべての派生型リストを作成する (カテゴリ判定用)
+            Type[] allInheritedTypesWithAbstract = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => baseType.IsAssignableFrom(p) && p.IsClass && (!monoType.IsAssignableFrom(p) || includeMono))
                 .ToArray();
 
-            // 2. ユーザーが選択可能な、abstractでない派生型リストを作成する
-            var selectableTypesArray = allInheritedTypesWithAbstract
+            // ユーザーが選択可能な、abstractでない派生型リストを作成する。
+            Type[] selectableTypesArray = allInheritedTypesWithAbstract
                 .Where(t => !t.IsAbstract)
                 .ToArray();
 
             // <null>オプションを先頭に追加する。
-            var finalSelectableTypes = selectableTypesArray.Prepend(null).ToArray();
+            Type[] finalSelectableTypes = selectableTypesArray.Prepend(null).ToArray();
 
-            // 3. ポップアップ表示用の型名配列を作成する
-            var typePopupNameArray = finalSelectableTypes.Select(type =>
+            // ポップアップ表示用の型名配列を作成する。
+            string[] typePopupNameArray = GetPopupArray(finalSelectableTypes, baseType, allInheritedTypesWithAbstract);
+
+            // 完全修飾名の配列を作成する。
+            string[] typeFullNameArray = finalSelectableTypes
+                .Select(type => type == null ? string.Empty : $"{type.Assembly.GetName().Name} {type.FullName}")
+                .ToArray();
+
+            // 最終的に返却するのは、選択可能な型と、それに対応する表示名。
+            return (finalSelectableTypes, typePopupNameArray, typeFullNameArray);
+        }
+
+        /// <summary>
+        ///     ポップアップ表示用の型名配列を取得する。
+        /// </summary>
+        /// <param name="finalSelectableTypes"></param>
+        /// <param name="baseType"></param>
+        /// <param name="allInheritedTypesWithAbstract"></param>
+        /// <returns></returns>
+        private static string[] GetPopupArray(Type[] finalSelectableTypes, Type baseType, Type[] allInheritedTypesWithAbstract)
+        {
+            return finalSelectableTypes.Select(type =>
             {
                 if (type == null) return "<null>";
 
                 string displayName;
-                var parent = type.BaseType;
+                Type parent = type.BaseType;
 
                 // 親クラスが「中間クラス」(abstract含む)である場合、カテゴリ分けする。
                 // 判定には allInheritedTypesWithAbstract を使用する。
@@ -124,12 +136,6 @@ namespace SymphonyFrameWork.Editor
 
                 return displayName;
             }).ToArray();
-
-            // 完全修飾名の配列を作成する。
-            var typeFullNameArray = finalSelectableTypes.Select(type => type == null ? "" : $"{type.Assembly.GetName().Name} {type.FullName}").ToArray();
-
-            // 最終的に返却するのは、選択可能な型と、それに対応する表示名。
-            return (finalSelectableTypes, typePopupNameArray, typeFullNameArray);
         }
 
         /// <summary>
@@ -169,7 +175,7 @@ namespace SymphonyFrameWork.Editor
             }
 
             // List<>の場合は、そのジェネリック引数の型を返す。
-            if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(System.Collections.Generic.List<>))
+            if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
             {
                 return fieldType.GetGenericArguments()[0];
             }
@@ -184,9 +190,8 @@ namespace SymphonyFrameWork.Editor
         /// <returns>対応するFieldInfo。</returns>
         private static FieldInfo GetFieldInfo(SerializedProperty property)
         {
-            string propertyPath = property.propertyPath;
             // 配列のパスを解析しやすいように置換する。 e.g. "array.Array.data[0]" -> "array[0]"
-            string[] pathElements = propertyPath.Replace(".Array.data[", "[").Split('.');
+            string[] pathElements = property.propertyPath.Replace(".Array.data[", "[").Split('.');
             Type currentType = property.serializedObject.targetObject.GetType();
             FieldInfo field = null;
 
