@@ -25,11 +25,11 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            // ラベルとポップアップを含む一行を描画するためのRectを準備
-            // EditorGUI.PrefixLabel は、positionからラベル部分を切り出し、残りのRectを返す
+            // ラベルとポップアップを含む一行を描画するためのRectを準備。
+            // EditorGUI.PrefixLabel は、positionからラベル部分を切り出し、残りのRectを返す。
             Rect firstLineRect = position;
             firstLineRect.height = EditorGUIUtility.singleLineHeight;
-            Rect controlRect = EditorGUI.PrefixLabel(firstLineRect, label); // ラベル部分を確保し、残りをコントロール用とする
+            Rect controlRect = EditorGUI.PrefixLabel(firstLineRect, label); // ラベル部分を確保し、残りをコントロール用とする。
 
             // 型情報を取得し、キャッシュが存在しない場合は作成する。
             var baseType = GetType(property);
@@ -50,10 +50,7 @@ namespace SymphonyFrameWork.Editor
 
             // 現在選択されている型のインデックスを取得する。見つからない場合は<null> (インデックス0) にする。
             int currentTypeIndex = Array.IndexOf(typeFullNameArray, property.managedReferenceFullTypename);
-            if (currentTypeIndex < 0)
-            {
-                currentTypeIndex = 0;
-            }
+            if (currentTypeIndex < 0) { currentTypeIndex = 0; }
 
             // 型を選択するためのポップアップGUIを描画する。
             int selectedTypeIndex = EditorGUI.Popup(controlRect, currentTypeIndex, typePopupNameArray);
@@ -97,7 +94,7 @@ namespace SymphonyFrameWork.Editor
                 return EditorGUI.GetPropertyHeight(property, label, true);
             }
 
-            // ポップアップ選択部分のための1行分の高さ
+            // ポップアップ選択部分のための1行分の高さ。
             float totalHeight = EditorGUIUtility.singleLineHeight;
 
             // 何らかのサブクラスが選択されている場合、その内容の表示に必要な高さを追加する。
