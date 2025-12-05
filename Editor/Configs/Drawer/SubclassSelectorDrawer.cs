@@ -19,12 +19,24 @@ namespace SymphonyFrameWork.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // ManagedReference型でない場合は処理を中断する。
-            if (property.propertyType != SerializedPropertyType.ManagedReference) { return; }
+            if (property.propertyType != SerializedPropertyType.ManagedReference)
+            {
+                EditorGUI.PropertyField(position, property, label, true);
+                return;
+            }
+
+            // ラベルとポップアップを含む一行を描画するためのRectを準備
+            // EditorGUI.PrefixLabel は、positionからラベル部分を切り出し、残りのRectを返す
+            Rect firstLineRect = position;
+            firstLineRect.height = EditorGUIUtility.singleLineHeight;
+            Rect controlRect = EditorGUI.PrefixLabel(firstLineRect, label); // ラベル部分を確保し、残りをコントロール用とする
 
             // 型情報を取得し、キャッシュが存在しない場合は作成する。
             var baseType = GetType(property);
             if (baseType == null)
             {
+                // baseTypeがnullの場合でも、EditorGUI.PropertyFieldは呼び出す必要がある。
+                // この状況ではポップアップは表示せず、通常のプロパティとして描画する。
                 EditorGUI.PropertyField(position, property, label, true);
                 return;
             }
@@ -44,18 +56,59 @@ namespace SymphonyFrameWork.Editor
             }
 
             // 型を選択するためのポップアップGUIを描画する。
-            int selectedTypeIndex = EditorGUI.Popup(GetPopupPosition(position), currentTypeIndex, typePopupNameArray);
+            int selectedTypeIndex = EditorGUI.Popup(controlRect, currentTypeIndex, typePopupNameArray);
 
             // 選択が変更された場合、プロパティに新しいインスタンスを割り当てる。
             if (currentTypeIndex != selectedTypeIndex)
             {
                 Type selectedType = inheritedTypes[selectedTypeIndex];
-                property.managedReferenceValue =
-                    selectedType == null ? null : Activator.CreateInstance(selectedType);
+                property.managedReferenceValue = selectedType == null ? null : Activator.CreateInstance(selectedType);
             }
 
-            // デフォルトのプロパティフィールドを描画する。これにより、選択した型の中身が表示・編集できる。
-            EditorGUI.PropertyField(position, property, label, true);
+            // <null>が選択されていない場合のみ、デフォルトのプロパティフィールドを描画する。
+            // その際、描画Rectを一行下にずらし、自身のラベルは描画しない。
+            if (property.managedReferenceValue != null)
+            {
+                Rect fieldPosition = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, position.height - EditorGUIUtility.singleLineHeight);
+                EditorGUI.PropertyField(fieldPosition, property, GUIContent.none, true);
+            }
+        }
+
+        /// <summary>
+        ///     プロパティの高さに基づいてGUIの高さを計算する。
+        /// </summary>
+        /// <param name="property">高さ計算の対象となるプロパティ。</param>
+        /// <param name="label">プロパティの表示ラベル。</param>
+        /// <returns>プロパティの高さ。</returns>
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            // ManagedReference型でない場合は、通常のプロパティの高さを返す。
+            if (property.propertyType != SerializedPropertyType.ManagedReference)
+            {
+                return EditorGUI.GetPropertyHeight(property, label, true);
+            }
+
+            // 基底型が取得できない場合も、通常のプロパティの高さを返す。
+            // (例: エラーになっている場合など)
+            var baseType = GetType(property);
+            if (baseType == null)
+            {
+                return EditorGUI.GetPropertyHeight(property, label, true);
+            }
+
+            // ポップアップ選択部分のための1行分の高さ
+            float totalHeight = EditorGUIUtility.singleLineHeight;
+
+            // 何らかのサブクラスが選択されている場合、その内容の表示に必要な高さを追加する。
+            // EditorGUI.PropertyFieldにGUIContent.noneを渡すと、そのプロパティ自身のラベルは描画されない。
+            // しかし、PropertyFieldの描画には少なくとも1行分の高さ (たとえばFoldout矢印のため) が必要。
+            // そのため、GUIContent.noneを渡した場合でも、そのプロパティ自身が表示されるための最低限の高さは含まれる。
+            if (property.managedReferenceValue != null)
+            {
+                totalHeight += EditorGUI.GetPropertyHeight(property, GUIContent.none, true);
+            }
+
+            return totalHeight;
         }
 
         /// <summary>
