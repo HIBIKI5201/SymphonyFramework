@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.0] - 2025-12-05
+### Add
+- SubClassSelector
+
 ## [1.26.1] - 2025-12-03
 ### Update
 - AssetStoreToolsPackager
