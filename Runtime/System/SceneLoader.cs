@@ -1,6 +1,7 @@
 ﻿using SymphonyFrameWork.Config;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -156,7 +157,16 @@ namespace SymphonyFrameWork.System
                 {
                     totalProgress += progresses[i];
                 }
-                loadingAction?.Invoke(totalProgress / progresses.Length);
+                float averageProgress = totalProgress / progresses.Length;
+                loadingAction?.Invoke(averageProgress);
+
+                // デバッグ用に各シーンの進捗率をログ出力。
+                StringBuilder debugProgress = new StringBuilder($"AverageProgress : {averageProgress}");
+                for (int i = 0; i < progresses.Length; i++)
+                {
+                    debugProgress.Append($"\n  Scene {sceneNames[i]} Progress : {progresses[i]}");
+                }
+                Debug.Log(debugProgress.ToString());
 
                 // 全てのシーンのロードが完了したか確認。
                 bool allDone = true;
