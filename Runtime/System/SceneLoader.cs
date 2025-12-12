@@ -90,24 +90,23 @@ namespace SymphonyFrameWork.System
             #region ロード完了後。
             var loadedScene = SceneManager.GetSceneByName(sceneName);
 
+            //辞書にシーン名とシーン情報を保存。
+            var isLoadSuccess = loadedScene.IsValid() && loadedScene.isLoaded;
+            if (!isLoadSuccess)
+            {
+                Debug.LogWarning($"Failed Loading Scene: {sceneName}");
+                return false;
+            }
+
+            //シングルロードの場合は辞書をクリアする。
+            if (mode == LoadSceneMode.Single) { _sceneDict.Clear(); }
+            _sceneDict.TryAdd(sceneName, loadedScene);
+
             //ロード終了後にロード待ちしていたイベントを実行。
             if (_loadedActionDict.TryGetValue(sceneName, out var action))
             {
                 action?.Invoke();
                 _loadedActionDict.Remove(sceneName);
-            }
-
-            //辞書にシーン名とシーン情報を保存。
-            var isLoadSuccess = loadedScene.IsValid() && loadedScene.isLoaded;
-            if (isLoadSuccess)
-            {
-                //シングルロードの場合は辞書をクリアする。
-                if (mode == LoadSceneMode.Single)
-                {
-                    _sceneDict.Clear();
-                }
-
-                _sceneDict.TryAdd(sceneName, loadedScene);
             }
             #endregion
 
