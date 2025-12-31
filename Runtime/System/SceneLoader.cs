@@ -288,28 +288,48 @@ namespace SymphonyFrameWork.System
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static async Task AfterSceneLoad()
         {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
+            // まず、現在ロードされている全シーンを辞書に登録する
+            for (var i = 0; i < SceneManager.sceneCount; i++)
             {
-                Scene scene = SceneManager.GetSceneAt(i);
-
-                //シーン名とシーン情報を辞書に保存
+                var scene = SceneManager.GetSceneAt(i);
                 _sceneDict.TryAdd(scene.name, scene);
             }
 
-            //初期化シーンのロード開始
+            Debug.Log($"{string.Join(", ", _sceneDict.Keys)}");
+
+            // config を取得
             var config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
-            if (!config) return;
-
-            List<string> initializeSceneList = config.InitializeSceneList;
-            int count = initializeSceneList.Count;
-
-            if (count <= 0) return;
-
-            //全てのロードを待機するタスクを作成
-            Task[] initializeTasks = new Task[count];
-            for (int i = 0; i < count; i++)
+            if (!config)
             {
-                string sceneName = initializeSceneList[i];
+                _initializeScenesLoadTask = Task.CompletedTask;
+                return;
+            }
+
+            var initializeSceneList = config.InitializeSceneList;
+            if (initializeSceneList == null || initializeSceneList.Count == 0)
+            {
+                _initializeScenesLoadTask = Task.CompletedTask;
+                return;
+            }
+
+            // まだロードされていない初期化シーンだけをロード対象にする
+            var scenesToLoad = new List<string>();
+            foreach (var sceneName in initializeSceneList)
+                if (!_sceneDict.ContainsKey(sceneName))
+                    scenesToLoad.Add(sceneName);
+
+            // 追加でロードするシーンがなければ終了
+            if (scenesToLoad.Count == 0)
+            {
+                _initializeScenesLoadTask = Task.CompletedTask;
+                return;
+            }
+
+            // ロード対象のシーンのみをロードする
+            var initializeTasks = new Task[scenesToLoad.Count];
+            for (var i = 0; i < scenesToLoad.Count; i++)
+            {
+                var sceneName = scenesToLoad[i];
                 initializeTasks[i] = LoadScene(sceneName);
             }
 
