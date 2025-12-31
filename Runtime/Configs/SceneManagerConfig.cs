@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using SymphonyFrameWork.Attribute;
 using UnityEngine;
 
 namespace SymphonyFrameWork.Config
@@ -9,17 +8,13 @@ namespace SymphonyFrameWork.Config
     /// </summary>
     public class SceneManagerConfig : ScriptableObject
     {
-        [DisplayText("開発中の機能です")] [Space] [SerializeField] [Tooltip("ロードシーンを有効化するかどうか")]
-        private bool _isActiveLoadScene;
+        [SerializeField, Tooltip("エディタでの再生時にシーンをリセットしてロードを実行するか")]
+        private bool _isResetAndLoadOnPlay;
 
-        [SerializeField] [Tooltip("ロード中に表示されるシーン")]
-        private string _loadScene;
-
-        [SerializeField] [Tooltip("初期化時にロードするシーン")]
+        [SerializeField, Tooltip("初期化時にロードするシーン")]
         private List<string> _initializeSceneList;
 
-        public bool IsActiveLoadScene => _isActiveLoadScene;
-        public string LoadScene => _loadScene;
+        public bool IsResetAndLoadOnPlay => _isResetAndLoadOnPlay;
         public List<string> InitializeSceneList => _initializeSceneList;
     }
 }
