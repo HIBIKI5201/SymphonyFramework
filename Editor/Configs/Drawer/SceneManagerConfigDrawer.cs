@@ -24,23 +24,11 @@ namespace SymphonyFrameWork.Editor
         {
             serializedObject.Update();
 
-            var isActiveLoadScene = serializedObject.FindProperty("_isActiveLoadScene");
-            var loadScene = serializedObject.FindProperty("_loadScene");
+            var isResetAndLoadOnPlay = serializedObject.FindProperty("_isResetAndLoadOnPlay");
             var initializeSceneList = serializedObject.FindProperty("_initializeSceneList");
 
-            EditorGUILayout.PropertyField(isActiveLoadScene);
-
-            #region isActiveLoadScene
-            
-            List<string> sceneNamesWithEmpty = _sceneNames.ToList();
-            const string emptyName = "None";
-            sceneNamesWithEmpty.Insert(0, emptyName);
-            
-            int selectedIndex = Mathf.Max(0, Array.IndexOf(sceneNamesWithEmpty.ToArray(), loadScene.stringValue));
-            selectedIndex = EditorGUILayout.Popup("ロード中に表示されるシーン", selectedIndex, sceneNamesWithEmpty.ToArray());
-            loadScene.stringValue = selectedIndex != 0 ? _sceneNames[selectedIndex - 1] : string.Empty;
-            
-            #endregion
+            var isResetAndLoadOnPlayLabel = new GUIContent(isResetAndLoadOnPlay.displayName, isResetAndLoadOnPlay.tooltip);
+            isResetAndLoadOnPlay.boolValue = EditorGUILayout.Toggle(isResetAndLoadOnPlayLabel, isResetAndLoadOnPlay.boolValue);
             
             #region InitializeSceneList
             
