@@ -8,7 +8,8 @@ namespace SymphonyFrameWork.System
     ///     セーブデータを管理するクラス
     /// </summary>
     /// <typeparam name="DataType">データの型</typeparam>
-    public static class SaveDataSystem<DataType> where DataType : class, new()
+    public static class SaveDataSystem<DataType>
+        where DataType : class, new()
     {
         public static DataType Data
         {
@@ -30,13 +31,12 @@ namespace SymphonyFrameWork.System
             }
         }
 
-        private static SaveData _saveData;
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void Initialize()
+        public static void Dispose()
         {
             _saveData = null;
         }
+
+        private static SaveData _saveData;
 
         /// <summary>
         ///     saveDataを保存する
