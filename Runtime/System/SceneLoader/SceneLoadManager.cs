@@ -137,7 +137,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             {
                 if (string.IsNullOrEmpty(scene))
                 {
-                    Debug.LogWarning($"load scenes is canceled becouse contain null or empty in scene names");
+                    Debug.LogWarning($"load scenes is canceled because contain null or empty in scene names");
                     return false;
                 }
             }
@@ -258,7 +258,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             {
                 if (string.IsNullOrEmpty(scene))
                 {
-                    Debug.LogWarning($"load scenes is canceled becouse contain null or empty in scene names");
+                    Debug.LogWarning($"load scenes is canceled because contain null or empty in scene names");
                     return false;
                 }
             }
