@@ -1,7 +1,5 @@
 ﻿using SymphonyFrameWork.Config;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,7 +8,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 {
     public static class SceneResetter
     {
-        public static ValueTask ResetScene(SceneManagerConfig config, ReadOnlySpan<string> ignores)
+        public static ValueTask ResetScene(SceneLoadManager manager, SceneManagerConfig config, ReadOnlySpan<string> ignores)
         {
             int sceneCount = SceneManager.sceneCount;
 
@@ -31,20 +29,19 @@ namespace SymphonyFrameWork.System.SceneLoad
                 unloadScenes[++index] = scene;
             }
 
-            return UnloadScenes(unloadScenes.Slice(index).ToArray());
+            string[] unloadSceneNames = new string[index];
+            for (int i = 0; i < index; i++)
+            {
+                unloadSceneNames[i] = unloadScenes[i].name;
+            }
+            
+            return ConvertTask(manager.UnloadScenes(unloadSceneNames));
         }
 
 
-
-        public static async ValueTask LoadScene(SceneManagerConfig config)
+        public static ValueTask LoadScene(SceneLoadManager manager, SceneManagerConfig config)
         {
-            foreach (var scenePath in config.InitializeSceneList)
-            {
-                if (!string.IsNullOrEmpty(scenePath))
-                {
-                    UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Additive));
-                }
-            }
+            return ConvertTask(manager.LoadScenes(config.InitializeSceneList));
         }
 
         /// <summary>
@@ -84,5 +81,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             return false;
         }
+
+        private static async ValueTask ConvertTask<T>(ValueTask<T> task) => await task;
     }
 }
