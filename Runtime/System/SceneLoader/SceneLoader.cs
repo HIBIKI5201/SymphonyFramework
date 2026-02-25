@@ -261,19 +261,6 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         /// <summary>
-        ///     指定したシーンがロードされるまで待機する
-        /// </summary>
-        /// <param name="sceneName"></param>
-        [Obsolete]
-        public static async Task WaitForLoadScene(string sceneName)
-        {
-            while (!_sceneDict.ContainsKey(sceneName))
-            {
-                await Awaitable.NextFrameAsync();
-            }
-        }
-
-        /// <summary>
         ///     コアシステムからの初期化
         /// </summary>
         internal static void Initialize()
@@ -285,9 +272,13 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     ゲーム開始時の初期化処理
         /// </summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static async Task AfterSceneLoad()
+        internal static async ValueTask AfterSceneLoad()
         {
+            await ResetLoad();
+            _initializeScenesLoadTask = Task.CompletedTask;
+
+            SceneResetter.ResetAndLoadSceneOnPlay();
+
             // まず、現在ロードされている全シーンを辞書に登録する
             for (var i = 0; i < SceneManager.sceneCount; i++)
             {
@@ -297,8 +288,6 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             Debug.Log($"{string.Join(", ", _sceneDict.Keys)}");
 
-            // config を取得
-            var config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
             if (!config)
             {
                 _initializeScenesLoadTask = Task.CompletedTask;
@@ -338,6 +327,32 @@ namespace SymphonyFrameWork.System.SceneLoad
             await _initializeScenesLoadTask;
 
             _initializeScenesLoadTask = Task.CompletedTask;
+        }
+
+        /// <summary>
+        ///     シーンの初期化
+        /// </summary>
+        /// <returns></returns>
+        private static async ValueTask ResetLoad()
+        {
+            SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
+
+            // シーンリセットの条件が揃っていない場合は何もしない。
+            if (config == null || !config.IsResetAndLoadOnPlay || config.InitializeSceneList.Length <= 0) { return; }
+
+            // シーンのロード状況をリセットする。
+            string[] resetIgnoreScenes = GetResetIgnoreScenes(config);
+            await SceneResetter.ResetScene(config, new ReadOnlySpan<string>());
+
+
+        }
+
+        private static string[] GetResetIgnoreScenes(SceneManagerConfig config)
+        {
+            string[] resetIgnoreScenes = new string[config.ResetIgnoreSceneList.Length + 1];
+            Array.Copy(config.ResetIgnoreSceneList, resetIgnoreScenes, config.ResetIgnoreSceneList.Length);
+            resetIgnoreScenes[config.ResetIgnoreSceneList.Length] = SymphonyCoreSystem.SYMPHONY_SCENE_NAME;
+            return resetIgnoreScenes;
         }
     }
 }
