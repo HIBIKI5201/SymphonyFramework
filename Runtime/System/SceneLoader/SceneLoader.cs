@@ -51,79 +51,17 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="mode"></param>
         /// <param name="token"></param>
         /// <returns>ロードに成功したか</returns>
-        public static async Task<bool> LoadScene(
+        public static ValueTask<bool> LoadScene(
             string sceneName,
             Action<float> loadingAction = null,
             LoadSceneMode mode = LoadSceneMode.Additive,
             CancellationToken token = default)
         {
-            //ロードしようとしているシーンが既にないか確認。
-            if (_sceneDict.ContainsKey(sceneName))
-            {
-                Debug.LogWarning($"{sceneName}シーンは既にロードされています");
-                return false;
-            }
-
-            #region ロード開始
-            var operation = SceneManager.LoadSceneAsync(sceneName, mode);
-            if (operation == null)
-            {
-                Debug.LogError($"{sceneName}シーンは登録されていません");
-                return false;
-            }
-            #endregion
-
-            #region ロード中。
-            while (!operation.isDone)
-            {
-                loadingAction?.Invoke(operation.progress);
-                await Awaitable.NextFrameAsync(token);
-            }
-            #endregion
-
-            #region ロード完了後。
-            var loadedScene = SceneManager.GetSceneByName(sceneName);
-
-            //辞書にシーン名とシーン情報を保存。
-            var isLoadSuccess = loadedScene.IsValid() && loadedScene.isLoaded;
-            if (!isLoadSuccess)
-            {
-                Debug.LogWarning($"Failed Loading Scene: {sceneName}");
-                return false;
-            }
-
-            //シングルロードの場合は辞書をクリアする。
-            if (mode == LoadSceneMode.Single) { _sceneDict.Clear(); }
-            _sceneDict.TryAdd(sceneName, loadedScene);
-
-            //ロード終了後にロード待ちしていたイベントを実行。
-            if (_loadedActionDict.TryGetValue(sceneName, out var action))
-            {
-                action?.Invoke();
-                _loadedActionDict.Remove(sceneName);
-            }
-            #endregion
-
-            #region シーン上のオブジェクトの初期化を実行する。
-            GameObject[] objs = loadedScene.GetRootGameObjects();
-
-            List<Task> initializeTasks = new();
-
-            foreach (var obj in objs) //初期化インターフェースを取得して実行。
-            {
-                if (obj.TryGetComponent<IInitializeAsync>(out var initialize))
-                {
-                    initializeTasks.Add(initialize.DoInitialize());
-                }
-            }
-
-            if (0 < initializeTasks.Count) //初期化が終了するまで待機。
-            {
-                await Task.WhenAll(initializeTasks);
-            }
-            #endregion
-
-            return isLoadSuccess;
+            return _manager.LoadScene(
+                sceneName,
+                loadingAction,
+                mode,
+                token);
         }
 
         public static async Task<bool> LoadScenes(
