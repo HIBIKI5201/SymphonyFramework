@@ -5,14 +5,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFrameWork.System.SceneLoad
 {
     public static class SceneResetter
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void ResetAndLoadSceneOnPlay()
         {
-            SceneManagerConfig config = SymphonyEditorConfigLocator.GetConfig<SceneManagerConfig>();
+            SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
 
             // コンフィグが存在しない、または機能が有効でない場合は何もしない。
             if (config == null || !config.IsResetAndLoadOnPlay)
