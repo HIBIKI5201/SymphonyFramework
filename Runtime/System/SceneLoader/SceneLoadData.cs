@@ -1,5 +1,4 @@
-﻿using Codice.Client.BaseCommands.Acl;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
@@ -30,7 +29,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
         }
 
-        public void AddLoadedAction(string name, Action action) 
+        public void AddLoadedAction(string name, Action action)
         {
             if (!_loadedAction.TryAdd(name, action))
             {
@@ -42,6 +41,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         {
             if (!_loadedAction.TryGetValue(name, out Action action)) { return; }
             action?.Invoke();
+            _loadedAction.Remove(name);
         }
 
         public bool IsExistScene(string name) => _sceneDict.ContainsKey(name);
