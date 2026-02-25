@@ -16,8 +16,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         private static SceneLoadData _data;
 
         /// <summary>
-        ///     ロードされているシーンを返す
-        ///     ない場合はnullを返す
+        ///     ロードされているシーンを返す。
         /// </summary>
         /// <param name="sceneName"></param>
         /// <param name="scene"></param>
@@ -30,9 +29,10 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         public static bool IsExist(string sceneName) => _data.IsExistScene(sceneName);
+        public static bool TryGetState(string sceneName, out SceneLoadState state) => _data.TryGetSceneState(sceneName, out state);
 
         /// <summary>
-        ///     シーンをアクティブにする
+        ///     シーンをアクティブにする。
         /// </summary>
         /// <param name="sceneName"></param>
         /// <returns></returns>
@@ -59,6 +59,13 @@ namespace SymphonyFrameWork.System.SceneLoad
                 token);
         }
 
+        /// <summary>
+        ///     シーンをロードする。
+        /// </summary>
+        /// <param name="sceneNames"></param>
+        /// <param name="loadingAction"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public static ValueTask<bool> LoadScenes(
             string[] sceneNames,
             Action<float> loadingAction = null,
@@ -71,7 +78,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         /// <summary>
-        ///     シーンをアンロードする
+        ///     シーンをアンロードする。
         /// </summary>
         /// <param name="sceneName">シーン名</param>
         /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
@@ -87,6 +94,24 @@ namespace SymphonyFrameWork.System.SceneLoad
                 loadingAction,
                 token
                 );
+        }
+
+        /// <summary>
+        ///     シーンをアンロードする。
+        /// </summary>
+        /// <param name="sceneNames"></param>
+        /// <param name="loadingAction"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static ValueTask<bool> UnloadScenes(
+            string[] sceneNames,
+            Action<float> loadingAction = null,
+            CancellationToken token = default)
+        {
+            return _manager.UnloadScenes(
+                sceneNames,
+                loadingAction,
+                token);
         }
 
         /// <summary>
