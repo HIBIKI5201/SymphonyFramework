@@ -26,7 +26,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 Scene scene = allScenes[i];
                 if (ignores.Contain(scene.name)) { continue; }
 
-                unloadScenes[++index] = scene;
+                unloadScenes[index++] = scene;
             }
 
             string[] unloadSceneNames = new string[index];
