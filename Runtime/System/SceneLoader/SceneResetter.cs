@@ -1,44 +1,88 @@
-﻿using NUnit.Framework;
-using SymphonyFrameWork.Config;
+﻿using SymphonyFrameWork.Config;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
 
 namespace SymphonyFrameWork.System.SceneLoad
 {
     public static class SceneResetter
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void ResetAndLoadSceneOnPlay()
+        public static ValueTask ResetScene(SceneManagerConfig config, ReadOnlySpan<string> ignores)
         {
-            SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
+            int sceneCount = SceneManager.sceneCount;
 
-            // コンフィグが存在しない、または機能が有効でない場合は何もしない。
-            if (config == null || !config.IsResetAndLoadOnPlay)
+            Span<Scene> allScenes = stackalloc Scene[sceneCount];
+            Span<Scene> unloadScenes = stackalloc Scene[sceneCount];
+
+            for (int i = 0; i < sceneCount; i++)
             {
-                return;
+                allScenes[i] = SceneManager.GetSceneAt(i);
             }
 
-            // ロードすべきシーンのリストを取得
-            List<string> initializeSceneList = config.InitializeSceneList;
-            if (initializeSceneList == null || initializeSceneList.Count == 0 || string.IsNullOrEmpty(initializeSceneList.First()))
+            int index = 0;
+            for (int i = 0; i < sceneCount; i++)
             {
-                return;
+                Scene scene = allScenes[i];
+                if (ignores.Contain(scene.name)) { continue; }
+
+                unloadScenes[++index] = scene;
             }
 
-            // 最初のシーンをシングルモードでロード（現在のシーンを置き換える）
-            string firstScenePath = initializeSceneList.First();
-            UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(firstScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+            return UnloadScenes(unloadScenes.Slice(index).ToArray());
+        }
 
-            // 2つ目以降のシーンを追加モードでロード
-            foreach (var scenePath in initializeSceneList.Skip(1))
+
+
+        public static async ValueTask LoadScene(SceneManagerConfig config)
+        {
+            foreach (var scenePath in config.InitializeSceneList)
             {
                 if (!string.IsNullOrEmpty(scenePath))
                 {
                     UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Additive));
                 }
             }
+        }
+
+        /// <summary>
+        ///     入れられたシーンを全てアンロードする。
+        /// </summary>
+        /// <param name="scenes"></param>
+        /// <returns></returns>
+        private static async ValueTask UnloadScenes(Scene[] scenes)
+        {
+            AsyncOperation[] tasks = new AsyncOperation[scenes.Length];
+
+            for (int i = 0; i < scenes.Length; i++)
+            {
+                Scene scene = scenes[i];
+                tasks[i] = SceneManager.UnloadSceneAsync(scene);
+            }
+
+            foreach (var task in tasks)
+            {
+                await task;
+            }
+        }
+
+        /// <summary>
+        ///     文字列スパンに特定の文字が含まれているか。
+        /// </summary>
+        /// <param name="span"></param>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private static bool Contain(this ReadOnlySpan<string> span, string element)
+        {
+            for (int i = 0; i < span.Length; i++)
+            {
+                string s = span[i];
+                if (s == element) { return true; }
+            }
+
+            return false;
         }
     }
 }
