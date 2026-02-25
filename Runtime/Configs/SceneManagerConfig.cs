@@ -8,13 +8,16 @@ namespace SymphonyFrameWork.Config
     /// </summary>
     public class SceneManagerConfig : ScriptableObject
     {
+        public bool IsResetAndLoadOnPlay => _isResetAndLoadOnPlay;
+        public string[] InitializeSceneList => _initializeSceneList;
+        public string[] ResetIgnoreSceneList => _resetIgnoreSceneList;
+
         [SerializeField, Tooltip("エディタでの再生時にシーンをリセットしてロードを実行するか")]
         private bool _isResetAndLoadOnPlay;
 
         [SerializeField, Tooltip("初期化時にロードするシーン")]
-        private List<string> _initializeSceneList;
-
-        public bool IsResetAndLoadOnPlay => _isResetAndLoadOnPlay;
-        public List<string> InitializeSceneList => _initializeSceneList;
+        private string[] _initializeSceneList;
+        [SerializeField, Tooltip("リセットしてもアンロードされないシーン")]
+        private string[] _resetIgnoreSceneList;
     }
 }
