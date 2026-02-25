@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.System.SceneLoad;
 using SymphonyFrameWork.Utility;
 using System;
 using UnityEngine;
@@ -31,7 +32,7 @@ namespace SymphonyFrameWork.System
             return component;
         }
 
-        private const string SYMPHONY_SCENE_NAME = "SymphonySystem";
+        internal const string SYMPHONY_SCENE_NAME = "SymphonySystem";
 
         private static Scene? _systemScene;
 
@@ -52,6 +53,12 @@ namespace SymphonyFrameWork.System
             SymphonyDebugHUD.Initialize();
 
             GC.Collect();
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void GameAfterSceneLoaded()
+        {
+            _ = SceneLoader.AfterSceneLoad();
         }
     }
 }
