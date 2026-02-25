@@ -134,19 +134,18 @@ namespace SymphonyFrameWork.System.SceneLoad
         private static async ValueTask InitializeSceneLoad()
         {
             SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
-
             // シーンリセットの条件が揃っていない場合は何もしない。
             if (config == null || !config.IsResetAndLoadOnPlay || config.InitializeSceneList.Length <= 0) { return; }
-
-            // シーンのロード状況をリセットする。
-            string[] resetIgnoreScenes = GetResetIgnoreScenes(config);
-            await SceneResetter.ResetScene(config, new ReadOnlySpan<string>());
 
             // 現状のシーン状況を保存する。
             _manager.ResetSceneData();
 
+            // シーンのロード状況をリセットする。
+            string[] resetIgnoreScenes = GetResetIgnoreScenes(config);
+            await SceneResetter.ResetScene(_manager, config, new ReadOnlySpan<string>());
+
             // ロードしていない初期シーンをロードする。
-            await _manager.InitializeLoad(config.InitializeSceneList);
+            await SceneResetter.LoadScene(_manager, config);
         }
 
         private static string[] GetResetIgnoreScenes(SceneManagerConfig config)
