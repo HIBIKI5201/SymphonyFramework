@@ -100,11 +100,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
 
             //ロード終了後にロード待ちしていたイベントを実行。
-            if (_loadedActionDict.TryGetValue(sceneName, out var action))
-            {
-                action?.Invoke();
-                _loadedActionDict.Remove(sceneName);
-            }
+            _data.InvokeLoadedAction(sceneName);
             #endregion
 
             #region シーン上のオブジェクトの初期化を実行する。
