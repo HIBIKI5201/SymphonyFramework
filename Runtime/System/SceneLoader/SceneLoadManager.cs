@@ -17,25 +17,12 @@ namespace SymphonyFrameWork.System.SceneLoad
             _data = data;
         }
 
-        public void ResetSceneData()
-        {
-            int sceneCount = SceneManager.sceneCount;
-            KeyValuePair<string, Scene>[] kvps = new KeyValuePair<string, Scene>[sceneCount];
-            for (int i = 0; i < sceneCount; i++)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-                kvps[i] = new KeyValuePair<string, Scene>(scene.name, scene);
-            }
-
-            _data.Reset(kvps);
-        }
-
         public bool TrySetActiveScene(string name)
         {
             if (!_data.TryGetSceneInfo(name, out SceneLoadData.SceneInfo info))
             {
                 SymphonyDebugLogger.LogDirect($"{name} is not loaded scene");
-                return false; 
+                return false;
             }
 
             SceneManager.SetActiveScene(info.Scene);
@@ -45,39 +32,39 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     シーンをロードする。
         /// </summary>
-        /// <param name="sceneName">シーン名</param>
+        /// <param name="name">シーン名</param>
         /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
         /// <param name="mode"></param>
         /// <param name="token"></param>
         /// <returns>ロードに成功したか</returns>
         public async ValueTask<bool> LoadScene(
-            string sceneName,
+            string name,
             Action<float> loadingAction = null,
             LoadSceneMode mode = LoadSceneMode.Additive,
             CancellationToken token = default)
         {
             //ロードしようとしているシーンが既に存在するか確認。
-            if (_data.IsExistScene(sceneName))
+            if (_data.IsExistScene(name))
             {
-                Debug.LogWarning($"{sceneName} is already loaded.");
+                Debug.LogWarning($"{name} is already loaded.");
                 return false;
             }
 
             #region ロード開始
-            var operation = SceneManager.LoadSceneAsync(sceneName, mode);
+            var operation = SceneManager.LoadSceneAsync(name, mode);
             if (operation == null)
             {
-                Debug.LogError($"{sceneName} is not register. check scene list of build setting.");
+                Debug.LogError($"{name} is not register. check scene list of build setting.");
                 return false;
             }
 
-            _data.LoadStart(sceneName);
+            _data.LoadStart(name);
 
             #endregion
 
             #region ロード中。
             await SymphonyTask.WaitUntil(
-                () => 
+                () =>
                 {
                     loadingAction?.Invoke(operation.progress);
                     return operation.isDone;
@@ -86,29 +73,29 @@ namespace SymphonyFrameWork.System.SceneLoad
             #endregion
 
             #region ロード完了後。
-            Scene loadedScene = SceneManager.GetSceneByName(sceneName);
+            Scene loadedScene = SceneManager.GetSceneByName(name);
 
             //辞書にシーン名とシーン情報を保存。
             var isLoadSuccess = loadedScene.IsValid() && loadedScene.isLoaded;
             if (!isLoadSuccess)
             {
-                Debug.LogWarning($"Failed Loading Scene: {sceneName}");
-                _data.LoadFail(sceneName);
+                Debug.LogWarning($"Failed Loading Scene: {name}");
+                _data.LoadFail(name);
                 return false;
             }
 
             //シングルロードの場合は辞書をクリアする。
-            if (mode == LoadSceneMode.Single) 
+            if (mode == LoadSceneMode.Single)
             {
-                _data.Reset(new KeyValuePair<string, Scene>(sceneName, loadedScene)); 
+                _data.Reset(new KeyValuePair<string, Scene>(name, loadedScene));
             }
             else
             {
-                _data.LoadComplete(sceneName, loadedScene);
+                _data.LoadComplete(name, loadedScene);
             }
 
             //ロード終了後にロード待ちしていたイベントを実行。
-            _data.InvokeLoadedAction(sceneName);
+            _data.InvokeLoadedAction(name);
             #endregion
 
             #region シーン上のオブジェクトの初期化を実行する。
@@ -133,21 +120,39 @@ namespace SymphonyFrameWork.System.SceneLoad
             return isLoadSuccess;
         }
 
-        public async Task<bool> LoadScenes(
-            string[] sceneNames,
+        /// <summary>
+        ///     シーンをロードする。
+        /// </summary>
+        /// <param name="sceneName">シーン名</param>
+        /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
+        /// <param name="mode"></param>
+        /// <param name="token"></param>
+        /// <returns>ロードに成功したか</returns>
+        public async ValueTask<bool> LoadScenes(
+            string[] names,
             Action<float> loadingAction = null,
             CancellationToken token = default)
         {
-            ValueTask<bool>[] loadTasks = new ValueTask<bool>[sceneNames.Length]; // シーンごとのロードタスク。
-            float[] progresses = new float[sceneNames.Length]; // シーンごとの進捗率。
-
-            // 全てのシーンのロードを開始。
-            for (int i = 0; i < sceneNames.Length; i++)
+            foreach (string scene in names)
             {
-                int index = i;
-                loadTasks[i] = LoadScene(sceneNames[i], n => progresses[index] = n, token: token);
+                if (string.IsNullOrEmpty(scene))
+                {
+                    Debug.LogWarning($"load scenes is canceled becouse contain null or empty in scene names");
+                    return false;
+                }
             }
 
+            ValueTask<bool>[] loadTasks = new ValueTask<bool>[names.Length]; // シーンごとのロードタスク。
+            float[] progresses = new float[names.Length]; // シーンごとの進捗率。
+
+            // 全てのシーンのロードを開始。
+            for (int i = 0; i < names.Length; i++)
+            {
+                int index = i;
+                loadTasks[i] = LoadScene(names[i], n => progresses[index] = n, token: token);
+            }
+
+            StringBuilder debugProgress = new StringBuilder();
             // ロード中の進捗率を計算して通知。
             while (!token.IsCancellationRequested)
             {
@@ -160,13 +165,15 @@ namespace SymphonyFrameWork.System.SceneLoad
                 float averageProgress = totalProgress / progresses.Length;
                 loadingAction?.Invoke(averageProgress);
 
-                // デバッグ用に各シーンの進捗率をログ出力。
-                StringBuilder debugProgress = new StringBuilder($"AverageProgress : {averageProgress}");
+                #region デバッグ用に各シーンの進捗率をログ出力。
+                debugProgress.Clear();
+                debugProgress.AppendLine($"AverageProgress : {averageProgress}");
                 for (int i = 0; i < progresses.Length; i++)
                 {
-                    debugProgress.Append($"\n  Scene {sceneNames[i]} Progress : {progresses[i]}");
+                    debugProgress.Append($"\n  Scene {names[i]} Progress : {progresses[i]}");
                 }
                 Debug.Log(debugProgress.ToString());
+                #endregion
 
                 // 全てのシーンのロードが完了したか確認。
                 bool allDone = true;
@@ -190,6 +197,76 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
 
             return true;
+        }
+
+        /// <summary>
+        ///     シーンをアンロードする。
+        /// </summary>
+        /// <param name="name">シーン名</param>
+        /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
+        /// <param name="token"></param>
+        /// <returns>アンロードに成功したか</returns>
+        public async ValueTask<bool> UnloadScene(
+            string name,
+            Action<float> loadingAction = null,
+            CancellationToken token = default)
+        {
+            if (!_data.IsExistScene(name))
+            {
+                Debug.LogWarning($"{name} is not loaded");
+                return false;
+            }
+
+            //アンロード開始。
+            var operation = SceneManager.UnloadSceneAsync(name);
+            if (operation == null)
+            {
+                Debug.LogError($"{name} is not register. check scene list of build setting.");
+                return false;
+            }
+
+            _data.UnloadStart(name);
+
+            //ロード中。
+            await SymphonyTask.WaitUntil(
+                () =>
+                {
+                    loadingAction?.Invoke(operation.progress);
+                    return operation.isDone;
+                },
+                token);
+
+            _data.UnloadComplete(name);
+
+            return true;
+        }
+
+        internal void ResetSceneData()
+        {
+            int sceneCount = SceneManager.sceneCount;
+            KeyValuePair<string, Scene>[] kvps = new KeyValuePair<string, Scene>[sceneCount];
+            for (int i = 0; i < sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                kvps[i] = new KeyValuePair<string, Scene>(scene.name, scene);
+            }
+
+            _data.Reset(kvps);
+        }
+
+        internal async ValueTask InitializeLoad(string[] names)
+        {
+            ValueTask<bool>[] initializeTasks = new ValueTask<bool>[names.Length];
+            for (var i = 0; i < names.Length; i++)
+            {
+                string sceneName = names[i];
+                initializeTasks[i] = LoadScene(sceneName);
+            }
+
+            foreach (var task in initializeTasks)
+            {
+                await task;
+            }
         }
 
         private readonly SceneLoadData _data;
