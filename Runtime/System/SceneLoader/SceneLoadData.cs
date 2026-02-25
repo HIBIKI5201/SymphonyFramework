@@ -108,8 +108,8 @@ namespace SymphonyFrameWork.System.SceneLoad
             private SceneLoadState _state;
         }
 
-        private static readonly Dictionary<string, SceneInfo> _sceneDict = new();
-        private static readonly Dictionary<string, Action> _loadedAction = new();
+        private readonly Dictionary<string, SceneInfo> _sceneDict = new();
+        private readonly Dictionary<string, Action> _loadedAction = new();
 
 
     }
