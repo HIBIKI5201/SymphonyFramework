@@ -142,7 +142,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             // シーンのロード状況をリセットする。
             string[] resetIgnoreScenes = GetResetIgnoreScenes(config);
-            await SceneResetter.ResetScene(_manager, config, new ReadOnlySpan<string>());
+            await SceneResetter.ResetScene(_manager, config, resetIgnoreScenes);
 
             // ロードしていない初期シーンをロードする。
             await SceneResetter.LoadScene(_manager, config);
