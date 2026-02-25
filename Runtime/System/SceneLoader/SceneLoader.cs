@@ -141,7 +141,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="sceneName"></param>
         public static async ValueTask WaitForLoadSceneAsync(string sceneName, CancellationToken token = default)
         {
-            while (!_data.IsExistScene(sceneName))
+            while (!_data.TryGetSceneState(sceneName, out SceneLoadState state) || state < SceneLoadState.Complete)
             {
                 await Awaitable.NextFrameAsync(token);
             }
