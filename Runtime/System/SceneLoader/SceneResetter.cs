@@ -8,7 +8,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 {
     public static class SceneResetter
     {
-        public static ValueTask ResetScene(SceneLoadManager manager, SceneManagerConfig config, ReadOnlySpan<string> ignores)
+        public static ValueTask ResetScene(SceneLoadManager manager, ReadOnlySpan<string> ignores)
         {
             int sceneCount = SceneManager.sceneCount;
 
