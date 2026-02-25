@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.2] - 2026-02-26
+### Update
+- SceneLoader
+
 ## [1.27.0] - 2025-12-05
 ### Add
 - SubClassSelector
