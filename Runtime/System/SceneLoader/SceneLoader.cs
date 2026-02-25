@@ -172,7 +172,10 @@ namespace SymphonyFrameWork.System.SceneLoad
         {
             SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
             // シーンリセットの条件が揃っていない場合は何もしない。
-            if (config == null || !config.IsResetAndLoadOnPlay || config.InitializeSceneList.Length <= 0) { return; }
+            if (config == null
+                || !config.IsResetAndLoadOnPlay 
+                || config.InitializeSceneList == null
+                || config.InitializeSceneList.Length <= 0) { return; }
 
             // 現状のシーン状況を保存する。
             _manager.ResetSceneData();
