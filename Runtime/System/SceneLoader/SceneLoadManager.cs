@@ -191,6 +191,11 @@ namespace SymphonyFrameWork.System.SceneLoad
                 await Awaitable.NextFrameAsync(token);
             }
 
+            if (token.IsCancellationRequested)
+            {
+                return false;
+            }
+
             for (int i = 0; i < loadTasks.Length; i++)
             {
                 if (!loadTasks[i].Result) { return false; }
@@ -310,6 +315,11 @@ namespace SymphonyFrameWork.System.SceneLoad
                 // 全てのシーンのアンロードが完了した場合、ループを抜ける。
                 if (allDone) { break; }
                 await Awaitable.NextFrameAsync(token);
+            }
+
+            if (token.IsCancellationRequested)
+            {
+                return false;
             }
 
             for (int i = 0; i < loadTasks.Length; i++)
