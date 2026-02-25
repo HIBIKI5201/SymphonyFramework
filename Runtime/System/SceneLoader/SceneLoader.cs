@@ -28,7 +28,19 @@ namespace SymphonyFrameWork.System.SceneLoad
             return result;
         }
 
+        /// <summary>
+        ///     シーンが存在するかどうか。
+        /// </summary>
+        /// <param name="sceneName"></param>
+        /// <returns></returns>
         public static bool IsExist(string sceneName) => _data.IsExistScene(sceneName);
+
+        /// <summary>
+        ///     シーンの状態を返す。
+        /// </summary>
+        /// <param name="sceneName"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public static bool TryGetState(string sceneName, out SceneLoadState state) => _data.TryGetSceneState(sceneName, out state);
 
         /// <summary>
