@@ -58,7 +58,7 @@ namespace SymphonyFrameWork.System
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void GameAfterSceneLoaded()
         {
-
+            _ = SceneLoader.AfterSceneLoad();
         }
     }
 }
