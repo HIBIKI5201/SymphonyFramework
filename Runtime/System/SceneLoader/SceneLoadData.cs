@@ -71,9 +71,22 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         public bool IsExistScene(string name) => _sceneDict.ContainsKey(name);
-        public bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
 
-        public struct SceneInfo
+        public bool TryGetSceneState(string name, out SceneLoadState state)
+        {
+            if (!_sceneDict.TryGetValue(name, out SceneInfo info))
+            {
+                state = SceneLoadState.None;
+                return false;
+            }
+
+            state = info.State;
+            return true;
+        }
+
+        internal bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
+
+        internal struct SceneInfo
         {
             public SceneInfo(Scene scene)
             {
@@ -91,13 +104,6 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             private Scene _scene;
             private SceneLoadState _state;
-        }
-
-        public enum SceneLoadState
-        {
-            Loading,
-            Complete,
-            Unloading
         }
 
         private static readonly Dictionary<string, SceneInfo> _sceneDict = new();
