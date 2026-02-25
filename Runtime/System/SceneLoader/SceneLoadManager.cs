@@ -241,6 +241,85 @@ namespace SymphonyFrameWork.System.SceneLoad
             return true;
         }
 
+        /// <summary>
+        ///     シーンをアンロードする。
+        /// </summary>
+        /// <param name="sceneName">シーン名</param>
+        /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
+        /// <param name="mode"></param>
+        /// <param name="token"></param>
+        /// <returns>ロードに成功したか</returns>
+        public async ValueTask<bool> UnloadScenes(
+            string[] names,
+            Action<float> loadingAction = null,
+            CancellationToken token = default)
+        {
+            foreach (string scene in names)
+            {
+                if (string.IsNullOrEmpty(scene))
+                {
+                    Debug.LogWarning($"load scenes is canceled becouse contain null or empty in scene names");
+                    return false;
+                }
+            }
+
+            ValueTask<bool>[] loadTasks = new ValueTask<bool>[names.Length]; // シーンごとのロードタスク。
+            float[] progresses = new float[names.Length]; // シーンごとの進捗率。
+
+            // 全てのシーンのロードを開始。
+            for (int i = 0; i < names.Length; i++)
+            {
+                int index = i;
+                loadTasks[i] = UnloadScene(names[i], n => progresses[index] = n, token: token);
+            }
+
+            StringBuilder debugProgress = new StringBuilder();
+            // ロード中の進捗率を計算して通知。
+            while (!token.IsCancellationRequested)
+            {
+                // 全てのシーンの平均進捗率を計算。
+                float totalProgress = 0f;
+                for (int i = 0; i < progresses.Length; i++)
+                {
+                    totalProgress += progresses[i];
+                }
+                float averageProgress = totalProgress / progresses.Length;
+                loadingAction?.Invoke(averageProgress);
+
+                #region デバッグ用に各シーンの進捗率をログ出力。
+                debugProgress.Clear();
+                debugProgress.AppendLine($"AverageProgress : {averageProgress}");
+                for (int i = 0; i < progresses.Length; i++)
+                {
+                    debugProgress.Append($"\n  Scene {names[i]} Progress : {progresses[i]}");
+                }
+                Debug.Log(debugProgress.ToString());
+                #endregion
+
+                // 全てのシーンのロードが完了したか確認。
+                bool allDone = true;
+                for (int i = 0; i < loadTasks.Length; i++)
+                {
+                    if (!loadTasks[i].IsCompleted)
+                    {
+                        allDone = false;
+                        break;
+                    }
+                }
+
+                // 全てのシーンのアンロードが完了した場合、ループを抜ける。
+                if (allDone) { break; }
+                await Awaitable.NextFrameAsync(token);
+            }
+
+            for (int i = 0; i < loadTasks.Length; i++)
+            {
+                if (!loadTasks[i].Result) { return false; }
+            }
+
+            return true;
+        }
+
         internal void ResetSceneData()
         {
             int sceneCount = SceneManager.sceneCount;
