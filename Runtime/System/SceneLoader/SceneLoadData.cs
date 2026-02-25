@@ -20,10 +20,26 @@ namespace SymphonyFrameWork.System.SceneLoad
             info.StateChange(SceneLoadState.Complete);
         }
 
-        public void Reset(params KeyValuePair<string, Scene>[] keyValuePairs)
+        public void LoadFail(string name)
+        {
+            _sceneDict.Remove(name);
+        }
+
+        public void UnloadStart(string name)
+        {
+            if (!_sceneDict.TryGetValue(name, out SceneInfo info)) { return; }
+            info.StateChange(SceneLoadState.Unloading);
+        }
+
+        public void UnloadComplete(string name)
+        {
+            _sceneDict.Remove(name);
+        }
+
+        public void Reset(params KeyValuePair<string, Scene>[] newList)
         {
             _sceneDict.Clear();
-            foreach (var pair in keyValuePairs)
+            foreach (var pair in newList)
             {
                 _sceneDict.Add(pair.Key, new(pair.Value));
             }
@@ -31,6 +47,16 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public void AddLoadedAction(string name, Action action)
         {
+            // ロード済みなら即座に実行して終了。
+            if (_sceneDict.TryGetValue(name, out SceneInfo info))
+            {
+                if (SceneLoadState.Complete <= info.State)
+                {
+                    action?.Invoke();
+                    return;
+                }
+            }
+
             if (!_loadedAction.TryAdd(name, action))
             {
                 _loadedAction[name] += action;
@@ -46,9 +72,6 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public bool IsExistScene(string name) => _sceneDict.ContainsKey(name);
         public bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
-
-        private static readonly Dictionary<string, SceneInfo> _sceneDict = new();
-        private static readonly Dictionary<string, Action> _loadedAction = new();
 
         public struct SceneInfo
         {
@@ -73,7 +96,13 @@ namespace SymphonyFrameWork.System.SceneLoad
         public enum SceneLoadState
         {
             Loading,
-            Complete
+            Complete,
+            Unloading
         }
+
+        private static readonly Dictionary<string, SceneInfo> _sceneDict = new();
+        private static readonly Dictionary<string, Action> _loadedAction = new();
+
+
     }
 }
