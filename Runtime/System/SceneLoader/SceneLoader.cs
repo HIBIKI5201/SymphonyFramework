@@ -16,10 +16,9 @@ namespace SymphonyFrameWork.System.SceneLoad
     {
         public static Task InitializeScenesLoadTask => _initializeScenesLoadTask;
 
-        private static readonly Dictionary<string, Scene> _sceneDict = new();
-        private static readonly Dictionary<string, Action> _loadedActionDict = new();
-
         private static Task _initializeScenesLoadTask;
+        private static SceneLoadManager _manager;
+        private static SceneLoadData _data;
 
         /// <summary>
         ///     ロードされているシーンを返す
@@ -30,24 +29,19 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns></returns>
         public static bool GetExistScene(string sceneName, out Scene scene)
         {
-            return _sceneDict.TryGetValue(sceneName, out scene);
+            bool result = _data.TryGetSceneInfo(sceneName, out SceneLoadData.SceneInfo info);
+            scene = info.Scene;
+            return result;
         }
+
+        public static bool IsExist(string sceneName) => _data.IsExistScene(sceneName);
 
         /// <summary>
         ///     シーンをアクティブにする
         /// </summary>
         /// <param name="sceneName"></param>
         /// <returns></returns>
-        public static bool SetActiveScene(string sceneName)
-        {
-            if (_sceneDict.TryGetValue(sceneName, out var scene))
-            {
-                SceneManager.SetActiveScene(scene);
-                return true;
-            }
-
-            return false;
-        }
+        public static bool SetActiveScene(string sceneName) => _manager.TrySetActiveScene(sceneName);
 
         /// <summary>
         ///     シーンをロードする。
@@ -265,7 +259,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         internal static void Initialize()
         {
-            _sceneDict.Clear();
+            _data = new SceneLoadData();
+            _manager = new(_data);
             _initializeScenesLoadTask = null;
         }
 
@@ -274,38 +269,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         internal static async ValueTask AfterSceneLoad()
         {
-            await ResetLoad();
+            await InitializeSceneLoad();
             _initializeScenesLoadTask = Task.CompletedTask;
-
-            SceneResetter.ResetAndLoadSceneOnPlay();
-
-            // まず、現在ロードされている全シーンを辞書に登録する
-            for (var i = 0; i < SceneManager.sceneCount; i++)
-            {
-                var scene = SceneManager.GetSceneAt(i);
-                _sceneDict.TryAdd(scene.name, scene);
-            }
-
-            Debug.Log($"{string.Join(", ", _sceneDict.Keys)}");
-
-            if (!config)
-            {
-                _initializeScenesLoadTask = Task.CompletedTask;
-                return;
-            }
-
-            var initializeSceneList = config.InitializeSceneList;
-            if (initializeSceneList == null || initializeSceneList.Count == 0)
-            {
-                _initializeScenesLoadTask = Task.CompletedTask;
-                return;
-            }
-
-            // まだロードされていない初期化シーンだけをロード対象にする
-            var scenesToLoad = new List<string>();
-            foreach (var sceneName in initializeSceneList)
-                if (!_sceneDict.ContainsKey(sceneName))
-                    scenesToLoad.Add(sceneName);
 
             // 追加でロードするシーンがなければ終了
             if (scenesToLoad.Count == 0)
@@ -333,7 +298,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         ///     シーンの初期化
         /// </summary>
         /// <returns></returns>
-        private static async ValueTask ResetLoad()
+        private static async ValueTask InitializeSceneLoad()
         {
             SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
 
@@ -343,6 +308,9 @@ namespace SymphonyFrameWork.System.SceneLoad
             // シーンのロード状況をリセットする。
             string[] resetIgnoreScenes = GetResetIgnoreScenes(config);
             await SceneResetter.ResetScene(config, new ReadOnlySpan<string>());
+
+            // 現状のシーン状況を保存する。
+            _manager.ResetSceneData();
 
 
         }
