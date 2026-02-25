@@ -18,6 +18,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             if (!_sceneDict.TryGetValue(name, out SceneInfo info)) { return; }
             info.RegisterScene(scene);
             info.StateChange(SceneLoadState.Complete);
+            _sceneDict[name] = info;
         }
 
         public void LoadFail(string name)
@@ -29,6 +30,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         {
             if (!_sceneDict.TryGetValue(name, out SceneInfo info)) { return; }
             info.StateChange(SceneLoadState.Unloading);
+            _sceneDict[name] = info;
         }
 
         public void UnloadComplete(string name)
