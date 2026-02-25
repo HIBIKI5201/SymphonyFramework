@@ -1,7 +1,9 @@
-﻿using SymphonyFrameWork.Config;
+﻿using NUnit.Framework;
+using SymphonyFrameWork.Config;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 namespace SymphonyFrameWork.Editor
 {
@@ -10,18 +12,16 @@ namespace SymphonyFrameWork.Editor
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void ResetAndLoadSceneOnPlay()
         {
-#if UNITY_EDITOR
-            // EditorConfigLocator を通じて SceneManagerConfig を取得
-            var config = SymphonyEditorConfigLocator.GetConfig<SceneManagerConfig>();
+            SceneManagerConfig config = SymphonyEditorConfigLocator.GetConfig<SceneManagerConfig>();
 
-            // コンフィグが存在しない、または機能が有効でない場合は何もしない
+            // コンフィグが存在しない、または機能が有効でない場合は何もしない。
             if (config == null || !config.IsResetAndLoadOnPlay)
             {
                 return;
             }
 
             // ロードすべきシーンのリストを取得
-            var initializeSceneList = config.InitializeSceneList;
+            List<string> initializeSceneList = config.InitializeSceneList;
             if (initializeSceneList == null || initializeSceneList.Count == 0 || string.IsNullOrEmpty(initializeSceneList.First()))
             {
                 return;
@@ -39,7 +39,6 @@ namespace SymphonyFrameWork.Editor
                     UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Additive));
                 }
             }
-#endif
         }
     }
 }
