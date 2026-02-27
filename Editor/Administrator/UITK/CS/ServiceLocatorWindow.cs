@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -24,7 +24,7 @@ namespace SymphonyFrameWork.Editor
             LoadType.AssetDataBase)
         { }
 
-        protected override Task Initialize_S(TemplateContainer container)
+        protected override ValueTask Initialize_S(VisualElement container)
         {
             _lazyDataField = typeof(ServiceLocator).GetField("_data", BindingFlags.Static | BindingFlags.NonPublic);
 
@@ -70,7 +70,7 @@ namespace SymphonyFrameWork.Editor
                 EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
                 EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault);
 
-            return Task.CompletedTask;
+            return default;
         }
 
         private void UpdateLocateDict()
