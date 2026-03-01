@@ -32,6 +32,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
                     component.transform.SetParent(null);
                 }
 
+                _locateObjects.Remove(type);
                 return true;
             }
 
