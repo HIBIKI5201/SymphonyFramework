@@ -1,0 +1,119 @@
+﻿using SymphonyFrameWork.Core;
+using System;
+using UnityEditor;
+using UnityEngine;
+using static SymphonyFrameWork.System.ServiceLocate.ServiceLocator;
+
+namespace SymphonyFrameWork.System.ServiceLocate
+{
+    public class ServiceLocateManager
+    {
+        public ServiceLocateManager(ServiceLocateData data)
+        {
+            _data = data;
+        }
+
+        /// <summary>
+        ///     指定されたインスタンスをロケーターに登録します。
+        /// </summary>
+        /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
+        /// <param name="instance">登録するインスタンス。</param>
+        /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
+        public bool RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
+        {
+            // 既に同じ型のインスタンスが登録されている場合は、新しいインスタンスを登録せずに処理を中断する。
+            // 中断すると対象をDisposeして終了。
+            if (!_data.LocateObjects.TryAdd(typeof(T), instance))
+            {
+                Dispose(instance);
+                Debug.Log($"{typeof(T).Name}は既に登録されています。新しいインスタンスは破棄されました。");
+                return false;
+            }
+
+#if UNITY_EDITOR
+            // デバッグログ。
+            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorSetInstanceKey,
+                EditorSymphonyConstant.ServiceLocatorSetInstanceDefault))
+            {
+                string instanceName = instance is Component c ? c.name : instance.GetType().Name;
+                Debug.Log($"{typeof(T).Name}クラスの{instanceName}が{type switch { LocateType.Locator => "ロケート", LocateType.Singleton => "シングルトン", _ => string.Empty }}登録されました");
+            }
+#endif
+
+            _data.InvokeWaitingAction(instance);
+
+            // 登録タイプがSingletonで、かつインスタンスがComponentの場合、
+            // ServiceLocatorのGameObjectの子要素にして、シーン内で管理しやすくします。
+            if (type == LocateType.Singleton && instance is Component componentInstance)
+            {
+                componentInstance.transform.SetParent(_data.Instance.transform);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///     指定した型のインスタンスをロケーターから登録解除します。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public bool UnregisterInstance<T>() where T : class
+        {
+            // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
+            if (!_data.IsLocate<T>())
+            {
+                Debug.LogWarning($"{typeof(T).Name}は登録されていません。");
+                return false;
+            }
+
+            _data.Remove(typeof(T));
+
+#if UNITY_EDITOR
+            //ログを出力。
+            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
+                EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
+                Debug.Log($"{typeof(T).Name}が登録解除されました。");
+#endif
+            return true;
+        }
+
+        /// <summary>
+        ///     指定した型のインスタンスを破棄します。
+        /// </summary>
+        /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
+        public bool DestroyInstance<T>()
+        {
+            T instance = _data.Get<T>();
+            if (instance != null)
+            {
+                Dispose(instance);
+                return true;
+            }
+
+            return false;
+        }
+
+
+        private readonly ServiceLocateData _data;
+
+        private bool Dispose(object instance)
+        {
+            bool isDispose = false;
+
+            if (instance is Component component)
+            {
+                UnityEngine.Object.Destroy(component.gameObject);
+                isDispose = true;
+            }
+
+            // IDisposableを実装していれば、Disposeメソッドを呼び出してリソースを解放します。
+            if (instance is IDisposable disposable)
+            {
+                disposable.Dispose();
+                isDispose = true;
+            }
+
+            return isDispose;
+        }
+    }
+}
