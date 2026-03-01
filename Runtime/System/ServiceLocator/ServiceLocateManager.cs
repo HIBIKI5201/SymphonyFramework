@@ -1,7 +1,10 @@
 ﻿using SymphonyFrameWork.Core;
 using System;
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
@@ -20,6 +23,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
         public bool RegisterInstance(Type type, object instance, LocateType locateType = LocateType.Singleton)
         {
+            if (instance == null) { return false; }
+
             // 既に同じ型のインスタンスが登録されている場合は、新しいインスタンスを登録せずに処理を中断する。
             // 中断すると対象をDisposeして終了。
             if (!_data.Add(type, instance))

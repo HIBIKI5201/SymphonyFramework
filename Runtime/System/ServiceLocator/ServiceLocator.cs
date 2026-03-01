@@ -5,8 +5,6 @@ using UnityEngine;
 using SymphonyFrameWork.Debugger;
 using SymphonyFrameWork.Core;
 
-
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

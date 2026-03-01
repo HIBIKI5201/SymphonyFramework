@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             return false;
         }
 
-        public T Get<T>() 
+        public T Get<T>()
         {
             if (_locateObjects.TryGetValue(typeof(T), out object value))
             {
