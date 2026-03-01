@@ -47,7 +47,6 @@ namespace SymphonyFrameWork.Utility
                 bool isExist = ServiceLocator.IsExistInstance(_targetType);
                 if (!isExist) { return; }
 
-                //ServiceLocator.DestroyInstanceを取得する。
                 ServiceLocator.UnregisterInstance(_targetType);
             }
         }
