@@ -85,6 +85,7 @@ namespace SymphonyFrameWork.Utility
                         Debug.LogError($"Failed to load UXML file \nfrom : {path} \nusing Addressables");
                         return;
                     }
+                    asyncOperation.Release();
                     break;
 
                 case LoadType.AssetDataBase:
