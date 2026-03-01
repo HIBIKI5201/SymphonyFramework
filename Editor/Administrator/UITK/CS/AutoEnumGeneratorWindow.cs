@@ -12,7 +12,7 @@ namespace SymphonyFrameWork.Editor
             InitializeType.None,
             LoadType.AssetDataBase)
         { }
-        protected override ValueTask Initialize_S(VisualElement container)
+        protected override Task Initialize_S(TemplateContainer container)
         {
             //コンフィグデータを取得
             var config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
@@ -35,7 +35,7 @@ namespace SymphonyFrameWork.Editor
                 evt => config.AutoLayerUpdate = evt.newValue);
             layers.button.clicked += () => AutoEnumGenerator.LayersEnumGenerate();
 
-            return default;
+            return Task.CompletedTask;
 
             (Toggle toggle, Button button) GetElement(string name) =>
                 container.Q<VisualElement>(name) switch

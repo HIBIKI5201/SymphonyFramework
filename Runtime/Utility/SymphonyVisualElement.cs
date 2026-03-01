@@ -2,8 +2,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -40,7 +38,7 @@ namespace SymphonyFrameWork.Utility
         }
 
         public SymphonyVisualElement(string path, InitializeType initializeType = InitializeType.All,
-            LoadType loadType = LoadType.Addressable)
+            LoadType loadType = LoadType.Resources)
         {
             InitializeTask = Initialize(path, initializeType, loadType);
         }
@@ -59,41 +57,31 @@ namespace SymphonyFrameWork.Utility
         private async Task Initialize(string path, InitializeType type, LoadType loadType)
         {
             VisualTreeAsset treeAsset = default;
-            if (string.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(path))
             {
-                Debug.LogError($"{name} failed initialize");
-                return;
-            }
+                switch (loadType)
+                {
+                    case LoadType.Resources:
+                        treeAsset = Resources.Load<VisualTreeAsset>(path);
+                        break;
 
-            switch (loadType)
-            {
-                case LoadType.Resources:
-                    treeAsset = Resources.Load<VisualTreeAsset>(path);
-                    break;
-                    
-                case LoadType.Addressable:
-                    AsyncOperationHandle<VisualTreeAsset> asyncOperation 
-                        = Addressables.LoadAssetAsync<VisualTreeAsset>(path);
-                    await asyncOperation.Task;
+                    case LoadType.Addressable:
+                        Debug.LogWarning("Addressableは現在使用できません");
+                        break;
 
-                    if (asyncOperation.Status == AsyncOperationStatus.Succeeded)
-                    {
-                        treeAsset = asyncOperation.Result;
-                    }
-                    else
-                    {
-                        Debug.LogError($"Failed to load UXML file \nfrom : {path} \nusing Addressables");
-                        return;
-                    }
-                    break;
-
-                case LoadType.AssetDataBase:
+                    case LoadType.AssetDataBase:
 #if UNITY_EDITOR
-                    treeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
+                        treeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
 #else
                         Debug.Log("AssetDataBaseを使用したロードはエディタ専用です");
 #endif
-                    break;
+                        break;
+                }
+            }
+            else
+            {
+                Debug.LogError($"{name} failed initialize");
+                return;
             }
 
 
@@ -101,15 +89,20 @@ namespace SymphonyFrameWork.Utility
             {
                 #region 親エレメントの初期化
 
-                treeAsset.CloneTree(this);
+                var container = treeAsset.Instantiate();
+                container.style.width = Length.Percent(100);
+                container.style.height = Length.Percent(100);
 
                 if ((type & InitializeType.PickModeIgnore) != 0)
                 {
                     RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
                     pickingMode = PickingMode.Ignore;
+
+                    container.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
+                    container.pickingMode = PickingMode.Ignore;
                 }
 
-                if ((type & InitializeType.Absolute) != 0) { style.position = Position.Absolute; }
+                if ((type & InitializeType.Absolute) != 0) style.position = Position.Absolute;
 
                 if ((type & InitializeType.FullRangth) != 0)
                 {
@@ -117,10 +110,13 @@ namespace SymphonyFrameWork.Utility
                     style.width = Length.Percent(100);
                 }
 
+
+                hierarchy.Add(container);
+
                 #endregion
 
                 // UI要素の取得
-                await Initialize_S(this);
+                await Initialize_S(container);
             }
             else
             {
@@ -131,8 +127,8 @@ namespace SymphonyFrameWork.Utility
         /// <summary>
         ///     サブクラス固有の初期化処理
         /// </summary>
-        /// <param name="root">ロードしたUXMLのコンテナ</param>
+        /// <param name="container">ロードしたUXMLのコンテナ</param>
         /// <returns></returns>
-        protected abstract ValueTask Initialize_S(VisualElement root);
+        protected abstract Task Initialize_S(TemplateContainer container);
     }
 }
