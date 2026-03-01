@@ -32,6 +32,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
                     component.transform.SetParent(null);
                 }
 
+                _locateObjects.Remove(type);
                 return true;
             }
 
@@ -88,24 +89,21 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
         }
 
-        public void InvokeWaitingAction<T>(T instance)
+        public void InvokeWaitingAction(Type type, object instance)
         {
             // この型のインスタンスが登録されるのを待っていたアクションがあれば、ここで実行します。
-            if (_waitingActions.TryGetValue(typeof(T), out Action waitingAction))
+            if (_waitingActions.TryGetValue(type, out Action waitingAction))
             {
                 waitingAction?.Invoke();
-                _waitingActions.Remove(typeof(T)); //実行したら解放
+                _waitingActions.Remove(type);
             }
 
             // 同様に、インスタンスを引数に取る待機アクションも実行します。
             if (_waitingActionsWithInstance
-                .TryGetValue(typeof(T), out var del))
+                .TryGetValue(type, out Delegate del))
             {
-                if (del is Action<T> action)
-                {
-                    action.Invoke(instance);
-                }
-                _waitingActionsWithInstance.Remove(typeof(T)); //実行したら解放
+                del?.DynamicInvoke(instance);
+                _waitingActionsWithInstance.Remove(type);
             }
         }
 

@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
 #endif
 
-            _data.InvokeWaitingAction(instance);
+            _data.InvokeWaitingAction(type, instance);
 
             // 登録タイプがSingletonで、かつインスタンスがComponentの場合、
             // ServiceLocatorのGameObjectの子要素にして、シーン内で管理しやすくします。
@@ -87,6 +87,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             if (instance != null)
             {
                 Dispose(instance);
+                UnregisterInstance(type);
                 return true;
             }
 
@@ -100,16 +101,16 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             bool isDispose = false;
 
-            if (instance is Component component)
-            {
-                UnityEngine.Object.Destroy(component.gameObject);
-                isDispose = true;
-            }
-
             // IDisposableを実装していれば、Disposeメソッドを呼び出してリソースを解放します。
             if (instance is IDisposable disposable)
             {
                 disposable.Dispose();
+                isDispose = true;
+            }
+
+            if (instance is Component component)
+            {
+                UnityEngine.Object.Destroy(component.gameObject);
                 isDispose = true;
             }
 
