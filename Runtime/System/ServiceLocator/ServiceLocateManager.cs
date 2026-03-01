@@ -2,7 +2,6 @@
 using System;
 using UnityEditor;
 using UnityEngine;
-using static SymphonyFrameWork.System.ServiceLocate.ServiceLocator;
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
@@ -19,14 +18,14 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
         /// <param name="instance">登録するインスタンス。</param>
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
-        public bool RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
+        public bool RegisterInstance(Type type, object instance, LocateType locateType = LocateType.Singleton)
         {
             // 既に同じ型のインスタンスが登録されている場合は、新しいインスタンスを登録せずに処理を中断する。
             // 中断すると対象をDisposeして終了。
-            if (!_data.LocateObjects.TryAdd(typeof(T), instance))
+            if (!_data.Add(type, instance))
             {
                 Dispose(instance);
-                Debug.Log($"{typeof(T).Name}は既に登録されています。新しいインスタンスは破棄されました。");
+                Debug.Log($"{type.Name}は既に登録されています。新しいインスタンスは破棄されました。");
                 return false;
             }
 
@@ -36,7 +35,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 EditorSymphonyConstant.ServiceLocatorSetInstanceDefault))
             {
                 string instanceName = instance is Component c ? c.name : instance.GetType().Name;
-                Debug.Log($"{typeof(T).Name}クラスの{instanceName}が{type switch { LocateType.Locator => "ロケート", LocateType.Singleton => "シングルトン", _ => string.Empty }}登録されました");
+                Debug.Log($"{type.Name}クラスの{instanceName}が{locateType switch { LocateType.Locator => "ロケート", LocateType.Singleton => "シングルトン", _ => string.Empty }}登録されました");
             }
 #endif
 
@@ -44,7 +43,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
             // 登録タイプがSingletonで、かつインスタンスがComponentの場合、
             // ServiceLocatorのGameObjectの子要素にして、シーン内で管理しやすくします。
-            if (type == LocateType.Singleton && instance is Component componentInstance)
+            if (locateType == LocateType.Singleton && instance is Component componentInstance)
             {
                 componentInstance.transform.SetParent(_data.Instance.transform);
             }
@@ -57,22 +56,22 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public bool UnregisterInstance<T>() where T : class
+        public bool UnregisterInstance(Type type)
         {
             // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
-            if (!_data.IsLocate<T>())
+            if (!_data.IsLocate(type))
             {
-                Debug.LogWarning($"{typeof(T).Name}は登録されていません。");
+                Debug.LogWarning($"{type.Name}は登録されていません。");
                 return false;
             }
 
-            _data.Remove(typeof(T));
+            _data.Remove(type);
 
 #if UNITY_EDITOR
             //ログを出力。
             if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
                 EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
-                Debug.Log($"{typeof(T).Name}が登録解除されました。");
+                Debug.Log($"{type.Name}が登録解除されました。");
 #endif
             return true;
         }
@@ -81,9 +80,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
         ///     指定した型のインスタンスを破棄します。
         /// </summary>
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
-        public bool DestroyInstance<T>()
+
+        public bool DestroyInstance(Type type)
         {
-            T instance = _data.Get<T>();
+            object instance = _data.Get(type);
             if (instance != null)
             {
                 Dispose(instance);
