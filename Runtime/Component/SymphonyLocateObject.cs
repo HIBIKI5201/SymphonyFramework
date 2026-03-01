@@ -1,4 +1,4 @@
-﻿using SymphonyFrameWork.System.ServiceLocate;
+﻿using SymphonyFrameWork.System;
 using System.Threading;
 using System.Threading.Tasks;
 
