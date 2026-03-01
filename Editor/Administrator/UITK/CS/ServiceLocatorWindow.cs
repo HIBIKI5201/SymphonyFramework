@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using SymphonyFrameWork.Core;
-using SymphonyFrameWork.System;
+using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 using UnityEditor;
 using UnityEngine;
@@ -24,7 +24,7 @@ namespace SymphonyFrameWork.Editor
             LoadType.AssetDataBase)
         { }
 
-        protected override Task Initialize_S(TemplateContainer container)
+        protected override ValueTask Initialize_S(VisualElement container)
         {
             _lazyDataField = typeof(ServiceLocator).GetField("_data", BindingFlags.Static | BindingFlags.NonPublic);
 
@@ -70,33 +70,33 @@ namespace SymphonyFrameWork.Editor
                 EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
                 EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault);
 
-            return Task.CompletedTask;
+            return default;
         }
 
         private void UpdateLocateDict()
         {
-            if (_lazyDataField == null) return;
+            if (_lazyDataField == null)
+                return;
 
-            var lazyData = _lazyDataField.GetValue(null);
-            if (lazyData == null) return;
+            // static フィールドなので null を渡す
+            var serviceLocatorDataInstance = _lazyDataField.GetValue(null);
 
-            var isValueCreatedProp = lazyData.GetType().GetProperty("IsValueCreated");
-            if (isValueCreatedProp == null || !(bool)isValueCreatedProp.GetValue(lazyData))
+            if (serviceLocatorDataInstance == null)
             {
                 _locateDict = new Dictionary<Type, object>();
                 return;
             }
 
-            var valueProp = lazyData.GetType().GetProperty("Value");
-            if (valueProp == null) return;
-            var serviceLocatorDataInstance = valueProp.GetValue(lazyData);
-            if (serviceLocatorDataInstance == null) return;
+            var singletonObjectsField =
+                serviceLocatorDataInstance.GetType()
+                .GetField("_locateObjects",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
 
-            var singletonObjectsField = serviceLocatorDataInstance.GetType()
-                .GetField("_singletonObjects", BindingFlags.Instance | BindingFlags.NonPublic);
             if (singletonObjectsField != null)
             {
-                _locateDict = (Dictionary<Type, object>)singletonObjectsField.GetValue(serviceLocatorDataInstance);
+                _locateDict =
+                    (Dictionary<Type, object>)
+                    singletonObjectsField.GetValue(serviceLocatorDataInstance);
             }
             else
             {

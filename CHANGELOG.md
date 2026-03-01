@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.27.4] - 2026-03-01
+### Update
+- ServiceLocator
+
+## [1.27.3] - 2026-03-01
+### Update
+- SymphonyVisualElement
+
 ## [1.27.2] - 2026-02-26
 ### Update
 - SceneLoader
