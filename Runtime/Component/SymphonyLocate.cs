@@ -1,8 +1,7 @@
-﻿using SymphonyFrameWork.System;
+﻿using SymphonyFrameWork.System.ServiceLocate;
 using System;
 using System.Reflection;
 using UnityEngine;
-using SymphonyFrameWork.System.ServiceLocate;
 
 namespace SymphonyFrameWork.Utility
 {
@@ -17,7 +16,7 @@ namespace SymphonyFrameWork.Utility
         private Component _target;
 
         [SerializeField]
-        private ServiceLocator.LocateType _locateType = ServiceLocator.LocateType.Locator;
+        private LocateType _locateType = LocateType.Locator;
 
         [SerializeField] private bool _autoRegister = true;
         [SerializeField] private bool _autoUnregister = true;
@@ -26,53 +25,36 @@ namespace SymphonyFrameWork.Utility
 
         private void Awake()
         {
-            _targetType = _target.GetType();
             Debug.Assert(_targetType != null, "Target type is null. Please assign a valid component to the target field.");
         }
         private void OnEnable()
         {
-            if (!_autoRegister) return;
-            if (_target == null) return;
+            if (!_autoRegister) { return; }
+            if (_target == null) { return; }
 
-            if (_target)
-            {
-                //Targetのクラスをキャストして実行する
-
-                var method = typeof(ServiceLocator)
-                    .GetMethod(nameof(ServiceLocator.RegisterInstance))
-                    ?.MakeGenericMethod(_targetType);
-
-                method?.Invoke(null, new object[]
-                    { _target, _locateType });
-            }
+            ServiceLocator.RegisterInstance(_targetType, _target, _locateType);
         }
 
         private void OnDisable()
         {
-            if (!_autoUnregister) return;
-            if (_target == null) return;
+            if (!_autoUnregister) { return; }
+            if (_target == null) { return; }
 
             if (_target != null)
             {
-                //ロケーターに登録されているか確認する
-                var getMethod = typeof(ServiceLocator)
-                    .GetMethod(nameof(ServiceLocator.GetInstance),
-                        BindingFlags.Public | BindingFlags.Static,
-                        null, Type.EmptyTypes, null)
-                    ?.MakeGenericMethod(_targetType);
+                //ロケーターに登録されているか確認する。
+                bool isExist = ServiceLocator.IsExistInstance(_targetType);
+                if (!isExist) { return; }
 
-                var instance = getMethod?.Invoke(null, null);
-                if (instance == null) return; //登録されていなければ終了
-
-                //ServiceLocator.DestroyInstanceを取得する
-                var destroyMethod = typeof(ServiceLocator)
-                    .GetMethod(nameof(ServiceLocator.UnregisterInstance),
-                        BindingFlags.Public | BindingFlags.Static,
-                        null, Type.EmptyTypes, null)
-                    ?.MakeGenericMethod(_targetType);
-
-                destroyMethod?.Invoke(null, null);
+                //ServiceLocator.DestroyInstanceを取得する。
+                ServiceLocator.UnregisterInstance(_targetType);
             }
+        }
+
+        private void OnValidate()
+        {
+            if (_target == null) { return; }
+            _targetType = _target.GetType();
         }
     }
 }
