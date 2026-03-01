@@ -11,7 +11,7 @@ using SymphonyFrameWork.Core;
 using UnityEditor;
 #endif
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFrameWork.System.ServiceLocate
 {
     /// <summary>
     ///     シングルトンのインスタンスを統括して管理するクラスです。
@@ -41,7 +41,7 @@ namespace SymphonyFrameWork.System
         /// </summary>
         public static GameObject Instance
         {
-            get => _data.Value.Instance;
+            get => _data.Instance;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace SymphonyFrameWork.System
         {
             // 既に同じ型のインスタンスが登録されている場合は、新しいインスタンスを登録せずに処理を中断します。
             // 登録しようとしたインスタンスがComponentだった場合は、そのGameObjectを破棄します。
-            if (!_data.Value.SingletonObjects.TryAdd(typeof(T), instance))
+            if (!_data.SingletonObjects.TryAdd(typeof(T), instance))
             {
                 if (instance is Component component)
                 {
@@ -82,21 +82,21 @@ namespace SymphonyFrameWork.System
 
             #region 待機中のイベントを発火
             // この型のインスタンスが登録されるのを待っていたアクションがあれば、ここで実行します。
-            if (_data.Value.WaitingActions.TryGetValue(typeof(T), out var waitingAction))
+            if (_data.WaitingActions.TryGetValue(typeof(T), out var waitingAction))
             {
                 waitingAction?.Invoke();
-                _data.Value.WaitingActions.Remove(typeof(T)); //実行したら解放
+                _data.WaitingActions.Remove(typeof(T)); //実行したら解放
             }
 
             // 同様に、インスタンスを引数に取る待機アクションも実行します。
-            if (_data.Value.WaitingActionsWithInstance
+            if (_data.WaitingActionsWithInstance
                 .TryGetValue(typeof(T), out var del))
             {
                 if (del is Action<T> action)
                 {
                     action.Invoke(instance);
                 }
-                _data.Value.WaitingActionsWithInstance.Remove(typeof(T)); //実行したら解放
+                _data.WaitingActionsWithInstance.Remove(typeof(T)); //実行したら解放
             }
             #endregion
 
@@ -132,15 +132,15 @@ namespace SymphonyFrameWork.System
         public static bool UnregisterInstance<T>() where T : class
         {
             // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
-            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md))
+            if (_data.SingletonObjects.TryGetValue(typeof(T), out var md))
             {
-                _data.Value.SingletonObjects.Remove(typeof(T));
+                _data.SingletonObjects.Remove(typeof(T));
 
                 // インスタンスがComponentで親がServiceLocatorなら、親子関係を解除します。
-                if (IsValidData() //ServiceLocatorのインスタンスが有効かどうか
+                if (_data.IsValid() //ServiceLocatorのインスタンスが有効かどうか
                     && md is Component component
                     && component != null && !component.Equals(null) //nullチェックを行う
-                    && component.transform.parent == _data.Value.Instance.transform) //親がロケーターのインスタンスか
+                    && component.transform.parent == _data.Instance.transform) //親がロケーターのインスタンスか
                 {
                     component.transform.SetParent(null);
                 }
@@ -181,7 +181,7 @@ namespace SymphonyFrameWork.System
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
         public static bool DestroyInstance<T>() where T : class
         {
-            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md))
+            if (_data.SingletonObjects.TryGetValue(typeof(T), out var md))
             {
                 // インスタンスがComponentなら、GameObjectごと破棄します。
                 if (md is Component component)
@@ -224,7 +224,7 @@ namespace SymphonyFrameWork.System
                 SymphonyDebugLogger.AddText($"ServiceLocator\n{typeof(T).Name}の取得がリクエストされました。");
 #endif
 
-            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out var md))
+            if (_data.SingletonObjects.TryGetValue(typeof(T), out var md))
             {
                 // Unityのオブジェクト（Componentなど）は、C#的にはnullでなくても破棄されている場合があるため、
                 // Componentの場合はその状態をチェックします。
@@ -332,16 +332,16 @@ namespace SymphonyFrameWork.System
         public static void RegisterAfterLocate<T>(Action action) where T : class
         {
             // 既にインスタンスが登録済みであれば、即座にアクションを実行します。
-            if (_data.Value.SingletonObjects.ContainsKey(typeof(T)))
+            if (_data.SingletonObjects.ContainsKey(typeof(T)))
             {
                 action?.Invoke();
                 return;
             }
 
             // まだ登録されていなければ、待機リストに追加します。
-            if (!_data.Value.WaitingActions.TryAdd(typeof(T), action))
+            if (!_data.WaitingActions.TryAdd(typeof(T), action))
             {
-                _data.Value.WaitingActions[typeof(T)] += action;
+                _data.WaitingActions[typeof(T)] += action;
             }
         }
 
@@ -354,85 +354,28 @@ namespace SymphonyFrameWork.System
         public static void RegisterAfterLocate<T>(Action<T> action) where T : class
         {
             // 既にインスタンスが登録済みであれば、そのインスタンスを引数にして即座にアクションを実行します。
-            if (_data.Value.SingletonObjects.TryGetValue(typeof(T), out object instance))
+            if (_data.SingletonObjects.TryGetValue(typeof(T), out object instance))
             {
                 action?.Invoke((T)instance);
                 return;
             }
 
             // まだ登録されていなければ、待機リストに追加します。
-            if (_data.Value.WaitingActionsWithInstance.TryGetValue(typeof(T), out Delegate existing))
+            if (_data.WaitingActionsWithInstance.TryGetValue(typeof(T), out Delegate existing))
             {
-                _data.Value.WaitingActionsWithInstance[typeof(T)] = Delegate.Combine(existing, action);
+                _data.WaitingActionsWithInstance[typeof(T)] = Delegate.Combine(existing, action);
             }
             else
             {
-                _data.Value.WaitingActionsWithInstance[typeof(T)] = action;
+                _data.WaitingActionsWithInstance[typeof(T)] = action;
             }
         }
 
-        /// <summary>
-        ///     指定されたインスタンスをロケーターに登録します。
-        /// </summary>
-        /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
-        /// <param name="instance">登録するインスタンス。</param>
-        /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
-        [Obsolete("このメソッドは非推奨です。代わりにRegisterInstance<T>(T instance, LocateType type)を使用してください。")]
-        public static void SetInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
-        {
-            RegisterInstance(instance, type);
-        }
-
-        /// <summary>
-        ///     ServiceLocatorを初期化します。
-        ///     SymphonyCoreSystemから呼び出されることを想定しています。
-        /// </summary>
         internal static void Initialize()
         {
-            _data = new Lazy<ServiceLocatorData>(CreateData);
+            _data = new ServiceLocateData();
         }
 
-        private static Lazy<ServiceLocatorData> _data;
-
-        /// <summary>
-        ///     ServiceLocatorのデータを保持するためのコンポーネント。
-        /// </summary>
-        [Serializable]
-        private class ServiceLocatorData : MonoBehaviour
-        {
-            public GameObject Instance => gameObject;
-            public Dictionary<Type, object> SingletonObjects => _singletonObjects;
-            public Dictionary<Type, Action> WaitingActions => _waitingActions;
-            public Dictionary<Type, Delegate> WaitingActionsWithInstance => _waitingActionsWithInstance;
-
-            [Tooltip("登録されているインスタンスを型をキーにして保持する辞書")]
-            private readonly Dictionary<Type, object> _singletonObjects = new();
-
-            [Tooltip("インスタンス登録まで待機してから実行されるコールバックアクションを保持する辞書")]
-            private readonly Dictionary<Type, Action> _waitingActions = new();
-            [Tooltip("インスタンス登録まで待機し、登録されたインスタンスを引数として受け取るコールバックアクションを保持する辞書")]
-            private readonly Dictionary<Type, Delegate> _waitingActionsWithInstance = new();
-
-            public bool IsValid() =>
-                Instance != null && Instance.activeInHierarchy && Instance.scene.isLoaded;
-        }
-
-        /// <summary>
-        ///     ServiceLocatorDataのインスタンスを生成し、初期化します。
-        /// </summary>
-        /// <returns>初期化済みのServiceLocatorDataインスタンス。</returns>
-        private static ServiceLocatorData CreateData()
-        {
-            return SymphonyCoreSystem.CreateSystemObject<ServiceLocatorData>();
-        }
-
-        /// <summary>
-        ///     データが有効かどうかを確認します。
-        /// </summary>
-        /// <returns></returns>
-        private static bool IsValidData()
-        {
-            return _data.IsValueCreated && _data.Value != null && _data.Value.IsValid();
-        }
+        private static ServiceLocateData _data;
     }
 }
