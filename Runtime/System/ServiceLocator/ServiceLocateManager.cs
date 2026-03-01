@@ -87,6 +87,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             if (instance != null)
             {
                 Dispose(instance);
+                UnregisterInstance(type);
                 return true;
             }
 
