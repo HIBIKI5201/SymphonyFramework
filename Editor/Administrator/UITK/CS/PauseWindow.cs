@@ -20,7 +20,7 @@ namespace SymphonyFrameWork.Editor
             LoadType.AssetDataBase)
         { }
 
-        protected override Task Initialize_S(TemplateContainer container)
+        protected override ValueTask Initialize_S(VisualElement container)
         {
             // _pause フィールドを取得
             _pauseInfo = typeof(PauseManager).GetField("_pause", BindingFlags.Static | BindingFlags.NonPublic);
@@ -31,7 +31,7 @@ namespace SymphonyFrameWork.Editor
             container.Q<Button>("button-pause").clicked += () => PauseManager.Pause = true;
             container.Q<Button>("button-resume").clicked += () => PauseManager.Pause = false;
 
-            return Task.CompletedTask;
+            return default;
         }
 
         public void Update()
