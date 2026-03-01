@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using SymphonyFrameWork.Debugger;
 using SymphonyFrameWork.Core;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -286,13 +286,13 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="grace">最大待機時間（秒）。この時間を超えるとnullを返します。</param>
         /// <param name="token">キャンセルトークン。</param>
         /// <returns>指定した型のインスタンス。見つからない場合はnull。</returns>
-        public static Task<T> GetInstanceAsync<T>(
+        public static ValueTask<T> GetInstanceAsync<T>(
             byte grace = 120,
             CancellationToken token = default) where T : class
         {
             // 既に登録されている場合は即座に返します。
             if (TryGetInstance<T>(out var instance))
-                return Task.FromResult(instance);
+                return new ValueTask<T>(instance);
 
             // 登録されるまで待機します。
             TaskCompletionSource<T> tcs = new();
@@ -302,7 +302,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
             // インスタンスが登録されたらタスクを完了させるアクションを登録します。
             RegisterAfterLocate<T>(t => tcs.TrySetResult(t));
-            return tcs.Task;
+            return new ValueTask<T>(tcs.Task);
         }
 
         public static async Task<(bool success, T result)> TryGetInstanceAsync<T>(
