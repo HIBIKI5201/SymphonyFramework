@@ -51,8 +51,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
             if (instance == null) { return false; }
-            _manager.UnregisterInstance(typeof(T));
-            return true;
+            if (instance != _data.Get<T>()) { return false; }
+
+            return _manager.UnregisterInstance(typeof(T));
         }
 
         /// <summary>
@@ -150,7 +151,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             // 既に登録されている場合は即座に返します。
             if (TryGetInstance<T>(out var instance))
-            { 
+            {
                 return new ValueTask<T>(instance);
             }
 
@@ -161,7 +162,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
             cts.CancelAfter(grace * 1000);
 
             // インスタンスが登録されたらタスクを完了させるアクションを登録します。
-            RegisterAfterLocate<T>(t => tcs.TrySetResult(t));
+            RegisterAfterLocate<T>(t =>
+            {
+                tcs.TrySetResult(t);
+                cts.Dispose();
+            });
             return new ValueTask<T>(tcs.Task);
         }
 
