@@ -2,9 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using SymphonyFrameWork.Debugger;
 using SymphonyFrameWork.Core;
+
 
 
 #if UNITY_EDITOR
@@ -37,14 +37,6 @@ namespace SymphonyFrameWork.System.ServiceLocate
         }
 
         /// <summary>
-        ///     ServiceLocatorのシングルトンインスタンス（GameObject）を返します。
-        /// </summary>
-        public static GameObject Instance
-        {
-            get => _data.Instance;
-        }
-
-        /// <summary>
         ///     指定されたインスタンスをロケーターに登録します。
         /// </summary>
         /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
@@ -52,62 +44,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
         public static bool RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
         {
-            // 既に同じ型のインスタンスが登録されている場合は、新しいインスタンスを登録せずに処理を中断します。
-            // 登録しようとしたインスタンスがComponentだった場合は、そのGameObjectを破棄します。
-            if (!_data.SingletonObjects.TryAdd(typeof(T), instance))
-            {
-                if (instance is Component component)
-                {
-                    Object.Destroy(component.gameObject);
-                    Debug.Log($"{typeof(T).Name}は既に登録されています。新しいインスタンスは破棄されました。");
-                }
-
-                // IDisposableを実装していれば、Disposeメソッドを呼び出してリソースを解放します。
-                if (instance is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-                return false;
-            }
-
-#if UNITY_EDITOR
-
-            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorSetInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorSetInstanceDefault))
-            {
-                string instanceName = instance is Component c ? c.name : instance.GetType().Name;
-                Debug.Log($"{typeof(T).Name}クラスの{instanceName}が{type switch { LocateType.Locator => "ロケート", LocateType.Singleton => "シングルトン", _ => string.Empty }}登録されました");
-            }
-#endif
-
-            #region 待機中のイベントを発火
-            // この型のインスタンスが登録されるのを待っていたアクションがあれば、ここで実行します。
-            if (_data.WaitingActions.TryGetValue(typeof(T), out var waitingAction))
-            {
-                waitingAction?.Invoke();
-                _data.WaitingActions.Remove(typeof(T)); //実行したら解放
-            }
-
-            // 同様に、インスタンスを引数に取る待機アクションも実行します。
-            if (_data.WaitingActionsWithInstance
-                .TryGetValue(typeof(T), out var del))
-            {
-                if (del is Action<T> action)
-                {
-                    action.Invoke(instance);
-                }
-                _data.WaitingActionsWithInstance.Remove(typeof(T)); //実行したら解放
-            }
-            #endregion
-
-            // 登録タイプがSingletonで、かつインスタンスがComponentの場合、
-            // ServiceLocatorのGameObjectの子要素にして、シーン内で管理しやすくします。
-            if (type == LocateType.Singleton && instance is Component componentInstance)
-            {
-                componentInstance.transform.SetParent(Instance.transform);
-            }
-
-            return true;
+            return _manager.RegisterInstance(instance, type);
         }
 
         /// <summary>
@@ -118,9 +55,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns></returns>
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
-            if (instance == null) return false;
-
-            UnregisterInstance<T>();
+            if (instance == null) { return false; }
+            _manager.UnregisterInstance<T>();
             return true;
         }
 
@@ -131,34 +67,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns></returns>
         public static bool UnregisterInstance<T>() where T : class
         {
-            // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
-            if (_data.SingletonObjects.TryGetValue(typeof(T), out var md))
-            {
-                _data.SingletonObjects.Remove(typeof(T));
-
-                // インスタンスがComponentで親がServiceLocatorなら、親子関係を解除します。
-                if (_data.IsValid() //ServiceLocatorのインスタンスが有効かどうか
-                    && md is Component component
-                    && component != null && !component.Equals(null) //nullチェックを行う
-                    && component.transform.parent == _data.Instance.transform) //親がロケーターのインスタンスか
-                {
-                    component.transform.SetParent(null);
-                }
-
-#if UNITY_EDITOR
-                //ログを出力
-                if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
-                    EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
-                    Debug.Log($"{typeof(T).Name}が登録解除されました。");
-#endif
-
-                return true;
-            }
-            else
-            {
-                Debug.LogWarning($"{typeof(T).Name}は登録されていません。");
-                return false;
-            }
+            return _manager.UnregisterInstance<T>();
         }
 
         /// <summary>
@@ -181,33 +90,21 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
         public static bool DestroyInstance<T>() where T : class
         {
-            if (_data.SingletonObjects.TryGetValue(typeof(T), out var md))
-            {
-                // インスタンスがComponentなら、GameObjectごと破棄します。
-                if (md is Component component)
-                {
-                    Object.Destroy(component.gameObject);
-                }
-
-                // IDisposableを実装していれば、Disposeメソッドを呼び出してリソースを解放します。
-                if (md is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-
-#if UNITY_EDITOR
-                //ログを出力
-                if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
-                    EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
-                    Debug.Log($"{typeof(T).Name}が破棄されました");
-#endif
-                return true;
-            }
-            else
+            if (!_data.LocateObjects.TryGetValue(typeof(T), out var md))
             {
                 Debug.LogWarning($"{typeof(T).Name}は登録されていません");
                 return false;
             }
+
+            _manager.DestroyInstance<T>();
+
+#if UNITY_EDITOR
+            //ログを出力
+            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
+                EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
+                Debug.Log($"{typeof(T).Name}が破棄されました");
+#endif
+            return true;
         }
 
         /// <summary>
@@ -223,42 +120,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 EditorSymphonyConstant.ServiceLocatorGetInstanceDefault))
                 SymphonyDebugLogger.AddText($"ServiceLocator\n{typeof(T).Name}の取得がリクエストされました。");
 #endif
-
-            if (_data.SingletonObjects.TryGetValue(typeof(T), out var md))
-            {
-                // Unityのオブジェクト（Componentなど）は、C#的にはnullでなくても破棄されている場合があるため、
-                // Componentの場合はその状態をチェックします。
-                if (md is Component component && !component)
-                {
-                    OutputLog($"{typeof(T).Name} は破棄されています。", SymphonyDebugLogger.LogKind.Warning);
-                    return null;
-                }
-
-                // インスタンスがnullでなければ、要求された型にキャストして返します。
-                if (md != null)
-                {
-                    OutputLog($"正常に行われました。");
-                    return (T)md;
-                }
-
-                OutputLog($"{typeof(T).Name} は破棄されています。", SymphonyDebugLogger.LogKind.Warning);
-                return null;
-            }
-
-            OutputLog($"{typeof(T).Name} は登録されていません。", SymphonyDebugLogger.LogKind.Warning);
-            return null;
-
-            void OutputLog(string text, SymphonyDebugLogger.LogKind kind = SymphonyDebugLogger.LogKind.Normal)
-            {
-#if UNITY_EDITOR
-                if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorGetInstanceKey,
-                    EditorSymphonyConstant.ServiceLocatorGetInstanceDefault))
-                {
-                    SymphonyDebugLogger.AddText(text);
-                    SymphonyDebugLogger.TextLog(kind);
-                }
-#endif
-            }
+            return _data.Get<T>();
         }
 
         /// <summary>
@@ -269,14 +131,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns></returns>
         public static bool TryGetInstance<T>(out T result) where T : class
         {
-            result = GetInstance<T>();
-
-            if (result != null)
-            {
-                return true;
-            }
-
-            return false;
+            result = _data.Get<T>();
+            return result != null;
         }
 
         /// <summary>
@@ -292,7 +148,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             // 既に登録されている場合は即座に返します。
             if (TryGetInstance<T>(out var instance))
+            { 
                 return new ValueTask<T>(instance);
+            }
 
             // 登録されるまで待機します。
             TaskCompletionSource<T> tcs = new();
@@ -305,7 +163,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             return new ValueTask<T>(tcs.Task);
         }
 
-        public static async Task<(bool success, T result)> TryGetInstanceAsync<T>(
+        public static async ValueTask<(bool success, T result)> TryGetInstanceAsync<T>(
             byte grace = 120,
             CancellationToken token = default)
             where T : class
@@ -332,17 +190,14 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static void RegisterAfterLocate<T>(Action action) where T : class
         {
             // 既にインスタンスが登録済みであれば、即座にアクションを実行します。
-            if (_data.SingletonObjects.ContainsKey(typeof(T)))
+            if (_data.IsLocate<T>())
             {
                 action?.Invoke();
                 return;
             }
 
             // まだ登録されていなければ、待機リストに追加します。
-            if (!_data.WaitingActions.TryAdd(typeof(T), action))
-            {
-                _data.WaitingActions[typeof(T)] += action;
-            }
+            _data.RegisterAction<T>(action);
         }
 
         /// <summary>
@@ -354,28 +209,23 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static void RegisterAfterLocate<T>(Action<T> action) where T : class
         {
             // 既にインスタンスが登録済みであれば、そのインスタンスを引数にして即座にアクションを実行します。
-            if (_data.SingletonObjects.TryGetValue(typeof(T), out object instance))
+            if (_data.IsLocate<T>())
             {
-                action?.Invoke((T)instance);
+                T instance = _data.Get<T>();
+                action?.Invoke(instance);
                 return;
             }
 
-            // まだ登録されていなければ、待機リストに追加します。
-            if (_data.WaitingActionsWithInstance.TryGetValue(typeof(T), out Delegate existing))
-            {
-                _data.WaitingActionsWithInstance[typeof(T)] = Delegate.Combine(existing, action);
-            }
-            else
-            {
-                _data.WaitingActionsWithInstance[typeof(T)] = action;
-            }
+            _data.RegisterAction(action);
         }
 
         internal static void Initialize()
         {
-            _data = new ServiceLocateData();
+            _data = new();
+            _manager = new(_data);
         }
 
+        private static ServiceLocateManager _manager;
         private static ServiceLocateData _data;
     }
 }
