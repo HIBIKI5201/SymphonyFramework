@@ -21,6 +21,7 @@ namespace SymphonyFrameWork.Utility
         [SerializeField] private bool _autoRegister = true;
         [SerializeField] private bool _autoUnregister = true;
 
+        [SerializeField, HideInInspector]
         private Type _targetType;
 
         private void Awake()
