@@ -21,19 +21,14 @@ namespace SymphonyFrameWork.System.ServiceLocate
     public static class ServiceLocator
     {
         /// <summary>
-        ///     登録するインスタンスの種類を定義します。
+        ///     指定されたインスタンスをロケーターに登録します。
         /// </summary>
-        public enum LocateType
+        /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
+        /// <param name="instance">登録するインスタンス。</param>
+        /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
+        public static bool RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
         {
-            /// <summary>
-            ///     通常のシングルトンとして登録します。
-            ///     Componentの場合、ServiceLocatorのGameObjectの子オブジェクトになります。
-            /// </summary>
-            Singleton,
-            /// <summary>
-            ///     インスタンスをServiceLocatorに登録しますが、親子関係は設定しません。
-            /// </summary>
-            Locator
+            return _manager.RegisterInstance(typeof(T), instance, type);
         }
 
         /// <summary>
@@ -42,9 +37,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
         /// <param name="instance">登録するインスタンス。</param>
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
-        public static bool RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
+        public static bool RegisterInstance(Type type, object instance, LocateType locateType = LocateType.Singleton)
         {
-            return _manager.RegisterInstance(instance, type);
+            return _manager.RegisterInstance(type, instance, locateType);
         }
 
         /// <summary>
@@ -56,7 +51,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
             if (instance == null) { return false; }
-            _manager.UnregisterInstance<T>();
+            _manager.UnregisterInstance(typeof(T));
             return true;
         }
 
@@ -67,7 +62,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns></returns>
         public static bool UnregisterInstance<T>() where T : class
         {
-            return _manager.UnregisterInstance<T>();
+            return _manager.UnregisterInstance(typeof(T));
         }
 
         /// <summary>
@@ -90,13 +85,15 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
         public static bool DestroyInstance<T>() where T : class
         {
-            if (!_data.LocateObjects.TryGetValue(typeof(T), out var md))
+            Type type = typeof(T);
+
+            if (!_data.LocateObjects.TryGetValue(type, out var md))
             {
-                Debug.LogWarning($"{typeof(T).Name}は登録されていません");
+                Debug.LogWarning($"{type.Name}は登録されていません");
                 return false;
             }
 
-            _manager.DestroyInstance<T>();
+            _manager.DestroyInstance(type);
 
 #if UNITY_EDITOR
             //ログを出力
@@ -105,6 +102,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 Debug.Log($"{typeof(T).Name}が破棄されました");
 #endif
             return true;
+        }
+
+        public static bool IsExistInstance(Type type)
+        {
+            return _data.IsLocate(type);
         }
 
         /// <summary>
@@ -190,7 +192,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static void RegisterAfterLocate<T>(Action action) where T : class
         {
             // 既にインスタンスが登録済みであれば、即座にアクションを実行します。
-            if (_data.IsLocate<T>())
+            if (_data.IsLocate(typeof(T)))
             {
                 action?.Invoke();
                 return;
@@ -209,7 +211,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static void RegisterAfterLocate<T>(Action<T> action) where T : class
         {
             // 既にインスタンスが登録済みであれば、そのインスタンスを引数にして即座にアクションを実行します。
-            if (_data.IsLocate<T>())
+            if (_data.IsLocate(typeof(T)))
             {
                 T instance = _data.Get<T>();
                 action?.Invoke(instance);
