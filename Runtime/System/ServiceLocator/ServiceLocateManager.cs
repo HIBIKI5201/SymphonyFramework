@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
 #endif
 
-            _data.InvokeWaitingAction(instance);
+            _data.InvokeWaitingAction(type, instance);
 
             // 登録タイプがSingletonで、かつインスタンスがComponentの場合、
             // ServiceLocatorのGameObjectの子要素にして、シーン内で管理しやすくします。
