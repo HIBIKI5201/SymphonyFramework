@@ -89,7 +89,7 @@ namespace SymphonyFrameWork.Editor
 
             var singletonObjectsField =
                 serviceLocatorDataInstance.GetType()
-                .GetField("_singletonObjects",
+                .GetField("_locateObjects",
                     BindingFlags.Instance | BindingFlags.NonPublic);
 
             if (singletonObjectsField != null)
