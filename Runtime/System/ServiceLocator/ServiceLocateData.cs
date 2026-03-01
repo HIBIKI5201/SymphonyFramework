@@ -14,8 +14,6 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
         public GameObject Instance => _gameObject;
         public Dictionary<Type, object> LocateObjects => _locateObjects;
-        public Dictionary<Type, Action> WaitingActions => _waitingActions;
-        public Dictionary<Type, Delegate> WaitingActionsWithInstance => _waitingActionsWithInstance;
 
         public bool Add(Type type, object obj)
         {
@@ -50,9 +48,19 @@ namespace SymphonyFrameWork.System.ServiceLocate
             return default;
         }
 
-        public bool IsLocate<T>()
+        public object Get(Type type)
         {
-            return _locateObjects.ContainsKey(typeof(T));
+            if (_locateObjects.TryGetValue(type, out object value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+
+        public bool IsLocate(Type type)
+        {
+            return _locateObjects.ContainsKey(type);
         }
 
         public void RegisterAction<T>(Action action)
