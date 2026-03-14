@@ -5,20 +5,24 @@
     - Timelines
   - Audio
   - Models
-  - Shaders
   - Sprites
   - Textures
 
 - AssetStoreTools
 - Editor
+  - Scripts
+  - Arts
+  - Settings
 - Resources
 - ResourcesForAddressable
-- Prefabs
-- Scenes
+- Level
+  - Prefabs
+  - Scenes
 
 - Scripts
   - Runtime
   - Develop
+  - Shaders
 
 - Settings
 - StreamingAssets
