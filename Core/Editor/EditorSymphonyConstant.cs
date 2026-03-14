@@ -50,6 +50,10 @@ namespace SymphonyFrameWork.Core
         public const bool ServiceLocatorDestroyInstanceDefault = true;
         #endregion
 
+        #region Setting Provider
+        public const string PROJECT_SETTING_PATH = "Project/";
+        #endregion
+
         #region Enumの名前
         public const string AudioGroupTypeEnumName = "AudioGroupType";
         public const string SceneListEnumFileName = "SceneList";
