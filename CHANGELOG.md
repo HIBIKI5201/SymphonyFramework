@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.6] - 2026-03-14
+### Update
+- FolderGenerator
+
 ## [1.27.5] - 2026-03-01
 ### Update
 - ServiceLocator
