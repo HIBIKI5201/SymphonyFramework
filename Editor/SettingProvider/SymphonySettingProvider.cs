@@ -1,23 +1,23 @@
 ﻿using SymphonyFrameWork.Core;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine.Playables;
 
 namespace SymphonyFrameWork.Editor.SettingProvider
 {
     public class SymphonySettingProvider
     {
-        public const string NAME = "Settings";
-        public const string PATH = EditorSymphonyConstant.SETTING_PROVIDER_PATH + NAME;
+        public const string LABEL = SymphonyConstant.SYMPHONY_FRAMEWORK;
+        public const string SELF_PATH = EditorSymphonyConstant.PROJECT_SETTING_PATH + LABEL;
+        public const string PROVIDER_PATH = EditorSymphonyConstant.PROJECT_SETTING_PATH + LABEL + "/";
 
         [SettingsProvider]
         public static SettingsProvider CreateCustomSettingsProvider()
         {
             // SettingsScope.Projectを指定することでProject Settingsに項目を追加できる
-            var provider = new SettingsProvider(PATH, SettingsScope.Project)
+            var provider = new SettingsProvider(SELF_PATH, SettingsScope.Project)
             {
                 // 項目のタイトル
-                label = "Sample",
+                label = LABEL,
 
                 // どのように描画するか(IMGUI)
                 guiHandler = searchContext =>

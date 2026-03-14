@@ -51,7 +51,7 @@ namespace SymphonyFrameWork.Core
         #endregion
 
         #region Setting Provider
-        public const string SETTING_PROVIDER_PATH = "Project/SymphonyFrameWork/";
+        public const string PROJECT_SETTING_PATH = "Project/";
         #endregion
 
         #region Enumの名前
