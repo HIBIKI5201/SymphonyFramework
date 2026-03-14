@@ -71,32 +71,31 @@ namespace SymphonyFrameWork.Editor
         /// <returns></returns>
         public static string[] LoadFolderPaths(string markdownPath)
         {
-            var lines = File.ReadAllLines(markdownPath);
+            string[] lines = File.ReadAllLines(markdownPath);
 
-            List<string> result = new List<string>();
-            Stack<string> stack = new Stack<string>();
+            List<string> result = new();
+            Stack<string> stack = new();
 
             foreach (var rawLine in lines)
             {
-                string line = rawLine.TrimEnd();
+                int dashIndex = rawLine.IndexOf('-');
 
-                if (!line.StartsWith("-"))
-                    continue;
+                if (dashIndex < 0) { continue; }
 
-                int indent = rawLine.TakeWhile(c => c == ' ').Count();
-                int depth = indent / 2;
+                int depth = dashIndex / 2;
 
-                string folder = line.Substring(1).Trim();
+                string folder = rawLine[(dashIndex + 1)..].Trim();
 
                 while (stack.Count > depth)
+                {
                     stack.Pop();
+                }
 
                 stack.Push(folder);
 
                 string path = string.Join("/", stack.Reverse());
 
-                if (path != "Assets")
-                    result.Add(path);
+                result.Add(path);
             }
 
             return result.ToArray();
