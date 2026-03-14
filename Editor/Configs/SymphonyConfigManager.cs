@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger;
@@ -25,6 +26,15 @@ namespace SymphonyFrameWork.Editor
         /// <typeparam name="T"></typeparam>
         private static void FileCheck<T>(ConfigType type) where T : ScriptableObject
         {
+            // ScriptableSingletonを継承しているか確認
+            var instanceProperty = typeof(T).GetProperty("instance", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            if (instanceProperty != null)
+            {
+                // インスタンスにアクセスすることで初期化を促す
+                _ = instanceProperty.GetValue(null);
+                return;
+            }
+
             var path = type switch
             {
                 ConfigType.Runtime => SymphonyConfigLocator.GetFullPath<T>(),
