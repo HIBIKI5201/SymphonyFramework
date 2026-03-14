@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Reflection;
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger;
@@ -15,32 +14,22 @@ namespace SymphonyFrameWork.Editor
     {
         internal static void AllConfigCheck()
         {
-            FileCheck<SceneManagerConfig>(ConfigType.Runtime);
-            FileCheck<AudioManagerConfig>(ConfigType.Runtime);
-            FileCheck<AutoEnumGeneratorConfig>(ConfigType.Editor);
+            // Runtime用 (ScriptableObject)
+            FileCheck<SceneManagerConfig>();
+            FileCheck<AudioManagerConfig>();
+            
+            // Editor用 (ScriptableSingleton)
+            // GetConfigを呼ぶだけで、アセットが存在しなければ自動生成、あればロードされる
+            EditorFileCheck<AutoEnumGeneratorConfig>();
         }
 
         /// <summary>
-        ///     ファイルが存在するか確認する
+        ///     Runtimeファイルが存在するか確認する (Resources内)
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        private static void FileCheck<T>(ConfigType type) where T : ScriptableObject
+        private static void FileCheck<T>() where T : ScriptableObject
         {
-            // ScriptableSingletonを継承しているか確認
-            var instanceProperty = typeof(T).GetProperty("instance", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-            if (instanceProperty != null)
-            {
-                // インスタンスにアクセスすることで初期化を促す
-                _ = instanceProperty.GetValue(null);
-                return;
-            }
-
-            var path = type switch
-            {
-                ConfigType.Runtime => SymphonyConfigLocator.GetFullPath<T>(),
-                ConfigType.Editor => SymphonyEditorConfigLocator.GetFullPath<T>(),
-                _ => null
-            };
+            string path = SymphonyConfigLocator.GetFullPath<T>();
             if (path == null)
             {
                 Debug.LogWarning(typeof(T).Name + " doesn't exist!");
@@ -50,12 +39,7 @@ namespace SymphonyFrameWork.Editor
             // ファイルが存在するなら終了
             if (AssetDatabase.LoadAssetAtPath<T>(path) != null) return;
 
-            string directory = type switch
-            {
-                ConfigType.Runtime => SymphonyConstant.RESOURCES_RUNTIME_PATH,
-                ConfigType.Editor => EditorSymphonyConstant.RESOURCES_EDITOR_PATH,
-                _ => null
-            };
+            string directory = SymphonyConstant.RESOURCES_RUNTIME_PATH;
 
             // リソースフォルダがなければ生成
             CreateResourcesFolder(directory);
@@ -73,6 +57,11 @@ namespace SymphonyFrameWork.Editor
             SymphonyDebugLogger.DirectLog($"'{path}' に新しい {typeof(T).Name} を作成しました。");
         }
 
+        private static void EditorFileCheck<T>() where T : ScriptableSingleton<T>
+        {
+            _ = SymphonyEditorConfigLocator.GetConfig<T>();
+        }
+
         /// <summary>
         ///     リソースフォルダが無ければ生成
         /// </summary>
@@ -84,12 +73,6 @@ namespace SymphonyFrameWork.Editor
                 Directory.CreateDirectory(resourcesPath);
                 AssetDatabase.Refresh();
             }
-        }
-
-        private enum ConfigType : int
-        {
-            Runtime,
-            Editor,
         }
     }
 }
