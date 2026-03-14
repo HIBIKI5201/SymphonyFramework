@@ -1,5 +1,6 @@
 ﻿using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -19,7 +20,7 @@ namespace SymphonyFrameWork.Editor
         {
             SymphonyDebugLogger.NewText($"[{nameof(GenerateFolder)}]");
 
-            string[] assetsFolders = GetFolderPaths();
+            string[] assetsFolders = LoadFolderPaths(STRUCTURE_PATH);
 
             //全てのフォルダを生成する
             foreach (string folder in assetsFolders)
@@ -39,6 +40,7 @@ namespace SymphonyFrameWork.Editor
         }
 
         private const string ASSETS_PATH = "Assets";
+        private static readonly string STRUCTURE_PATH = EditorSymphonyConstant.FRAMEWORK_PATH() + "/Editor/Generator/FolderGenerate/FolderStructure.md";
 
         /// <summary>
         ///     パスのフォルダを生成する。
@@ -67,36 +69,36 @@ namespace SymphonyFrameWork.Editor
         ///     全てのフォルダのパスを生成して返す。
         /// </summary>
         /// <returns></returns>
-        private static string[] GetFolderPaths()
+        public static string[] LoadFolderPaths(string markdownPath)
         {
-            string artPath = "Arts";
-            string animationPath = "Animation";
-            string scriptsPath = "Scripts";
+            string[] lines = File.ReadAllLines(markdownPath);
 
-            string[] assetsFolders =
-                // アセット直下のフォルダ
-                new string[] {
-                    artPath, "AssetStoreTools", "Editor", "Resources",
-                    "ResourcesForAddressable", "Prefabs", "Scenes", scriptsPath,
-                    "Settings", "StreamingAssets" }
-                
-                //Artsフォルダ内のフォルダ
-                .Concat(new string[] {
-                    animationPath, "Audio", "Models",
-                    "Shaders", "Sprites", "Textures" }
-                    .Select(s => $"{artPath}/{s}"))
-                
-                //Animationのフォルダ
-                .Concat(new string[] { "Clips", "Controllers", "Timelines" }
-                    .Select(s => $"{artPath}/{animationPath}/{s}"))
+            List<string> result = new();
+            Stack<string> stack = new();
 
-                //Scriptsのフォルダ
-                .Concat(new string[] {"Runtime", "Develop"}
-                    .Select(s => $"{scriptsPath}/{s}"))
-                .ToArray();
+            foreach (var rawLine in lines)
+            {
+                int dashIndex = rawLine.IndexOf('-');
 
+                if (dashIndex < 0) { continue; }
 
-            return assetsFolders;
+                int depth = dashIndex / 2;
+
+                string folder = rawLine[(dashIndex + 1)..].Trim();
+
+                while (stack.Count > depth)
+                {
+                    stack.Pop();
+                }
+
+                stack.Push(folder);
+
+                string path = string.Join("/", stack.Reverse());
+
+                result.Add(path);
+            }
+
+            return result.ToArray();
         }
     }
 }
