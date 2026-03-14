@@ -38,18 +38,26 @@ namespace SymphonyFrameWork.Debugger.HUD
             Initialize();
         }
 
+        /// <summary>
+        ///     SymphonyDebugHUDに追加のテキストを登録する。
+        /// </summary>
+        /// <param name="textFunc"></param>
         public static void AddText(Func<string> textFunc)
         {
             _debugHUD.Value.Add(textFunc);
         }
 
+        /// <summary>
+        ///     SymphonyDebugHUDから追加のテキストを解除する。
+        /// </summary>
+        /// <param name="textFunc"></param>
         public static void RemoveText(Func<string> textFunc)
         {
             _debugHUD.Value.Remove(textFunc);
         }
 
         /// <summary>
-        ///     SymphonyDebugHUDに追加のテキストを追加する。
+        ///     SymphonyDebugHUDに追加のテキストを表示する。
         /// </summary>
         /// <param name="text"></param>
         public static async void AddText(string text, float duration, Color color = default, CancellationToken token = default)
@@ -79,6 +87,7 @@ namespace SymphonyFrameWork.Debugger.HUD
             if (_debugHUD?.IsValueCreated ?? false)
             {
                 Destroy(_debugHUD.Value.gameObject);
+                _debugHUD = null;
             }
 
             _debugHUD = new Lazy<SymphonyHUDDrawer>(CreateDebugHUD);
