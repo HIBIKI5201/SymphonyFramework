@@ -51,6 +51,7 @@ namespace SymphonyFrameWork.Core
         #endregion
 
         #region Setting Provider
+        public const string PROJCET_SETTING_FILE_PATH = "ProjectSettings/Packages/" + SymphonyConstant.SYMPHONY_PACKAGE + "/";
         public const string PROJECT_SETTING_PATH = "Project/";
         #endregion
 
