@@ -43,8 +43,6 @@ namespace SymphonyFrameWork.Debugger.HUD
 
             // 追加テキストを追加。
             _textToDisplay.AppendLine(GetExtraText());
-
-            _extraTexts.Clear();
         }
 
         private void OnGUI()
