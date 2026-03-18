@@ -1,4 +1,6 @@
-﻿namespace SymphonyFrameWork.System.SaveSystem
+﻿using System.Threading.Tasks;
+
+namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
     ///     セーブデータを管理するクラス
@@ -9,22 +11,41 @@
         where TData : class, new()
         where TLoader : ISaveDataLoader<TData>, new()
     {
-        public static TData Data
+        public static async ValueTask<TData> Get()
         {
-            get
+            if (_saveData == null) 
             {
-                if (_saveData == null) { Load(); }
-                return _saveData?.MainData;
+               await Load();
             }
+
+            return _saveData?.MainData;
         }
 
-        public static string SaveDate
+        public static async ValueTask<string> GetDate()
         {
-            get
+            if (_saveData == null) 
             {
-                if (_saveData == null) { Load(); }
-                return _saveData?.SaveDate;
+                await Load();
             }
+
+            return _saveData?.SaveDate;
+        }
+
+        /// <summary>
+        ///     saveDataを保存する
+        /// </summary>
+        public static async ValueTask Save()
+        {
+            TData data = await Get();
+            _saveData = await _loader.Save(data);
+        }
+
+        /// <summary>
+        ///     DataTypeのデータを取得する
+        /// </summary>
+        public static async ValueTask Load()
+        {
+            _saveData = await _loader.Load();
         }
 
         public static void Dispose()
@@ -35,21 +56,5 @@
 
         private static SaveData<TData> _saveData;
         private static readonly TLoader _loader = new();
-
-        /// <summary>
-        ///     saveDataを保存する
-        /// </summary>
-        public static void Save()
-        {
-            _saveData = _loader.Save(Data);
-        }
-
-        /// <summary>
-        ///     DataTypeのデータを取得する
-        /// </summary>
-        private static void Load()
-        {
-            _saveData = _loader.Load();
-        }
     }
 }
