@@ -20,6 +20,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             SaveDate = null;
             MainData = default;
+
+            if (MainData is IDisposable disposable) { disposable.Dispose(); }
         }
 
         public static bool operator ==(SaveData<T> a, SaveData<T> b)
