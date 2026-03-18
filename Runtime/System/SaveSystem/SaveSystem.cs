@@ -28,6 +28,7 @@
 
         public static void Dispose()
         {
+            _saveData.Dispose();
             _saveData = null;
         }
 
