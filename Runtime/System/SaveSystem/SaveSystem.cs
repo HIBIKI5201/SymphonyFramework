@@ -3,12 +3,13 @@
     /// <summary>
     ///     セーブデータを管理するクラス
     /// </summary>
-    /// <typeparam name="DataType">データの型</typeparam>
-    public static class SaveSystem<DataType, LoaderType>
-        where DataType : class, new()
-        where LoaderType : ISaveDataLoader<DataType>, new()
+    /// <typeparam name="TData">データの型</typeparam>
+    ///     /// <typeparam name="TLoader">ローダーの型</typeparam>
+    public static class SaveSystem<TData, TLoader>
+        where TData : class, new()
+        where TLoader : ISaveDataLoader<TData>, new()
     {
-        public static DataType Data
+        public static TData Data
         {
             get
             {
@@ -32,8 +33,8 @@
             _saveData = null;
         }
 
-        private static SaveData<DataType> _saveData;
-        private static readonly LoaderType _loader = new();
+        private static SaveData<TData> _saveData;
+        private static readonly TLoader _loader = new();
 
         /// <summary>
         ///     saveDataを保存する
