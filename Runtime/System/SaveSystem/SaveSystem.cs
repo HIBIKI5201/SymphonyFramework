@@ -6,7 +6,7 @@
     /// <typeparam name="DataType">データの型</typeparam>
     public static class SaveSystem<DataType, LoaderType>
         where DataType : class, new()
-        where LoaderType : SaveDataLoader<DataType>, new()
+        where LoaderType : ISaveDataLoader<DataType>, new()
     {
         public static DataType Data
         {
