@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.8] - 2026-03-18
+### Update
+- AssemblyGenerator
+
 ## [1.27.7] - 2026-03-14
 ### Update
 - SymphonyDebugHUD
