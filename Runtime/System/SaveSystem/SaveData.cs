@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFrameWork.System.SaveSystem
 {
     [Serializable]
     public class SaveData<T>

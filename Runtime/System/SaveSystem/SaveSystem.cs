@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace SymphonyFrameWork.System
+﻿namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
     ///     セーブデータを管理するクラス
     /// </summary>
     /// <typeparam name="DataType">データの型</typeparam>
-    public static class SaveDataSystem<DataType, LoaderType>
+    public static class SaveSystem<DataType, LoaderType>
         where DataType : class, new()
         where LoaderType : SaveDataLoader<DataType>, new()
     {

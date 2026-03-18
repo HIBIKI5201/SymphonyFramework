@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFrameWork.System.SaveSystem
 {
     public interface SaveDataLoader<T>
         where T : class,new()

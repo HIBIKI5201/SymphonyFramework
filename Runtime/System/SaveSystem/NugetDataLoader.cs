@@ -2,7 +2,7 @@
 using SymphonyFrameWork.System;
 using UnityEngine;
 
-namespace SymphonyFrameWork
+namespace SymphonyFrameWork.System.SaveSystem
 {
     public class NugetDataLoader<T> : SaveDataLoader<T>
         where T : class, new()
