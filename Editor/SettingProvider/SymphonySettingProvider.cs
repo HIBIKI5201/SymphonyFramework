@@ -20,16 +20,18 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                 label = LABEL,
 
                 // どのように描画するか(IMGUI)
-                guiHandler = searchContext =>
-                {
-                    EditorGUILayout.LabelField("これはSettingsProviderにより追加した独自項目です。");
-                },
+                guiHandler = IMGUI,
 
                 // 検索するときのキーワード
                 keywords = new HashSet<string>(new[] { "CustomSetting" }),
             };
 
             return provider;
+        }
+
+        private static void IMGUI(string searchContext)
+        {
+            EditorGUILayout.LabelField("これはSettingsProviderにより追加した独自項目です。");
         }
     }
 }
