@@ -3,7 +3,7 @@
 namespace SymphonyFrameWork.System.SaveSystem
 {
     [Serializable]
-    public class SaveData<T>
+    public class SaveData<T> : IDisposable
     {
         public SaveData(T dataType, DateTime saveDate = default)
         {
@@ -15,6 +15,14 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public string SaveDate { get; set; }
         public T MainData { get; set; }
+
+        public void Dispose()
+        {
+            SaveDate = null;
+            MainData = default;
+
+            if (MainData is IDisposable disposable) { disposable.Dispose(); }
+        }
 
         public static bool operator ==(SaveData<T> a, SaveData<T> b)
         {
