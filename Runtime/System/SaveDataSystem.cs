@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
-using UnityEngine;
+﻿using System;
 
 namespace SymphonyFrameWork.System
 {
@@ -8,15 +6,15 @@ namespace SymphonyFrameWork.System
     ///     セーブデータを管理するクラス
     /// </summary>
     /// <typeparam name="DataType">データの型</typeparam>
-    public static class SaveDataSystem<DataType>
+    public static class SaveDataSystem<DataType, LoaderType>
         where DataType : class, new()
+        where LoaderType : SaveDataLoader<DataType>, new()
     {
         public static DataType Data
         {
             get
             {
-                if (_saveData is null)
-                    Load();
+                if (_saveData == null) { Load(); }
                 return _saveData?.MainData;
             }
         }
@@ -25,8 +23,7 @@ namespace SymphonyFrameWork.System
         {
             get
             {
-                if (_saveData is null)
-                    Load();
+                if (_saveData == null) { Load(); }
                 return _saveData?.SaveDate;
             }
         }
@@ -36,20 +33,15 @@ namespace SymphonyFrameWork.System
             _saveData = null;
         }
 
-        private static SaveData _saveData;
+        private static SaveData<DataType> _saveData;
+        private static readonly LoaderType _loader = new();
 
         /// <summary>
         ///     saveDataを保存する
         /// </summary>
         public static void Save()
         {
-            _saveData = new SaveData(Data); //今のデータでセーブデータを作る
-
-            //Json化してセーブ
-            var data = JsonConvert.SerializeObject(_saveData);
-            PlayerPrefs.SetString(typeof(DataType).Name, data);
-
-            Debug.Log($"[{nameof(SaveDataSystem<DataType>)}]\nデータをセーブしました date : {_saveData.SaveDate}\n{data}");
+            _saveData = _loader.Save(Data);
         }
 
         /// <summary>
@@ -57,49 +49,40 @@ namespace SymphonyFrameWork.System
         /// </summary>
         private static void Load()
         {
-            #region Prefsからデータをロードする
+            _saveData = _loader.Load();
+        }
+    }
 
-            var json = PlayerPrefs.GetString(typeof(DataType).Name);
-            if (string.IsNullOrEmpty(json))
-            {
-                Debug.Log($"[{nameof(SaveDataSystem<DataType>)}]\n{typeof(DataType).Name}のデータが見つからないので生成しました");
-                _saveData = new SaveData(new DataType());
-                return;
-            }
+    [Serializable]
+    public class SaveData<T>
+    {
+        public SaveData(T dataType, DateTime saveDate = default)
+        {
+            if (saveDate == default) { saveDate = DateTime.Now; }
 
-            #endregion
-
-            #region JSONに変換して保存
-
-            var data = JsonConvert.DeserializeObject<SaveData>(json);
-            if (data is not null)
-            {
-                Debug.Log($"[{nameof(SaveDataSystem<DataType>)}]\n{typeof(DataType).Name}のデータがロードされました\n{data}");
-                _saveData = data;
-            }
-            else
-            {
-                Debug.LogWarning($"[{nameof(SaveDataSystem<DataType>)}]\n{typeof(DataType).Name}のロードが出来ませんでした\n新たなインスタンスを生成します");
-                _saveData = new SaveData(new DataType()); //新しいデータを取得
-            }
-
-            #endregion
+            SaveDate = saveDate.ToString("O");
+            MainData = dataType;
         }
 
-        [Serializable]
-        private class SaveData
+        public string SaveDate { get; set; }
+        public T MainData { get; set; }
+
+        public static bool operator ==(SaveData<T> a, SaveData<T> b)
         {
-            public SaveData(DataType dataType)
-            {
-                _saveDate = DateTime.Now.ToString("O");
-                _mainData = dataType;
-            }
+            if (ReferenceEquals(a, null)) { return ReferenceEquals(b, null); }
 
-            public string SaveDate => _saveDate;
-            public DataType MainData => _mainData;
+            if (a.MainData == null) { return true; }
 
-            public readonly string _saveDate;
-            private readonly DataType _mainData;
+            return ReferenceEquals(a, b);
+        }
+
+        public static bool operator !=(SaveData<T> a, SaveData<T> b) => !(a == b);
+
+        public override bool Equals(object obj) => this == obj as SaveData<T>;
+
+        public override string ToString()
+        {
+            return $"SaveDate: {SaveDate}\nMainData:\n{MainData}";
         }
     }
 }
