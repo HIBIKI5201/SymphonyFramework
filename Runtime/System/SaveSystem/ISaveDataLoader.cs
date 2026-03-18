@@ -2,7 +2,7 @@
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
-    public interface SaveDataLoader<T>
+    public interface ISaveDataLoader<T>
         where T : class,new()
     {
         public SaveData<T> Load();

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
-    public class NugetDataLoader<T> : SaveDataLoader<T>
+    public class NugetDataLoader<T> : ISaveDataLoader<T>
         where T : class, new()
     {
         public SaveData<T> Save(T data)
