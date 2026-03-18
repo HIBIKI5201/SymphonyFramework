@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using SymphonyFrameWork.System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
@@ -7,7 +7,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     public class NugetDataLoader<T> : ISaveDataLoader<T>
         where T : class, new()
     {
-        public SaveData<T> Save(T data)
+        public ValueTask<SaveData<T>> Save(T data)
         {
             //Json化してセーブ
             SaveData<T> saveData = new SaveData<T>(data);
@@ -15,10 +15,10 @@ namespace SymphonyFrameWork.System.SaveSystem
             PlayerPrefs.SetString(typeof(T).Name, jsonData);
 
             Debug.Log($"[{nameof(NugetDataLoader<T>)}]\nデータをセーブしました date : {saveData.SaveDate}\n{jsonData}");
-            return saveData;
+            return new(saveData);
         }
 
-        public SaveData<T> Load()
+        public ValueTask<SaveData<T>> Load()
         {
             #region Prefsからデータをロードする
 
@@ -26,7 +26,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             if (string.IsNullOrEmpty(json))
             {
                 Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータが見つからないので生成しました");
-                return new SaveData<T>(new T());
+                return new(new SaveData<T>(new T()));
             }
 
             #endregion
@@ -37,12 +37,12 @@ namespace SymphonyFrameWork.System.SaveSystem
             if (data is not null)
             {
                 Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータがロードされました\n{data}");
-                return data;
+                return new(data);
             }
             else
             {
                 Debug.LogWarning($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のロードが出来ませんでした\n新たなインスタンスを生成します");
-                return new SaveData<T>(new T());
+                return new(new SaveData<T>(new T()));
             }
 
             #endregion
