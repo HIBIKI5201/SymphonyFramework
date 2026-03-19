@@ -2,6 +2,8 @@
 using SymphonyFrameWork.System;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -60,7 +62,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         ///     SymphonyDebugHUDに追加のテキストを表示する。
         /// </summary>
         /// <param name="text"></param>
-        public static async void AddText(string text, float duration, Color color = default, CancellationToken token = default)
+        public static async ValueTask AddText(string text, float duration = 3, Color color = default, CancellationToken token = default)
         {
             if (color != default) //カラーを指定する
             {
