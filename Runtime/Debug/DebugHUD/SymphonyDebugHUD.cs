@@ -3,6 +3,7 @@ using SymphonyFrameWork.System;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SymphonyFrameWork.Exceptions;
 
 
 #if UNITY_EDITOR
@@ -48,8 +49,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         {
             if (_debugHUD == null)
             {
-                Debug.LogError("SymphonyDebugHUDが初期化されていません。SymphonyFrameworkの初期化を待ってください。");
-                return;
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
             }
 
                 _debugHUD.Value.Add(textFunc);
@@ -63,8 +63,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         {
             if (_debugHUD == null)
             {
-                Debug.LogError("SymphonyDebugHUDが初期化されていません。SymphonyFrameworkの初期化を待ってください。");
-                return;
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
             }
 
             _debugHUD.Value.Remove(textFunc);
@@ -78,8 +77,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         {
             if (_debugHUD == null)
             {
-                Debug.LogError("SymphonyDebugHUDが初期化されていません。SymphonyFrameworkの初期化を待ってください。");
-                return;
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
             }
 
 
