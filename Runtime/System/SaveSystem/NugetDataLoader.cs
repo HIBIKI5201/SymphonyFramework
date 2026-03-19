@@ -44,7 +44,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータがロードされました\n{data}");
             return new(data);
 
-
             #endregion
         }
     }
