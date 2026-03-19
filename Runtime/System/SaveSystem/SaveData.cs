@@ -22,7 +22,6 @@ namespace SymphonyFrameWork.System.SaveSystem
 
             SaveDate = null;
             MainData = default;
-
         }
 
         public static bool operator ==(SaveData<T> a, SaveData<T> b)
@@ -40,9 +39,6 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public override int GetHashCode() => base.GetHashCode();
 
-        public override string ToString()
-        {
-            return $"SaveDate: {SaveDate}\nMainData:\n{MainData}";
-        }
+        public override string ToString() => $"SaveDate: {SaveDate}\nMainData:\n{MainData}";
     }
 }
