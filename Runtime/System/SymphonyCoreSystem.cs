@@ -1,4 +1,4 @@
-﻿using SymphonyFrameWork.Debugger;
+﻿using SymphonyFrameWork.Debugger.HUD;
 using SymphonyFrameWork.System.SceneLoad;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;

@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.27.13] - 2026-03-19
+### Fix
+- AssemblyGenerator
+
+## [1.27.12] - 2026-03-19
+### Fix
+- SaveSystem
+
+## [1.27.11] - 2026-03-19
+### Fix
+- SaveSystem
+
+## [1.27.10] - 2026-03-19
+### Update
+- SaveSystem
+
+## [1.27.9] - 2026-03-19
+### Update
+- SaveSystem
+
+## [1.27.8] - 2026-03-18
+### Update
+- AssemblyGenerator
+
+## [1.27.7] - 2026-03-14
+### Update
+- SymphonyDebugHUD
+
+## [1.27.6] - 2026-03-14
+### Update
+- FolderGenerator
+
 ## [1.27.5] - 2026-03-01
 ### Update
 - ServiceLocator
