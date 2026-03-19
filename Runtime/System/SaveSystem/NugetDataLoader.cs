@@ -9,12 +9,12 @@ namespace SymphonyFrameWork.System.SaveSystem
     {
         public ValueTask<SaveData<T>> Save(T data)
         {
-            //Json化してセーブ
+            //Json化してセーブ。
             SaveData<T> saveData = new SaveData<T>(data);
             string jsonData = JsonConvert.SerializeObject(saveData);
-            PlayerPrefs.SetString(typeof(T).Name, jsonData);
+            PlayerPrefs.SetString(typeof(T).FullName, jsonData);
 
-            Debug.Log($"[{nameof(NugetDataLoader<T>)}]\nデータをセーブしました date : {saveData.SaveDate}\n{jsonData}");
+            Debug.Log($"[{nameof(NugetDataLoader<T>)}]\nデータをセーブしました date : {saveData.SaveDate}\n{data}");
             return new(saveData);
         }
 
@@ -22,7 +22,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             #region Prefsからデータをロードする
 
-            var json = PlayerPrefs.GetString(typeof(T).Name);
+            var json = PlayerPrefs.GetString(typeof(T).FullName);
             if (string.IsNullOrEmpty(json))
             {
                 Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータが見つからないので生成しました");
@@ -31,7 +31,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
             #endregion
 
-            #region JSONに変換して保存
+            #region JSONに変換して返す
 
             var data = JsonConvert.DeserializeObject<SaveData<T>>(json);
             if (data is not null)
