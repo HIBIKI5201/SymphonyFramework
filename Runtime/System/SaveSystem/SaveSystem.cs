@@ -50,6 +50,8 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public static void Dispose()
         {
+            if (_saveData == null) { return; }
+
             _saveData.Dispose();
             _saveData = null;
         }
