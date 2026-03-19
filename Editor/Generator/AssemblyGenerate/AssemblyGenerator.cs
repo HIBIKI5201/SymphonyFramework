@@ -34,6 +34,7 @@ namespace SymphonyFrameWork.Editor
             if (!File.Exists(mainAsmdefPath))
             {
                 Debug.LogError("メインアセンブリが見つかりません。リファレンスの追加は行われません");
+                return;
             }
 
             string mainAsmdefJson = File.ReadAllText(mainAsmdefPath);
