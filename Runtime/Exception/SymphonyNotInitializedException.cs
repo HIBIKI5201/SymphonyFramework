@@ -7,9 +7,15 @@ namespace SymphonyFrameWork.Exceptions
         public SymphonyNotInitializedException() : base("SymphonyFrameworkが未初期化です。")
         {
         }
+
+        public SymphonyNotInitializedException(Type type) : base($"[{type.Name}] SymphonyFrameworkが未初期化です。")
+        {
+        }
+
         public SymphonyNotInitializedException(string message) : base(message)
         {
         }
+
         public SymphonyNotInitializedException(string message, Exception innerException) : base(message, innerException)
         {
         }
