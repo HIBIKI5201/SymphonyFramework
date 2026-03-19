@@ -18,10 +18,10 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public void Dispose()
         {
+            if (MainData is IDisposable disposable) { disposable.Dispose(); }
+
             SaveDate = null;
             MainData = default;
-
-            if (MainData is IDisposable disposable) { disposable.Dispose(); }
         }
 
         public static bool operator ==(SaveData<T> a, SaveData<T> b)
@@ -37,9 +37,8 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public override bool Equals(object obj) => this == obj as SaveData<T>;
 
-        public override string ToString()
-        {
-            return $"SaveDate: {SaveDate}\nMainData:\n{MainData}";
-        }
+        public override int GetHashCode() => base.GetHashCode();
+
+        public override string ToString() => $"SaveDate: {SaveDate}\nMainData:\n{MainData}";
     }
 }

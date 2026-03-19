@@ -6,7 +6,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     ///     セーブデータを管理するクラス
     /// </summary>
     /// <typeparam name="TData">データの型</typeparam>
-    ///     /// <typeparam name="TLoader">ローダーの型</typeparam>
+    /// <typeparam name="TLoader">ローダーの型</typeparam>
     public static class SaveSystem<TData, TLoader>
         where TData : class, new()
         where TLoader : ISaveDataLoader<TData>, new()
@@ -50,6 +50,8 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public static void Dispose()
         {
+            if (_saveData == null) { return; }
+
             _saveData.Dispose();
             _saveData = null;
         }
