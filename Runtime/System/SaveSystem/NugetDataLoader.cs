@@ -34,16 +34,16 @@ namespace SymphonyFrameWork.System.SaveSystem
             #region JSONに変換して返す
 
             var data = JsonConvert.DeserializeObject<SaveData<T>>(json);
+
             if (data == null)
-            {
-                Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータがロードされました\n{data}");
-                return new(data);
-            }
-            else
             {
                 Debug.LogWarning($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のロードが出来ませんでした\n新たなインスタンスを生成します");
                 return new(new SaveData<T>(new T()));
             }
+
+            Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータがロードされました\n{data}");
+            return new(data);
+
 
             #endregion
         }
