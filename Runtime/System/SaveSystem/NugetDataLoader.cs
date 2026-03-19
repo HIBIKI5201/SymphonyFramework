@@ -34,7 +34,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             #region JSONに変換して返す
 
             var data = JsonConvert.DeserializeObject<SaveData<T>>(json);
-            if (data is not null)
+            if (data == null)
             {
                 Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータがロードされました\n{data}");
                 return new(data);
