@@ -2,6 +2,9 @@
 using SymphonyFrameWork.System;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
+using SymphonyFrameWork.Exceptions;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -44,7 +47,12 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="textFunc"></param>
         public static void AddText(Func<string> textFunc)
         {
-            _debugHUD.Value.Add(textFunc);
+            if (_debugHUD == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+            }
+
+                _debugHUD.Value.Add(textFunc);
         }
 
         /// <summary>
@@ -53,6 +61,11 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="textFunc"></param>
         public static void RemoveText(Func<string> textFunc)
         {
+            if (_debugHUD == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+            }
+
             _debugHUD.Value.Remove(textFunc);
         }
 
@@ -60,8 +73,14 @@ namespace SymphonyFrameWork.Debugger.HUD
         ///     SymphonyDebugHUDに追加のテキストを表示する。
         /// </summary>
         /// <param name="text"></param>
-        public static async void AddText(string text, float duration, Color color = default, CancellationToken token = default)
+        public static async ValueTask AddText(string text, float duration = 3, Color color = default, CancellationToken token = default)
         {
+            if (_debugHUD == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+            }
+
+
             if (color != default) //カラーを指定する
             {
                 string colorHex = ColorUtility.ToHtmlStringRGB(color);
