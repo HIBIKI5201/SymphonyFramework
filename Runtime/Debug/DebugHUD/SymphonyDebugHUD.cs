@@ -46,7 +46,13 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="textFunc"></param>
         public static void AddText(Func<string> textFunc)
         {
-            _debugHUD.Value.Add(textFunc);
+            if (_debugHUD == null)
+            {
+                Debug.LogError("SymphonyDebugHUDが初期化されていません。SymphonyFrameworkの初期化を待ってください。");
+                return;
+            }
+
+                _debugHUD.Value.Add(textFunc);
         }
 
         /// <summary>
@@ -55,6 +61,12 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="textFunc"></param>
         public static void RemoveText(Func<string> textFunc)
         {
+            if (_debugHUD == null)
+            {
+                Debug.LogError("SymphonyDebugHUDが初期化されていません。SymphonyFrameworkの初期化を待ってください。");
+                return;
+            }
+
             _debugHUD.Value.Remove(textFunc);
         }
 
@@ -64,6 +76,13 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="text"></param>
         public static async ValueTask AddText(string text, float duration = 3, Color color = default, CancellationToken token = default)
         {
+            if (_debugHUD == null)
+            {
+                Debug.LogError("SymphonyDebugHUDが初期化されていません。SymphonyFrameworkの初期化を待ってください。");
+                return;
+            }
+
+
             if (color != default) //カラーを指定する
             {
                 string colorHex = ColorUtility.ToHtmlStringRGB(color);
