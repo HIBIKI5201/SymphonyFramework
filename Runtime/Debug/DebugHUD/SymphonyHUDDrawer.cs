@@ -53,8 +53,20 @@ namespace SymphonyFrameWork.Debugger.HUD
 
         private void GetProfilingText(in StringBuilder text)
         {
-            float msec = _deltaTime * 1000.0f; // ミリ秒に変換。
-            float fps = 1.0f / _deltaTime; // FPSの計算。
+            float msec;
+            float fps;
+
+            // デルタタイムが0以下の場合は、無効な値としてNaNを設定。
+            if (_deltaTime <= 0f)
+            {
+                msec = float.NaN;
+                fps = float.NaN;
+            }
+            else
+            {
+                msec = _deltaTime * 1000.0f;
+                fps = 1.0f / _deltaTime;
+            }
 
             long monoMemory = Profiler.GetMonoUsedSizeLong(); // Monoの使用メモリ量を取得。
             long totalAllocated = Profiler.GetTotalAllocatedMemoryLong(); // 総アロケートメモリ量を取得。
