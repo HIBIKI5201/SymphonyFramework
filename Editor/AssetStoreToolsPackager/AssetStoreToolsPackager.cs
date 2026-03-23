@@ -18,12 +18,7 @@ namespace SymphonyFrameWork.Editor
         [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(ExportAssetStoreToolsFolder), priority = 100)]
         public static void ExportAssetStoreToolsFolder()
         {
-            // パッケージ対象ディレクトリをバリデーションチェック。
-            if (!AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
-            {
-                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH}");
-                return;
-            }
+            AssetStoreToolsPackageWindow.ShowWindow();
         }
 
         public static void Export(string[] directories)

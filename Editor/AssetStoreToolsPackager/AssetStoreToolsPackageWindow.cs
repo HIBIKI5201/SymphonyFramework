@@ -9,6 +9,14 @@ namespace SymphonyFrameWork.Editor
     {
         public static void ShowWindow()
         {
+            // パッケージ対象ディレクトリをバリデーションチェック。
+            if (!AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
+            {
+                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH}");
+                return;
+            }
+
+
             GetWindow<AssetStoreToolsPackageWindow>(false, "Asset Store Tools Packager", true);
         }
 
