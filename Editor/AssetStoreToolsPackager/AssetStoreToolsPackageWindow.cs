@@ -1,6 +1,5 @@
-﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Core;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -27,9 +26,10 @@ namespace SymphonyFrameWork.Editor
             public string Path;
             public string Name;
             public bool IsSelected;
+            public bool IsIgnored;
         }
 
-        private List<DirectoryItem> _directoryItems = new();
+        private List<DirectoryItem> _directoryItems = new List<DirectoryItem>();
         private Vector2 _scrollPosition;
         private bool _createCombinedPackage = false;
 
@@ -54,7 +54,7 @@ namespace SymphonyFrameWork.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Select All", GUILayout.Width(100)))
             {
-                _directoryItems.ForEach(d => d.IsSelected = true);
+                _directoryItems.Where(d => !d.IsIgnored).ToList().ForEach(d => d.IsSelected = true);
             }
             if (GUILayout.Button("Deselect All", GUILayout.Width(100)))
             {
@@ -68,7 +68,10 @@ namespace SymphonyFrameWork.Editor
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, EditorStyles.helpBox);
             foreach (DirectoryItem item in _directoryItems)
             {
-                item.IsSelected = EditorGUILayout.ToggleLeft(item.Name, item.IsSelected);
+                using (new EditorGUI.DisabledGroupScope(item.IsIgnored))
+                {
+                    item.IsSelected = EditorGUILayout.ToggleLeft(item.IsIgnored ? $"{item.Name} (Ignored)" : item.Name, item.IsSelected);
+                }
             }
             EditorGUILayout.EndScrollView();
 
@@ -91,23 +94,22 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     ディレクトリ一覧をリフレッシュして、Asset Store Toolsフォルダ内のディレクトリを取得する。
+        ///     ディレクトリ一覧をリフレッシュして、AssetStoreToolsPackagerから情報を取得する。
         /// </summary>
         private void RefreshDirectories()
         {
             _directoryItems.Clear();
-            if (AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
+
+            var infos = AssetStoreToolsPackager.GetPackageDirectories();
+            foreach (var info in infos)
             {
-                string[] dirs = Directory.GetDirectories(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH);
-                foreach (string dir in dirs)
+                _directoryItems.Add(new DirectoryItem
                 {
-                    _directoryItems.Add(new DirectoryItem
-                    {
-                        Path = dir.Replace("\\", "/"),
-                        Name = Path.GetFileName(dir),
-                        IsSelected = true
-                    });
-                }
+                    Path = info.Path,
+                    Name = info.Name,
+                    IsSelected = !info.IsIgnored,
+                    IsIgnored = info.IsIgnored
+                });
             }
         }
     }

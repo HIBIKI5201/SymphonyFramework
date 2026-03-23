@@ -1,5 +1,6 @@
 ﻿using SymphonyFrameWork.Core;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -12,6 +13,13 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     public static class AssetStoreToolsPackager
     {
+        public class PackageDirectoryInfo
+        {
+            public string Path;
+            public string Name;
+            public bool IsIgnored;
+        }
+
         /// <summary>
         ///     AssetStoreToolsフォルダをパッケージ化してExportedPackagesフォルダに保存します。
         /// </summary>
@@ -19,6 +27,62 @@ namespace SymphonyFrameWork.Editor
         public static void ExportAssetStoreToolsFolder()
         {
             AssetStoreToolsPackageWindow.ShowWindow();
+        }
+
+        /// <summary>
+        ///     パッケージ対象のディレクトリ一覧を取得します。無視リストのフィルタリングもここで行います。
+        /// </summary>
+        public static List<PackageDirectoryInfo> GetPackageDirectories()
+        {
+            List<PackageDirectoryInfo> results = new();
+
+            if (!AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
+            {
+                return results;
+            }
+
+            // 無視ファイルの確認と作成。
+            HashSet<string> ignoredNames = GetIgnoredNames();
+
+            // ディレクトリの取得と情報の生成。
+            string[] dirs = Directory.GetDirectories(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH);
+            foreach (string dir in dirs)
+            {
+                string name = Path.GetFileName(dir);
+                bool isIgnored = ignoredNames.Contains(name);
+
+                results.Add(new PackageDirectoryInfo
+                {
+                    Path = dir.Replace("\\", "/"),
+                    Name = name,
+                    IsIgnored = isIgnored
+                });
+            }
+
+            return results;
+        }
+
+        private static HashSet<string> GetIgnoredNames()
+        {
+            HashSet<string> ignoredNames = new HashSet<string>();
+            if (!File.Exists(EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE))
+            {
+                File.WriteAllText(EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE, "# Write folder names to ignore (one per line)\n");
+                AssetDatabase.Refresh();
+            }
+            else
+            {
+                string[] lines = File.ReadAllLines(EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE);
+                foreach (string line in lines)
+                {
+                    string trimmed = line.Trim();
+                    if (!string.IsNullOrEmpty(trimmed) && !trimmed.StartsWith("#"))
+                    {
+                        ignoredNames.Add(trimmed);
+                    }
+                }
+            }
+            return ignoredNames;
         }
 
         public static void Export(string[] directories, bool createCombinedPackage = false)
@@ -40,7 +104,7 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            #region 個別のパッケージを出力。
+            // 個別のパッケージを出力
             foreach (string dir in directories)
             {
                 try
@@ -57,9 +121,8 @@ namespace SymphonyFrameWork.Editor
                     Debug.LogError($"パッケージの出力に失敗しました: {dir}\n{e}");
                 }
             }
-            #endregion
 
-            #region まとめたパッケージを出力。
+            // まとめたパッケージを出力
             if (createCombinedPackage)
             {
                 try
@@ -77,9 +140,9 @@ namespace SymphonyFrameWork.Editor
                     Debug.LogError($"合計パッケージの出力に失敗しました\n{e}");
                 }
             }
-            #endregion
 
             Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {exportPath}\n\nexported\n{string.Join('\n', directories.Select(d => $"- {Path.GetFileName(d)}"))}");
+
         }
 
         private const string EXPORTED_PACKAGES = "ExportedPackages";
