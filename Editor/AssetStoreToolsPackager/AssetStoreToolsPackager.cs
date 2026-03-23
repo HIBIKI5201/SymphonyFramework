@@ -21,7 +21,7 @@ namespace SymphonyFrameWork.Editor
             AssetStoreToolsPackageWindow.ShowWindow();
         }
 
-        public static void Export(string[] directories)
+        public static void Export(string[] directories, bool createCombinedPackage = false)
         {
             // ExportedPackages フォルダがなければ作成。
             string fullExportDir = Path.Combine(Application.dataPath, "..", EXPORTED_PACKAGES);
@@ -40,6 +40,7 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
+            #region 個別のパッケージを出力。
             foreach (string dir in directories)
             {
                 try
@@ -56,9 +57,29 @@ namespace SymphonyFrameWork.Editor
                     Debug.LogError($"パッケージの出力に失敗しました: {dir}\n{e}");
                 }
             }
+            #endregion
+
+            #region まとめたパッケージを出力。
+            if (createCombinedPackage)
+            {
+                try
+                {
+                    string combinedName = $"AllPackages_{DateTime.Now:yyyyMMdd_HHmmss}.unitypackage";
+                    AssetDatabase.ExportPackage(
+                        directories,
+                        Path.Combine(exportPath, combinedName),
+                        ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
+                    );
+                    Debug.Log($"[{nameof(AssetStoreToolsPackager)}] 合計パッケージを作成しました: {combinedName}");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"合計パッケージの出力に失敗しました\n{e}");
+                }
+            }
+            #endregion
 
             Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {exportPath}\n\nexported\n{string.Join('\n', directories.Select(d => $"- {Path.GetFileName(d)}"))}");
-
         }
 
         private const string EXPORTED_PACKAGES = "ExportedPackages";

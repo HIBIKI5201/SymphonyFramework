@@ -31,6 +31,12 @@ namespace SymphonyFrameWork.Editor
 
         private List<DirectoryItem> _directoryItems = new();
         private Vector2 _scrollPosition;
+        private bool _createCombinedPackage = false;
+
+        private void OnEnable()
+        {
+            RefreshDirectories();
+        }
 
         private void OnGUI()
         {
@@ -44,7 +50,7 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
 
-            // 一括選択・解除
+            // 一括選択・解除。
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Select All", GUILayout.Width(100)))
             {
@@ -58,7 +64,7 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
 
-            // ディレクトリ一覧
+            // ディレクトリ一覧。
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, EditorStyles.helpBox);
             foreach (DirectoryItem item in _directoryItems)
             {
@@ -67,8 +73,9 @@ namespace SymphonyFrameWork.Editor
             EditorGUILayout.EndScrollView();
 
             EditorGUILayout.Space();
+            _createCombinedPackage = EditorGUILayout.ToggleLeft("Create Combined Package", _createCombinedPackage);
 
-            // エクスポートボタン
+            // エクスポートボタン。
             using (new EditorGUI.DisabledGroupScope(_directoryItems.All(d => !d.IsSelected)))
             {
                 if (GUILayout.Button("Export Selected Directories", GUILayout.Height(30)))
@@ -78,16 +85,14 @@ namespace SymphonyFrameWork.Editor
                         .Select(d => d.Path)
                         .ToArray();
 
-                    AssetStoreToolsPackager.Export(selectedDirs);
+                    AssetStoreToolsPackager.Export(selectedDirs, _createCombinedPackage);
                 }
             }
         }
 
-        private void OnEnable()
-        {
-            RefreshDirectories();
-        }
-
+        /// <summary>
+        ///     ディレクトリ一覧をリフレッシュして、Asset Store Toolsフォルダ内のディレクトリを取得する。
+        /// </summary>
         private void RefreshDirectories()
         {
             _directoryItems.Clear();
