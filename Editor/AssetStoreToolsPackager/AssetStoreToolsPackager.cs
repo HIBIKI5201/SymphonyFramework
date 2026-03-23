@@ -1,6 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -25,7 +24,10 @@ namespace SymphonyFrameWork.Editor
                 Debug.LogError($"AssetStoreToolsフォルダが存在しません: {EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH}");
                 return;
             }
+        }
 
+        public static void Export(string[] directories)
+        {
             // ExportedPackages フォルダがなければ作成。
             string fullExportDir = Path.Combine(Application.dataPath, "..", EXPORTED_PACKAGES);
             if (!Directory.Exists(fullExportDir))
@@ -36,10 +38,6 @@ namespace SymphonyFrameWork.Editor
             // 出力フォルダ名。
             string exportPath = Path.Combine(EXPORTED_PACKAGES, PackageName);
             Directory.CreateDirectory(exportPath);
-
-            // アセットごとのパスを生成。
-            string[] directories =
-                Directory.GetDirectories(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH);
 
             if (directories.Length == 0)
             {
@@ -65,11 +63,12 @@ namespace SymphonyFrameWork.Editor
             }
 
             Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {exportPath}\n\nexported\n{string.Join('\n', directories.Select(d => $"- {Path.GetFileName(d)}"))}");
+
         }
 
         private const string EXPORTED_PACKAGES = "ExportedPackages";
 
-        private static string PackageName => 
+        private static string PackageName =>
             $"Export_{Path.GetFileName(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH)}_{DateTime.Now:yyyyMMdd_HHmmss}";
     }
 }
