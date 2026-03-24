@@ -14,8 +14,6 @@ namespace SymphonyFrameWork.Editor
             set
             {
                 _autoSceneListUpdate = value;
-                EditorUtility.SetDirty(this);
-                AssetDatabase.SaveAssets();
                 Save();
             }
         }
@@ -26,8 +24,6 @@ namespace SymphonyFrameWork.Editor
             set
             {
                 _autoTagsUpdate = value;
-                EditorUtility.SetDirty(this);
-                AssetDatabase.SaveAssets();
                 Save();
             }
         }
@@ -38,8 +34,6 @@ namespace SymphonyFrameWork.Editor
             set
             {
                 _autoLayersUpdate = value;
-                EditorUtility.SetDirty(this);
-                AssetDatabase.SaveAssets();
                 Save();
             }
         }
