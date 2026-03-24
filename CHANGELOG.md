@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.15] - 2026-03-25
+### Add
+- SceneNameSelectorAttribute
+
 ## [1.27.14] - 2026-03-19
 ### Fix
 - SaveSystem
