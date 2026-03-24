@@ -13,19 +13,24 @@ namespace SymphonyFrameWork.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // string型のみ対応。
-            if (property.propertyType == SerializedPropertyType.String)
-            {
-                int index = Array.IndexOf(SceneList, property.stringValue);
-                if (index < 0) index = 0;
-
-                int selectedIndex = EditorGUI.Popup(position, label.text, index, SceneList);
-
-                property.stringValue = SceneList[selectedIndex];
-            }
-            else
+            if (property.propertyType != SerializedPropertyType.String)
             {
                 EditorGUI.LabelField(position, label.text, "SceneNameSelectorはstring型にのみ使用できます。");
+                return;
             }
+
+            if (SceneList.Length == 0)
+            {
+                EditorGUI.LabelField(position, label.text, "ビルド設定にシーンが追加されていません。");
+                return;
+            }
+
+            int index = Array.IndexOf(SceneList, property.stringValue);
+            if (index < 0) index = 0;
+
+            int selectedIndex = EditorGUI.Popup(position, label.text, index, SceneList);
+
+            property.stringValue = SceneList[selectedIndex];
         }
 
         private string[] _sceneList;
