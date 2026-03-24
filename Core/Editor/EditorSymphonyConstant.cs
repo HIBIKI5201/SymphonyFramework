@@ -37,6 +37,7 @@ namespace SymphonyFrameWork.Core
         public static string ENUM_PATH = "Assets/Scripts/" + SymphonyConstant.SYMPHONY_FRAMEWORK;
 
         public const string ASSET_STORE_TOOLS_PATH = "Assets/AssetStoreTools";
+        public const string ASSET_STORE_TOOLS_IGNORE_FILE = ASSET_STORE_TOOLS_PATH + "/ignore.txt";
         #endregion
 
         public static string UITK_PATH = FRAMEWORK_PATH() + "/Editor/Administrator/UITK/";
