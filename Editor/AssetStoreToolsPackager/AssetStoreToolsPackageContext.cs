@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
-    public readonly ref struct AssetStoreToolsPakcageContext
+    public readonly ref struct AssetStoreToolsPackageContext
     {
-        public AssetStoreToolsPakcageContext(
+        public AssetStoreToolsPackageContext(
             string basePackageName,
             string exportRoot,
             string[] exportDirectories)
