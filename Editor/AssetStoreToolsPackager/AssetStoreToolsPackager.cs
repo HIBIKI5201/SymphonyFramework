@@ -158,7 +158,7 @@ namespace SymphonyFrameWork.Editor
         {
             try
             {
-                string zipFullPath = Path.Combine(context.ExportFullPath, $"{context.PackageName}.zip");
+                string zipFullPath = Path.Combine(context.ExportRoot, $"{context.PackageName}.zip");
 
                 if (!Directory.Exists(context.ExportFullPath))
                 {
