@@ -1,4 +1,4 @@
-using SymphonyFrameWork.Core;
+﻿using SymphonyFrameWork.Core;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -32,6 +32,7 @@ namespace SymphonyFrameWork.Editor
         private List<DirectoryItem> _directoryItems = new List<DirectoryItem>();
         private Vector2 _scrollPosition;
         private bool _createCombinedPackage = false;
+        private bool _createZip = false;
 
         private void OnEnable()
         {
@@ -77,6 +78,7 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
             _createCombinedPackage = EditorGUILayout.ToggleLeft("Create Combined Package", _createCombinedPackage);
+            _createZip = EditorGUILayout.ToggleLeft("Create ZIP File", _createZip);
 
             // エクスポートボタン。
             using (new EditorGUI.DisabledGroupScope(_directoryItems.All(d => !d.IsSelected)))
@@ -88,7 +90,9 @@ namespace SymphonyFrameWork.Editor
                         .Select(d => d.Path)
                         .ToArray();
 
-                    AssetStoreToolsPackager.Export(selectedDirs, _createCombinedPackage);
+                    AssetStoreToolsPackager.Export(selectedDirs,
+                        _createCombinedPackage,
+                        _createZip);
                 }
             }
         }
