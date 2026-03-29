@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.16] - 2026-03-29
+### Update
+- AssetStoreToolsPackager
+
 ## [1.27.15] - 2026-03-25
 ### Add
 - SceneNameSelectorAttribute
