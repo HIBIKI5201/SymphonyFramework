@@ -72,7 +72,7 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            var context = new AssetStoreToolsPakcageContext(
+            var context = new AssetStoreToolsPackageContext(
                 PACKAGE_NAME,
                 EXPORTED_PACKAGES,
                 directories
@@ -106,7 +106,7 @@ namespace SymphonyFrameWork.Editor
         ///     個別のパッケージ生成。
         /// </summary>
         /// <param name="context"></param>
-        private static void ExportPackage(AssetStoreToolsPakcageContext context)
+        private static void ExportPackage(AssetStoreToolsPackageContext context)
         {
             foreach (string dir in context.ExportDirectories)
             {
@@ -129,7 +129,7 @@ namespace SymphonyFrameWork.Editor
         ///     連結されたパッケージ生成。
         /// </summary>
         /// <param name="context"></param>
-        private static void CreateCombinedPackage(AssetStoreToolsPakcageContext context)
+        private static void CreateCombinedPackage(AssetStoreToolsPackageContext context)
         {
             try
             {
@@ -154,7 +154,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         /// <param name="sourceDirectory">圧縮対象フォルダ（相対 or 絶対）</param>
         /// <param name="zipFilePath">出力ZIPパス（.zip含む）</param>
-        private static void CreateZip(AssetStoreToolsPakcageContext context)
+        private static void CreateZip(AssetStoreToolsPackageContext context)
         {
             try
             {
