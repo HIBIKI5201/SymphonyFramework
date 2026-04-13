@@ -1,5 +1,4 @@
-﻿using SymphonyFrameWork.Attribute;
-using SymphonyFrameWork.Core;
+﻿using SymphonyFrameWork.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -44,14 +43,10 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
-        [ReadOnly, SerializeField] private bool _autoSceneListUpdate = true;
-        [ReadOnly, SerializeField] private bool _autoTagsUpdate = false;
-        [ReadOnly, SerializeField] private bool _autoLayersUpdate = false;
+        [SerializeField] private bool _autoSceneListUpdate = true;
+        [SerializeField] private bool _autoTagsUpdate = false;
+        [SerializeField] private bool _autoLayersUpdate = false;
 
-
-        public void Save()
-        {
-            Save(true);
-        }
+        private void Save() => Save(true);
     }
 }
