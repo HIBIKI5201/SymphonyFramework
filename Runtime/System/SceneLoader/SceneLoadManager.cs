@@ -2,6 +2,7 @@
 using SymphonyFrameWork.Utility;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
 
             SceneManager.SetActiveScene(info.Scene);
+            _data.SetActiveScene(name, info.Priority);
             return true;
         }
 
@@ -41,6 +43,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             string name,
             Action<float> loadingAction = null,
             LoadSceneMode mode = LoadSceneMode.Additive,
+            int priority = 0,
             CancellationToken token = default)
         {
             //ロードしようとしているシーンが既に存在するか確認。
@@ -58,7 +61,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 return false;
             }
 
-            _data.LoadStart(name);
+            _data.LoadStart(name, priority);
 
             #endregion
 
@@ -92,6 +95,11 @@ namespace SymphonyFrameWork.System.SceneLoad
             else
             {
                 _data.LoadComplete(name, loadedScene);
+
+                if (_data.ActiveScene.Priority <= priority)
+                {
+                    TrySetActiveScene(name);
+                }
             }
 
             //ロード終了後にロード待ちしていたイベントを実行。
@@ -241,7 +249,15 @@ namespace SymphonyFrameWork.System.SceneLoad
                 },
                 token);
 
+            // アンロード完了後。
             _data.UnloadComplete(name);
+
+            // アンロードしたシーンがアクティブシーンだった場合、アクティブシーンを変更する。
+            if (name == _data.ActiveScene.Name)
+            {
+                 SceneLoadData.SceneInfo info = _data.SceneDict.Values.OrderBy(info => info.Priority).Last();
+                TrySetActiveScene(info.Scene.name);
+            }
 
             return true;
         }

@@ -62,13 +62,15 @@ namespace SymphonyFrameWork.System.SceneLoad
             string sceneName,
             Action<float> loadingAction = null,
             LoadSceneMode mode = LoadSceneMode.Additive,
+            int priority = 0,
             CancellationToken token = default)
         {
             return _manager.LoadScene(
-                sceneName,
-                loadingAction,
-                mode,
-                token);
+                name: sceneName,
+                loadingAction: loadingAction,
+                mode: mode,
+                priority: priority,
+                token: token);
         }
 
         /// <summary>
@@ -170,6 +172,9 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns></returns>
         private static async ValueTask InitializeSceneLoad()
         {
+            // 現状のシーン状況を保存する。
+            _manager.ResetSceneData();
+
             SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
             // シーンリセットの条件が揃っていない場合は何もしない。
             if (config == null
@@ -177,8 +182,6 @@ namespace SymphonyFrameWork.System.SceneLoad
                 || config.InitializeSceneList == null
                 || config.InitializeSceneList.Length <= 0) { return; }
 
-            // 現状のシーン状況を保存する。
-            _manager.ResetSceneData();
 
             // シーンのロード状況をリセットする。
             string[] resetIgnoreScenes = GetResetIgnoreScenes(config);
