@@ -10,10 +10,18 @@ namespace SymphonyFrameWork.Editor
     {
         public static void ShowWindow()
         {
-            // パッケージ対象ディレクトリをバリデーションチェック。
-            if (!AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
+            string assetStoreToolsPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
+
+            if (string.IsNullOrEmpty(assetStoreToolsPath) ) 
             {
-                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH}");
+                Debug.LogError("AssetStoreToolsフォルダのパスが設定されていません。");
+                return; 
+            }
+
+            // パッケージ対象ディレクトリをバリデーションチェック。
+            if (!AssetDatabase.IsValidFolder(assetStoreToolsPath))
+            {
+                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {assetStoreToolsPath}");
                 return;
             }
 
@@ -29,7 +37,7 @@ namespace SymphonyFrameWork.Editor
             public bool IsIgnored;
         }
 
-        private List<DirectoryItem> _directoryItems = new List<DirectoryItem>();
+        private List<DirectoryItem> _directoryItems = new();
         private Vector2 _scrollPosition;
         private bool _createCombinedPackage = false;
         private bool _createZip = false;
