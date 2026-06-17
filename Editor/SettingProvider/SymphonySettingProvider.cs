@@ -8,6 +8,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
     {
         public const string LABEL = SymphonyConstant.SYMPHONY_FRAMEWORK;
         public const string SELF_PATH = EditorSymphonyConstant.PROJECT_SETTING_PATH + LABEL;
+
         public const string PROVIDER_PATH = EditorSymphonyConstant.PROJECT_SETTING_PATH + LABEL + "/";
 
         [SettingsProvider]
@@ -23,7 +24,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                 guiHandler = IMGUI,
 
                 // 検索するときのキーワード
-                keywords = new HashSet<string>(new[] { "CustomSetting" }),
+                keywords = new HashSet<string>(new[] { "symphony", "framework", "symphony framework" }),
             };
 
             return provider;
