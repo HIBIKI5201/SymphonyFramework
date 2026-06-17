@@ -74,7 +74,7 @@ namespace SymphonyFrameWork.Editor
 
             var context = new AssetStoreToolsPackageContext(
                 PACKAGE_NAME,
-                EXPORTED_PACKAGES,
+                AssetStoreToolsPackagerData.ExportedPackagesPath,
                 directories
             );
 
@@ -99,7 +99,7 @@ namespace SymphonyFrameWork.Editor
             Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {context.ExportLocalPath}");
         }
 
-        private const string EXPORTED_PACKAGES = "ExportedPackages";
+
         private const string PACKAGE_NAME = "AssetStoreToolsPackage";
 
         /// <summary>
