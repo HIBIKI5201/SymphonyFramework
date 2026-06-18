@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
-
+using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
 namespace SymphonyFrameWork.System.SceneLoad
 {
     public class SceneLoadData
     {
         public SceneLoadData() { }
 
-        public void LoadStart(string name)
+        public (string Name, int Priority) ActiveScene => _activeScene;
+        internal ReadOnlyDictionary<string, SceneInfo> SceneDict => new(_sceneDict);
+
+        public void LoadStart(string name, int priority = 0)
         {
-            _sceneDict.TryAdd(name, new(default));
+            _sceneDict.TryAdd(name, new(default, priority));
         }
 
         public void LoadComplete(string name, Scene scene)
@@ -37,6 +41,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         {
             _sceneDict.Remove(name);
         }
+
+        public void SetActiveScene(string name, int priority) => _activeScene = (name, priority);
 
         public void Reset(params KeyValuePair<string, Scene>[] newList)
         {
@@ -90,15 +96,17 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         internal struct SceneInfo
         {
-            public SceneInfo(Scene scene)
+            public SceneInfo(Scene scene, int priority = 0)
             {
                 _scene = scene;
                 _state = SceneLoadState.Loading;
+                _priority = priority;
             }
 
             public Scene Scene => _scene;
 
             public SceneLoadState State => _state;
+            public int Priority => _priority;
 
             public void RegisterScene(Scene scene) => _scene = scene;
 
@@ -106,11 +114,12 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             private Scene _scene;
             private SceneLoadState _state;
+            private int _priority;
         }
 
         private readonly Dictionary<string, SceneInfo> _sceneDict = new();
         private readonly Dictionary<string, Action> _loadedAction = new();
 
-
+        private (string Name, int Priority) _activeScene;
     }
 }

@@ -1,8 +1,9 @@
-﻿using SymphonyFrameWork.Core;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using UnityEditor;
 using UnityEngine;
+using static SymphonyFrameWork.Editor.AssetStoreToolsPackager;
 
 namespace SymphonyFrameWork.Editor
 {
@@ -10,10 +11,18 @@ namespace SymphonyFrameWork.Editor
     {
         public static void ShowWindow()
         {
-            // パッケージ対象ディレクトリをバリデーションチェック。
-            if (!AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
+            string assetStoreToolsPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
+
+            if (string.IsNullOrEmpty(assetStoreToolsPath))
             {
-                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH}");
+                Debug.LogError("AssetStoreToolsフォルダのパスが設定されていません。");
+                return;
+            }
+
+            // パッケージ対象ディレクトリをバリデーションチェック。
+            if (!AssetDatabase.IsValidFolder(assetStoreToolsPath))
+            {
+                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {assetStoreToolsPath}");
                 return;
             }
 
@@ -29,10 +38,11 @@ namespace SymphonyFrameWork.Editor
             public bool IsIgnored;
         }
 
-        private List<DirectoryItem> _directoryItems = new List<DirectoryItem>();
+        private List<DirectoryItem> _directoryItems = new();
         private Vector2 _scrollPosition;
-        private bool _createCombinedPackage = false;
+        private PackageMode _packageMode = PackageMode.Singles;
         private bool _createZip = false;
+        private bool _usedDependencies = false;
 
         private void OnEnable()
         {
@@ -77,12 +87,19 @@ namespace SymphonyFrameWork.Editor
             EditorGUILayout.EndScrollView();
 
             EditorGUILayout.Space();
-            _createCombinedPackage = EditorGUILayout.ToggleLeft("Create Combined Package", _createCombinedPackage);
+            _packageMode = (PackageMode)EditorGUILayout.EnumFlagsField("Export Mode", _packageMode);
             _createZip = EditorGUILayout.ToggleLeft("Create ZIP File", _createZip);
+            _usedDependencies = EditorGUILayout.ToggleLeft("Used Dependencies", _usedDependencies);
 
             // エクスポートボタン。
             using (new EditorGUI.DisabledGroupScope(_directoryItems.All(d => !d.IsSelected)))
             {
+                if (_packageMode == PackageMode.Nothing)
+                {
+                    GUILayout.TextField("Noting mode is invalid");
+                    return;
+                }
+
                 if (GUILayout.Button("Export Selected Directories", GUILayout.Height(30)))
                 {
                     string[] selectedDirs = _directoryItems
@@ -90,9 +107,10 @@ namespace SymphonyFrameWork.Editor
                         .Select(d => d.Path)
                         .ToArray();
 
-                    AssetStoreToolsPackager.Export(selectedDirs,
-                        _createCombinedPackage,
-                        _createZip);
+                    Export(selectedDirs,
+                        _packageMode,
+                        _createZip,
+                        _usedDependencies);
                 }
             }
         }
@@ -104,7 +122,7 @@ namespace SymphonyFrameWork.Editor
         {
             _directoryItems.Clear();
 
-            var infos = AssetStoreToolsPackager.GetPackageDirectories();
+            var infos = GetPackageDirectories();
             foreach (var info in infos)
             {
                 _directoryItems.Add(new DirectoryItem

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.27.18] - 2026-06-18
+### Update
+- AssetStoreToolsPackager
+
+## [1.27.17] - 2026-05-01
+### Update
+- SceneLoader
+
 ## [1.27.16] - 2026-03-29
 ### Update
 - AssetStoreToolsPackager
