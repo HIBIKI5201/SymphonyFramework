@@ -47,7 +47,7 @@ namespace SymphonyFrameWork.Editor
         {
             List<PackageDirectoryInfo> results = new();
 
-            if (!AssetDatabase.IsValidFolder(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH))
+            if (!AssetDatabase.IsValidFolder(AssetStoreToolsPackagerData.AssetStoreToolsPath))
             {
                 return results;
             }
@@ -56,7 +56,7 @@ namespace SymphonyFrameWork.Editor
             HashSet<string> ignoredNames = GetIgnoredNames();
 
             // ディレクトリの取得と情報の生成。
-            string[] dirs = Directory.GetDirectories(EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH);
+            string[] dirs = Directory.GetDirectories(AssetStoreToolsPackagerData.AssetStoreToolsPath);
             foreach (string dir in dirs)
             {
                 string name = Path.GetFileName(dir);
