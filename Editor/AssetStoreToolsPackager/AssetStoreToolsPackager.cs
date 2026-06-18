@@ -25,10 +25,9 @@ namespace SymphonyFrameWork.Editor
         [Flags]
         public enum PackageMode : byte
         {
-            None = 0,
+            Nothing = 0,
             Singles = 1 << 0,
             Combine = 1 << 1,
-            All = Singles | Combine
         }
 
         /// <summary>
@@ -100,7 +99,7 @@ namespace SymphonyFrameWork.Editor
                 string astPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
                 usedAssetPaths = GetProjectUsedDependencies(astPath);
             }
-            
+
             if ((mode & PackageMode.Singles) != 0)
             {
                 ExportPackage(context, usedAssetPaths);
@@ -289,12 +288,18 @@ namespace SymphonyFrameWork.Editor
             // プロジェクト内のすべての一般アセット（Assetsフォルダ以下）を検索
             string[] allAssetGuids = AssetDatabase.FindAssets("", new[] { "Assets" });
 
+            string normalizedExcludedRootPath = excludedRootPath
+                ?.Replace("\\", "/")
+                .TrimEnd('/');
+
             foreach (string guid in allAssetGuids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
 
                 // AssetStoreToolsは除外して依存関係を追う
-                if (path.StartsWith(excludedRootPath, StringComparison.Ordinal))
+                if (!string.IsNullOrEmpty(normalizedExcludedRootPath)
+                    && (path.Equals(normalizedExcludedRootPath, StringComparison.Ordinal)
+                       || path.StartsWith(normalizedExcludedRootPath + "/", StringComparison.Ordinal)))
                 {
                     continue;
                 }

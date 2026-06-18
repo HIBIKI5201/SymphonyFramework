@@ -94,7 +94,7 @@ namespace SymphonyFrameWork.Editor
             // エクスポートボタン。
             using (new EditorGUI.DisabledGroupScope(_directoryItems.All(d => !d.IsSelected)))
             {
-                if (_packageMode == PackageMode.None)
+                if (_packageMode == PackageMode.Nothing)
                 {
                     GUILayout.TextField("Noting mode is invalid");
                     return;
