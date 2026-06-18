@@ -101,12 +101,12 @@ namespace SymphonyFrameWork.Editor
                 usedAssetPaths = GetProjectUsedDependencies(astPath);
             }
             
-            if (((byte)mode << (byte)PackageMode.Singles) != 0)
+            if ((mode & PackageMode.Singles) != 0)
             {
                 ExportPackage(context, usedAssetPaths);
             }
 
-            if (((byte)mode << (byte)PackageMode.Combine) != 0)
+            if ((mode & PackageMode.Combine) != 0)
             {
                 CreateCombinedPackage(context, usedAssetPaths);
             }
