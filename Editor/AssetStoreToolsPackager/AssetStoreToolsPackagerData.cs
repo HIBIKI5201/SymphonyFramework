@@ -1,7 +1,6 @@
 ﻿using SymphonyFrameWork.Core;
 using UnityEditor;
-using UnityEditor.AssetImporters;
-
+using UnityEngine;
 namespace SymphonyFrameWork.Editor
 {
     [FilePath(EditorSymphonyConstant.PROJCET_SETTING_FILE_PATH
@@ -33,9 +32,8 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
-        private string exportedPackagesPath = "ExportedPackages";
-
-        private string _assetStoreToolsPath = EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH;
+        [SerializeField] private string exportedPackagesPath = "ExportedPackages";
+        [SerializeField] private string _assetStoreToolsPath = EditorSymphonyConstant.ASSET_STORE_TOOLS_PATH;
 
         private static void Save() => instance.Save(true);
     }
