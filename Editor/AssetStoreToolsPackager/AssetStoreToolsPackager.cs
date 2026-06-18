@@ -22,6 +22,15 @@ namespace SymphonyFrameWork.Editor
             public bool IsIgnored;
         }
 
+        [Flags]
+        public enum PackageMode : byte
+        {
+            None = 0,
+            Singles = 1 << 0,
+            Combine = 1 << 1,
+            All = Singles | Combine
+        }
+
         /// <summary>
         ///     AssetStoreToolsフォルダをパッケージ化してExportedPackagesフォルダに保存します。
         /// </summary>
@@ -64,7 +73,7 @@ namespace SymphonyFrameWork.Editor
             return results;
         }
 
-        public static void Export(string[] directories, bool createCombinedPackage = false, bool createZip = false)
+        public static void Export(string[] directories, PackageMode mode, bool createZip = false, bool usedDependencies = false)
         {
             if (directories.Length == 0)
             {
@@ -84,11 +93,22 @@ namespace SymphonyFrameWork.Editor
                 Directory.CreateDirectory(context.ExportFullPath);
             }
 
-            ExportPackage(context);
 
-            if (createCombinedPackage)
+            HashSet<string> usedAssetPaths = null;
+            if (usedDependencies)
             {
-                CreateCombinedPackage(context);
+                string astPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
+                usedAssetPaths = GetProjectUsedDependencies(astPath);
+            }
+            
+            if (((byte)mode << (byte)PackageMode.Singles) != 0)
+            {
+                ExportPackage(context, usedAssetPaths);
+            }
+
+            if (((byte)mode << (byte)PackageMode.Combine) != 0)
+            {
+                CreateCombinedPackage(context, usedAssetPaths);
             }
 
             if (createZip)
@@ -106,16 +126,40 @@ namespace SymphonyFrameWork.Editor
         ///     個別のパッケージ生成。
         /// </summary>
         /// <param name="context"></param>
-        private static void ExportPackage(AssetStoreToolsPackageContext context)
+        private static void ExportPackage(
+            AssetStoreToolsPackageContext context,
+            HashSet<string> usedAssetPaths = null)
         {
             foreach (string dir in context.ExportDirectories)
             {
                 try
                 {
+                    string[] exportFiles;
+                    ExportPackageOptions options;
+
+                    if (usedAssetPaths != null)
+                    {
+                        exportFiles = GetUsedAssetsInDirectory(dir, usedAssetPaths);
+                        options = ExportPackageOptions.Default;
+
+                        if (exportFiles.Length == 0)
+                        {
+                            Debug.LogWarning($"使用中アセットなし: {dir}");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        exportFiles = new[] { dir };
+                        options = ExportPackageOptions.Recurse;
+                    }
+
                     AssetDatabase.ExportPackage(
-                        dir,
-                        Path.Combine(context.ExportLocalPath, $"{Path.GetFileName(dir)}.unitypackage"),
-                        ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
+                        exportFiles,
+                        Path.Combine(
+                            context.ExportLocalPath,
+                            $"{Path.GetFileName(dir)}.unitypackage"),
+                        options
                     );
                 }
                 catch (Exception e)
@@ -129,19 +173,45 @@ namespace SymphonyFrameWork.Editor
         ///     連結されたパッケージ生成。
         /// </summary>
         /// <param name="context"></param>
-        private static void CreateCombinedPackage(AssetStoreToolsPackageContext context)
+        private static void CreateCombinedPackage(
+            in AssetStoreToolsPackageContext context,
+            HashSet<string> usedAssetPaths = null)
         {
             try
             {
-                string combinedName = $"AllPackages_{context.DateTime:yyyyMMdd_HHmmss}.unitypackage";
+                string combinedName =
+                    $"AllPackages_{context.DateTime:yyyyMMdd_HHmmss}.unitypackage";
+
+                string[] exportFiles;
+                ExportPackageOptions options;
+
+                if (usedAssetPaths != null)
+                {
+                    exportFiles = context.ExportDirectories
+                        .SelectMany(dir => GetUsedAssetsInDirectory(dir, usedAssetPaths))
+                        .Distinct()
+                        .ToArray();
+                    options = ExportPackageOptions.Default;
+
+                    if (exportFiles.Length == 0)
+                    {
+                        Debug.LogWarning("使用中アセットが存在しないため統合パッケージを作成しませんでした。");
+                        return;
+                    }
+                }
+                else
+                {
+                    exportFiles = context.ExportDirectories;
+                    options = ExportPackageOptions.Recurse;
+                }
 
                 AssetDatabase.ExportPackage(
-                    context.ExportDirectories,
+                    exportFiles,
                     Path.Combine(context.ExportLocalPath, combinedName),
-                    ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies
+                    options
                 );
 
-                Debug.Log($"合計パッケージ作成: {combinedName}");
+                Debug.Log($"合成パッケージ作成: {combinedName}");
             }
             catch (Exception e)
             {
@@ -154,7 +224,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         /// <param name="sourceDirectory">圧縮対象フォルダ（相対 or 絶対）</param>
         /// <param name="zipFilePath">出力ZIPパス（.zip含む）</param>
-        private static void CreateZip(AssetStoreToolsPackageContext context)
+        private static void CreateZip(in AssetStoreToolsPackageContext context)
         {
             try
             {
@@ -207,6 +277,58 @@ namespace SymphonyFrameWork.Editor
                 }
             }
             return ignoredNames;
+        }
+
+        /// <summary>
+        /// プロジェクト内の全アセット内で一つでも依存している（＝使用している）アセットのパス一覧を取得する
+        /// </summary>
+        private static HashSet<string> GetProjectUsedDependencies(string excludedRootPath)
+        {
+            HashSet<string> usedPaths = new();
+
+            // プロジェクト内のすべての一般アセット（Assetsフォルダ以下）を検索
+            string[] allAssetGuids = AssetDatabase.FindAssets("", new[] { "Assets" });
+
+            foreach (string guid in allAssetGuids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+
+                // AssetStoreToolsは除外して依存関係を追う
+                if (path.StartsWith(excludedRootPath, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                // そのアセットが依存しているリソースをすべて取得
+                string[] dependencies = AssetDatabase.GetDependencies(path, recursive: true);
+
+                foreach (string dependency in dependencies)
+                {
+                    usedPaths.Add(dependency);
+                }
+            }
+
+            return usedPaths;
+        }
+
+        /// <summary>
+        /// 指定ディレクトリ内で実際に使用されているアセットのみ取得する
+        /// </summary>
+        private static string[] GetUsedAssetsInDirectory(
+            string dir,
+            HashSet<string> usedAssetPaths)
+        {
+            string[] allFiles = Directory.GetFiles(
+                    dir,
+                    "*.*",
+                    SearchOption.AllDirectories)
+                .Select(p => p.Replace("\\", "/"))
+                .Where(p => !p.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            return allFiles
+                .Where(usedAssetPaths.Contains)
+                .ToArray();
         }
     }
 }
