@@ -1,8 +1,9 @@
-﻿using System.Collections.Concurrent;
+﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Utility;
+using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Utility;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -14,29 +15,7 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     public static class SymphonyPackageLoader
     {
-        private static readonly string[] requirePackages =
-        {
-            "ai.navigation",
-            "animation.rigging",
-            "addressables",
-            "cinemachine",
-            "behavior",
-            "formats.fbx",
-            "probuilder",
-            "postprocessing",
-            "memoryprofiler",
-            "visualeffectgraph"
-        };
-
-        //static SymphonyPackageLoader() => EditorApplication.delayCall += () => CheckAndInstallPackagesAsync(true);
-        //試した事
-        //InitializeOnLoad => コンパイル時（Play時など）に実行される上に
-        //                    実行タイミングが早すぎてエディタの初期化前に実行される
-        //EditorApplication.delayCall => Play時に実行される
-        //SessionState => 実行タイミングが早い問題のせいで処理に失敗して終わる
-        //EditorPrefs => 上記に加え再起動しても実行されない
-        //EditorApplication.update => 非同期実行している間にタスクが重複していく
-
+        private const string REQUIRE_PACKAGE_LIST_PATH= "Assets/SymphonyFrameWork/Editor/PackageLoader/PackageList.txt";
 
         /// <summary>
         ///     パッケージがロードされているかチェックする
@@ -49,15 +28,22 @@ namespace SymphonyFrameWork.Editor
 
         private static async void CheckAndInstallPackagesAsync(bool isEnterEditor)
         {
-            //パッケージマネージャーの初期化が終わっているか
+            //パッケージマネージャーの初期化が終わっているか。
             if (Client.List() == null) return;
 
-            // パッケージリストを非同期で取得
+            // パッケージリストを非同期で取得。
             var installedPackages = await GetInstalledPackagesAsync();
 
             if (installedPackages == null) return;
 
-            var missingPackages = GetMissingPackages(requirePackages, installedPackages);
+            // テキストファイルからインストールするパッケージリストを取得。
+            string[] requirePackageList = AssetDatabase.LoadAssetAtPath<TextAsset>(REQUIRE_PACKAGE_LIST_PATH)
+                ?.text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                ?.Select(line => line.Trim())
+                ?.ToArray()
+                ?? new string[0];
+
+            string[] missingPackages = GetMissingPackages(requirePackageList, installedPackages);
 
             //パッケージがない場合は終了
             if (missingPackages.Length < 1)
@@ -73,7 +59,9 @@ namespace SymphonyFrameWork.Editor
                 if (EditorUtility.DisplayDialog($"{nameof(SymphonyPackageLoader)}",
                         "以下のパッケージをインストールします\n" + string.Join('\n', missingPackages),
                         "OK", "Cancel"))
+                {
                     await InstallPackageAsync(missingPackages);
+                }
             }
         }
 
@@ -109,7 +97,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private static string[] GetMissingPackages(string[] required, PackageCollection installedPackages)
         {
-            var missingPackages = new ConcurrentBag<string>();
+            ConcurrentBag<string> missingPackages = new ();
 
             Parallel.ForEach(required, pkg =>
             {
