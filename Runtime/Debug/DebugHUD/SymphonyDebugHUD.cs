@@ -17,7 +17,7 @@ namespace SymphonyFrameWork.Debugger.HUD
     ///     画面上にデバッグ用のHUDを表示するクラス
     /// </summary>
     [DefaultExecutionOrder(1000)] // 他のシステムよりも後に実行されるようにする。
-    public class SymphonyDebugHUD : MonoBehaviour
+    public class SymphonyDebugHUD
     {
         /// <summary>
         ///     HUDを表示する。
@@ -105,7 +105,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         {
             if (_debugHUD?.IsValueCreated ?? false)
             {
-                Destroy(_debugHUD.Value.gameObject);
+                UnityEngine.Object.Destroy(_debugHUD.Value.gameObject);
                 _debugHUD = null;
             }
 
