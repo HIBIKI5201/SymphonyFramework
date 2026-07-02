@@ -6,6 +6,7 @@ using UnityEngine.Profiling;
 
 namespace SymphonyFrameWork.Debugger.HUD
 {
+    [DefaultExecutionOrder(-1000)]
     public class SymphonyHUDDrawer : MonoBehaviour
     {
         public void Add(Func<string> func) => _extraTexts.Add(func);

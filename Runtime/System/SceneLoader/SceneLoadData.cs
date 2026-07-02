@@ -92,9 +92,9 @@ namespace SymphonyFrameWork.System.SceneLoad
             return true;
         }
 
-        internal bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
+        public bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
 
-        internal struct SceneInfo
+        public struct SceneInfo
         {
             public SceneInfo(Scene scene, int priority = 0)
             {
