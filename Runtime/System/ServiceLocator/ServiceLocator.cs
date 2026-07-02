@@ -26,7 +26,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
         public static bool RegisterInstance<T>(T instance, LocateType type = DEFAULT_LOCATE_TYPE) where T : class
         {
-            return _manager.RegisterInstance(typeof(T), instance, type);
+            return RegisterInstance(typeof(T), instance, type);
         }
 
         /// <summary>
@@ -51,7 +51,17 @@ namespace SymphonyFrameWork.System.ServiceLocate
             if (instance == null) { return false; }
             if (instance != _data.Get<T>()) { return false; }
 
-            return _manager.UnregisterInstance(typeof(T));
+            return UnregisterInstance(typeof(T));
+        }
+
+        /// <summary>
+        ///     指定したタイプをロケーターから登録解除します。
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool UnregisterInstance(Type type)
+        {
+            return _manager.UnregisterInstance(type);
         }
 
         /// <summary>
@@ -101,6 +111,16 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 Debug.Log($"{typeof(T).Name}が破棄されました");
 #endif
             return true;
+        }
+
+        public static bool IsExistInstance<T>() where T : class
+        {
+            return IsExistInstance(typeof(T));
+        }
+
+        public static bool IsExistInstance<T>(T instance) where T : class
+        {
+            return IsExistInstance(typeof(T));
         }
 
         public static bool IsExistInstance(Type type)
