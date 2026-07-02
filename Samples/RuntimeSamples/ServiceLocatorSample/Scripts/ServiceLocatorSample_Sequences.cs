@@ -40,6 +40,10 @@ namespace SymphonyFrameWork.Samples.ServiceLocatorSample
             logBuilder.AppendLine($"ServiceLocatorSample_1 still exists because it is a singleton. | name: {serviceLocatorSample_1.name}, id: {serviceLocatorSample_1.GetInstanceID()}");
             Debug.Log(logBuilder.ToString());
             logBuilder.Clear();
+
+            Debug.Log($"wait for register ServiceLocatorSample_2");
+            ServiceLocatorSample_2 serviceLocatorSample_2 = await ServiceLocator.GetInstanceAsync<ServiceLocatorSample_2>(10, destroyCancellationToken);
+            Debug.Log($"ServiceLocatorSample_2 was registered | {serviceLocatorSample_2.name}, id: {serviceLocatorSample_2.GetInstanceID()}");
         }
     }
 }
