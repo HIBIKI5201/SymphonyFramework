@@ -25,6 +25,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             if (_locateObjects.TryGetValue(type, out object obj))
             {
                 if (
+                    _gameObject.transform != null &&
                     obj is Component component
                     && component != null && !component.Equals(null) //nullチェックを行う
                     && component.transform.parent == _gameObject.transform) //親がロケーターのインスタンスか
