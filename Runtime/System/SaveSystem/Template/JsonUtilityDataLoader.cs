@@ -3,6 +3,10 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
+    /// <summary>
+    ///     JsonUtilityを使ってデータをセーブするクラス。
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class JsonUtilityDataLoader<T> : ISaveDataLoader<T>
         where T : class, new()
     {
