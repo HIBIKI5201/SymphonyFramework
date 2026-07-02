@@ -14,7 +14,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public void LoadStart(string name, int priority = 0)
         {
-            _sceneDict.TryAdd(name, new(default, priority));
+            _sceneDict.TryAdd(name, new(default, priority, SceneLoadState.Loading));
         }
 
         public void LoadComplete(string name, Scene scene)
@@ -49,7 +49,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             _sceneDict.Clear();
             foreach (var pair in newList)
             {
-                _sceneDict.Add(pair.Key, new(pair.Value));
+                _sceneDict.Add(pair.Key, new(pair.Value, 0, SceneLoadState.Complete));
             }
         }
 
@@ -96,10 +96,10 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public struct SceneInfo
         {
-            public SceneInfo(Scene scene, int priority = 0)
+            public SceneInfo(Scene scene, int priority = 0, SceneLoadState state = SceneLoadState.Loading)
             {
                 _scene = scene;
-                _state = SceneLoadState.Loading;
+                _state = state;
                 _priority = priority;
             }
 
