@@ -10,7 +10,6 @@ namespace SymphonyFrameWork.Samples.ServiceLocatorSample
             if (ServiceLocator.IsExistInstance<ServiceLocatorSample_1>())
             {
                 Debug.Log("ServiceLocatorSample_1 instance already exists.");
-                Destroy(gameObject);
                 return;
             }
 
