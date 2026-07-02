@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
+    /// <summary>
+    ///     
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class NugetDataLoader<T> : ISaveDataLoader<T>
         where T : class, new()
     {
@@ -22,7 +26,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             #region Prefsからデータをロードする
 
-            var json = PlayerPrefs.GetString(typeof(T).FullName);
+            string json = PlayerPrefs.GetString(typeof(T).FullName);
             if (string.IsNullOrEmpty(json))
             {
                 Debug.Log($"[{nameof(NugetDataLoader<T>)}]\n{typeof(T).Name}のデータが見つからないので生成しました");
@@ -33,7 +37,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
             #region JSONに変換して返す
 
-            var data = JsonConvert.DeserializeObject<SaveData<T>>(json);
+            SaveData<T> data = JsonConvert.DeserializeObject<SaveData<T>>(json);
 
             if (data == null)
             {
