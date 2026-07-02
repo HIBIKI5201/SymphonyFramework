@@ -17,7 +17,7 @@ namespace SymphonyFrameWork.Debugger.HUD
     ///     画面上にデバッグ用のHUDを表示するクラス
     /// </summary>
     [DefaultExecutionOrder(1000)] // 他のシステムよりも後に実行されるようにする。
-    public class SymphonyDebugHUD
+    public static class SymphonyDebugHUD
     {
         /// <summary>
         ///     HUDを表示する。
