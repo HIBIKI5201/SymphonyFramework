@@ -24,7 +24,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
         /// <param name="instance">登録するインスタンス。</param>
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
-        public static bool RegisterInstance<T>(T instance, LocateType type = LocateType.Singleton) where T : class
+        public static bool RegisterInstance<T>(T instance, LocateType type = DEFAULT_LOCATE_TYPE) where T : class
         {
             return _manager.RegisterInstance(typeof(T), instance, type);
         }
@@ -35,7 +35,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
         /// <param name="instance">登録するインスタンス。</param>
         /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
-        public static bool RegisterInstance(Type type, object instance, LocateType locateType = LocateType.Singleton)
+        public static bool RegisterInstance(Type type, object instance, LocateType locateType = DEFAULT_LOCATE_TYPE)
         {
             return _manager.RegisterInstance(type, instance, locateType);
         }
@@ -86,7 +86,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             Type type = typeof(T);
 
-            if (!_data.LocateObjects.TryGetValue(type, out var md))
+            if (!_data.IsLocate(type))
             {
                 Debug.LogWarning($"{type.Name}は登録されていません");
                 return false;
@@ -229,6 +229,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _data = new();
             _manager = new(_data);
         }
+
+        private const LocateType DEFAULT_LOCATE_TYPE = LocateType.Locator;
 
         private static ServiceLocateManager _manager;
         private static ServiceLocateData _data;
