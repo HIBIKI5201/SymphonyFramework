@@ -46,10 +46,22 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public void Reset(params KeyValuePair<string, Scene>[] newList)
         {
+            Dictionary<string, SceneInfo> oldDict = new(_sceneDict);
+
             _sceneDict.Clear();
-            foreach (var pair in newList)
+
+            foreach (KeyValuePair<string, Scene> pair in newList)
             {
-                _sceneDict.Add(pair.Key, new(pair.Value, 0, SceneLoadState.Complete));
+                int priority = 0;
+
+                if (oldDict.TryGetValue(pair.Key, out SceneInfo info))
+                {
+                    priority = info.Priority;
+                }
+
+                _sceneDict.Add(
+                    pair.Key,
+                    new SceneInfo(pair.Value, priority, SceneLoadState.Complete));
             }
         }
 

@@ -28,9 +28,6 @@ namespace SymphonyFrameWork.System.SaveSystem
         public static bool operator ==(SaveData<T> a, SaveData<T> b)
         {
             if (ReferenceEquals(a, null)) { return ReferenceEquals(b, null); }
-
-            if (a.MainData == null) { return false; }
-
             return ReferenceEquals(a, b);
         }
 

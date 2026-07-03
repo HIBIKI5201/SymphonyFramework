@@ -56,12 +56,6 @@ namespace SymphonyFrameWork.System.SceneLoad
                 return false;
             }
 
-            // シングルロードの場合、対象以外のシーンをアンロード。
-            if (mode == LoadSceneMode.Single)
-            {
-                await ResetScene();
-            }
-
             #region ロード開始
             var operation = SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive);
             if (operation == null)
@@ -82,6 +76,13 @@ namespace SymphonyFrameWork.System.SceneLoad
                     return operation.isDone;
                 },
                 token);
+
+
+            // シングルロードの場合、対象以外のシーンをアンロード。
+            if (mode == LoadSceneMode.Single)
+            {
+                await ResetScene(name);
+            }
             #endregion
 
             #region ロード完了後。
@@ -383,9 +384,9 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         private readonly SceneLoadData _data;
 
-        private async ValueTask ResetScene()
+        private async ValueTask ResetScene(params string[] scenesToUnload)
         {
-            string[] ignore = {SymphonyCoreSystem.SYMPHONY_SCENE_NAME };
+            string[] ignore = new string[] {SymphonyCoreSystem.SYMPHONY_SCENE_NAME }.Concat(scenesToUnload).ToArray();
             List<string> unloadScenes = new();
             foreach (var kvp in _data.SceneDict)
             {
