@@ -20,15 +20,19 @@ namespace SymphonyFrameWork.Core
         /// </summary>
         /// <param name="sourceFilePath"></param>
         /// <returns></returns>
-        public static string FRAMEWORK_PATH()
+        public static string FRAMEWORK_PATH
         {
-            if (IsPackage())
+            get
             {
-                return "Packages/" + SymphonyConstant.SYMPHONY_PACKAGE;
-            }
-            else
-            {
-                return "Assets/" + SymphonyConstant.SYMPHONY_FRAMEWORK;
+                if (IsPackage())
+                {
+                    return "Packages/" + SymphonyConstant.SYMPHONY_PACKAGE;
+                }
+                else
+                {
+                    return "Assets/" + SymphonyConstant.SYMPHONY_FRAMEWORK;
+                }
+
             }
         }
 
@@ -40,7 +44,7 @@ namespace SymphonyFrameWork.Core
         public const string ASSET_STORE_TOOLS_IGNORE_FILE = ASSET_STORE_TOOLS_PATH + "/ignore.txt";
         #endregion
 
-        public static string UITK_PATH = FRAMEWORK_PATH() + "/Editor/Administrator/UITK/";
+        public static string UITK_PATH = FRAMEWORK_PATH + "/Editor/Administrator/UITK/";
 
         #region ウィンドウのコンフィグ
         public const string ServiceLocatorSetInstanceKey = "ServiceLocatorSetInstanceLog";

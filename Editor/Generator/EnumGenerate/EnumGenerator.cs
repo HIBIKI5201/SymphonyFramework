@@ -103,7 +103,7 @@ namespace SymphonyFrameWork.Editor
 
             AssemblyGenerator.CreateEnumAssembly(
                 EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum",
-                EditorSymphonyConstant.FRAMEWORK_PATH() + "/SymphonyFrameWork");
+                EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork");
 
             AssetDatabase.Refresh();
         }

@@ -15,7 +15,7 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     public static class SymphonyPackageLoader
     {
-        private const string REQUIRE_PACKAGE_LIST_PATH= "Assets/SymphonyFrameWork/Editor/PackageLoader/PackageList.txt";
+        private static readonly string REQUIRE_PACKAGE_LIST_PATH = EditorSymphonyConstant.FRAMEWORK_PATH + "/Editor/PackageLoader/PackageList.txt";
 
         /// <summary>
         ///     パッケージがロードされているかチェックする

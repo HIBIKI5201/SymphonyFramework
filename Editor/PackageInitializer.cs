@@ -42,7 +42,7 @@ namespace SymphonyFrameWork.Editor
             }
             
             var enumAsmdefPath = EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum.asmdef";
-            var mainAsmdefPath = EditorSymphonyConstant.FRAMEWORK_PATH() + "/SymphonyFrameWork.asmdef";
+            var mainAsmdefPath = EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork.asmdef";
             AssemblyGenerator.AddAsssemblyReference(mainAsmdefPath, enumAsmdefPath);
         }
     }
