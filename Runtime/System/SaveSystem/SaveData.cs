@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
@@ -13,8 +14,8 @@ namespace SymphonyFrameWork.System.SaveSystem
             MainData = dataType;
         }
 
-        public string SaveDate { get; set; }
-        public T MainData { get; set; }
+        public string SaveDate;
+        public T MainData;
 
         public void Dispose()
         {
@@ -28,7 +29,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             if (ReferenceEquals(a, null)) { return ReferenceEquals(b, null); }
 
-            if (a.MainData == null) { return true; }
+            if (a.MainData == null) { return false; }
 
             return ReferenceEquals(a, b);
         }
