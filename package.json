@@ -12,5 +12,12 @@
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.addressables": "1.21.19"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Service Locator Sample",
+      "description": "サービスロケーターを使用したサンプルが含まれています。",
+      "path": "Samples~/Runtime/ServiceLocatorSample"
+    }
+  ]
 }
