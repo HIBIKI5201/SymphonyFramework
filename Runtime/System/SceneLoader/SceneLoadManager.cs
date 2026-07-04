@@ -1,11 +1,14 @@
-﻿using SymphonyFrameWork.Debugger;
+﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger;
 using SymphonyFrameWork.Utility;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -54,7 +57,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
 
             #region ロード開始
-            var operation = SceneManager.LoadSceneAsync(name, mode);
+            var operation = SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive);
             if (operation == null)
             {
                 Debug.LogError($"{name} is not register. check scene list of build setting.");
@@ -73,6 +76,13 @@ namespace SymphonyFrameWork.System.SceneLoad
                     return operation.isDone;
                 },
                 token);
+
+
+            // シングルロードの場合、対象以外のシーンをアンロード。
+            if (mode == LoadSceneMode.Single)
+            {
+                await ResetScene(name);
+            }
             #endregion
 
             #region ロード完了後。
@@ -90,16 +100,14 @@ namespace SymphonyFrameWork.System.SceneLoad
             //シングルロードの場合は辞書をクリアする。
             if (mode == LoadSceneMode.Single)
             {
-                _data.Reset(new KeyValuePair<string, Scene>(name, loadedScene));
+                ResetSceneData();
             }
-            else
-            {
-                _data.LoadComplete(name, loadedScene);
 
-                if (_data.ActiveScene.Priority <= priority)
-                {
-                    TrySetActiveScene(name);
-                }
+            _data.LoadComplete(name, loadedScene);
+
+            if (_data.ActiveScene.Priority <= priority)
+            {
+                TrySetActiveScene(name);
             }
 
             //ロード終了後にロード待ちしていたイベントを実行。
@@ -375,5 +383,18 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         private readonly SceneLoadData _data;
+
+        private async ValueTask ResetScene(params string[] scenesToUnload)
+        {
+            string[] ignore = new string[] {SymphonyCoreSystem.SYMPHONY_SCENE_NAME }.Concat(scenesToUnload).ToArray();
+            List<string> unloadScenes = new();
+            foreach (var kvp in _data.SceneDict)
+            {
+                if (ignore.Contains(kvp.Key)) { continue; }
+                unloadScenes.Add(kvp.Key);
+            }
+
+            await UnloadScenes(unloadScenes.ToArray());
+        }
     }
 }

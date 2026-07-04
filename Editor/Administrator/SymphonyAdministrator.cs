@@ -16,12 +16,14 @@ namespace SymphonyFrameWork.Editor
 
         private PauseWindow _pauseWindow;
         private ServiceLocatorWindow _serviceLocatorWindow;
+        private SceneLoaderWindow _sceneLoaderWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
 
         private void Update()
         {
             _pauseWindow?.Update();
             _serviceLocatorWindow?.Update();
+            _sceneLoaderWindow?.Update();
         }
 
         private void OnEnable()
@@ -32,6 +34,7 @@ namespace SymphonyFrameWork.Editor
             {
                 _pauseWindow = container.Q<PauseWindow>();
                 _serviceLocatorWindow = container.Q<ServiceLocatorWindow>();
+                _sceneLoaderWindow = container.Q<SceneLoaderWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
             }
             else

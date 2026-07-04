@@ -332,7 +332,8 @@ namespace SymphonyFrameWork.Editor
                 .ToArray();
 
             return allFiles
-                .Where(usedAssetPaths.Contains)
+                .Where(files => usedAssetPaths.Contains(files)
+                                || files.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                 .ToArray();
         }
     }

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.19] - 2026-07-03
+### Add
+- Samples
+
 ## [1.27.18] - 2026-06-18
 ### Update
 - AssetStoreToolsPackager

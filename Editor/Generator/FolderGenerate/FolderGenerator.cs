@@ -40,7 +40,7 @@ namespace SymphonyFrameWork.Editor
         }
 
         private const string ASSETS_PATH = "Assets";
-        private static readonly string STRUCTURE_PATH = EditorSymphonyConstant.FRAMEWORK_PATH() + "/Editor/Generator/FolderGenerate/FolderStructure.md";
+        private static readonly string STRUCTURE_PATH = EditorSymphonyConstant.FRAMEWORK_PATH + "/Editor/Generator/FolderGenerate/FolderStructure.md";
 
         /// <summary>
         ///     パスのフォルダを生成する。

@@ -9,6 +9,7 @@ namespace SymphonyFrameWork.Utility
     ///     ServiceLocatorにロケート登録するクラス
     /// </summary>
     [HelpURL("https://www.notion.so/SymphonyLocate-19d7c2c6cc02809ea815c3a750fa95ca?pvs=4")]
+    [DefaultExecutionOrder(-1000)] // 最初に実行されるようにする。
     public class SymphonyLocate : MonoBehaviour
     {
         [SerializeField]

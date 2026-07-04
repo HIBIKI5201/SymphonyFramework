@@ -7,7 +7,7 @@ namespace SymphonyFrameWork.Utility
     /// <summary>
     ///     ServiceLocatorに登録されているインスタンスを保持する。
     /// </summary>
-    public class SymphonyLocateObject<T> where T : class
+    public sealed class SymphonyLocateObject<T> where T : class
     {
         /// <summary>
         ///     インスタンスを初期化して生成する。
@@ -44,7 +44,7 @@ namespace SymphonyFrameWork.Utility
         /// <param name="grace"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<T> GetInstanceAsync(byte grace = 120, CancellationToken token = default)
+        public async ValueTask<T> GetInstanceAsync(byte grace = 120, CancellationToken token = default)
         {
             T instance = _instance;
 

@@ -26,6 +26,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
             {
                 if (
                     obj is Component component
+#if UNITY_EDITOR
+                    && !s_IsQuitting // エディタでランタイム終了時に起こるエラーの回避。
+#endif
                     && component != null && !component.Equals(null) //nullチェックを行う
                     && component.transform.parent == _gameObject.transform) //親がロケーターのインスタンスか
                 {
@@ -119,5 +122,15 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
         public bool IsValid() =>
             Instance != null && Instance.activeInHierarchy && Instance.scene.isLoaded;
+
+#if UNITY_EDITOR // ランタイム終了時処理の対策。
+        private static bool s_IsQuitting;
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            Application.quitting += () => s_IsQuitting = true;
+        }
+#endif
     }
 }

@@ -6,11 +6,11 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     SymphonyFrameWorkのディレクトリを保護するクラス
     /// </summary>
-    public class SymphonyAssetPostProcessor : AssetPostprocessor
+    public class SymphonyAssetProtector : AssetPostprocessor
     {
         private const string LOCK_PATH = SymphonyConstant.TOOL_MENU_SETTING_PATH + "Symphony Asset Lock";
 
-        static SymphonyAssetPostProcessor()
+        static SymphonyAssetProtector()
         {
             // Unityエディタが再起動された後でも状態が反映されるようにする
             EditorApplication.delayCall += () => ValidateLock();

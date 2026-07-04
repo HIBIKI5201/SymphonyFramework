@@ -14,7 +14,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public void LoadStart(string name, int priority = 0)
         {
-            _sceneDict.TryAdd(name, new(default, priority));
+            _sceneDict.TryAdd(name, new(default, priority, SceneLoadState.Loading));
         }
 
         public void LoadComplete(string name, Scene scene)
@@ -46,10 +46,22 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public void Reset(params KeyValuePair<string, Scene>[] newList)
         {
+            Dictionary<string, SceneInfo> oldDict = new(_sceneDict);
+
             _sceneDict.Clear();
-            foreach (var pair in newList)
+
+            foreach (KeyValuePair<string, Scene> pair in newList)
             {
-                _sceneDict.Add(pair.Key, new(pair.Value));
+                int priority = 0;
+
+                if (oldDict.TryGetValue(pair.Key, out SceneInfo info))
+                {
+                    priority = info.Priority;
+                }
+
+                _sceneDict.Add(
+                    pair.Key,
+                    new SceneInfo(pair.Value, priority, SceneLoadState.Complete));
             }
         }
 
@@ -92,14 +104,14 @@ namespace SymphonyFrameWork.System.SceneLoad
             return true;
         }
 
-        internal bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
+        public bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
 
-        internal struct SceneInfo
+        public struct SceneInfo
         {
-            public SceneInfo(Scene scene, int priority = 0)
+            public SceneInfo(Scene scene, int priority = 0, SceneLoadState state = SceneLoadState.Loading)
             {
                 _scene = scene;
-                _state = SceneLoadState.Loading;
+                _state = state;
                 _priority = priority;
             }
 
