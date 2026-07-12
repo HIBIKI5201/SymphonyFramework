@@ -1,4 +1,4 @@
-﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger;
 using SymphonyFrameWork.Utility;
 using System;
@@ -23,13 +23,34 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public bool TrySetActiveScene(string name)
         {
-            if (!_data.TryGetSceneInfo(name, out SceneLoadData.SceneInfo info))
+            if (string.IsNullOrWhiteSpace(name))
             {
-                SymphonyDebugLogger.LogDirect($"{name} is not loaded scene");
+                SymphonyDebugLogger.LogDirect("Scene name is null or empty.");
                 return false;
             }
 
-            SceneManager.SetActiveScene(info.Scene);
+            bool hasTrackedScene = _data.TryGetSceneInfo(name, out SceneLoadData.SceneInfo info);
+            if (!hasTrackedScene || !IsLoadedScene(info.Scene))
+            {
+                Scene actualScene = SceneManager.GetSceneByName(name);
+                if (!IsLoadedScene(actualScene))
+                {
+                    _data.RemoveScene(name);
+                    SymphonyDebugLogger.LogDirect($"{name} is not loaded scene");
+                    return false;
+                }
+
+                int priority = hasTrackedScene ? info.Priority : 0;
+                _data.UpsertScene(name, actualScene, priority);
+                info = new SceneLoadData.SceneInfo(actualScene, priority, SceneLoadState.Complete);
+            }
+
+            if (!SceneManager.SetActiveScene(info.Scene))
+            {
+                SymphonyDebugLogger.LogDirect($"Failed set active scene : {name}");
+                return false;
+            }
+
             _data.SetActiveScene(name, info.Priority);
             return true;
         }
@@ -49,11 +70,42 @@ namespace SymphonyFrameWork.System.SceneLoad
             int priority = 0,
             CancellationToken token = default)
         {
-            //ロードしようとしているシーンが既に存在するか確認。
-            if (_data.IsExistScene(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
-                Debug.LogWarning($"{name} is already loaded.");
+                Debug.LogError("scene name is null or empty.");
                 return false;
+            }
+
+            bool hasTrackedScene = _data.TryGetSceneInfo(name, out SceneLoadData.SceneInfo trackedInfo);
+            if (hasTrackedScene && IsLoadedScene(trackedInfo.Scene))
+            {
+                if (_data.ActiveScene.Priority <= trackedInfo.Priority)
+                {
+                    TrySetActiveScene(name);
+                }
+
+                _data.InvokeLoadedAction(name);
+                return true;
+            }
+
+            Scene actualLoadedScene = SceneManager.GetSceneByName(name);
+            if (IsLoadedScene(actualLoadedScene))
+            {
+                int trackedPriority = hasTrackedScene ? trackedInfo.Priority : priority;
+                _data.UpsertScene(name, actualLoadedScene, trackedPriority);
+
+                if (_data.ActiveScene.Priority <= trackedPriority)
+                {
+                    TrySetActiveScene(name);
+                }
+
+                _data.InvokeLoadedAction(name);
+                return true;
+            }
+
+            if (hasTrackedScene)
+            {
+                _data.RemoveScene(name);
             }
 
             #region ロード開始
@@ -232,10 +284,26 @@ namespace SymphonyFrameWork.System.SceneLoad
             Action<float> loadingAction = null,
             CancellationToken token = default)
         {
-            if (!_data.IsExistScene(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
-                Debug.LogWarning($"{name} is not loaded");
                 return false;
+            }
+
+            bool hasTrackedScene = _data.TryGetSceneInfo(name, out SceneLoadData.SceneInfo trackedInfo);
+            Scene targetScene = hasTrackedScene && IsLoadedScene(trackedInfo.Scene)
+                ? trackedInfo.Scene
+                : SceneManager.GetSceneByName(name);
+
+            if (!IsLoadedScene(targetScene))
+            {
+                _data.RemoveScene(name);
+                Debug.LogWarning($"{name} is not loaded");
+                return true;
+            }
+
+            if (!hasTrackedScene)
+            {
+                _data.UpsertScene(name, targetScene);
             }
 
             //アンロード開始。
@@ -263,8 +331,45 @@ namespace SymphonyFrameWork.System.SceneLoad
             // アンロードしたシーンがアクティブシーンだった場合、アクティブシーンを変更する。
             if (name == _data.ActiveScene.Name)
             {
-                 SceneLoadData.SceneInfo info = _data.SceneDict.Values.OrderBy(info => info.Priority).Last();
-                TrySetActiveScene(info.Scene.name);
+                if (_data.TryGetHighestPriorityLoadedSceneInfo(out SceneLoadData.SceneInfo info))
+                {
+                    TrySetActiveScene(info.Scene.name);
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///     既にロード済みのシーンを指定優先度で追跡登録する。
+        /// </summary>
+        /// <param name="name"> シーン名。 </param>
+        /// <param name="priority"> 優先度。 </param>
+        /// <returns> 登録に成功した場合はtrue。 </returns>
+        public bool TryRegisterLoadedScene(string name, int priority)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return false;
+            }
+
+            bool hasTrackedScene = _data.TryGetSceneInfo(name, out SceneLoadData.SceneInfo trackedInfo);
+            Scene scene = hasTrackedScene && IsLoadedScene(trackedInfo.Scene)
+                ? trackedInfo.Scene
+                : SceneManager.GetSceneByName(name);
+
+            if (!IsLoadedScene(scene))
+            {
+                _data.RemoveScene(name);
+                return false;
+            }
+
+            SceneLoadState state = hasTrackedScene ? trackedInfo.State : SceneLoadState.Complete;
+            _data.UpsertScene(name, scene, priority, state);
+
+            if (SceneManager.GetActiveScene().name == name)
+            {
+                _data.SetActiveScene(name, priority);
             }
 
             return true;
@@ -381,6 +486,11 @@ namespace SymphonyFrameWork.System.SceneLoad
                 await task;
             }
         }
+
+        private static bool IsLoadedScene(Scene scene) =>
+            scene.IsValid()
+            && scene.isLoaded
+            && !string.IsNullOrWhiteSpace(scene.name);
 
         private readonly SceneLoadData _data;
 
