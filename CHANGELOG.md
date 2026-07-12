@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.27.20] - 2026-07-12
+### Update
+- SceneLoader
+
 ## [1.27.19] - 2026-07-03
 ### Add
 - Samples
