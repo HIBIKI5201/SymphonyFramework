@@ -33,9 +33,9 @@
   <summry> comment </summry>
 - 二行以上のサマリー以下のように書く
   <summry>
-  comment1
-  comment2
-   </summry>
+      comment1
+      comment2
+  </summry>
 - 日本語の最後は「。」で終える
 - メソッド内の処理には適宜コメントを付ける
 - SerializeField属性を使用するフィールドには、ToolTipAttributeでの説明を付ける

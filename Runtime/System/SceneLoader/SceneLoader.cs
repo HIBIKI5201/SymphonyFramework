@@ -23,9 +23,30 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns></returns>
         public static bool GetExistScene(string sceneName, out Scene scene)
         {
-            bool result = _data.TryGetSceneInfo(sceneName, out SceneLoadData.SceneInfo info);
-            scene = info.Scene;
-            return result;
+            scene = default;
+
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                return false;
+            }
+
+            bool hasTrackedScene = _data.TryGetSceneInfo(sceneName, out SceneLoadData.SceneInfo info);
+            if (hasTrackedScene && IsLoadedScene(info.Scene))
+            {
+                scene = info.Scene;
+                return true;
+            }
+
+            Scene actualScene = SceneManager.GetSceneByName(sceneName);
+            if (IsLoadedScene(actualScene))
+            {
+                _data.UpsertScene(sceneName, actualScene, hasTrackedScene ? info.Priority : 0);
+                scene = actualScene;
+                return true;
+            }
+
+            _data.RemoveScene(sceneName);
+            return false;
         }
 
         /// <summary>
@@ -49,6 +70,15 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="sceneName"></param>
         /// <returns></returns>
         public static bool SetActiveScene(string sceneName) => _manager.TrySetActiveScene(sceneName);
+
+        /// <summary>
+        ///     既にロード済みのシーンを指定優先度で追跡登録する。
+        /// </summary>
+        /// <param name="sceneName"> シーン名。 </param>
+        /// <param name="priority"> 優先度。 </param>
+        /// <returns> 登録に成功した場合はtrue。 </returns>
+        public static bool RegisterLoadedScene(string sceneName, int priority) =>
+            _manager.TryRegisterLoadedScene(sceneName, priority);
 
         /// <summary>
         ///     シーンをロードする。
@@ -166,6 +196,11 @@ namespace SymphonyFrameWork.System.SceneLoad
             await InitializeSceneLoad();
         }
 
+        private static bool IsLoadedScene(Scene scene) =>
+            scene.IsValid()
+            && scene.isLoaded
+            && !string.IsNullOrWhiteSpace(scene.name);
+
         /// <summary>
         ///     シーンの初期化
         /// </summary>
@@ -193,9 +228,22 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         private static string[] GetResetIgnoreScenes(SceneManagerConfig config)
         {
-            string[] resetIgnoreScenes = new string[config.ResetIgnoreSceneList.Length + 1];
-            Array.Copy(config.ResetIgnoreSceneList, resetIgnoreScenes, config.ResetIgnoreSceneList.Length);
-            resetIgnoreScenes[config.ResetIgnoreSceneList.Length] = SymphonyCoreSystem.SYMPHONY_SCENE_NAME;
+            int resetIgnoreCount = config.ResetIgnoreSceneList?.Length ?? 0;
+            int initializeSceneCount = config.InitializeSceneList?.Length ?? 0;
+
+            string[] resetIgnoreScenes = new string[resetIgnoreCount + initializeSceneCount + 1];
+
+            if (0 < resetIgnoreCount)
+            {
+                Array.Copy(config.ResetIgnoreSceneList, resetIgnoreScenes, resetIgnoreCount);
+            }
+
+            for (int i = 0; i < initializeSceneCount; i++)
+            {
+                resetIgnoreScenes[resetIgnoreCount + i] = config.InitializeSceneList[i];
+            }
+
+            resetIgnoreScenes[resetIgnoreCount + initializeSceneCount] = SymphonyCoreSystem.SYMPHONY_SCENE_NAME;
             return resetIgnoreScenes;
         }
     }

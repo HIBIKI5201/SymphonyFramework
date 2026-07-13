@@ -39,10 +39,34 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         public void UnloadComplete(string name)
         {
-            _sceneDict.Remove(name);
+            RemoveScene(name);
         }
 
         public void SetActiveScene(string name, int priority) => _activeScene = (name, priority);
+
+        public void RemoveScene(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return;
+            }
+
+            _sceneDict.Remove(name);
+        }
+
+        public void UpsertScene(
+            string name,
+            Scene scene,
+            int priority = 0,
+            SceneLoadState state = SceneLoadState.Complete)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return;
+            }
+
+            _sceneDict[name] = new SceneInfo(scene, priority, state);
+        }
 
         public void Reset(params KeyValuePair<string, Scene>[] newList)
         {
@@ -90,10 +114,17 @@ namespace SymphonyFrameWork.System.SceneLoad
             _loadedAction.Remove(name);
         }
 
-        public bool IsExistScene(string name) => _sceneDict.ContainsKey(name);
+        public bool IsExistScene(string name) =>
+            !string.IsNullOrWhiteSpace(name) && _sceneDict.ContainsKey(name);
 
         public bool TryGetSceneState(string name, out SceneLoadState state)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                state = SceneLoadState.None;
+                return false;
+            }
+
             if (!_sceneDict.TryGetValue(name, out SceneInfo info))
             {
                 state = SceneLoadState.None;
@@ -104,7 +135,39 @@ namespace SymphonyFrameWork.System.SceneLoad
             return true;
         }
 
-        public bool TryGetSceneInfo(string name, out SceneInfo info) => _sceneDict.TryGetValue(name, out info);
+        public bool TryGetSceneInfo(string name, out SceneInfo info)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                info = default;
+                return false;
+            }
+
+            return _sceneDict.TryGetValue(name, out info);
+        }
+
+        public bool TryGetHighestPriorityLoadedSceneInfo(out SceneInfo info)
+        {
+            info = default;
+            bool found = false;
+
+            foreach (KeyValuePair<string, SceneInfo> pair in _sceneDict)
+            {
+                SceneInfo current = pair.Value;
+                if (!IsLoadedScene(current.Scene) || current.State < SceneLoadState.Complete)
+                {
+                    continue;
+                }
+
+                if (!found || info.Priority <= current.Priority)
+                {
+                    info = current;
+                    found = true;
+                }
+            }
+
+            return found;
+        }
 
         public struct SceneInfo
         {
@@ -133,5 +196,10 @@ namespace SymphonyFrameWork.System.SceneLoad
         private readonly Dictionary<string, Action> _loadedAction = new();
 
         private (string Name, int Priority) _activeScene;
+
+        private static bool IsLoadedScene(Scene scene) =>
+            scene.IsValid()
+            && scene.isLoaded
+            && !string.IsNullOrWhiteSpace(scene.name);
     }
 }

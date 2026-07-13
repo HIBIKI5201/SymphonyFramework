@@ -1,6 +1,6 @@
 {
   "name": "symphonyframework",
-  "version": "1.27.19",
+  "version": "1.27.20",
   "displayName": "Symphony Framework",
   "description": "This is Symphony Framework",
   "unity": "6000.0",
@@ -12,5 +12,12 @@
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.addressables": "1.21.19"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Service Locator Sample",
+      "description": "サービスロケーターを使用したサンプルが含まれています。",
+      "path": "Samples~/Runtime/ServiceLocatorSample"
+    }
+  ]
 }
