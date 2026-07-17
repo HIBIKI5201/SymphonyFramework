@@ -17,7 +17,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             return PlayerPrefs.HasKey(GetKey(dataType));
         }
 
-        public ValueTask<SaveData> LoadAsync(Type dataType, CancellationToken token = default)
+        public ValueTask<SaveDataContent> LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
@@ -27,7 +27,8 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のデータが見つからないので生成しました。");
-                return new(new SaveData(created));
+                created.UpdateSaveDate();
+                return new(created);
             }
 
             JsonUtilitySaveDataContainer container = JsonUtility.FromJson<JsonUtilitySaveDataContainer>(json);
@@ -35,7 +36,8 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
-                return new(new SaveData(created));
+                created.UpdateSaveDate();
+                return new(created);
             }
 
             SaveDataContent data = (SaveDataContent)JsonUtility.FromJson(container.MainDataJson, dataType);
@@ -43,29 +45,32 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 data = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} の本体データ復元に失敗しました。新たなインスタンスを生成します。");
+                data.UpdateSaveDate();
+                return new(data);
             }
 
-            return new(new SaveData(data, ParseSaveDate(container.SaveDate)));
+            data.SaveDate = container.SaveDate;
+            return new(data);
         }
 
-        public ValueTask<SaveData> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
+        public ValueTask<SaveDataContent> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
-            SaveData saveData = new(data);
+            data.UpdateSaveDate();
             JsonUtilitySaveDataContainer container = new()
             {
-                SaveDate = saveData.SaveDate,
+                SaveDate = data.SaveDate,
                 MainDataJson = JsonUtility.ToJson(data, true)
             };
 
             PlayerPrefs.SetString(GetKey(dataType), JsonUtility.ToJson(container, true));
             PlayerPrefs.Save();
 
-            Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\nデータをセーブしました。 date : {saveData.SaveDate}\n{data}");
-            return new(saveData);
+            Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\nデータをセーブしました。 date : {data.SaveDate}\n{data}");
+            return new(data);
         }
 
         public ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
@@ -78,13 +83,6 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         private static string GetKey(Type dataType) => dataType.FullName;
-
-        private static DateTime ParseSaveDate(string saveDate)
-        {
-            return DateTime.TryParse(saveDate, out DateTime parsed)
-                ? parsed
-                : default;
-        }
 
         private static void ValidateDataType(Type dataType)
         {

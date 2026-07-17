@@ -18,7 +18,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             return PlayerPrefs.HasKey(GetKey(dataType));
         }
 
-        public ValueTask<SaveData> LoadAsync(Type dataType, CancellationToken token = default)
+        public ValueTask<SaveDataContent> LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
@@ -28,7 +28,8 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\n{dataType.Name} のデータが見つからないので生成しました。");
-                return new(new SaveData(created));
+                created.UpdateSaveDate();
+                return new(created);
             }
 
             JsonSaveDataEnvelope envelope = JsonConvert.DeserializeObject<JsonSaveDataEnvelope>(json);
@@ -36,34 +37,35 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.LogWarning($"[{nameof(NewtonsoftSaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
-                return new(new SaveData(created));
+                created.UpdateSaveDate();
+                return new(created);
             }
 
             SaveDataContent mainData = string.IsNullOrEmpty(envelope.MainDataJson)
                 ? (SaveDataContent)Activator.CreateInstance(dataType)
                 : (SaveDataContent)JsonConvert.DeserializeObject(envelope.MainDataJson, dataType);
-
-            return new(new SaveData(mainData, ParseSaveDate(envelope.SaveDate)));
+            mainData.SaveDate = envelope.SaveDate;
+            return new(mainData);
         }
 
-        public ValueTask<SaveData> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
+        public ValueTask<SaveDataContent> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
-            SaveData saveData = new(data);
+            data.UpdateSaveDate();
             JsonSaveDataEnvelope envelope = new()
             {
-                SaveDate = saveData.SaveDate,
+                SaveDate = data.SaveDate,
                 MainDataJson = JsonConvert.SerializeObject(data, Formatting.Indented)
             };
 
             PlayerPrefs.SetString(GetKey(dataType), JsonConvert.SerializeObject(envelope, Formatting.Indented));
             PlayerPrefs.Save();
 
-            Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\nデータをセーブしました。 date : {saveData.SaveDate}\n{data}");
-            return new(saveData);
+            Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\nデータをセーブしました。 date : {data.SaveDate}\n{data}");
+            return new(data);
         }
 
         public ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
@@ -76,13 +78,6 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         private static string GetKey(Type dataType) => dataType.FullName;
-
-        private static DateTime ParseSaveDate(string saveDate)
-        {
-            return DateTime.TryParse(saveDate, out DateTime parsed)
-                ? parsed
-                : default;
-        }
 
         private static void ValidateDataType(Type dataType)
         {

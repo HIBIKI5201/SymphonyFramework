@@ -8,9 +8,9 @@ namespace SymphonyFrameWork.System.SaveSystem
     {
         bool Exists(Type dataType);
 
-        ValueTask<SaveData> LoadAsync(Type dataType, CancellationToken token = default);
+        ValueTask<SaveDataContent> LoadAsync(Type dataType, CancellationToken token = default);
 
-        ValueTask<SaveData> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default);
+        ValueTask<SaveDataContent> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default);
 
         ValueTask DeleteAsync(Type dataType, CancellationToken token = default);
     }

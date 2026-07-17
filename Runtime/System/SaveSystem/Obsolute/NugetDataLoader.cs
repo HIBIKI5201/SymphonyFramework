@@ -13,33 +13,24 @@ namespace SymphonyFrameWork.System.SaveSystem
     {
         private static readonly NewtonsoftSaveDataLoader s_Loader = new();
 
-        public ValueTask<SaveData<T>> Save(T data)
+        public ValueTask<T> Save(T data)
         {
             return SaveInternalAsync(data);
         }
 
-        public ValueTask<SaveData<T>> Load()
+        public ValueTask<T> Load()
         {
             return LoadInternalAsync();
         }
 
-        private static async ValueTask<SaveData<T>> SaveInternalAsync(T data)
+        private static async ValueTask<T> SaveInternalAsync(T data)
         {
-            SaveData saveData = await s_Loader.SaveAsync(typeof(T), data);
-            return new SaveData<T>((T)saveData.MainData, ParseSaveDate(saveData.SaveDate));
+            return (T)await s_Loader.SaveAsync(typeof(T), data);
         }
 
-        private static async ValueTask<SaveData<T>> LoadInternalAsync()
+        private static async ValueTask<T> LoadInternalAsync()
         {
-            SaveData saveData = await s_Loader.LoadAsync(typeof(T));
-            return new SaveData<T>((T)saveData.MainData, ParseSaveDate(saveData.SaveDate));
-        }
-
-        private static DateTime ParseSaveDate(string saveDate)
-        {
-            return DateTime.TryParse(saveDate, out DateTime parsed)
-                ? parsed
-                : default;
+            return (T)await s_Loader.LoadAsync(typeof(T));
         }
     }
 }

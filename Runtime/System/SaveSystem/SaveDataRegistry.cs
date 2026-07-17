@@ -40,9 +40,9 @@ namespace SymphonyFrameWork.System.SaveSystem
 
             lock (_lock)
             {
-                if (_cache.TryGetValue(dataType, out SaveData saveData) && saveData?.MainData != null)
+                if (_cache.TryGetValue(dataType, out SaveDataContent saveData) && saveData != null)
                 {
-                    data = saveData.MainData;
+                    data = saveData;
                     return true;
                 }
             }
@@ -53,49 +53,48 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public static async ValueTask<T> LoadAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
         {
-            SaveData<T> saveData = await LoadSaveDataAsync<T>(token);
-            return saveData.MainData;
+            return await LoadTypedAsync<T>(token);
         }
 
-        public static ValueTask<SaveData<T>> LoadSaveDataAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
+        public static ValueTask<T> LoadTypedAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
         {
             lock (_lock)
             {
-                if (_cache.TryGetValue(typeof(T), out SaveData cached))
+                if (_cache.TryGetValue(typeof(T), out SaveDataContent cached))
                 {
-                    return new ValueTask<SaveData<T>>(CastSaveData<T>(cached));
+                    return new ValueTask<T>((T)cached);
                 }
 
-                if (_loadingTasks.TryGetValue(typeof(T), out Task<SaveData> loadingTask))
+                if (_loadingTasks.TryGetValue(typeof(T), out Task<SaveDataContent> loadingTask))
                 {
                     return AwaitTypedTask<T>(loadingTask);
                 }
 
-                Task<SaveData> loadTask = LoadInternalAsync(typeof(T), token);
+                Task<SaveDataContent> loadTask = LoadInternalAsync(typeof(T), token);
                 _loadingTasks[typeof(T)] = loadTask;
                 return AwaitTypedTask<T>(loadTask);
             }
         }
 
-        public static ValueTask<SaveData> LoadSaveDataAsync(Type dataType, CancellationToken token = default)
+        public static ValueTask<SaveDataContent> LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
 
             lock (_lock)
             {
-                if (_cache.TryGetValue(dataType, out SaveData cached))
+                if (_cache.TryGetValue(dataType, out SaveDataContent cached))
                 {
-                    return new ValueTask<SaveData>(cached);
+                    return new ValueTask<SaveDataContent>(cached);
                 }
 
-                if (_loadingTasks.TryGetValue(dataType, out Task<SaveData> loadingTask))
+                if (_loadingTasks.TryGetValue(dataType, out Task<SaveDataContent> loadingTask))
                 {
-                    return new ValueTask<SaveData>(loadingTask);
+                    return new ValueTask<SaveDataContent>(loadingTask);
                 }
 
-                Task<SaveData> loadTask = LoadInternalAsync(dataType, token);
+                Task<SaveDataContent> loadTask = LoadInternalAsync(dataType, token);
                 _loadingTasks[dataType] = loadTask;
-                return new ValueTask<SaveData>(loadTask);
+                return new ValueTask<SaveDataContent>(loadTask);
             }
         }
 
@@ -109,7 +108,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             ValidateDataType(dataType);
             ValidateDataInstance(dataType, data);
 
-            SaveData saved = await GetLoader().SaveAsync(dataType, data, token);
+            SaveDataContent saved = await GetLoader().SaveAsync(dataType, data, token);
             lock (_lock)
             {
                 _cache[dataType] = saved;
@@ -127,7 +126,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
             lock (_lock)
             {
-                if (_cache.TryGetValue(dataType, out SaveData cached))
+                if (_cache.TryGetValue(dataType, out SaveDataContent cached))
                 {
                     cached?.Dispose();
                 }
@@ -154,9 +153,9 @@ namespace SymphonyFrameWork.System.SaveSystem
             lock (_lock)
             {
                 List<SaveDataRegistryEntryInfo> entries = new(_cache.Count);
-                foreach ((Type type, SaveData saveData) in _cache)
+                foreach ((Type type, SaveDataContent saveData) in _cache)
                 {
-                    entries.Add(new SaveDataRegistryEntryInfo(type, saveData?.SaveDate, saveData?.MainData));
+                    entries.Add(new SaveDataRegistryEntryInfo(type, saveData));
                 }
 
                 return entries;
@@ -171,11 +170,11 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public static ISaveDataLoader GetCurrentLoader() => GetLoader();
 
-        private static async Task<SaveData> LoadInternalAsync(Type dataType, CancellationToken token)
+        private static async Task<SaveDataContent> LoadInternalAsync(Type dataType, CancellationToken token)
         {
             try
             {
-                SaveData loaded = await GetLoader().LoadAsync(dataType, token);
+                SaveDataContent loaded = await GetLoader().LoadAsync(dataType, token);
                 lock (_lock)
                 {
                     _cache[dataType] = loaded;
@@ -192,10 +191,10 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
-        private static async ValueTask<SaveData<T>> AwaitTypedTask<T>(Task<SaveData> task) where T : SaveDataContent, new()
+        private static async ValueTask<T> AwaitTypedTask<T>(Task<SaveDataContent> task) where T : SaveDataContent, new()
         {
-            SaveData saveData = await task;
-            return CastSaveData<T>(saveData);
+            SaveDataContent saveData = await task;
+            return (T)saveData;
         }
 
         private static ISaveDataLoader GetLoader()
@@ -208,23 +207,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             SaveSystemConfig config = SymphonyConfigLocator.GetConfig<SaveSystemConfig>();
             _cachedLoader = config?.Loader ?? new JsonUtilitySaveDataLoader();
             return _cachedLoader;
-        }
-
-        private static SaveData<T> CastSaveData<T>(SaveData source) where T : SaveDataContent, new()
-        {
-            if (source == null || source.MainData == null)
-            {
-                return new SaveData<T>(new T());
-            }
-
-            return new SaveData<T>((T)source.MainData, ParseSaveDate(source.SaveDate));
-        }
-
-        private static DateTime ParseSaveDate(string saveDate)
-        {
-            return DateTime.TryParse(saveDate, out DateTime parsed)
-                ? parsed
-                : default;
         }
 
         private static void ValidateDataType(Type dataType)
@@ -267,7 +249,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             lock (_lock)
             {
-                foreach (SaveData saveData in _cache.Values)
+                foreach (SaveDataContent saveData in _cache.Values)
                 {
                     saveData?.Dispose();
                 }
@@ -278,8 +260,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         private static readonly object _lock = new();
-        private static readonly Dictionary<Type, SaveData> _cache = new();
-        private static readonly Dictionary<Type, Task<SaveData>> _loadingTasks = new();
+        private static readonly Dictionary<Type, SaveDataContent> _cache = new();
+        private static readonly Dictionary<Type, Task<SaveDataContent>> _loadingTasks = new();
 
         private static ISaveDataLoader _cachedLoader;
     }

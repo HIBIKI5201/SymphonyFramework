@@ -10,7 +10,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     public interface ISaveDataLoader<T>
         where T : SaveDataContent, new()
     {
-        ValueTask<SaveData<T>> Load();
-        ValueTask<SaveData<T>> Save(T data);
+        ValueTask<T> Load();
+        ValueTask<T> Save(T data);
     }
 }

@@ -188,12 +188,12 @@ namespace SymphonyFrameWork.Editor
 
         private void LoadSelected()
         {
-            SaveData saveData = SaveDataRegistry
-                .LoadSaveDataAsync(_selectedType)
+            SaveDataContent saveData = SaveDataRegistry
+                .LoadAsync(_selectedType)
                 .GetAwaiter()
                 .GetResult();
 
-            _debugState.SetData(saveData.MainData, saveData.SaveDate);
+            _debugState.SetData(saveData, saveData.SaveDate);
             _debugSerializedObject.Update();
             _statusMessage = $"{_selectedType.FullName} をロードしました。";
             RefreshView();
@@ -209,8 +209,8 @@ namespace SymphonyFrameWork.Editor
             }
 
             SaveDataRegistry.SaveAsync(_selectedType, data).GetAwaiter().GetResult();
-            SaveData saveData = SaveDataRegistry.LoadSaveDataAsync(_selectedType).GetAwaiter().GetResult();
-            _debugState.SetData(saveData.MainData, saveData.SaveDate);
+            SaveDataContent saveData = SaveDataRegistry.LoadAsync(_selectedType).GetAwaiter().GetResult();
+            _debugState.SetData(saveData, saveData.SaveDate);
             _debugSerializedObject.Update();
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
             RefreshView();
@@ -289,7 +289,7 @@ namespace SymphonyFrameWork.Editor
 
                 if (SaveDataRegistry.Exists(saveDataType))
                 {
-                    entries.Add(new SaveDataRegistryEntryInfo(saveDataType, null, null));
+                    entries.Add(new SaveDataRegistryEntryInfo(saveDataType, null));
                     continue;
                 }
             }
