@@ -18,54 +18,45 @@ namespace SymphonyFrameWork.System.SaveSystem
             return PlayerPrefs.HasKey(GetKey(dataType));
         }
 
-        public ValueTask<SaveDataContent> LoadAsync(Type dataType, CancellationToken token = default)
+        public ValueTask LoadAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
         {
             ValidateDataType(dataType);
+            ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
             string json = PlayerPrefs.GetString(GetKey(dataType));
             if (string.IsNullOrEmpty(json))
             {
-                SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\n{dataType.Name} のデータが見つからないので生成しました。");
-                created.UpdateSaveDate();
-                return new(created);
+                OverwriteWithDefault(dataType, data);
+                return default;
             }
 
-            JsonSaveDataEnvelope envelope = JsonConvert.DeserializeObject<JsonSaveDataEnvelope>(json);
-            if (envelope == null)
+            try
             {
-                SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
-                Debug.LogWarning($"[{nameof(NewtonsoftSaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
-                created.UpdateSaveDate();
-                return new(created);
+                JsonConvert.PopulateObject(json, data);
+                return default;
             }
-
-            SaveDataContent mainData = string.IsNullOrEmpty(envelope.MainDataJson)
-                ? (SaveDataContent)Activator.CreateInstance(dataType)
-                : (SaveDataContent)JsonConvert.DeserializeObject(envelope.MainDataJson, dataType);
-            mainData.SaveDate = envelope.SaveDate;
-            return new(mainData);
+            catch (Exception)
+            {
+                Debug.LogWarning($"[{nameof(NewtonsoftSaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
+                OverwriteWithDefault(dataType, data);
+                return default;
+            }
         }
 
-        public ValueTask<SaveDataContent> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
+        public ValueTask SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
             data.UpdateSaveDate();
-            JsonSaveDataEnvelope envelope = new()
-            {
-                SaveDate = data.SaveDate,
-                MainDataJson = JsonConvert.SerializeObject(data, Formatting.Indented)
-            };
-
-            PlayerPrefs.SetString(GetKey(dataType), JsonConvert.SerializeObject(envelope, Formatting.Indented));
+            PlayerPrefs.SetString(GetKey(dataType), JsonConvert.SerializeObject(data, Formatting.Indented));
             PlayerPrefs.Save();
 
             Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\nデータをセーブしました。 date : {data.SaveDate}\n{data}");
-            return new(data);
+            return default;
         }
 
         public ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
@@ -78,6 +69,13 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         private static string GetKey(Type dataType) => dataType.FullName;
+
+        private static void OverwriteWithDefault(Type dataType, SaveDataContent target)
+        {
+            string defaultJson = JsonConvert.SerializeObject(Activator.CreateInstance(dataType), Formatting.Indented);
+            JsonConvert.PopulateObject(defaultJson, target);
+            target.SaveDate = null;
+        }
 
         private static void ValidateDataType(Type dataType)
         {
@@ -98,13 +96,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 throw new ArgumentException($"{dataType.Name} のインスタンスを指定してください。", nameof(data));
             }
-        }
-
-        [Serializable]
-        private sealed class JsonSaveDataEnvelope
-        {
-            public string SaveDate;
-            public string MainDataJson;
         }
     }
 }

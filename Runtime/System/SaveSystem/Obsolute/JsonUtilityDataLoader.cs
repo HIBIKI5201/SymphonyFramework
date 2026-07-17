@@ -24,12 +24,15 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         private static async ValueTask<T> SaveInternalAsync(T data)
         {
-            return (T)await s_Loader.SaveAsync(typeof(T), data);
+            await s_Loader.SaveAsync(typeof(T), data);
+            return data;
         }
 
         private static async ValueTask<T> LoadInternalAsync()
         {
-            return (T)await s_Loader.LoadAsync(typeof(T));
+            T data = new();
+            await s_Loader.LoadAsync(typeof(T), data);
+            return data;
         }
     }
 }

@@ -17,60 +17,45 @@ namespace SymphonyFrameWork.System.SaveSystem
             return PlayerPrefs.HasKey(GetKey(dataType));
         }
 
-        public ValueTask<SaveDataContent> LoadAsync(Type dataType, CancellationToken token = default)
+        public ValueTask LoadAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
         {
             ValidateDataType(dataType);
+            ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
             string json = PlayerPrefs.GetString(GetKey(dataType));
             if (string.IsNullOrEmpty(json))
             {
-                SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のデータが見つからないので生成しました。");
-                created.UpdateSaveDate();
-                return new(created);
+                OverwriteWithDefault(dataType, data);
+                return default;
             }
 
-            JsonUtilitySaveDataContainer container = JsonUtility.FromJson<JsonUtilitySaveDataContainer>(json);
-            if (container == null)
+            try
             {
-                SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
-                Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
-                created.UpdateSaveDate();
-                return new(created);
+                JsonUtility.FromJsonOverwrite(json, data);
+                return default;
             }
-
-            SaveDataContent data = (SaveDataContent)JsonUtility.FromJson(container.MainDataJson, dataType);
-            if (data == null)
+            catch (Exception)
             {
-                data = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} の本体データ復元に失敗しました。新たなインスタンスを生成します。");
-                data.UpdateSaveDate();
-                return new(data);
+                OverwriteWithDefault(dataType, data);
+                return default;
             }
-
-            data.SaveDate = container.SaveDate;
-            return new(data);
         }
 
-        public ValueTask<SaveDataContent> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
+        public ValueTask SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
             data.UpdateSaveDate();
-            JsonUtilitySaveDataContainer container = new()
-            {
-                SaveDate = data.SaveDate,
-                MainDataJson = JsonUtility.ToJson(data, true)
-            };
-
-            PlayerPrefs.SetString(GetKey(dataType), JsonUtility.ToJson(container, true));
+            PlayerPrefs.SetString(GetKey(dataType), JsonUtility.ToJson(data, true));
             PlayerPrefs.Save();
 
             Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\nデータをセーブしました。 date : {data.SaveDate}\n{data}");
-            return new(data);
+            return default;
         }
 
         public ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
@@ -83,6 +68,13 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         private static string GetKey(Type dataType) => dataType.FullName;
+
+        private static void OverwriteWithDefault(Type dataType, SaveDataContent target)
+        {
+            string defaultJson = JsonUtility.ToJson(Activator.CreateInstance(dataType), true);
+            JsonUtility.FromJsonOverwrite(defaultJson, target);
+            target.SaveDate = null;
+        }
 
         private static void ValidateDataType(Type dataType)
         {
@@ -103,13 +95,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 throw new ArgumentException($"{dataType.Name} のインスタンスを指定してください。", nameof(data));
             }
-        }
-
-        [Serializable]
-        private sealed class JsonUtilitySaveDataContainer
-        {
-            public string SaveDate;
-            public string MainDataJson;
         }
     }
 }

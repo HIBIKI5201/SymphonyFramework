@@ -15,6 +15,8 @@ namespace SymphonyFrameWork.Editor
     [UxmlElement]
     public partial class SaveDataRegistryWindow : SymphonyVisualElement
     {
+        private const long AUTO_REFRESH_INTERVAL_MS = 200;
+
         private readonly SaveDataDebugState _debugState;
         private SerializedObject _debugSerializedObject;
         private List<Type> _saveDataTypes = new();
@@ -28,6 +30,7 @@ namespace SymphonyFrameWork.Editor
         private DropdownField _typeDropdown;
         private IMGUIContainer _editorContainer;
         private ListView _cacheListView;
+        private IVisualElementScheduledItem _autoRefreshItem;
 
         public SaveDataRegistryWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "SaveDataRegistryWindow.uxml",
@@ -48,12 +51,8 @@ namespace SymphonyFrameWork.Editor
             _editorContainer = root.Q<IMGUIContainer>("save-editor");
             _cacheListView = root.Q<ListView>("save-cache-list");
 
-            root.Q<Button>("save-refresh-types").clicked += RefreshTypeList;
-            root.Q<Button>("save-refresh-loader").clicked += RefreshLoader;
-            root.Q<Button>("save-new").clicked += () => ExecuteAction(CreateNewInstanceForSelection);
             root.Q<Button>("save-load").clicked += () => ExecuteAction(LoadSelected);
             root.Q<Button>("save-save").clicked += () => ExecuteAction(SaveSelected);
-            root.Q<Button>("save-unload").clicked += () => ExecuteAction(UnloadSelected);
             root.Q<Button>("save-delete").clicked += () => ExecuteAction(DeleteSelected);
 
             _typeDropdown.RegisterValueChangedCallback(OnTypeChanged);
@@ -62,8 +61,66 @@ namespace SymphonyFrameWork.Editor
             ConfigureCacheList();
             RefreshTypeList();
             RefreshView();
+            StartAutoRefresh(root);
 
             return default;
+        }
+
+        private void StartAutoRefresh(VisualElement root)
+        {
+            _autoRefreshItem?.Pause();
+            _autoRefreshItem = root.schedule.Execute(() =>
+            {
+                if (panel == null)
+                {
+                    return;
+                }
+
+                RefreshView();
+            }).Every(AUTO_REFRESH_INTERVAL_MS);
+        }
+
+        private void EnsureTypeListCurrent()
+        {
+            List<Type> latestTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(GetTypesSafe)
+                .Where(IsSupportedSaveDataType)
+                .OrderBy(type => type.FullName, StringComparer.Ordinal)
+                .ToList();
+
+            bool changed = latestTypes.Count != _saveDataTypes.Count
+                || !latestTypes.SequenceEqual(_saveDataTypes);
+
+            if (!changed)
+            {
+                return;
+            }
+
+            _saveDataTypes = latestTypes;
+            _typeDropdown.choices = _saveDataTypes.Select(type => type.FullName).ToList();
+
+            if (_saveDataTypes.Count <= 0)
+            {
+                _selectedIndex = -1;
+                _selectedType = null;
+                _debugState.SetData(null, null);
+                _typeDropdown.value = string.Empty;
+                return;
+            }
+
+            int index = _selectedType == null
+                ? 0
+                : _saveDataTypes.FindIndex(type => type == _selectedType);
+
+            if (index < 0)
+            {
+                index = 0;
+            }
+
+            _selectedIndex = index;
+            _selectedType = _saveDataTypes[index];
+            _typeDropdown.SetValueWithoutNotify(_selectedType.FullName);
+            BindCurrentSelection(false);
         }
 
         private void ConfigureCacheList()
@@ -96,7 +153,7 @@ namespace SymphonyFrameWork.Editor
 
             _selectedIndex = newIndex;
             _selectedType = _saveDataTypes[_selectedIndex];
-            CreateNewInstanceForSelection();
+            BindCurrentSelection();
             RefreshView();
         }
 
@@ -125,73 +182,30 @@ namespace SymphonyFrameWork.Editor
 
         private void RefreshTypeList()
         {
-            _saveDataTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(GetTypesSafe)
-                .Where(IsSupportedSaveDataType)
-                .OrderBy(type => type.FullName, StringComparer.Ordinal)
-                .ToList();
-
-            List<string> choices = _saveDataTypes
-                .Select(type => type.FullName)
-                .ToList();
-
-            _typeDropdown.choices = choices;
-
-            if (_saveDataTypes.Count <= 0)
-            {
-                _selectedIndex = -1;
-                _selectedType = null;
-                _debugState.SetData(null, null);
-                _typeDropdown.value = string.Empty;
-                _statusMessage = "対象にできるセーブデータ型が見つかりませんでした。";
-                RefreshView();
-                return;
-            }
-
-            if (_selectedType != null)
-            {
-                int existingIndex = _saveDataTypes.FindIndex(type => type == _selectedType);
-                if (existingIndex >= 0)
-                {
-                    _selectedIndex = existingIndex;
-                    _typeDropdown.SetValueWithoutNotify(_saveDataTypes[_selectedIndex].FullName);
-                    RefreshView();
-                    return;
-                }
-            }
-
-            _selectedIndex = 0;
-            _selectedType = _saveDataTypes[0];
-            _typeDropdown.SetValueWithoutNotify(_selectedType.FullName);
-            CreateNewInstanceForSelection();
+            EnsureTypeListCurrent();
             RefreshView();
         }
 
-        private void RefreshLoader()
-        {
-            SaveDataRegistry.RefreshLoader();
-            _statusMessage = "ローダー設定を再読み込みしました。";
-            RefreshView();
-        }
-
-        private void CreateNewInstanceForSelection()
+        private void BindCurrentSelection(bool updateStatus = true)
         {
             if (_selectedType == null)
             {
                 return;
             }
 
-            _debugState.SetData((SaveDataContent)Activator.CreateInstance(_selectedType), null);
+            SaveDataContent data = SaveDataRegistry.Get(_selectedType);
+            _debugState.SetData(data, data.SaveDate);
             _debugSerializedObject.Update();
-            _statusMessage = $"{_selectedType.FullName} の新規インスタンスを作成しました。";
+            if (updateStatus)
+            {
+                _statusMessage = $"{_selectedType.FullName} の現在インスタンスを表示しています。";
+            }
         }
 
         private void LoadSelected()
         {
-            SaveDataContent saveData = SaveDataRegistry
-                .LoadAsync(_selectedType)
-                .GetAwaiter()
-                .GetResult();
+            SaveDataRegistry.LoadAsync(_selectedType).GetAwaiter().GetResult();
+            SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
 
             _debugState.SetData(saveData, saveData.SaveDate);
             _debugSerializedObject.Update();
@@ -204,22 +218,14 @@ namespace SymphonyFrameWork.Editor
             SaveDataContent data = _debugState.GetData();
             if (data == null)
             {
-                CreateNewInstanceForSelection();
-                data = _debugState.GetData();
+                BindCurrentSelection();
             }
 
-            SaveDataRegistry.SaveAsync(_selectedType, data).GetAwaiter().GetResult();
-            SaveDataContent saveData = SaveDataRegistry.LoadAsync(_selectedType).GetAwaiter().GetResult();
+            SaveDataRegistry.SaveAsync(_selectedType).GetAwaiter().GetResult();
+            SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
             _debugState.SetData(saveData, saveData.SaveDate);
             _debugSerializedObject.Update();
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
-            RefreshView();
-        }
-
-        private void UnloadSelected()
-        {
-            SaveDataRegistry.Unload(_selectedType);
-            _statusMessage = $"{_selectedType.FullName} をレジストリキャッシュから除外しました。";
             RefreshView();
         }
 
@@ -235,8 +241,10 @@ namespace SymphonyFrameWork.Editor
             }
 
             SaveDataRegistry.DeleteAsync(_selectedType).GetAwaiter().GetResult();
-            CreateNewInstanceForSelection();
-            _statusMessage = $"{_selectedType.FullName} の保存データを削除しました。";
+            SaveDataContent regenerated = SaveDataRegistry.Get(_selectedType);
+            _debugState.SetData(regenerated, regenerated.SaveDate);
+            _debugSerializedObject.Update();
+            _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
             RefreshView();
         }
 

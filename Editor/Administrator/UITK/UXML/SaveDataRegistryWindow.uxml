@@ -5,20 +5,13 @@
         <ui:Label name="save-current-loader" text="Current Loader:" class="text" style="margin-top: 6px;"/>
         <ui:Label name="save-loaded-entries" text="Loaded Entries:" class="text" style="margin-bottom: 8px;"/>
 
-        <ui:VisualElement style="width: 100%; flex-direction: row; margin-bottom: 8px;">
-            <ui:Button name="save-refresh-types" text="Refresh Types" class="button" style="flex-grow: 1; height: 32px;"/>
-            <ui:Button name="save-refresh-loader" text="Refresh Loader" class="button" style="flex-grow: 1; height: 32px;"/>
-        </ui:VisualElement>
-
         <ui:Label text="Save Data Type" class="text" style="-unity-text-align: middle-left; width: 100%;"/>
         <ui:DropdownField name="save-type-dropdown" class="text" style="width: 100%; margin-top: 4px; margin-bottom: 8px;"/>
 
         <ui:VisualElement style="width: 100%; flex-direction: row; flex-wrap: wrap; margin-bottom: 8px;">
-            <ui:Button name="save-new" text="New" class="button" style="width: 32%; height: 32px;"/>
             <ui:Button name="save-load" text="Load" class="button" style="width: 32%; height: 32px;"/>
             <ui:Button name="save-save" text="Save" class="button" style="width: 32%; height: 32px;"/>
-            <ui:Button name="save-unload" text="Unload" class="button" style="width: 48.5%; height: 32px;"/>
-            <ui:Button name="save-delete" text="Delete" class="button" style="width: 48.5%; height: 32px;"/>
+            <ui:Button name="save-delete" text="Delete" class="button" style="width: 32%; height: 32px;"/>
         </ui:VisualElement>
 
         <ui:Label text="Status" class="text" style="-unity-text-align: middle-left; width: 100%;"/>

@@ -13,15 +13,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private async void Start()
         {
-            AddCommentary("サンプルを開始しました。現在のセーブデータを確認します。");
-
-            if (!SaveDataRegistry.Exists<SaveDataSystemSample_PlayerData>())
-            {
-                AddCommentary("保存済みデータはまだありません。Edit Values で内容を調整して Save を押してください。");
-                return;
-            }
-
-            AddCommentary("保存済みデータが見つかったのでロードします。");
+            AddCommentary("サンプルを開始しました。永続化済みデータを Registry にロードします。");
             await LoadInternalAsync();
         }
 
@@ -34,10 +26,10 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             }
 
             _isBusy = true;
-            AddCommentary("Registry にロード済みのインスタンスをそのまま保存します。");
+            AddCommentary("Registry が保持している現在インスタンスを永続化します。");
 
-            SaveDataSystemSample_PlayerData data = await GetOrLoadDataAsync();
-            await SaveDataRegistry.SaveAsync(data);
+            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
+            await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerData>();
             AddCommentary($"保存完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Saved: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
             _isBusy = false;
@@ -52,7 +44,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             }
 
             _isBusy = true;
-            AddCommentary("SaveDataRegistry から保存データをロードします。");
+            AddCommentary("永続化済みデータを読み込み、Registry 上の現在インスタンスを差し替えます。");
             await LoadInternalAsync();
             _isBusy = false;
         }
@@ -66,19 +58,11 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             }
 
             _isBusy = true;
-            AddCommentary("保存データ本体を削除します。次回 Load 時は新規データが生成されます。");
+            AddCommentary("永続化データと Registry 上の現在インスタンスを削除します。次回アクセス時は初期データが自動生成されます。");
             await SaveDataRegistry.DeleteAsync<SaveDataSystemSample_PlayerData>();
-            AddCommentary("削除完了。現在の編集値は画面上に残りますが、保存ファイルは消えています。");
+            AddCommentary("削除完了。次のアクセスで Registry が新しい初期インスタンスを生成します。");
             Debug.Log("Deleted SaveDataSystemSample_PlayerData");
             _isBusy = false;
-        }
-
-        [ContextMenu("Unload Sample Cache")]
-        public void UnloadSampleCache()
-        {
-            SaveDataRegistry.Unload<SaveDataSystemSample_PlayerData>();
-            AddCommentary("Registry のキャッシュだけを破棄しました。保存ファイル自体は残っています。");
-            Debug.Log("Unloaded SaveDataSystemSample_PlayerData cache");
         }
 
         private async Awaitable LoadInternalAsync()
@@ -91,7 +75,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void OnGUI()
         {
-            SaveDataSystemSample_PlayerData data = GetLoadedDataOrFallback();
+            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
             float margin = Mathf.Max(12f, Screen.width * 0.025f);
             float width = Screen.width - (margin * 2f);
             float height = Screen.height - (margin * 2f);
@@ -106,14 +90,15 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
             GUILayout.BeginArea(innerRect);
             GUILayout.Label("実況解説");
-            GUILayout.Label("1. Edit Values で編集中のプレイヤーデータを変えます。");
-            GUILayout.Label("2. Save で SaveDataRegistry 経由の保存を試します。");
-            GUILayout.Label("3. Load / Unload Cache / Delete で挙動の違いを確認できます。");
+            GUILayout.Label("1. この画面は常に Registry 上の単一インスタンスだけを参照します。");
+            GUILayout.Label("2. Save は現在インスタンスを永続化し、Load は永続化データで現在インスタンスを差し替えます。");
+            GUILayout.Label("3. Delete 後に再アクセスすると、Registry が初期インスタンスを自動生成します。");
             GUILayout.Space(8f);
 
             GUILayout.Label($"Editing Name : {data.PlayerName}");
             GUILayout.Label($"Editing Level: {data.Level}");
             GUILayout.Label($"Editing Gold : {data.Gold}");
+            GUILayout.Label($"Save Date    : {data.SaveDate ?? "(unsaved)"}");
             GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerData>()}");
             GUILayout.Label($"Cache Loaded : {IsCacheLoaded()}");
             GUILayout.Label($"Busy         : {_isBusy}");
@@ -122,8 +107,8 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label("Edit Values");
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Rename Hero")) { RenameHero(); }
-            if (GUILayout.Button("Level +1")) { data.Level++; AddCommentary("Level を 1 増やしました。まだ保存はされていません。"); }
-            if (GUILayout.Button("Gold +100")) { data.Gold += 100; AddCommentary("Gold を 100 増やしました。まだ保存はされていません。"); }
+            if (GUILayout.Button("Level +1")) { IncreaseLevel(); }
+            if (GUILayout.Button("Gold +100")) { IncreaseGold(); }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -133,7 +118,6 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Unload Cache")) { UnloadSampleCache(); }
             if (GUILayout.Button("Delete Save")) { DeleteSampleData(); }
             GUILayout.EndHorizontal();
 
@@ -148,7 +132,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void RenameHero()
         {
-            SaveDataSystemSample_PlayerData data = GetLoadedDataOrFallback();
+            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
             string playerName = data.PlayerName;
             playerName = playerName == "Symphony"
                 ? "KillChord"
@@ -162,31 +146,25 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void ResetDraft()
         {
-            SaveDataSystemSample_PlayerData data = GetLoadedDataOrFallback();
+            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
             data.PlayerName = "Symphony";
             data.Level = 1;
             data.Gold = 100;
             AddCommentary("編集中の値を初期状態へ戻しました。");
         }
 
-        private SaveDataSystemSample_PlayerData GetLoadedDataOrFallback()
+        private void IncreaseLevel()
         {
-            if (SaveDataRegistry.TryGetLoaded(out SaveDataSystemSample_PlayerData data))
-            {
-                return data;
-            }
-
-            return new SaveDataSystemSample_PlayerData();
+            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
+            data.Level++;
+            AddCommentary("Level を 1 増やしました。まだ保存はされていません。");
         }
 
-        private async Awaitable<SaveDataSystemSample_PlayerData> GetOrLoadDataAsync()
+        private void IncreaseGold()
         {
-            if (SaveDataRegistry.TryGetLoaded(out SaveDataSystemSample_PlayerData data))
-            {
-                return data;
-            }
-
-            return await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerData>();
+            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
+            data.Gold += 100;
+            AddCommentary("Gold を 100 増やしました。まだ保存はされていません。");
         }
 
         private bool IsCacheLoaded()

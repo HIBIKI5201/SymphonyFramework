@@ -16,7 +16,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             if (_saveData == null)
             {
-                await Load();
+                _saveData = await _loader.Load();
             }
 
             return _saveData;
@@ -54,7 +54,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// </summary>
         public static async ValueTask LoadFromRegistry(CancellationToken token = default)
         {
-            _saveData = await SaveDataRegistry.LoadTypedAsync<TData>(token);
+            await SaveDataRegistry.LoadAsync<TData>(token);
+            _saveData = SaveDataRegistry.Get<TData>();
         }
 
         /// <summary>
@@ -62,9 +63,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// </summary>
         public static async ValueTask SaveToRegistry(CancellationToken token = default)
         {
-            TData data = await Get();
-            await SaveDataRegistry.SaveAsync(data, token);
-            _saveData = await SaveDataRegistry.LoadTypedAsync<TData>(token);
+            _saveData = SaveDataRegistry.Get<TData>();
+            await SaveDataRegistry.SaveAsync<TData>(token);
         }
 
         public static void Dispose()
