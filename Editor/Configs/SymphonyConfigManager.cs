@@ -17,6 +17,7 @@ namespace SymphonyFrameWork.Editor
             // Runtime用 (ScriptableObject)
             FileCheck<SceneManagerConfig>();
             FileCheck<AudioManagerConfig>();
+            FileCheck<SaveSystemConfig>();
             
             // Editor用 (ScriptableSingleton)
             // GetConfigを呼ぶだけで、アセットが存在しなければ自動生成、あればロードされる
