@@ -173,14 +173,14 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            _debugState.SetData(Activator.CreateInstance(_selectedType), null);
+            _debugState.SetData((SaveDataContent)Activator.CreateInstance(_selectedType), null);
             _debugSerializedObject.Update();
             _statusMessage = $"{_selectedType.FullName} の新規インスタンスを作成しました。";
         }
 
         private void LoadSelected()
         {
-            SaveData<object> saveData = SaveDataRegistry
+            SaveData saveData = SaveDataRegistry
                 .LoadSaveDataAsync(_selectedType)
                 .GetAwaiter()
                 .GetResult();
@@ -193,7 +193,7 @@ namespace SymphonyFrameWork.Editor
 
         private void SaveSelected()
         {
-            object data = _debugState.GetData();
+            SaveDataContent data = _debugState.GetData();
             if (data == null)
             {
                 CreateNewInstanceForSelection();
@@ -201,7 +201,7 @@ namespace SymphonyFrameWork.Editor
             }
 
             SaveDataRegistry.SaveAsync(_selectedType, data).GetAwaiter().GetResult();
-            SaveData<object> saveData = SaveDataRegistry.LoadSaveDataAsync(_selectedType).GetAwaiter().GetResult();
+            SaveData saveData = SaveDataRegistry.LoadSaveDataAsync(_selectedType).GetAwaiter().GetResult();
             _debugState.SetData(saveData.MainData, saveData.SaveDate);
             _debugSerializedObject.Update();
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
@@ -300,14 +300,12 @@ namespace SymphonyFrameWork.Editor
                 return false;
             }
 
-            if (!type.IsDefined(typeof(SerializableAttribute), false))
+            if (!typeof(SaveDataContent).IsAssignableFrom(type))
             {
                 return false;
             }
 
-            string namespaceName = type.Namespace ?? string.Empty;
-            return !namespaceName.StartsWith("System", StringComparison.Ordinal)
-                && !namespaceName.StartsWith("Unity", StringComparison.Ordinal);
+            return type.IsDefined(typeof(SerializableAttribute), false);
         }
 
         private sealed class SaveDataDebugState : ScriptableObject
@@ -316,11 +314,11 @@ namespace SymphonyFrameWork.Editor
             private string _saveDate;
 
             [SerializeReference]
-            private object _data;
+            private SaveDataContent _data;
 
-            public object GetData() => _data;
+            public SaveDataContent GetData() => _data;
 
-            public void SetData(object data, string saveDate)
+            public void SetData(SaveDataContent data, string saveDate)
             {
                 _data = data;
                 _saveDate = saveDate;

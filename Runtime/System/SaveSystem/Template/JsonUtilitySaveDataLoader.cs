@@ -17,7 +17,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             return PlayerPrefs.HasKey(GetKey(dataType));
         }
 
-        public ValueTask<SaveData<object>> LoadAsync(Type dataType, CancellationToken token = default)
+        public ValueTask<SaveData> LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
@@ -25,36 +25,36 @@ namespace SymphonyFrameWork.System.SaveSystem
             string json = PlayerPrefs.GetString(GetKey(dataType));
             if (string.IsNullOrEmpty(json))
             {
-                object created = Activator.CreateInstance(dataType);
+                SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のデータが見つからないので生成しました。");
-                return new(new SaveData<object>(created));
+                return new(new SaveData(created));
             }
 
             JsonUtilitySaveDataContainer container = JsonUtility.FromJson<JsonUtilitySaveDataContainer>(json);
             if (container == null)
             {
-                object created = Activator.CreateInstance(dataType);
+                SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
-                return new(new SaveData<object>(created));
+                return new(new SaveData(created));
             }
 
-            object data = JsonUtility.FromJson(container.MainDataJson, dataType);
+            SaveDataContent data = (SaveDataContent)JsonUtility.FromJson(container.MainDataJson, dataType);
             if (data == null)
             {
-                data = Activator.CreateInstance(dataType);
+                data = (SaveDataContent)Activator.CreateInstance(dataType);
                 Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} の本体データ復元に失敗しました。新たなインスタンスを生成します。");
             }
 
-            return new(new SaveData<object>(data, ParseSaveDate(container.SaveDate)));
+            return new(new SaveData(data, ParseSaveDate(container.SaveDate)));
         }
 
-        public ValueTask<SaveData<object>> SaveAsync(Type dataType, object data, CancellationToken token = default)
+        public ValueTask<SaveData> SaveAsync(Type dataType, SaveDataContent data, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
-            SaveData<object> saveData = new(data);
+            SaveData saveData = new(data);
             JsonUtilitySaveDataContainer container = new()
             {
                 SaveDate = saveData.SaveDate,
@@ -94,7 +94,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
-        private static void ValidateDataInstance(Type dataType, object data)
+        private static void ValidateDataInstance(Type dataType, SaveDataContent data)
         {
             if (data == null)
             {

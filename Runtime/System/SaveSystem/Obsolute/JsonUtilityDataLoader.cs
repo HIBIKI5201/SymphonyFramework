@@ -8,7 +8,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     /// <typeparam name="T"></typeparam>
     [Obsolete("Use JsonUtilitySaveDataLoader instead.")]
     public class JsonUtilityDataLoader<T> : ISaveDataLoader<T>
-        where T : class, new()
+        where T : SaveDataContent, new()
     {
         private static readonly JsonUtilitySaveDataLoader s_Loader = new();
 
@@ -24,13 +24,13 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         private static async ValueTask<SaveData<T>> SaveInternalAsync(T data)
         {
-            SaveData<object> saveData = await s_Loader.SaveAsync(typeof(T), data);
+            SaveData saveData = await s_Loader.SaveAsync(typeof(T), data);
             return new SaveData<T>((T)saveData.MainData, ParseSaveDate(saveData.SaveDate));
         }
 
         private static async ValueTask<SaveData<T>> LoadInternalAsync()
         {
-            SaveData<object> saveData = await s_Loader.LoadAsync(typeof(T));
+            SaveData saveData = await s_Loader.LoadAsync(typeof(T));
             return new SaveData<T>((T)saveData.MainData, ParseSaveDate(saveData.SaveDate));
         }
 

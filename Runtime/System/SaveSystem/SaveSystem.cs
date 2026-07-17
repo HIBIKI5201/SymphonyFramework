@@ -9,7 +9,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     /// <typeparam name="TData">データの型</typeparam>
     /// <typeparam name="TLoader">ローダーの型</typeparam>
     public static class SaveSystem<TData, TLoader>
-        where TData : class, new()
+        where TData : SaveDataContent, new()
         where TLoader : ISaveDataLoader<TData>, new()
     {
         public static async ValueTask<TData> Get()

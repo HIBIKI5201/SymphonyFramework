@@ -4,7 +4,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 {
     public readonly struct SaveDataRegistryEntryInfo
     {
-        public SaveDataRegistryEntryInfo(Type dataType, string saveDate, object data)
+        public SaveDataRegistryEntryInfo(Type dataType, string saveDate, SaveDataContent data)
         {
             DataType = dataType;
             SaveDate = saveDate;
@@ -13,6 +13,6 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public Type DataType { get; }
         public string SaveDate { get; }
-        public object Data { get; }
+        public SaveDataContent Data { get; }
     }
 }
