@@ -74,7 +74,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             string defaultJson = JsonConvert.SerializeObject(Activator.CreateInstance(dataType), Formatting.Indented);
             JsonConvert.PopulateObject(defaultJson, target);
-            target.SaveDate = null;
+            target.ClearSaveDate();
         }
 
         private static void ValidateDataType(Type dataType)

@@ -6,6 +6,6 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
     [Serializable]
     public class SaveDataSystemSample_PlayerDataB : SaveDataContent
     {
-        public int[] ItemIDs;
+        public int[] ItemIDs = Array.Empty<int>();
     }
 }

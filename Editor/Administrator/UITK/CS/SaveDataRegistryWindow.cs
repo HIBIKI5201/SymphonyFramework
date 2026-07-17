@@ -233,12 +233,6 @@ namespace SymphonyFrameWork.Editor
         {
             _debugSerializedObject.Update();
 
-            SerializedProperty saveDateProperty = _debugSerializedObject.FindProperty("_saveDate");
-            using (new EditorGUI.DisabledScope(true))
-            {
-                EditorGUILayout.PropertyField(saveDateProperty, new GUIContent("Save Date"));
-            }
-
             SerializedProperty dataProperty = _debugSerializedObject.FindProperty("_data");
             if (dataProperty.managedReferenceValue == null)
             {
@@ -250,6 +244,8 @@ namespace SymphonyFrameWork.Editor
             }
             else
             {
+                // SaveDataContent.SaveDate は [SerializeField, ReadOnly]（HideInInspector 無し）なので、
+                // Data の再帰描画の中に読み取り専用フィールドとして自動的に出てくる。個別描画は不要。
                 EditorGUILayout.PropertyField(dataProperty, new GUIContent("Data"), true);
             }
 
@@ -334,7 +330,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private void RebindDebugState(SaveDataContent data)
         {
-            _debugState.SetData(data, data?.SaveDate);
+            _debugState.SetData(data);
             _debugSerializedObject = new SerializedObject(_debugState);
         }
 
@@ -435,18 +431,14 @@ namespace SymphonyFrameWork.Editor
 
         private sealed class SaveDataDebugState : ScriptableObject
         {
-            [SerializeField]
-            private string _saveDate;
-
             [SerializeReference]
             private SaveDataContent _data;
 
             public SaveDataContent GetData() => _data;
 
-            public void SetData(SaveDataContent data, string saveDate)
+            public void SetData(SaveDataContent data)
             {
                 _data = data;
-                _saveDate = saveDate;
             }
         }
     }

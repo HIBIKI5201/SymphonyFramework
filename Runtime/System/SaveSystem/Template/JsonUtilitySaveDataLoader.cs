@@ -73,7 +73,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             string defaultJson = JsonUtility.ToJson(Activator.CreateInstance(dataType), true);
             JsonUtility.FromJsonOverwrite(defaultJson, target);
-            target.SaveDate = null;
+            target.ClearSaveDate();
         }
 
         private static void ValidateDataType(Type dataType)

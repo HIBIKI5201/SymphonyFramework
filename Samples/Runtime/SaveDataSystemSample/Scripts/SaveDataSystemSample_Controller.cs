@@ -1,5 +1,7 @@
 ﻿using SymphonyFrameWork.System.SaveSystem;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -15,6 +17,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         {
             AddCommentary("サンプルを開始しました。永続化済みデータを Registry にロードします。");
             await LoadInternalAsync();
+            await LoadInternalAsyncB();
         }
 
         [ContextMenu("Save Sample Data")]
@@ -73,9 +76,66 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             Debug.Log($"Loaded: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
         }
 
+        [ContextMenu("Save Sample Data B")]
+        public async void SaveSampleDataB()
+        {
+            if (_isBusy)
+            {
+                return;
+            }
+
+            _isBusy = true;
+            AddCommentary("Registry が保持している DataB の現在インスタンスを永続化します。");
+
+            SaveDataSystemSample_PlayerDataB data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerDataB>();
+            AddCommentary($"保存完了(B): ItemIDs [{FormatItemIDs(data)}]");
+            Debug.Log($"Saved(B): [{FormatItemIDs(data)}]");
+            _isBusy = false;
+        }
+
+        [ContextMenu("Load Sample Data B")]
+        public async void LoadSampleDataB()
+        {
+            if (_isBusy)
+            {
+                return;
+            }
+
+            _isBusy = true;
+            AddCommentary("永続化済みの DataB を読み込み、Registry 上の現在インスタンスを差し替えます。");
+            await LoadInternalAsyncB();
+            _isBusy = false;
+        }
+
+        [ContextMenu("Delete Sample Data B")]
+        public async void DeleteSampleDataB()
+        {
+            if (_isBusy)
+            {
+                return;
+            }
+
+            _isBusy = true;
+            AddCommentary("DataB の永続化データと Registry 上の現在インスタンスを削除します。");
+            await SaveDataRegistry.DeleteAsync<SaveDataSystemSample_PlayerDataB>();
+            AddCommentary("削除完了(B)。次のアクセスで Registry が新しい初期インスタンスを生成します。");
+            Debug.Log("Deleted SaveDataSystemSample_PlayerDataB");
+            _isBusy = false;
+        }
+
+        private async Awaitable LoadInternalAsyncB()
+        {
+            SaveDataSystemSample_PlayerDataB data = await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataB>();
+
+            AddCommentary($"ロード完了(B): ItemIDs [{FormatItemIDs(data)}]");
+            Debug.Log($"Loaded(B): [{FormatItemIDs(data)}]");
+        }
+
         private void OnGUI()
         {
             SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            SaveDataSystemSample_PlayerDataB dataB = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
             float margin = Mathf.Max(12f, Screen.width * 0.025f);
             float width = Screen.width - (margin * 2f);
             float height = Screen.height - (margin * 2f);
@@ -100,7 +160,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label($"Editing Gold : {data.Gold}");
             GUILayout.Label($"Save Date    : {data.SaveDate ?? "(unsaved)"}");
             GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerDataA>()}");
-            GUILayout.Label($"Cache Loaded : {IsCacheLoaded()}");
+            GUILayout.Label($"Cache Loaded : {IsCacheLoaded<SaveDataSystemSample_PlayerDataA>()}");
             GUILayout.Label($"Busy         : {_isBusy}");
             GUILayout.Space(8f);
 
@@ -119,6 +179,25 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Delete Save")) { DeleteSampleData(); }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(12f);
+            GUILayout.Label("---- DataB (Items) ----");
+            GUILayout.Label($"Item IDs     : [{FormatItemIDs(dataB)}]");
+            GUILayout.Label($"Save Date(B) : {dataB.SaveDate ?? "(unsaved)"}");
+            GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerDataB>()}");
+            GUILayout.Label($"Cache Loaded : {IsCacheLoaded<SaveDataSystemSample_PlayerDataB>()}");
+            GUILayout.Space(8f);
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add Item")) { AddItem(); }
+            if (GUILayout.Button("Clear Items")) { ClearItems(); }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Save B")) { SaveSampleDataB(); }
+            if (GUILayout.Button("Load B")) { LoadSampleDataB(); }
+            if (GUILayout.Button("Delete B")) { DeleteSampleDataB(); }
             GUILayout.EndHorizontal();
 
             GUILayout.Space(10f);
@@ -171,11 +250,31 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             AddCommentary("Gold を 100 増やしました。まだ保存はされていません。");
         }
 
-        private bool IsCacheLoaded()
+        private void AddItem()
+        {
+            SaveDataSystemSample_PlayerDataB data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            int nextId = data.ItemIDs.Length == 0 ? 1 : data.ItemIDs.Max() + 1;
+            data.ItemIDs = data.ItemIDs.Append(nextId).ToArray();
+            AddCommentary($"Item {nextId} を追加しました。まだ保存はされていません。");
+        }
+
+        private void ClearItems()
+        {
+            SaveDataSystemSample_PlayerDataB data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            data.ItemIDs = Array.Empty<int>();
+            AddCommentary("Item をすべて削除しました。まだ保存はされていません。");
+        }
+
+        private static string FormatItemIDs(SaveDataSystemSample_PlayerDataB data)
+        {
+            return string.Join(", ", data.ItemIDs);
+        }
+
+        private static bool IsCacheLoaded<T>() where T : SaveDataContent, new()
         {
             foreach (SaveDataRegistryEntryInfo entry in SaveDataRegistry.GetEntries())
             {
-                if (entry.DataType == typeof(SaveDataSystemSample_PlayerDataA))
+                if (entry.DataType == typeof(T))
                 {
                     return true;
                 }
