@@ -25,12 +25,21 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         private static async ValueTask<SaveData<T>> SaveInternalAsync(T data)
         {
-            return await s_Loader.SaveAsync(data);
+            SaveData<object> saveData = await s_Loader.SaveAsync(typeof(T), data);
+            return new SaveData<T>((T)saveData.MainData, ParseSaveDate(saveData.SaveDate));
         }
 
         private static async ValueTask<SaveData<T>> LoadInternalAsync()
         {
-            return await s_Loader.LoadAsync<T>();
+            SaveData<object> saveData = await s_Loader.LoadAsync(typeof(T));
+            return new SaveData<T>((T)saveData.MainData, ParseSaveDate(saveData.SaveDate));
+        }
+
+        private static DateTime ParseSaveDate(string saveDate)
+        {
+            return DateTime.TryParse(saveDate, out DateTime parsed)
+                ? parsed
+                : default;
         }
     }
 }

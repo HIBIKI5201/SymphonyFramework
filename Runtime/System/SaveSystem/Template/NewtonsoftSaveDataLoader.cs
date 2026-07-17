@@ -12,52 +12,104 @@ namespace SymphonyFrameWork.System.SaveSystem
     [Serializable]
     public class NewtonsoftSaveDataLoader : ISaveDataLoader
     {
-        public bool Exists<T>() where T : class, new()
+        public bool Exists(Type dataType)
         {
-            return PlayerPrefs.HasKey(GetKey<T>());
+            ValidateDataType(dataType);
+            return PlayerPrefs.HasKey(GetKey(dataType));
         }
 
-        public ValueTask<SaveData<T>> LoadAsync<T>(CancellationToken token = default) where T : class, new()
+        public ValueTask<SaveData<object>> LoadAsync(Type dataType, CancellationToken token = default)
         {
+            ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
 
-            string json = PlayerPrefs.GetString(GetKey<T>());
+            string json = PlayerPrefs.GetString(GetKey(dataType));
             if (string.IsNullOrEmpty(json))
             {
-                Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\n{typeof(T).Name} のデータが見つからないので生成しました。");
-                return new(new SaveData<T>(new T()));
+                object created = Activator.CreateInstance(dataType);
+                Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\n{dataType.Name} のデータが見つからないので生成しました。");
+                return new(new SaveData<object>(created));
             }
 
-            SaveData<T> data = JsonConvert.DeserializeObject<SaveData<T>>(json);
-            if (data == null)
+            JsonSaveDataEnvelope envelope = JsonConvert.DeserializeObject<JsonSaveDataEnvelope>(json);
+            if (envelope == null)
             {
-                Debug.LogWarning($"[{nameof(NewtonsoftSaveDataLoader)}]\n{typeof(T).Name} のロードに失敗しました。新たなインスタンスを生成します。");
-                return new(new SaveData<T>(new T()));
+                object created = Activator.CreateInstance(dataType);
+                Debug.LogWarning($"[{nameof(NewtonsoftSaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
+                return new(new SaveData<object>(created));
             }
 
-            return new(data);
+            object mainData = string.IsNullOrEmpty(envelope.MainDataJson)
+                ? Activator.CreateInstance(dataType)
+                : JsonConvert.DeserializeObject(envelope.MainDataJson, dataType);
+
+            return new(new SaveData<object>(mainData, ParseSaveDate(envelope.SaveDate)));
         }
 
-        public ValueTask<SaveData<T>> SaveAsync<T>(T data, CancellationToken token = default) where T : class, new()
+        public ValueTask<SaveData<object>> SaveAsync(Type dataType, object data, CancellationToken token = default)
         {
+            ValidateDataType(dataType);
+            ValidateDataInstance(dataType, data);
             token.ThrowIfCancellationRequested();
 
-            SaveData<T> saveData = new(data);
-            PlayerPrefs.SetString(GetKey<T>(), JsonConvert.SerializeObject(saveData));
+            SaveData<object> saveData = new(data);
+            JsonSaveDataEnvelope envelope = new()
+            {
+                SaveDate = saveData.SaveDate,
+                MainDataJson = JsonConvert.SerializeObject(data, Formatting.Indented)
+            };
+
+            PlayerPrefs.SetString(GetKey(dataType), JsonConvert.SerializeObject(envelope, Formatting.Indented));
             PlayerPrefs.Save();
 
             Debug.Log($"[{nameof(NewtonsoftSaveDataLoader)}]\nデータをセーブしました。 date : {saveData.SaveDate}\n{data}");
             return new(saveData);
         }
 
-        public ValueTask DeleteAsync<T>(CancellationToken token = default) where T : class, new()
+        public ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
         {
+            ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
-            PlayerPrefs.DeleteKey(GetKey<T>());
+            PlayerPrefs.DeleteKey(GetKey(dataType));
             PlayerPrefs.Save();
             return default;
         }
 
-        private static string GetKey<T>() => typeof(T).FullName;
+        private static string GetKey(Type dataType) => dataType.FullName;
+
+        private static DateTime ParseSaveDate(string saveDate)
+        {
+            return DateTime.TryParse(saveDate, out DateTime parsed)
+                ? parsed
+                : default;
+        }
+
+        private static void ValidateDataType(Type dataType)
+        {
+            if (dataType == null)
+            {
+                throw new ArgumentNullException(nameof(dataType));
+            }
+        }
+
+        private static void ValidateDataInstance(Type dataType, object data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            if (!dataType.IsInstanceOfType(data))
+            {
+                throw new ArgumentException($"{dataType.Name} のインスタンスを指定してください。", nameof(data));
+            }
+        }
+
+        [Serializable]
+        private sealed class JsonSaveDataEnvelope
+        {
+            public string SaveDate;
+            public string MainDataJson;
+        }
     }
 }
