@@ -1,4 +1,4 @@
-using SymphonyFrameWork.System.SaveSystem;
+﻿using SymphonyFrameWork.System.SaveSystem;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -7,15 +7,6 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 {
     public class SaveDataSystemSample_Controller : MonoBehaviour
     {
-        [SerializeField]
-        private string _playerName = "Symphony";
-
-        [SerializeField]
-        private int _level = 1;
-
-        [SerializeField]
-        private int _gold = 100;
-
         private readonly Queue<string> _commentaryLogs = new();
         private Vector2 _scrollPosition;
         private bool _isBusy;
@@ -43,15 +34,9 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             }
 
             _isBusy = true;
-            AddCommentary("現在の編集値を SaveDataRegistry に保存します。");
+            AddCommentary("Registry にロード済みのインスタンスをそのまま保存します。");
 
-            SaveDataSystemSample_PlayerData data = new()
-            {
-                PlayerName = _playerName,
-                Level = _level,
-                Gold = _gold
-            };
-
+            SaveDataSystemSample_PlayerData data = await GetOrLoadDataAsync();
             await SaveDataRegistry.SaveAsync(data);
             AddCommentary($"保存完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Saved: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
@@ -100,16 +85,13 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         {
             SaveDataSystemSample_PlayerData data = await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerData>();
 
-            _playerName = data.PlayerName;
-            _level = data.Level;
-            _gold = data.Gold;
-
             AddCommentary($"ロード完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Loaded: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
         }
 
         private void OnGUI()
         {
+            SaveDataSystemSample_PlayerData data = GetLoadedDataOrFallback();
             float margin = Mathf.Max(12f, Screen.width * 0.025f);
             float width = Screen.width - (margin * 2f);
             float height = Screen.height - (margin * 2f);
@@ -129,9 +111,9 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label("3. Load / Unload Cache / Delete で挙動の違いを確認できます。");
             GUILayout.Space(8f);
 
-            GUILayout.Label($"Editing Name : {_playerName}");
-            GUILayout.Label($"Editing Level: {_level}");
-            GUILayout.Label($"Editing Gold : {_gold}");
+            GUILayout.Label($"Editing Name : {data.PlayerName}");
+            GUILayout.Label($"Editing Level: {data.Level}");
+            GUILayout.Label($"Editing Gold : {data.Gold}");
             GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerData>()}");
             GUILayout.Label($"Cache Loaded : {IsCacheLoaded()}");
             GUILayout.Label($"Busy         : {_isBusy}");
@@ -140,8 +122,8 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label("Edit Values");
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Rename Hero")) { RenameHero(); }
-            if (GUILayout.Button("Level +1")) { _level++; AddCommentary("Level を 1 増やしました。まだ保存はされていません。"); }
-            if (GUILayout.Button("Gold +100")) { _gold += 100; AddCommentary("Gold を 100 増やしました。まだ保存はされていません。"); }
+            if (GUILayout.Button("Level +1")) { data.Level++; AddCommentary("Level を 1 増やしました。まだ保存はされていません。"); }
+            if (GUILayout.Button("Gold +100")) { data.Gold += 100; AddCommentary("Gold を 100 増やしました。まだ保存はされていません。"); }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -166,21 +148,45 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void RenameHero()
         {
-            _playerName = _playerName == "Symphony"
+            SaveDataSystemSample_PlayerData data = GetLoadedDataOrFallback();
+            string playerName = data.PlayerName;
+            playerName = playerName == "Symphony"
                 ? "KillChord"
-                : _playerName == "KillChord"
+                : playerName == "KillChord"
                     ? "Sinfonia"
                     : "Symphony";
+            data.PlayerName = playerName;
 
-            AddCommentary($"名前を {_playerName} に変更しました。まだ保存はされていません。");
+            AddCommentary($"名前を {playerName} に変更しました。まだ保存はされていません。");
         }
 
         private void ResetDraft()
         {
-            _playerName = "Symphony";
-            _level = 1;
-            _gold = 100;
+            SaveDataSystemSample_PlayerData data = GetLoadedDataOrFallback();
+            data.PlayerName = "Symphony";
+            data.Level = 1;
+            data.Gold = 100;
             AddCommentary("編集中の値を初期状態へ戻しました。");
+        }
+
+        private SaveDataSystemSample_PlayerData GetLoadedDataOrFallback()
+        {
+            if (SaveDataRegistry.TryGetLoaded(out SaveDataSystemSample_PlayerData data))
+            {
+                return data;
+            }
+
+            return new SaveDataSystemSample_PlayerData();
+        }
+
+        private async Awaitable<SaveDataSystemSample_PlayerData> GetOrLoadDataAsync()
+        {
+            if (SaveDataRegistry.TryGetLoaded(out SaveDataSystemSample_PlayerData data))
+            {
+                return data;
+            }
+
+            return await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerData>();
         }
 
         private bool IsCacheLoaded()

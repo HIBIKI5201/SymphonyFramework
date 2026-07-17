@@ -22,6 +22,35 @@ namespace SymphonyFrameWork.System.SaveSystem
             return GetLoader().Exists(dataType);
         }
 
+        public static bool TryGetLoaded<T>(out T data) where T : SaveDataContent
+        {
+            if (TryGetLoaded(typeof(T), out SaveDataContent loadedData))
+            {
+                data = (T)loadedData;
+                return true;
+            }
+
+            data = null;
+            return false;
+        }
+
+        public static bool TryGetLoaded(Type dataType, out SaveDataContent data)
+        {
+            ValidateDataType(dataType);
+
+            lock (_lock)
+            {
+                if (_cache.TryGetValue(dataType, out SaveData saveData) && saveData?.MainData != null)
+                {
+                    data = saveData.MainData;
+                    return true;
+                }
+            }
+
+            data = null;
+            return false;
+        }
+
         public static async ValueTask<T> LoadAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
         {
             SaveData<T> saveData = await LoadSaveDataAsync<T>(token);
