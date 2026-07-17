@@ -1,9 +1,9 @@
-using SymphonyFrameWork.Config;
+﻿using SymphonyFrameWork.Config;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
@@ -12,50 +12,40 @@ namespace SymphonyFrameWork.System.SaveSystem
     /// </summary>
     public static class SaveDataRegistry
     {
-        public static bool Exists<T>() where T : class, new() => Exists(typeof(T));
+        public static bool Exists<T>() where T : class, new()
+        {
+            return GetLoader().Exists<T>();
+        }
 
         public static bool Exists(Type dataType)
         {
             ValidateDataType(dataType);
-            return GetLoader().Exists(dataType);
+            return InvokeGeneric<bool>(nameof(ISaveDataLoader.Exists), dataType);
         }
 
         public static async ValueTask<T> LoadAsync<T>(CancellationToken token = default) where T : class, new()
         {
-            SaveData<object> saveData = await LoadSaveDataAsync(typeof(T), token);
-            return (T)saveData.MainData;
+            SaveData<T> saveData = await LoadSaveDataAsync<T>(token);
+            return saveData.MainData;
         }
 
-        public static async ValueTask<SaveData<T>> LoadSaveDataAsync<T>(CancellationToken token = default) where T : class, new()
-        {
-            SaveData<object> saveData = await LoadSaveDataAsync(typeof(T), token);
-            return CastSaveData<T>(saveData);
-        }
-
-        public static async ValueTask SaveAsync<T>(T data, CancellationToken token = default) where T : class, new()
-        {
-            await SaveAsync(typeof(T), data, token);
-        }
-
-        public static void Unload<T>() where T : class, new() => Unload(typeof(T));
-
-        public static ValueTask DeleteAsync<T>(CancellationToken token = default) where T : class, new() =>
-            DeleteAsync(typeof(T), token);
-
-        public static IReadOnlyList<SaveDataRegistryEntryInfo> GetEntries()
+        public static ValueTask<SaveData<T>> LoadSaveDataAsync<T>(CancellationToken token = default) where T : class, new()
         {
             lock (_lock)
             {
-                List<SaveDataRegistryEntryInfo> entries = new(_cache.Count);
-                foreach ((Type type, SaveData<object> saveData) in _cache)
+                if (_cache.TryGetValue(typeof(T), out SaveData<object> cached))
                 {
-                    entries.Add(new SaveDataRegistryEntryInfo(
-                        type,
-                        saveData?.SaveDate,
-                        saveData?.MainData));
+                    return new ValueTask<SaveData<T>>(CastSaveData<T>(cached));
                 }
 
-                return entries;
+                if (_loadingTasks.TryGetValue(typeof(T), out Task<SaveData<object>> loadingTask))
+                {
+                    return AwaitTypedTask<T>(loadingTask);
+                }
+
+                Task<SaveData<object>> loadTask = LoadInternalAsync<T>(token);
+                _loadingTasks[typeof(T)] = loadTask;
+                return AwaitTypedTask<T>(loadTask);
             }
         }
 
@@ -75,9 +65,18 @@ namespace SymphonyFrameWork.System.SaveSystem
                     return new ValueTask<SaveData<object>>(loadingTask);
                 }
 
-                Task<SaveData<object>> loadTask = LoadInternalAsync(dataType, token);
+                Task<SaveData<object>> loadTask = LoadInternalAsObjectAsync(dataType, token);
                 _loadingTasks[dataType] = loadTask;
                 return new ValueTask<SaveData<object>>(loadTask);
+            }
+        }
+
+        public static async ValueTask SaveAsync<T>(T data, CancellationToken token = default) where T : class, new()
+        {
+            SaveData<T> saved = await GetLoader().SaveAsync(data, token);
+            lock (_lock)
+            {
+                _cache[typeof(T)] = ToObjectSaveData(saved);
             }
         }
 
@@ -86,11 +85,16 @@ namespace SymphonyFrameWork.System.SaveSystem
             ValidateDataType(dataType);
             ValidateDataInstance(dataType, data);
 
-            SaveData<object> saved = await GetLoader().SaveAsync(dataType, data, token);
+            object saved = await InvokeGenericValueTask(nameof(ISaveDataLoader.SaveAsync), dataType, data, token);
             lock (_lock)
             {
-                _cache[dataType] = saved;
+                _cache[dataType] = ToObjectSaveData(saved);
             }
+        }
+
+        public static void Unload<T>() where T : class, new()
+        {
+            Unload(typeof(T));
         }
 
         public static void Unload(Type dataType)
@@ -109,11 +113,31 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
+        public static async ValueTask DeleteAsync<T>(CancellationToken token = default) where T : class, new()
+        {
+            Unload<T>();
+            await GetLoader().DeleteAsync<T>(token);
+        }
+
         public static async ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             Unload(dataType);
-            await GetLoader().DeleteAsync(dataType, token);
+            await InvokeGenericValueTask(nameof(ISaveDataLoader.DeleteAsync), dataType, token);
+        }
+
+        public static IReadOnlyList<SaveDataRegistryEntryInfo> GetEntries()
+        {
+            lock (_lock)
+            {
+                List<SaveDataRegistryEntryInfo> entries = new(_cache.Count);
+                foreach ((Type type, SaveData<object> saveData) in _cache)
+                {
+                    entries.Add(new SaveDataRegistryEntryInfo(type, saveData?.SaveDate, saveData?.MainData));
+                }
+
+                return entries;
+            }
         }
 
         public static void RefreshLoader()
@@ -124,17 +148,40 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public static ISaveDataLoader GetCurrentLoader() => GetLoader();
 
-        private static async Task<SaveData<object>> LoadInternalAsync(Type dataType, CancellationToken token)
+        private static async Task<SaveData<object>> LoadInternalAsync<T>(CancellationToken token) where T : class, new()
         {
             try
             {
-                SaveData<object> loaded = await GetLoader().LoadAsync(dataType, token);
+                SaveData<T> loaded = await GetLoader().LoadAsync<T>(token);
+                SaveData<object> boxed = ToObjectSaveData(loaded);
                 lock (_lock)
                 {
-                    _cache[dataType] = loaded;
+                    _cache[typeof(T)] = boxed;
                 }
 
-                return loaded;
+                return boxed;
+            }
+            finally
+            {
+                lock (_lock)
+                {
+                    _loadingTasks.Remove(typeof(T));
+                }
+            }
+        }
+
+        private static async Task<SaveData<object>> LoadInternalAsObjectAsync(Type dataType, CancellationToken token)
+        {
+            try
+            {
+                object loaded = await InvokeGenericValueTask(nameof(ISaveDataLoader.LoadAsync), dataType, token);
+                SaveData<object> boxed = ToObjectSaveData(loaded);
+                lock (_lock)
+                {
+                    _cache[dataType] = boxed;
+                }
+
+                return boxed;
             }
             finally
             {
@@ -143,6 +190,12 @@ namespace SymphonyFrameWork.System.SaveSystem
                     _loadingTasks.Remove(dataType);
                 }
             }
+        }
+
+        private static async ValueTask<SaveData<T>> AwaitTypedTask<T>(Task<SaveData<object>> task) where T : class, new()
+        {
+            SaveData<object> saveData = await task;
+            return CastSaveData<T>(saveData);
         }
 
         private static ISaveDataLoader GetLoader()
@@ -155,6 +208,57 @@ namespace SymphonyFrameWork.System.SaveSystem
             SaveSystemConfig config = SymphonyConfigLocator.GetConfig<SaveSystemConfig>();
             _cachedLoader = config?.Loader ?? new JsonUtilitySaveDataLoader();
             return _cachedLoader;
+        }
+
+        private static TResult InvokeGeneric<TResult>(string methodName, Type genericType, params object[] args)
+        {
+            MethodInfo method = typeof(ISaveDataLoader).GetMethod(methodName)?.MakeGenericMethod(genericType);
+            return (TResult)method.Invoke(GetLoader(), args);
+        }
+
+        private static async ValueTask<object> InvokeGenericValueTask(string methodName, Type genericType, params object[] args)
+        {
+            MethodInfo method = typeof(ISaveDataLoader).GetMethod(methodName)?.MakeGenericMethod(genericType);
+            object valueTask = method.Invoke(GetLoader(), args);
+            if (valueTask == null)
+            {
+                return null;
+            }
+
+            MethodInfo asTaskMethod = valueTask.GetType().GetMethod("AsTask", Type.EmptyTypes);
+            if (asTaskMethod == null)
+            {
+                return null;
+            }
+
+            Task task = (Task)asTaskMethod.Invoke(valueTask, null);
+            await task;
+
+            PropertyInfo resultProperty = task.GetType().GetProperty("Result");
+            return resultProperty?.GetValue(task);
+        }
+
+        private static SaveData<object> ToObjectSaveData<T>(SaveData<T> saveData)
+        {
+            if (saveData == null)
+            {
+                return null;
+            }
+
+            return new SaveData<object>(saveData.MainData, ParseSaveDate(saveData.SaveDate));
+        }
+
+        private static SaveData<object> ToObjectSaveData(object saveData)
+        {
+            if (saveData == null)
+            {
+                return null;
+            }
+
+            Type saveDataType = saveData.GetType();
+            string saveDate = (string)saveDataType.GetField(nameof(SaveData<object>.SaveDate)).GetValue(saveData);
+            object mainData = saveDataType.GetField(nameof(SaveData<object>.MainData)).GetValue(saveData);
+            return new SaveData<object>(mainData, ParseSaveDate(saveDate));
         }
 
         private static SaveData<T> CastSaveData<T>(SaveData<object> source) where T : class, new()
@@ -184,11 +288,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             if (!dataType.IsClass || dataType.IsAbstract || dataType.IsGenericTypeDefinition)
             {
                 throw new ArgumentException("セーブ対象は new() 可能な具象クラスにしてください。", nameof(dataType));
-            }
-
-            if (typeof(UnityEngine.Object).IsAssignableFrom(dataType))
-            {
-                throw new ArgumentException("UnityEngine.Object 派生型はセーブデータとして扱えません。", nameof(dataType));
             }
 
             if (dataType.GetConstructor(Type.EmptyTypes) == null)

@@ -11,89 +11,52 @@ namespace SymphonyFrameWork.System.SaveSystem
     [Serializable]
     public class JsonUtilitySaveDataLoader : ISaveDataLoader
     {
-        public bool Exists(Type dataType)
+        public bool Exists<T>() where T : class, new()
         {
-            ValidateDataType(dataType);
-            return PlayerPrefs.HasKey(GetKey(dataType));
+            return PlayerPrefs.HasKey(GetKey<T>());
         }
 
-        public ValueTask<SaveData<object>> LoadAsync(Type dataType, CancellationToken token = default)
+        public ValueTask<SaveData<T>> LoadAsync<T>(CancellationToken token = default) where T : class, new()
         {
-            ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
 
-            string json = PlayerPrefs.GetString(GetKey(dataType));
+            string json = PlayerPrefs.GetString(GetKey<T>());
             if (string.IsNullOrEmpty(json))
             {
-                object instance = Activator.CreateInstance(dataType);
-                Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のデータが見つからないので生成しました。");
-                return new(new SaveData<object>(instance));
+                Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\n{typeof(T).Name} のデータが見つからないので生成しました。");
+                return new(new SaveData<T>(new T()));
             }
 
-            SaveDataWrapper data = JsonUtility.FromJson<SaveDataWrapper>(json);
+            SaveData<T> data = JsonUtility.FromJson<SaveData<T>>(json);
             if (data == null)
             {
-                Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{dataType.Name} のロードに失敗しました。新たなインスタンスを生成します。");
-                return new(new SaveData<object>(Activator.CreateInstance(dataType)));
+                Debug.LogWarning($"[{nameof(JsonUtilitySaveDataLoader)}]\n{typeof(T).Name} のロードに失敗しました。新たなインスタンスを生成します。");
+                return new(new SaveData<T>(new T()));
             }
 
-            object result = string.IsNullOrEmpty(data.MainDataJson)
-                ? Activator.CreateInstance(dataType)
-                : JsonUtility.FromJson(data.MainDataJson, dataType);
-
-            return new(new SaveData<object>(result, ParseSaveDate(data.SaveDate)));
+            return new(data);
         }
 
-        public ValueTask<SaveData<object>> SaveAsync(Type dataType, object data, CancellationToken token = default)
+        public ValueTask<SaveData<T>> SaveAsync<T>(T data, CancellationToken token = default) where T : class, new()
         {
-            ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
 
-            SaveData<object> saveData = new(data);
-            SaveDataWrapper wrapper = new()
-            {
-                SaveDate = saveData.SaveDate,
-                MainDataJson = JsonUtility.ToJson(data),
-            };
-
-            PlayerPrefs.SetString(GetKey(dataType), JsonUtility.ToJson(wrapper));
+            SaveData<T> saveData = new(data);
+            PlayerPrefs.SetString(GetKey<T>(), JsonUtility.ToJson(saveData));
             PlayerPrefs.Save();
 
             Debug.Log($"[{nameof(JsonUtilitySaveDataLoader)}]\nデータをセーブしました。 date : {saveData.SaveDate}\n{data}");
             return new(saveData);
         }
 
-        public ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
+        public ValueTask DeleteAsync<T>(CancellationToken token = default) where T : class, new()
         {
-            ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
-            PlayerPrefs.DeleteKey(GetKey(dataType));
+            PlayerPrefs.DeleteKey(GetKey<T>());
             PlayerPrefs.Save();
             return default;
         }
 
-        private static string GetKey(Type dataType) => dataType.FullName;
-
-        private static DateTime ParseSaveDate(string saveDate)
-        {
-            return DateTime.TryParse(saveDate, out DateTime parsed)
-                ? parsed
-                : default;
-        }
-
-        private static void ValidateDataType(Type dataType)
-        {
-            if (dataType == null)
-            {
-                throw new ArgumentNullException(nameof(dataType));
-            }
-        }
-
-        [Serializable]
-        private class SaveDataWrapper
-        {
-            public string SaveDate;
-            public string MainDataJson;
-        }
+        private static string GetKey<T>() => typeof(T).FullName;
     }
 }
