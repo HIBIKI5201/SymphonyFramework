@@ -15,14 +15,14 @@ namespace SymphonyFrameWork.Editor
     [UxmlElement]
     public partial class SaveDataRegistryWindow : SymphonyVisualElement
     {
-        private const long AUTO_REFRESH_INTERVAL_MS = 200;
+        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataRegistryWindow.SelectedTypeName";
 
         private readonly SaveDataDebugState _debugState;
         private SerializedObject _debugSerializedObject;
         private List<Type> _saveDataTypes = new();
         private int _selectedIndex = -1;
         private Type _selectedType;
-        private string _statusMessage = "Type を選択して Load してください。";
+        private string _statusMessage = "初期化中です…";
 
         private Label _currentLoaderLabel;
         private Label _loadedEntriesCountLabel;
@@ -30,7 +30,6 @@ namespace SymphonyFrameWork.Editor
         private DropdownField _typeDropdown;
         private IMGUIContainer _editorContainer;
         private ListView _cacheListView;
-        private IVisualElementScheduledItem _autoRefreshItem;
 
         public SaveDataRegistryWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "SaveDataRegistryWindow.uxml",
@@ -61,23 +60,38 @@ namespace SymphonyFrameWork.Editor
             ConfigureCacheList();
             RefreshTypeList();
             RefreshView();
-            StartAutoRefresh(root);
 
             return default;
         }
 
-        private void StartAutoRefresh(VisualElement root)
+        /// <summary>
+        ///     SymphonyAdministrator.Update() から毎フレーム呼び出され、Registry の最新状態を表示に反映します。
+        ///     PauseWindow / ServiceLocatorWindow と同じ「親から駆動される」方式に合わせています。
+        /// </summary>
+        public void Update()
         {
-            _autoRefreshItem?.Pause();
-            _autoRefreshItem = root.schedule.Execute(() =>
-            {
-                if (panel == null)
-                {
-                    return;
-                }
+            TryAutoSelectFromRegistry();
+            RefreshView();
+        }
 
-                RefreshView();
-            }).Every(AUTO_REFRESH_INTERVAL_MS);
+        /// <summary>
+        ///     未選択のまま Registry に新たにデータが乗った場合（他のコードが Get/Load/Save した場合など）、
+        ///     ここで初めて自動選択します。Get() を呼んで新規インスタンス化することはしません。
+        /// </summary>
+        private void TryAutoSelectFromRegistry()
+        {
+            if (_selectedType != null)
+            {
+                return;
+            }
+
+            Type typeToSelect = ResolveAutoSelectType();
+            if (typeToSelect == null)
+            {
+                return;
+            }
+
+            ApplyAutoSelection(typeToSelect);
         }
 
         private void EnsureTypeListCurrent()
@@ -103,24 +117,82 @@ namespace SymphonyFrameWork.Editor
             {
                 _selectedIndex = -1;
                 _selectedType = null;
-                _debugState.SetData(null, null);
+                RebindDebugState(null);
                 _typeDropdown.value = string.Empty;
+                _statusMessage = "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
                 return;
             }
 
-            int index = _selectedType == null
-                ? 0
-                : _saveDataTypes.FindIndex(type => type == _selectedType);
+            // _selectedType はドメインリロードで作り直されると null に戻る。その場合、
+            // 「まだ誰もインスタンス化していない型」を自動選択して Get() で無理やり
+            // インスタンス化させることはしない。Registry に既に乗っているデータ
+            // （＝どこかで実際に使われているデータ）があればそれを優先して表示するだけに留める。
+            ApplyAutoSelection(_selectedType ?? ResolveAutoSelectType());
+        }
+
+        /// <summary>
+        ///     解決済みの型（null の場合は「まだ何も選べない」）を実際に選択状態へ反映します。
+        ///     Registry にも SessionState にも手がかりが無い場合は、先頭の型を勝手に選んで
+        ///     Get() を呼ぶ（＝触られてもいないデータを新規インスタンス化する）ことはせず、
+        ///     選択を行わずユーザー操作（Type 選択 or Load）を待ちます。
+        /// </summary>
+        private void ApplyAutoSelection(Type typeToSelect)
+        {
+            int index = typeToSelect == null
+                ? -1
+                : _saveDataTypes.FindIndex(type => type == typeToSelect);
 
             if (index < 0)
             {
-                index = 0;
+                _selectedIndex = -1;
+                _selectedType = null;
+                _typeDropdown.SetValueWithoutNotify(string.Empty);
+                RebindDebugState(null);
+                _statusMessage = "Type を選択するか、既存のセーブデータを Load してください。";
+                return;
             }
 
             _selectedIndex = index;
-            _selectedType = _saveDataTypes[index];
+            SetSelectedType(_saveDataTypes[index]);
             _typeDropdown.SetValueWithoutNotify(_selectedType.FullName);
-            BindCurrentSelection(false);
+            BindCurrentSelection();
+        }
+
+        /// <summary>
+        ///     自動選択の対象を決定します。Registry に既にインスタンス化済みのデータがあれば
+        ///     （SessionState に前回選択が残っていればそれを優先しつつ）それを使い、
+        ///     何もインスタンス化されていなければ null（自動選択しない）を返します。
+        /// </summary>
+        private static Type ResolveAutoSelectType()
+        {
+            IReadOnlyList<SaveDataRegistryEntryInfo> cachedEntries = SaveDataRegistry.GetEntries();
+            if (cachedEntries.Count <= 0)
+            {
+                return null;
+            }
+
+            Type sessionType = RestoreSelectedTypeFromSession();
+            if (sessionType != null && cachedEntries.Any(entry => entry.DataType == sessionType))
+            {
+                return sessionType;
+            }
+
+            return cachedEntries
+                .Select(entry => entry.DataType)
+                .OrderBy(type => type.FullName, StringComparer.Ordinal)
+                .First();
+        }
+
+        private void SetSelectedType(Type type)
+        {
+            _selectedType = type;
+            SessionState.SetString(SELECTED_TYPE_SESSION_KEY, type?.AssemblyQualifiedName ?? string.Empty);
+        }
+
+        private static Type RestoreSelectedTypeFromSession()
+        {
+            string typeName = SessionState.GetString(SELECTED_TYPE_SESSION_KEY, string.Empty);
+            return string.IsNullOrEmpty(typeName) ? null : Type.GetType(typeName);
         }
 
         private void ConfigureCacheList()
@@ -152,7 +224,7 @@ namespace SymphonyFrameWork.Editor
             }
 
             _selectedIndex = newIndex;
-            _selectedType = _saveDataTypes[_selectedIndex];
+            SetSelectedType(_saveDataTypes[_selectedIndex]);
             BindCurrentSelection();
             RefreshView();
         }
@@ -170,7 +242,11 @@ namespace SymphonyFrameWork.Editor
             SerializedProperty dataProperty = _debugSerializedObject.FindProperty("_data");
             if (dataProperty.managedReferenceValue == null)
             {
-                EditorGUILayout.HelpBox("現在編集中のデータはありません。New または Load を押してください。", MessageType.Info);
+                // SaveDataRegistry.Get() は必ず何らかのインスタンスを返すため、型が選択されていれば
+                // ここには到達しない。到達するのは (a) プロジェクトに SaveDataContent を継承した型が
+                // 一つも無い、または (b) まだ何もインスタンス化されておらず自動選択もしていない場合のみ。
+                // どちらの理由かは _statusMessage 側で出し分けているので、そのままここに表示する。
+                EditorGUILayout.HelpBox(_statusMessage, MessageType.Info);
             }
             else
             {
@@ -186,7 +262,7 @@ namespace SymphonyFrameWork.Editor
             RefreshView();
         }
 
-        private void BindCurrentSelection(bool updateStatus = true)
+        private void BindCurrentSelection()
         {
             if (_selectedType == null)
             {
@@ -194,12 +270,8 @@ namespace SymphonyFrameWork.Editor
             }
 
             SaveDataContent data = SaveDataRegistry.Get(_selectedType);
-            _debugState.SetData(data, data.SaveDate);
-            _debugSerializedObject.Update();
-            if (updateStatus)
-            {
-                _statusMessage = $"{_selectedType.FullName} の現在インスタンスを表示しています。";
-            }
+            RebindDebugState(data);
+            _statusMessage = $"{_selectedType.FullName} の現在インスタンスを表示しています。";
         }
 
         private void LoadSelected()
@@ -207,24 +279,32 @@ namespace SymphonyFrameWork.Editor
             SaveDataRegistry.LoadAsync(_selectedType).GetAwaiter().GetResult();
             SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
 
-            _debugState.SetData(saveData, saveData.SaveDate);
-            _debugSerializedObject.Update();
+            RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} をロードしました。";
             RefreshView();
         }
 
         private void SaveSelected()
         {
-            SaveDataContent data = _debugState.GetData();
-            if (data == null)
+            SaveDataContent editingData = _debugState.GetData();
+            if (editingData == null)
             {
                 BindCurrentSelection();
+                editingData = _debugState.GetData();
+            }
+
+            // インスペクタで編集中のインスタンスが [SerializeReference] の再構築などで
+            // Registry のキャッシュ本体と別インスタンスになっている可能性があるため、
+            // 保存前に編集内容を Registry 側の正本へ同期する（食い違ったまま Save してしまう事故を防ぐ）。
+            SaveDataContent canonical = SaveDataRegistry.Get(_selectedType);
+            if (!ReferenceEquals(canonical, editingData))
+            {
+                JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(editingData), canonical);
             }
 
             SaveDataRegistry.SaveAsync(_selectedType).GetAwaiter().GetResult();
             SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
-            _debugState.SetData(saveData, saveData.SaveDate);
-            _debugSerializedObject.Update();
+            RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
             RefreshView();
         }
@@ -242,10 +322,20 @@ namespace SymphonyFrameWork.Editor
 
             SaveDataRegistry.DeleteAsync(_selectedType).GetAwaiter().GetResult();
             SaveDataContent regenerated = SaveDataRegistry.Get(_selectedType);
-            _debugState.SetData(regenerated, regenerated.SaveDate);
-            _debugSerializedObject.Update();
+            RebindDebugState(regenerated);
             _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
             RefreshView();
+        }
+
+        /// <summary>
+        ///     デバッグインスペクタが表示するインスタンスを Registry の正本に合わせて再バインドします。
+        ///     [SerializeReference] フィールドは参照先の入れ替えを SerializedObject.Update() だけでは
+        ///     確実に検知できない場合があるため、SerializedObject 自体を作り直して確実に反映します。
+        /// </summary>
+        private void RebindDebugState(SaveDataContent data)
+        {
+            _debugState.SetData(data, data?.SaveDate);
+            _debugSerializedObject = new SerializedObject(_debugState);
         }
 
         private void ExecuteAction(Action action)

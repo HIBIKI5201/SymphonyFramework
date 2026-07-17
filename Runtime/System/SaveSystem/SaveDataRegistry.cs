@@ -64,7 +64,19 @@ namespace SymphonyFrameWork.System.SaveSystem
                 }
 
                 Task loadTask = LoadInternalAsync(dataType, current, token);
-                _loadingTasks[dataType] = loadTask;
+
+                // 既定のローダー（PlayerPrefs ベース）は同期的に完了するため、この時点で
+                // loadTask は既に完了しており、LoadInternalAsync の finally による
+                // 自己解除もすでに実行済みである。ここで無条件に登録すると、完了済みの
+                // 古いタスクが _loadingTasks に残り続け、以降の LoadAsync 呼び出しが
+                // すべて「重複リクエスト」とみなされて実際のロードが二度と走らなくなる
+                // （＝ Load しても保存済みデータが読み込まれない）バグになる。
+                // 未完了（本当に非同期I/Oを行うローダー）の場合のみ重複排除用に登録する。
+                if (!loadTask.IsCompleted)
+                {
+                    _loadingTasks[dataType] = loadTask;
+                }
+
                 return new ValueTask(loadTask);
             }
         }
@@ -183,19 +195,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             if (!typeof(SaveDataContent).IsAssignableFrom(dataType))
             {
                 throw new ArgumentException($"{nameof(SaveDataContent)} を継承した型を指定してください。", nameof(dataType));
-            }
-        }
-
-        private static void ValidateDataInstance(Type dataType, SaveDataContent data)
-        {
-            if (data == null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            if (!dataType.IsInstanceOfType(data))
-            {
-                throw new ArgumentException($"{dataType.Name} のインスタンスを指定してください。", nameof(data));
             }
         }
 

@@ -25,6 +25,7 @@ namespace SymphonyFrameWork.Editor
             _pauseWindow?.Update();
             _serviceLocatorWindow?.Update();
             _sceneLoaderWindow?.Update();
+            _saveDataRegistryWindow?.Update();
         }
 
         private void OnEnable()

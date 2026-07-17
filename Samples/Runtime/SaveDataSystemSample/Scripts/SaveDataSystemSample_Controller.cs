@@ -28,8 +28,8 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             _isBusy = true;
             AddCommentary("Registry が保持している現在インスタンスを永続化します。");
 
-            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
-            await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerData>();
+            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerDataA>();
             AddCommentary($"保存完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Saved: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
             _isBusy = false;
@@ -59,7 +59,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
             _isBusy = true;
             AddCommentary("永続化データと Registry 上の現在インスタンスを削除します。次回アクセス時は初期データが自動生成されます。");
-            await SaveDataRegistry.DeleteAsync<SaveDataSystemSample_PlayerData>();
+            await SaveDataRegistry.DeleteAsync<SaveDataSystemSample_PlayerDataA>();
             AddCommentary("削除完了。次のアクセスで Registry が新しい初期インスタンスを生成します。");
             Debug.Log("Deleted SaveDataSystemSample_PlayerData");
             _isBusy = false;
@@ -67,7 +67,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private async Awaitable LoadInternalAsync()
         {
-            SaveDataSystemSample_PlayerData data = await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerData>();
+            SaveDataSystemSample_PlayerDataA data = await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataA>();
 
             AddCommentary($"ロード完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Loaded: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
@@ -75,7 +75,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void OnGUI()
         {
-            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
+            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
             float margin = Mathf.Max(12f, Screen.width * 0.025f);
             float width = Screen.width - (margin * 2f);
             float height = Screen.height - (margin * 2f);
@@ -99,7 +99,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label($"Editing Level: {data.Level}");
             GUILayout.Label($"Editing Gold : {data.Gold}");
             GUILayout.Label($"Save Date    : {data.SaveDate ?? "(unsaved)"}");
-            GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerData>()}");
+            GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerDataA>()}");
             GUILayout.Label($"Cache Loaded : {IsCacheLoaded()}");
             GUILayout.Label($"Busy         : {_isBusy}");
             GUILayout.Space(8f);
@@ -132,22 +132,26 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void RenameHero()
         {
-            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
+            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
             string playerName = data.PlayerName;
-            playerName = playerName == "Symphony"
-                ? "KillChord"
-                : playerName == "KillChord"
-                    ? "Sinfonia"
-                    : "Symphony";
+            playerName = playerName == NAME_OPTION_1
+                ? NAME_OPTION_2
+                : playerName == NAME_OPTION_2
+                    ? NAME_OPTION_3
+                    : NAME_OPTION_1;
             data.PlayerName = playerName;
 
             AddCommentary($"名前を {playerName} に変更しました。まだ保存はされていません。");
         }
 
+        private const string NAME_OPTION_1 = "Symphony";
+        private const string NAME_OPTION_2 = "Framework";
+        private const string NAME_OPTION_3 = "Sinfonia";
+
         private void ResetDraft()
         {
-            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
-            data.PlayerName = "Symphony";
+            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            data.PlayerName = NAME_OPTION_1;
             data.Level = 1;
             data.Gold = 100;
             AddCommentary("編集中の値を初期状態へ戻しました。");
@@ -155,14 +159,14 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void IncreaseLevel()
         {
-            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
+            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
             data.Level++;
             AddCommentary("Level を 1 増やしました。まだ保存はされていません。");
         }
 
         private void IncreaseGold()
         {
-            SaveDataSystemSample_PlayerData data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerData>();
+            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
             data.Gold += 100;
             AddCommentary("Gold を 100 増やしました。まだ保存はされていません。");
         }
@@ -171,7 +175,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         {
             foreach (SaveDataRegistryEntryInfo entry in SaveDataRegistry.GetEntries())
             {
-                if (entry.DataType == typeof(SaveDataSystemSample_PlayerData))
+                if (entry.DataType == typeof(SaveDataSystemSample_PlayerDataA))
                 {
                     return true;
                 }
