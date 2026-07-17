@@ -73,7 +73,15 @@ namespace SymphonyFrameWork.Editor
             {
                 IReadOnlyList<SaveDataRegistryEntryInfo> entries = GetSortedEntries();
                 SaveDataRegistryEntryInfo entry = entries[index];
-                ((Label)element).text = $"{entry.DataType.FullName}\n{entry.SaveDate ?? "(unsaved)"}";
+                bool isLoaded = entry.Data != null;
+                bool isSaved = SaveDataRegistry.Exists(entry.DataType);
+                string state = isLoaded
+                    ? "Loaded"
+                    : isSaved
+                        ? "Saved"
+                        : "Empty";
+
+                ((Label)element).text = $"{entry.DataType.FullName}\nState: {state} / Date: {entry.SaveDate ?? "(unknown)"}";
             };
             _cacheListView.selectionType = SelectionType.None;
         }
@@ -256,7 +264,7 @@ namespace SymphonyFrameWork.Editor
         private void RefreshView()
         {
             _currentLoaderLabel.text = $"Current Loader: {SaveDataRegistry.GetCurrentLoader().GetType().Name}";
-            _loadedEntriesCountLabel.text = $"Loaded Entries: {SaveDataRegistry.GetEntries().Count}";
+            _loadedEntriesCountLabel.text = $"Visible Entries: {GetSortedEntries().Count}";
             _statusLabel.text = _statusMessage;
 
             List<SaveDataRegistryEntryInfo> entries = GetSortedEntries();
@@ -265,9 +273,28 @@ namespace SymphonyFrameWork.Editor
             _editorContainer.MarkDirtyRepaint();
         }
 
-        private static List<SaveDataRegistryEntryInfo> GetSortedEntries()
+        private List<SaveDataRegistryEntryInfo> GetSortedEntries()
         {
-            return SaveDataRegistry.GetEntries()
+            Dictionary<Type, SaveDataRegistryEntryInfo> loadedEntries = SaveDataRegistry.GetEntries()
+                .ToDictionary(entry => entry.DataType);
+
+            List<SaveDataRegistryEntryInfo> entries = new(_saveDataTypes.Count);
+            foreach (Type saveDataType in _saveDataTypes)
+            {
+                if (loadedEntries.TryGetValue(saveDataType, out SaveDataRegistryEntryInfo loadedEntry))
+                {
+                    entries.Add(loadedEntry);
+                    continue;
+                }
+
+                if (SaveDataRegistry.Exists(saveDataType))
+                {
+                    entries.Add(new SaveDataRegistryEntryInfo(saveDataType, null, null));
+                    continue;
+                }
+            }
+
+            return entries
                 .OrderBy(entry => entry.DataType.FullName, StringComparer.Ordinal)
                 .ToList();
         }
