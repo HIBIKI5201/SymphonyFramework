@@ -18,6 +18,11 @@
       "displayName": "Service Locator Sample",
       "description": "サービスロケーターを使用したサンプルが含まれています。",
       "path": "Samples~/Runtime/ServiceLocatorSample"
+    },
+    {
+      "displayName": "Save Data System Sample",
+      "description": "SaveDataRegistry と SaveDataContent を使用したセーブデータ管理のサンプルが含まれています。",
+      "path": "Samples~/Runtime/SaveDataSystemSample"
     }
   ]
 }
