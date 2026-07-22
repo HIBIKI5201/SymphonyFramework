@@ -18,12 +18,14 @@ namespace SymphonyFrameWork.Editor
         private ServiceLocatorWindow _serviceLocatorWindow;
         private SceneLoaderWindow _sceneLoaderWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
+        private SaveDataRegistryWindow _saveDataRegistryWindow;
 
         private void Update()
         {
             _pauseWindow?.Update();
             _serviceLocatorWindow?.Update();
             _sceneLoaderWindow?.Update();
+            _saveDataRegistryWindow?.Update();
         }
 
         private void OnEnable()
@@ -36,6 +38,7 @@ namespace SymphonyFrameWork.Editor
                 _serviceLocatorWindow = container.Q<ServiceLocatorWindow>();
                 _sceneLoaderWindow = container.Q<SceneLoaderWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
+                _saveDataRegistryWindow = container.Q<SaveDataRegistryWindow>();
             }
             else
             {
@@ -48,6 +51,8 @@ namespace SymphonyFrameWork.Editor
         private void OnDisable()
         {
             EditorApplication.update -= Update;
+            _saveDataRegistryWindow?.Dispose();
+            _saveDataRegistryWindow = null;
         }
 
 

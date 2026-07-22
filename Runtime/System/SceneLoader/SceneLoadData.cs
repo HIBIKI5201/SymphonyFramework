@@ -89,6 +89,13 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
         }
 
+        internal void Clear()
+        {
+            _sceneDict.Clear();
+            _loadedAction.Clear();
+            _activeScene = default;
+        }
+
         public void AddLoadedAction(string name, Action action)
         {
             // ロード済みなら即座に実行して終了。

@@ -1,29 +1,45 @@
-﻿using System.Threading.Tasks;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
-    ///     セーブデータを管理するクラス
+    ///     CoreSystemが所有するライフタイムにSaveDataRegistryを連動させます。
+    /// </summary>
+    internal static class SaveSystem
+    {
+        internal static void Initialize(CancellationToken destroyCancellationToken)
+        {
+            _destroyRegistration.Dispose();
+            SaveDataRegistry.ResetRuntimeState();
+            _destroyRegistration = destroyCancellationToken.Register(SaveDataRegistry.ResetRuntimeState);
+        }
+
+        private static CancellationTokenRegistration _destroyRegistration;
+    }
+
+    /// <summary>
+    ///     セーブデータを管理する互換 API です。
     /// </summary>
     /// <typeparam name="TData">データの型</typeparam>
     /// <typeparam name="TLoader">ローダーの型</typeparam>
     public static class SaveSystem<TData, TLoader>
-        where TData : class, new()
+        where TData : SaveDataContent, new()
         where TLoader : ISaveDataLoader<TData>, new()
     {
         public static async ValueTask<TData> Get()
         {
-            if (_saveData == null) 
+            if (_saveData == null)
             {
-               await Load();
+                _saveData = await _loader.Load();
             }
 
-            return _saveData?.MainData;
+            return _saveData;
         }
 
         public static async ValueTask<string> GetDate()
         {
-            if (_saveData == null) 
+            if (_saveData == null)
             {
                 await Load();
             }
@@ -32,7 +48,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary>
-        ///     saveDataを保存する
+        ///     既存のジェネリックローダーを用いて保存します。
         /// </summary>
         public static async ValueTask Save()
         {
@@ -41,7 +57,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary>
-        ///     DataTypeのデータを取得する
+        ///     既存のジェネリックローダーを用いてロードします。
         /// </summary>
         public static async ValueTask Load()
         {
@@ -56,7 +72,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             _saveData = null;
         }
 
-        private static SaveData<TData> _saveData;
+        private static TData _saveData;
         private static readonly TLoader _loader = new();
     }
 }

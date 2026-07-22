@@ -182,10 +182,20 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     コアシステムからの初期化
         /// </summary>
-        internal static void Initialize()
+        internal static void Initialize(CancellationToken destroyCancellationToken)
         {
+            _destroyRegistration.Dispose();
+            ResetRuntimeState();
             _data = new SceneLoadData();
             _manager = new(_data);
+            _destroyRegistration = destroyCancellationToken.Register(ResetRuntimeState);
+        }
+
+        private static void ResetRuntimeState()
+        {
+            _data?.Clear();
+            _manager = null;
+            _data = null;
         }
 
         /// <summary>
@@ -246,5 +256,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             resetIgnoreScenes[resetIgnoreCount + initializeSceneCount] = SymphonyCoreSystem.SYMPHONY_SCENE_NAME;
             return resetIgnoreScenes;
         }
+
+        private static CancellationTokenRegistration _destroyRegistration;
     }
 }
