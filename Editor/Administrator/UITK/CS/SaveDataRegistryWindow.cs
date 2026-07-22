@@ -1,10 +1,10 @@
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.System.SaveSystem;
+﻿using SymphonyFrameWork.System.SaveSystem;
 using SymphonyFrameWork.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -30,6 +30,7 @@ namespace SymphonyFrameWork.Editor
         private DropdownField _typeDropdown;
         private IMGUIContainer _editorContainer;
         private ListView _cacheListView;
+        private string _lastViewSignature;
 
         public SaveDataRegistryWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "SaveDataRegistryWindow.uxml",
@@ -37,7 +38,9 @@ namespace SymphonyFrameWork.Editor
             LoadType.AssetDataBase)
         {
             _debugState = ScriptableObject.CreateInstance<SaveDataDebugState>();
-            _debugState.hideFlags = HideFlags.HideAndDontSave;
+            // HideAndDontSave には NotEditable も含まれ、SerializedProperty がすべて
+            // 読み取り専用になる。永続化だけを防ぎ、デバッグ編集は許可する。
+            _debugState.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSave;
             _debugSerializedObject = new SerializedObject(_debugState);
         }
 
@@ -59,7 +62,7 @@ namespace SymphonyFrameWork.Editor
 
             ConfigureCacheList();
             RefreshTypeList();
-            RefreshView();
+            RefreshView(true);
 
             return default;
         }
@@ -71,7 +74,7 @@ namespace SymphonyFrameWork.Editor
         public void Update()
         {
             TryAutoSelectFromRegistry();
-            RefreshView();
+            RefreshView(false);
         }
 
         /// <summary>
@@ -120,6 +123,7 @@ namespace SymphonyFrameWork.Editor
                 RebindDebugState(null);
                 _typeDropdown.value = string.Empty;
                 _statusMessage = "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
+                _lastViewSignature = null;
                 return;
             }
 
@@ -149,6 +153,7 @@ namespace SymphonyFrameWork.Editor
                 _typeDropdown.SetValueWithoutNotify(string.Empty);
                 RebindDebugState(null);
                 _statusMessage = "Type を選択するか、既存のセーブデータを Load してください。";
+                _lastViewSignature = null;
                 return;
             }
 
@@ -226,7 +231,7 @@ namespace SymphonyFrameWork.Editor
             _selectedIndex = newIndex;
             SetSelectedType(_saveDataTypes[_selectedIndex]);
             BindCurrentSelection();
-            RefreshView();
+            RefreshView(true);
         }
 
         private void DrawEditorInspector()
@@ -244,8 +249,8 @@ namespace SymphonyFrameWork.Editor
             }
             else
             {
-                // SaveDataContent.SaveDate は [SerializeField, ReadOnly]（HideInInspector 無し）なので、
-                // Data の再帰描画の中に読み取り専用フィールドとして自動的に出てくる。個別描画は不要。
+                // SaveDataContent.SaveDate は [ReadOnly] なので、再帰描画の中で
+                // SaveDate だけが読み取り専用になり、派生クラスのフィールドは編集できる。
                 EditorGUILayout.PropertyField(dataProperty, new GUIContent("Data"), true);
             }
 
@@ -255,7 +260,7 @@ namespace SymphonyFrameWork.Editor
         private void RefreshTypeList()
         {
             EnsureTypeListCurrent();
-            RefreshView();
+            RefreshView(true);
         }
 
         private void BindCurrentSelection()
@@ -268,6 +273,7 @@ namespace SymphonyFrameWork.Editor
             SaveDataContent data = SaveDataRegistry.Get(_selectedType);
             RebindDebugState(data);
             _statusMessage = $"{_selectedType.FullName} の現在インスタンスを表示しています。";
+            _lastViewSignature = null;
         }
 
         private void LoadSelected()
@@ -277,7 +283,7 @@ namespace SymphonyFrameWork.Editor
 
             RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} をロードしました。";
-            RefreshView();
+            RefreshView(true);
         }
 
         private void SaveSelected()
@@ -302,7 +308,7 @@ namespace SymphonyFrameWork.Editor
             SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
             RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
-            RefreshView();
+            RefreshView(true);
         }
 
         private void DeleteSelected()
@@ -320,7 +326,7 @@ namespace SymphonyFrameWork.Editor
             SaveDataContent regenerated = SaveDataRegistry.Get(_selectedType);
             RebindDebugState(regenerated);
             _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
-            RefreshView();
+            RefreshView(true);
         }
 
         /// <summary>
@@ -339,7 +345,7 @@ namespace SymphonyFrameWork.Editor
             if (_selectedType == null)
             {
                 _statusMessage = "Save Data Type が未選択です。";
-                RefreshView();
+                RefreshView(false);
                 return;
             }
 
@@ -351,20 +357,59 @@ namespace SymphonyFrameWork.Editor
             {
                 Debug.LogException(ex);
                 _statusMessage = ex.Message;
-                RefreshView();
+                RefreshView(true);
             }
         }
 
-        private void RefreshView()
+        private void RefreshView(bool forceEditorRepaint)
         {
-            _currentLoaderLabel.text = $"Current Loader: {SaveDataRegistry.GetCurrentLoader().GetType().Name}";
-            _loadedEntriesCountLabel.text = $"Visible Entries: {GetSortedEntries().Count}";
-            _statusLabel.text = _statusMessage;
-
             List<SaveDataRegistryEntryInfo> entries = GetSortedEntries();
+            string currentLoaderText = $"Current Loader: {SaveDataRegistry.GetCurrentLoader().GetType().Name}";
+            string loadedEntriesText = $"Visible Entries: {entries.Count}";
+            string signature = BuildViewSignature(entries, currentLoaderText, loadedEntriesText, _statusMessage);
+
+            if (!forceEditorRepaint && signature == _lastViewSignature)
+            {
+                return;
+            }
+
+            _lastViewSignature = signature;
+            _currentLoaderLabel.text = currentLoaderText;
+            _loadedEntriesCountLabel.text = loadedEntriesText;
+            _statusLabel.text = _statusMessage;
             _cacheListView.itemsSource = entries;
             _cacheListView.Rebuild();
-            _editorContainer.MarkDirtyRepaint();
+
+            if (forceEditorRepaint)
+            {
+                _editorContainer.MarkDirtyRepaint();
+            }
+        }
+
+        private static string BuildViewSignature(
+            IReadOnlyList<SaveDataRegistryEntryInfo> entries,
+            string currentLoaderText,
+            string loadedEntriesText,
+            string statusMessage)
+        {
+            StringBuilder builder = new();
+            builder.Append(currentLoaderText)
+                .Append('|')
+                .Append(loadedEntriesText)
+                .Append('|')
+                .Append(statusMessage);
+
+            foreach (SaveDataRegistryEntryInfo entry in entries)
+            {
+                builder.Append('|')
+                    .Append(entry.DataType.AssemblyQualifiedName)
+                    .Append(':')
+                    .Append(entry.SaveDate)
+                    .Append(':')
+                    .Append(entry.Data == null ? 0 : RuntimeHelpers.GetHashCode(entry.Data));
+            }
+
+            return builder.ToString();
         }
 
         private List<SaveDataRegistryEntryInfo> GetSortedEntries()
