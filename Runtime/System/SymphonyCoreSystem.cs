@@ -55,8 +55,8 @@ namespace SymphonyFrameWork.System
 
             //各クラスの初期化
             PauseManager.Initialize();
-            ServiceLocator.Initialize();
-            SceneLoader.Initialize();
+            ServiceLocator.Initialize(_systemObject.destroyCancellationToken);
+            SceneLoader.Initialize(_systemObject.destroyCancellationToken);
             AudioManager.Initialize();
 
             SymphonyDebugHUD.Initialize();

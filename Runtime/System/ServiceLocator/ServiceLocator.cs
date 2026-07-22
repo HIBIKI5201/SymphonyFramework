@@ -244,15 +244,26 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _data.RegisterAction(action);
         }
 
-        internal static void Initialize()
+        internal static void Initialize(CancellationToken destroyCancellationToken)
         {
+            _destroyRegistration.Dispose();
+            ResetRuntimeState();
             _data = new();
             _manager = new(_data);
+            _destroyRegistration = destroyCancellationToken.Register(ResetRuntimeState);
+        }
+
+        private static void ResetRuntimeState()
+        {
+            _data?.Clear();
+            _manager = null;
+            _data = null;
         }
 
         private const LocateType DEFAULT_LOCATE_TYPE = LocateType.Locator;
 
         private static ServiceLocateManager _manager;
         private static ServiceLocateData _data;
+        private static CancellationTokenRegistration _destroyRegistration;
     }
 }

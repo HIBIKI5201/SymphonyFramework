@@ -110,6 +110,13 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
         }
 
+        internal void Clear()
+        {
+            _locateObjects.Clear();
+            _waitingActions.Clear();
+            _waitingActionsWithInstance.Clear();
+        }
+
         [Tooltip("登録されているインスタンスを型をキーにして保持する辞書")]
         private readonly Dictionary<Type, object> _locateObjects = new();
 
@@ -129,8 +136,12 @@ namespace SymphonyFrameWork.System.ServiceLocate
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            Application.quitting += () => s_IsQuitting = true;
+            s_IsQuitting = false;
+            Application.quitting -= OnQuitting;
+            Application.quitting += OnQuitting;
         }
+
+        private static void OnQuitting() => s_IsQuitting = true;
 #endif
     }
 }
