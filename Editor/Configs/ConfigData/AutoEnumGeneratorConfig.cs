@@ -4,9 +4,11 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
+    /// <summary> プロジェクト設定変更時のenum自動生成可否を保持する。 </summary>
     [FilePath(EditorSymphonyConstant.PROJCET_SETTING_FILE_PATH + nameof(AutoEnumGeneratorConfig) + ".asset", FilePathAttribute.Location.ProjectFolder)]
-    public class AutoEnumGeneratorConfig : ScriptableSingleton<AutoEnumGeneratorConfig>
+    public sealed class AutoEnumGeneratorConfig : ScriptableSingleton<AutoEnumGeneratorConfig>
     {
+        /// <summary> Build Settings変更時にシーンenumを自動更新するかを示す。 </summary>
         public bool AutoSceneListUpdate
         {
             get => _autoSceneListUpdate;
@@ -17,6 +19,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> タグ変更時にタグenumを自動更新するかを示す。 </summary>
         public bool AutoTagsUpdate
         {
             get => _autoTagsUpdate;
@@ -27,6 +30,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> レイヤー変更時にレイヤーenumを自動更新するかを示す。 </summary>
         public bool AutoLayerUpdate
         {
             get => _autoLayersUpdate;
@@ -37,10 +41,16 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
-        [SerializeField] private bool _autoSceneListUpdate = true;
-        [SerializeField] private bool _autoTagsUpdate = false;
-        [SerializeField] private bool _autoLayersUpdate = false;
+        [SerializeField, Tooltip("Build Settings変更時にシーンenumを自動更新するか。")]
+        private bool _autoSceneListUpdate = true;
 
+        [SerializeField, Tooltip("タグ変更時にタグenumを自動更新するか。")]
+        private bool _autoTagsUpdate = false;
+
+        [SerializeField, Tooltip("レイヤー変更時にレイヤーenumを自動更新するか。")]
+        private bool _autoLayersUpdate = false;
+
+        /// <summary> 現在の設定値をProjectSettingsへ保存する。 </summary>
         private void Save() => Save(true);
     }
 }

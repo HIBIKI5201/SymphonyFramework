@@ -1,29 +1,54 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
-    ///     セーブデータを管理するクラス
+    ///     CoreSystemが所有するライフタイムにSaveDataRegistryを連動させます。
     /// </summary>
-    /// <typeparam name="TData">データの型</typeparam>
-    /// <typeparam name="TLoader">ローダーの型</typeparam>
-    public static class SaveSystem<TData, TLoader>
-        where TData : class, new()
-        where TLoader : ISaveDataLoader<TData>, new()
+    internal static class SaveSystem
     {
-        public static async ValueTask<TData> Get()
+        /// <summary> セーブデータレジストリをシステムのライフタイムへ関連付ける。 </summary>
+        internal static void Initialize(
+            CancellationToken destroyCancellationToken,
+            Func<SaveDataLoader> loaderResolver)
         {
-            if (_saveData == null) 
-            {
-               await Load();
-            }
-
-            return _saveData?.MainData;
+            _destroyRegistration.Dispose();
+            SaveDataRegistry.ConfigureLoaderResolver(loaderResolver);
+            _destroyRegistration = destroyCancellationToken.Register(SaveDataRegistry.ResetRuntimeState);
         }
 
+        private static CancellationTokenRegistration _destroyRegistration;
+    }
+
+    /// <summary>
+    ///     指定したSaveDataLoaderでセーブデータを管理するジェネリックFacadeです。
+    /// </summary>
+    /// <typeparam name="TData"> 管理するセーブデータの型。 </typeparam>
+    /// <typeparam name="TLoader"> 使用するSaveDataLoaderの型。 </typeparam>
+    public static class SaveSystem<TData, TLoader>
+        where TData : SaveDataContent, new()
+        where TLoader : SaveDataLoader, new()
+    {
+        /// <summary> キャッシュまたは保存先からセーブデータを取得する。 </summary>
+        /// <returns> 取得したセーブデータ。 </returns>
+        public static async ValueTask<TData> Get()
+        {
+            if (_saveData == null)
+            {
+                _saveData = new TData();
+                await _loader.LoadAsync(typeof(TData), _saveData);
+            }
+
+            return _saveData;
+        }
+
+        /// <summary> セーブデータに記録された最終保存日時を取得する。 </summary>
+        /// <returns> ISO 8601形式の最終保存日時。 </returns>
         public static async ValueTask<string> GetDate()
         {
-            if (_saveData == null) 
+            if (_saveData == null)
             {
                 await Load();
             }
@@ -32,22 +57,24 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary>
-        ///     saveDataを保存する
+        ///     指定したSaveDataLoaderを用いて保存する。
         /// </summary>
         public static async ValueTask Save()
         {
             TData data = await Get();
-            _saveData = await _loader.Save(data);
+            await _loader.SaveAsync(typeof(TData), data);
         }
 
         /// <summary>
-        ///     DataTypeのデータを取得する
+        ///     指定したSaveDataLoaderを用いて現在のインスタンスへロードする。
         /// </summary>
         public static async ValueTask Load()
         {
-            _saveData = await _loader.Load();
+            _saveData ??= new TData();
+            await _loader.LoadAsync(typeof(TData), _saveData);
         }
 
+        /// <summary> キャッシュ中のセーブデータを破棄する。 </summary>
         public static void Dispose()
         {
             if (_saveData == null) { return; }
@@ -56,7 +83,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             _saveData = null;
         }
 
-        private static SaveData<TData> _saveData;
+        private static TData _saveData;
         private static readonly TLoader _loader = new();
     }
 }

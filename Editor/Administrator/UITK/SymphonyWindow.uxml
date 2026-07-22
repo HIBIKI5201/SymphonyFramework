@@ -4,6 +4,7 @@
         <SymphonyFrameWork.Editor.PauseWindow/>
         <SymphonyFrameWork.Editor.ServiceLocatorWindow/>
         <SymphonyFrameWork.Editor.SceneLoaderWindow/>
+        <SymphonyFrameWork.Editor.SaveDataRegistryWindow/>
         <SymphonyFrameWork.Editor.AutoEnumGeneratorWindow/>
     </engine:ScrollView>
 </engine:UXML>

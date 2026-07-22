@@ -11,7 +11,7 @@ namespace SymphonyFrameWork.Editor
     ///     サブクラスセレクターのカスタムプロパティドロワー。
     /// </summary>
     [CustomPropertyDrawer(typeof(SubclassSelectorAttribute))]
-    public class SubclassSelectorDrawer : PropertyDrawer
+    public sealed class SubclassSelectorDrawer : PropertyDrawer
     {
         /// <summary>
         ///     プロパティのGUIを描画する。
@@ -150,10 +150,10 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     ポップアップ表示用の型名配列を取得する。
         /// </summary>
-        /// <param name="finalSelectableTypes"></param>
-        /// <param name="baseType"></param>
-        /// <param name="allInheritedTypesWithAbstract"></param>
-        /// <returns></returns>
+        /// <param name="finalSelectableTypes"> nullを含む選択可能な型一覧。 </param>
+        /// <param name="baseType"> SerializeReferenceフィールドの宣言型。 </param>
+        /// <param name="allInheritedTypesWithAbstract"> カテゴリ判定に使用する全派生型。 </param>
+        /// <returns> 継承階層をカテゴリとして表現した表示名一覧。 </returns>
         private static string[] GetPopupArray(Type[] finalSelectableTypes, Type baseType, Type[] allInheritedTypesWithAbstract)
         {
             return finalSelectableTypes.Select(type =>

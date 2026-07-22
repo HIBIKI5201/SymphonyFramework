@@ -1,5 +1,6 @@
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,16 @@ using UnityEngine.SceneManagement;
 
 namespace SymphonyFrameWork.System.SceneLoad
 {
-    public class SceneLoadManager
+    /// <summary> Unity SceneManagerの操作とシーン追跡状態の同期を担当する。 </summary>
+    internal sealed class SceneLoadManager
     {
+        /// <summary> 状態の保存先を指定してシーン管理処理を生成する。 </summary>
         public SceneLoadManager(SceneLoadData data)
         {
             _data = data;
         }
 
+        /// <summary> ロード済みの指定シーンをアクティブに設定する。 </summary>
         public bool TrySetActiveScene(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -60,8 +64,9 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         /// <param name="name">シーン名</param>
         /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
-        /// <param name="mode"></param>
-        /// <param name="token"></param>
+        /// <param name="mode"> AdditiveまたはSingle相当のロード方式。 </param>
+        /// <param name="priority"> ロード後のアクティブシーン選択に使用する優先度。 </param>
+        /// <param name="token"> ロード処理を中断するためのトークン。 </param>
         /// <returns>ロードに成功したか</returns>
         public async ValueTask<bool> LoadScene(
             string name,
@@ -171,8 +176,13 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             List<Task> initializeTasks = new();
 
-            foreach (var obj in objs) //初期化インターフェースを取得して実行。
+            foreach (var obj in objs) //注入・初期化インターフェースを取得して実行。
             {
+                if (obj.TryGetComponent<IInjectable>(out var injectable))
+                {
+                    ServiceInjector.TryAutoInject(injectable);
+                }
+
                 if (obj.TryGetComponent<IInitializeAsync>(out var initialize))
                 {
                     initializeTasks.Add(initialize.DoInitialize());
@@ -191,11 +201,10 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     シーンをロードする。
         /// </summary>
-        /// <param name="sceneName">シーン名</param>
-        /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
-        /// <param name="mode"></param>
-        /// <param name="token"></param>
-        /// <returns>ロードに成功したか</returns>
+        /// <param name="names"> ロードするシーン名の一覧。 </param>
+        /// <param name="loadingAction"> 全シーンの平均進捗率を受け取る処理。 </param>
+        /// <param name="token"> ロード処理を中断するためのトークン。 </param>
+        /// <returns> すべてのシーンをロードできた場合はtrue。 </returns>
         public async ValueTask<bool> LoadScenes(
             string[] names,
             Action<float> loadingAction = null,
@@ -277,7 +286,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         /// <param name="name">シーン名</param>
         /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
-        /// <param name="token"></param>
+        /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
         /// <returns>アンロードに成功したか</returns>
         public async ValueTask<bool> UnloadScene(
             string name,
@@ -378,11 +387,10 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     シーンをアンロードする。
         /// </summary>
-        /// <param name="sceneName">シーン名</param>
-        /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
-        /// <param name="mode"></param>
-        /// <param name="token"></param>
-        /// <returns>ロードに成功したか</returns>
+        /// <param name="names"> アンロードするシーン名の一覧。 </param>
+        /// <param name="loadingAction"> 全シーンの平均進捗率を受け取る処理。 </param>
+        /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
+        /// <returns> すべてのシーンをアンロードできた場合はtrue。 </returns>
         public async ValueTask<bool> UnloadScenes(
             string[] names,
             Action<float> loadingAction = null,
@@ -459,6 +467,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             return true;
         }
 
+        /// <summary> Unityで現在ロードされているシーンから追跡データを再構築する。 </summary>
         internal void ResetSceneData()
         {
             int sceneCount = SceneManager.sceneCount;
@@ -472,6 +481,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             _data.Reset(kvps);
         }
 
+        /// <summary> 指定された初期シーンを順次ロードし、すべての完了を待機する。 </summary>
         internal async ValueTask InitializeLoad(string[] names)
         {
             ValueTask<bool>[] initializeTasks = new ValueTask<bool>[names.Length];
@@ -487,6 +497,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
         }
 
+        /// <summary> Unityシーンが有効かつロード済みで、名前を持つか確認する。 </summary>
         private static bool IsLoadedScene(Scene scene) =>
             scene.IsValid()
             && scene.isLoaded
@@ -494,6 +505,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         private readonly SceneLoadData _data;
 
+        /// <summary> システムシーンと指定シーンを残し、それ以外の追跡シーンをアンロードする。 </summary>
         private async ValueTask ResetScene(params string[] scenesToUnload)
         {
             string[] ignore = new string[] {SymphonyCoreSystem.SYMPHONY_SCENE_NAME }.Concat(scenesToUnload).ToArray();

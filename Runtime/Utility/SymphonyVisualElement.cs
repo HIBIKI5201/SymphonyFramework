@@ -22,10 +22,19 @@ namespace SymphonyFrameWork.Utility
         [Flags]
         public enum InitializeType
         {
+            /// <summary> ルート要素へ自動設定を適用しない。 </summary>
             None = 0,
+
+            /// <summary> positionをAbsoluteへ設定する。 </summary>
             Absolute = 1 << 0,
+
+            /// <summary> 幅と高さを親要素の100%へ設定する。 </summary>
             FullRangth = 1 << 1,
+
+            /// <summary> PickingModeをIgnoreへ設定する。 </summary>
             PickModeIgnore = 1 << 2,
+
+            /// <summary> すべての自動設定を適用する。 </summary>
             All = Absolute | FullRangth | PickModeIgnore
         }
 
@@ -34,11 +43,20 @@ namespace SymphonyFrameWork.Utility
         /// </summary>
         public enum LoadType
         {
+            /// <summary> Unity ResourcesからUXMLを読み込む。 </summary>
             Resources = 0,
+
+            /// <summary> AddressablesからUXMLを非同期に読み込む。 </summary>
             Addressable = 1,
+
+            /// <summary> EditorのAssetDatabaseからUXMLを読み込む。 </summary>
             AssetDataBase = 2
         }
 
+        /// <summary> UXMLのパスと読込方法を指定して非同期初期化を開始する。 </summary>
+        /// <param name="path"> 読み込むUXMLアセットのパス。 </param>
+        /// <param name="initializeType"> ルート要素へ適用する初期化設定。 </param>
+        /// <param name="loadType"> UXMLアセットの読込方法。 </param>
         public SymphonyVisualElement(string path, InitializeType initializeType = InitializeType.All,
             LoadType loadType = LoadType.Addressable)
         {
@@ -55,7 +73,8 @@ namespace SymphonyFrameWork.Utility
         /// </summary>
         /// <param name="path">UXMLのパス</param>
         /// <param name="type">初期化のタイプ</param>
-        /// <returns></returns>
+        /// <param name="loadType"> UXMLアセットの読込方法。 </param>
+        /// <returns> UXML読込とサブクラス初期化を表すTask。 </returns>
         private async Task Initialize(string path, InitializeType type, LoadType loadType)
         {
             VisualTreeAsset treeAsset = default;
@@ -133,7 +152,7 @@ namespace SymphonyFrameWork.Utility
         ///     サブクラス固有の初期化処理
         /// </summary>
         /// <param name="root">ロードしたUXMLのコンテナ</param>
-        /// <returns></returns>
+        /// <returns> サブクラス固有の初期化処理を表すValueTask。 </returns>
         protected abstract ValueTask Initialize_S(VisualElement root);
     }
 }
