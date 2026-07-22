@@ -1,25 +1,27 @@
 # Changelog
 
 ## [2.0.0] - 2026-07-22
+設計思想（[`DesignPhilosophy.md`](./DesignPhilosophy.md)）の改訂に合わせて、主要サブシステムの公開範囲とアーキテクチャを再構成しました。破壊的変更を含みます。
+
 ### Add
 - `IInjectable<T...>` を実装したシーンのルートオブジェクトへ、`SceneLoader` がロード完了時に自動注入する機能
+
+### Breaking
+- `SaveSystem<TData, TLoader>` のローダー制約を `where TLoader : ISaveDataLoader<TData>, new()` から `where TLoader : SaveDataLoader, new()` へ変更。旧 `ISaveDataLoader<T>` 実装（Obsoleteの `NugetDataLoader<T>`、`JsonUtilityDataLoader<T>` など）は `TLoader` に指定できなくなる。**移行方法:** `SaveSystem<TData, TLoader>` の利用箇所を `SaveDataRegistry.Get<T>()`／`SaveAsync<T>()`／`LoadAsync<T>()` へ置き換える（ローダー選択は `SaveSystemConfig` のProject Settingsに委ねる）。
+- 次の型を `public` から `internal` へ変更。型名を直接参照しているコードはコンパイルできなくなる: `ServiceLocateManager`、`ServiceLocateData`、`SceneLoadManager`、`SceneLoadData`（`SceneInfo`含む）、`SceneResetter`、`SymphonyCoreSystem`（`MoveObjectToSymphonySystem`含む）、`JsonUtilitySaveDataLoader`、`NewtonsoftSaveDataLoader`、`AudioManagerConfig`、`SaveSystemConfig`、`SceneManagerConfig`、`SymphonyHUDDrawer`。
+- `SymphonyLocate` を含む、継承を前提としない具象クラスを `sealed` 化。既存のサブクラスはコンパイルできなくなる。
 
 ### Change
 - Configの解決を `SymphonyCoreSystem` とEditorのCompositionからの注入へ変更
 - `SaveDataRegistry.RefreshLoader()` が注入済みResolverからローダーを再解決する構造へ変更
-- Service LocatorとScene Loaderの内部Manager／状態型をinternal化
-- 組み込みのJsonUtility／Newtonsoftセーブローダー実装をinternal化
-- `SymphonyCoreSystem`（Composition Root）と `MoveObjectToSymphonySystem` をinternal化
-- `AudioManagerConfig`、`SaveSystemConfig`、`SceneManagerConfig`、`SymphonyHUDDrawer` をinternal化
-- Editorアセンブリへ `InternalsVisibleTo` を追加
-- `SaveSystem<TData, TLoader>` のローダー制約を旧 `ISaveDataLoader<T>` から新 `SaveDataLoader` APIへ移行
 - Framework内部のログ呼び出しを `LogDirect`／`LogText` へ移行
-- 継承用に設計されたabstract基底クラスを除き、具象クラスをsealed化
+- Editorアセンブリへ `InternalsVisibleTo` を追加（Runtimeのinternal型をEditor拡張から参照するため。利用側プロジェクトのアセンブリには適用されない）
 
 ### Compatibility
 - `ServiceLocator`、`SceneLoader`、`SaveDataRegistry`、`AudioManager`、`PauseManager` のFacade APIは維持
 - `SaveDataLoader` と `PlayerPrefsSaveDataLoader` は利用側の拡張点としてpublicを維持
 - `ServiceInjector.Inject(...)` は手動呼び出し用のAPIとして維持（シーンロードを経由しない生成向け）
+- 上記Breakingに該当しないコードは、Facade API経由の利用であれば影響を受けない
 
 ## [1.27.20] - 2026-07-12
 ### Update
