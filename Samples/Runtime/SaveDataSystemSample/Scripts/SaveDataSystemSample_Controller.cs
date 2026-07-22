@@ -15,14 +15,13 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         private SaveDataSystemSample_PlayerDataA _PlayerDataA;
         private SaveDataSystemSample_PlayerDataB _PlayerDataB;
 
-        private async void Start()
+        private void Start()
         {
             AddCommentary("サンプルを開始しました。永続化済みデータを Registry にロードします。");
-            await LoadInternalAsync();
-            await LoadInternalAsyncB();
-
             _PlayerDataA = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
             _PlayerDataB = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            ReportLoadedDataA();
+            ReportLoadedDataB();
         }
 
         [ContextMenu("Save Sample Data")]
@@ -75,8 +74,14 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private async Awaitable LoadInternalAsync()
         {
-            SaveDataSystemSample_PlayerDataA data = _PlayerDataA;
+            await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataA>();
+            _PlayerDataA = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            ReportLoadedDataA();
+        }
 
+        private void ReportLoadedDataA()
+        {
+            SaveDataSystemSample_PlayerDataA data = _PlayerDataA;
             AddCommentary($"ロード完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Loaded: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
         }
@@ -131,8 +136,14 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private async Awaitable LoadInternalAsyncB()
         {
-            SaveDataSystemSample_PlayerDataB data = _PlayerDataB;
+            await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataB>();
+            _PlayerDataB = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            ReportLoadedDataB();
+        }
 
+        private void ReportLoadedDataB()
+        {
+            SaveDataSystemSample_PlayerDataB data = _PlayerDataB;
             AddCommentary($"ロード完了(B): ItemIDs [{FormatItemIDs(data)}]");
             Debug.Log($"Loaded(B): [{FormatItemIDs(data)}]");
         }
