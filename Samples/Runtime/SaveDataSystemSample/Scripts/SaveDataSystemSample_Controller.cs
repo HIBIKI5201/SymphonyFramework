@@ -12,12 +12,17 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         private readonly Queue<string> _commentaryLogs = new();
         private Vector2 _scrollPosition;
         private bool _isBusy;
+        private SaveDataSystemSample_PlayerDataA _PlayerDataA;
+        private SaveDataSystemSample_PlayerDataB _PlayerDataB;
 
         private async void Start()
         {
             AddCommentary("サンプルを開始しました。永続化済みデータを Registry にロードします。");
             await LoadInternalAsync();
             await LoadInternalAsyncB();
+
+            _PlayerDataA = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            _PlayerDataB = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
         }
 
         [ContextMenu("Save Sample Data")]
@@ -31,7 +36,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             _isBusy = true;
             AddCommentary("Registry が保持している現在インスタンスを永続化します。");
 
-            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            SaveDataSystemSample_PlayerDataA data = _PlayerDataA;
             await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerDataA>();
             AddCommentary($"保存完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Saved: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
@@ -70,7 +75,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private async Awaitable LoadInternalAsync()
         {
-            SaveDataSystemSample_PlayerDataA data = await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataA>();
+            SaveDataSystemSample_PlayerDataA data = _PlayerDataA;
 
             AddCommentary($"ロード完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Loaded: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
@@ -87,7 +92,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             _isBusy = true;
             AddCommentary("Registry が保持している DataB の現在インスタンスを永続化します。");
 
-            SaveDataSystemSample_PlayerDataB data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            SaveDataSystemSample_PlayerDataB data = _PlayerDataB;
             await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerDataB>();
             AddCommentary($"保存完了(B): ItemIDs [{FormatItemIDs(data)}]");
             Debug.Log($"Saved(B): [{FormatItemIDs(data)}]");
@@ -126,7 +131,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private async Awaitable LoadInternalAsyncB()
         {
-            SaveDataSystemSample_PlayerDataB data = await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataB>();
+            SaveDataSystemSample_PlayerDataB data = _PlayerDataB;
 
             AddCommentary($"ロード完了(B): ItemIDs [{FormatItemIDs(data)}]");
             Debug.Log($"Loaded(B): [{FormatItemIDs(data)}]");
@@ -134,8 +139,8 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
         private void OnGUI()
         {
-            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
-            SaveDataSystemSample_PlayerDataB dataB = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            SaveDataSystemSample_PlayerDataA dataA = _PlayerDataA;
+            SaveDataSystemSample_PlayerDataB dataB = _PlayerDataB;
             float margin = Mathf.Max(12f, Screen.width * 0.025f);
             float width = Screen.width - (margin * 2f);
             float height = Screen.height - (margin * 2f);
@@ -155,10 +160,10 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label("3. Delete 後に再アクセスすると、Registry が初期インスタンスを自動生成します。");
             GUILayout.Space(8f);
 
-            GUILayout.Label($"Editing Name : {data.PlayerName}");
-            GUILayout.Label($"Editing Level: {data.Level}");
-            GUILayout.Label($"Editing Gold : {data.Gold}");
-            GUILayout.Label($"Save Date    : {data.SaveDate ?? "(unsaved)"}");
+            GUILayout.Label($"Editing Name : {dataA.PlayerName}");
+            GUILayout.Label($"Editing Level: {dataA.Level}");
+            GUILayout.Label($"Editing Gold : {dataA.Gold}");
+            GUILayout.Label($"Save Date    : {dataA.SaveDate ?? "(unsaved)"}");
             GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerDataA>()}");
             GUILayout.Label($"Cache Loaded : {IsCacheLoaded<SaveDataSystemSample_PlayerDataA>()}");
             GUILayout.Label($"Busy         : {_isBusy}");

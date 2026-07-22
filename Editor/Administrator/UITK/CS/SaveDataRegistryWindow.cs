@@ -475,17 +475,5 @@ namespace SymphonyFrameWork.Editor
             return type.IsDefined(typeof(SerializableAttribute), false);
         }
 
-        private sealed class SaveDataDebugState : ScriptableObject
-        {
-            [SerializeReference]
-            private SaveDataContent _data;
-
-            public SaveDataContent GetData() => _data;
-
-            public void SetData(SaveDataContent data)
-            {
-                _data = data;
-            }
-        }
     }
 }
