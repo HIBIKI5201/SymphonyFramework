@@ -1,5 +1,6 @@
 ﻿using SymphonyFrameWork.Debugger.HUD;
 using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFrameWork.System.SaveSystem;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 using System;
@@ -36,6 +37,7 @@ namespace SymphonyFrameWork.System
         internal const string SYMPHONY_SCENE_NAME = "SymphonySystem";
 
         private static Scene? _systemScene;
+        private static SymphonyCoreSystemObject _systemObject;
 
         /// <summary>
         ///     初期化でシステム用のシーンを作成
@@ -45,6 +47,12 @@ namespace SymphonyFrameWork.System
         {
             //専用のシーン生成
             _systemScene = SceneManager.CreateScene(SYMPHONY_SCENE_NAME);
+
+            var systemGameObject = new GameObject(nameof(SymphonyCoreSystem));
+            _systemObject = systemGameObject.AddComponent<SymphonyCoreSystemObject>();
+            SceneManager.MoveGameObjectToScene(systemGameObject, _systemScene.Value);
+            SaveSystem.SaveSystem.Initialize(_systemObject.destroyCancellationToken);
+
             //各クラスの初期化
             PauseManager.Initialize();
             ServiceLocator.Initialize();

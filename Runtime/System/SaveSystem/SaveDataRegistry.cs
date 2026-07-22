@@ -122,6 +122,11 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         public static void RefreshLoader()
         {
+            ResetRuntimeState();
+        }
+
+        internal static void ResetRuntimeState()
+        {
             _cachedLoader = null;
             ClearCache();
         }

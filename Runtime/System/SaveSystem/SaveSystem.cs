@@ -4,6 +4,21 @@ using System.Threading.Tasks;
 namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
+    ///     CoreSystemが所有するライフタイムにSaveDataRegistryを連動させます。
+    /// </summary>
+    internal static class SaveSystem
+    {
+        internal static void Initialize(CancellationToken destroyCancellationToken)
+        {
+            _destroyRegistration.Dispose();
+            SaveDataRegistry.ResetRuntimeState();
+            _destroyRegistration = destroyCancellationToken.Register(SaveDataRegistry.ResetRuntimeState);
+        }
+
+        private static CancellationTokenRegistration _destroyRegistration;
+    }
+
+    /// <summary>
     ///     セーブデータを管理する互換 API です。
     /// </summary>
     /// <typeparam name="TData">データの型</typeparam>
