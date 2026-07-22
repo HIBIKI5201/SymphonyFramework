@@ -33,6 +33,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
             try
             {
+                OverwriteWithDefault(dataType, data);
                 JsonUtility.FromJsonOverwrite(json, data);
                 return default;
             }

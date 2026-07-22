@@ -51,6 +51,8 @@ namespace SymphonyFrameWork.Editor
         private void OnDisable()
         {
             EditorApplication.update -= Update;
+            _saveDataRegistryWindow?.Dispose();
+            _saveDataRegistryWindow = null;
         }
 
 

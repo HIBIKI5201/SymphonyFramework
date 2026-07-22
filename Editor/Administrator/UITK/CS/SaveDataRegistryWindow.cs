@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 namespace SymphonyFrameWork.Editor
 {
     [UxmlElement]
-    public partial class SaveDataRegistryWindow : SymphonyVisualElement
+    public partial class SaveDataRegistryWindow : SymphonyVisualElement, IDisposable
     {
         private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataRegistryWindow.SelectedTypeName";
 
@@ -31,6 +31,9 @@ namespace SymphonyFrameWork.Editor
         private IMGUIContainer _editorContainer;
         private ListView _cacheListView;
         private string _lastViewSignature;
+        private IReadOnlyList<SaveDataRegistryEntryInfo> _registryEntriesSnapshot;
+        private List<SaveDataRegistryEntryInfo> _sortedEntries = new();
+        private bool _disposed;
 
         public SaveDataRegistryWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "SaveDataRegistryWindow.uxml",
@@ -71,8 +74,36 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         public void Update()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             TryAutoSelectFromRegistry();
             RefreshView(false);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
+            if (_editorContainer != null)
+            {
+                _editorContainer.onGUIHandler = null;
+            }
+
+            _debugSerializedObject?.Dispose();
+            _debugSerializedObject = null;
+
+            if (_debugState != null)
+            {
+                UnityEngine.Object.DestroyImmediate(_debugState);
+            }
         }
 
         /// <summary>
@@ -112,6 +143,7 @@ namespace SymphonyFrameWork.Editor
             }
 
             _saveDataTypes = latestTypes;
+            _registryEntriesSnapshot = null;
 
             if (_saveDataTypes.Count <= 0)
             {
@@ -350,6 +382,12 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private void RebindDebugState(SaveDataContent data)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _debugSerializedObject?.Dispose();
             _debugState.SetData(data);
             _debugSerializedObject = new SerializedObject(_debugState);
         }
@@ -450,7 +488,14 @@ namespace SymphonyFrameWork.Editor
 
         private List<SaveDataRegistryEntryInfo> GetSortedEntries()
         {
-            Dictionary<Type, SaveDataRegistryEntryInfo> loadedEntries = SaveDataRegistry.GetEntries()
+            IReadOnlyList<SaveDataRegistryEntryInfo> registryEntries = SaveDataRegistry.GetEntries();
+            if (ReferenceEquals(registryEntries, _registryEntriesSnapshot))
+            {
+                return _sortedEntries;
+            }
+
+            _registryEntriesSnapshot = registryEntries;
+            Dictionary<Type, SaveDataRegistryEntryInfo> loadedEntries = registryEntries
                 .ToDictionary(entry => entry.DataType);
 
             List<SaveDataRegistryEntryInfo> entries = new(_saveDataTypes.Count);
@@ -469,9 +514,8 @@ namespace SymphonyFrameWork.Editor
                 }
             }
 
-            return entries
-                .OrderBy(entry => entry.DataType.FullName, StringComparer.Ordinal)
-                .ToList();
+            _sortedEntries = entries;
+            return _sortedEntries;
         }
 
         private static IEnumerable<Type> GetTypesSafe(Assembly assembly)

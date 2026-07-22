@@ -64,24 +64,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             _saveData = await _loader.Load();
         }
 
-        /// <summary>
-        ///     SaveDataRegistry 経由でロードします。
-        /// </summary>
-        public static async ValueTask LoadFromRegistry(CancellationToken token = default)
-        {
-            await SaveDataRegistry.LoadAsync<TData>(token);
-            _saveData = SaveDataRegistry.Get<TData>();
-        }
-
-        /// <summary>
-        ///     SaveDataRegistry 経由で保存します。
-        /// </summary>
-        public static async ValueTask SaveToRegistry(CancellationToken token = default)
-        {
-            _saveData = SaveDataRegistry.Get<TData>();
-            await SaveDataRegistry.SaveAsync<TData>(token);
-        }
-
         public static void Dispose()
         {
             if (_saveData == null) { return; }

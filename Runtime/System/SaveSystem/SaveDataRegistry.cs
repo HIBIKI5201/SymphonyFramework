@@ -35,9 +35,9 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             ValidateDataType(dataType);
 
-            SaveDataContent data = GetOrCreateCache(dataType, out bool isFirstAccess);
+            SaveDataContent data = GetOrCreateCache(dataType);
 
-            if (isFirstAccess)
+            if (!IsLoaded(dataType))
             {
                 LoadAsync(dataType).GetAwaiter().GetResult();
             }
@@ -54,7 +54,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         public static ValueTask LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            SaveDataContent current = GetOrCreateCache(dataType, out _);
+            SaveDataContent current = GetOrCreateCache(dataType);
 
             lock (_lock)
             {
@@ -89,8 +89,9 @@ namespace SymphonyFrameWork.System.SaveSystem
         public static async ValueTask SaveAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            SaveDataContent data = GetOrCreateCache(dataType, out _);
+            SaveDataContent data = GetOrCreateCache(dataType);
             await GetLoader().SaveAsync(dataType, data, token);
+            MarkLoaded(dataType, data);
         }
 
         public static async ValueTask DeleteAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
@@ -101,22 +102,36 @@ namespace SymphonyFrameWork.System.SaveSystem
         public static async ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            SaveDataContent current = GetOrCreateCache(dataType, out _);
+            SaveDataContent current = GetOrCreateCache(dataType);
+
+            lock (_lock)
+            {
+                _loadedTypes.Remove(dataType);
+            }
+
             await GetLoader().DeleteAsync(dataType, token);
             await GetLoader().LoadAsync(dataType, current, token);
+            MarkLoaded(dataType, current);
         }
 
         public static IReadOnlyList<SaveDataRegistryEntryInfo> GetEntries()
         {
             lock (_lock)
             {
+                if (!_entrySnapshotDirty)
+                {
+                    return _entrySnapshot;
+                }
+
                 List<SaveDataRegistryEntryInfo> entries = new(_cache.Count);
                 foreach ((Type type, SaveDataContent saveData) in _cache)
                 {
                     entries.Add(new SaveDataRegistryEntryInfo(type, saveData));
                 }
 
-                return entries;
+                _entrySnapshot = entries.AsReadOnly();
+                _entrySnapshotDirty = false;
+                return _entrySnapshot;
             }
         }
 
@@ -136,20 +151,39 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary>
         ///     ロードを発生させずにキャッシュ済みインスタンスを取得します。無ければ既定値で作成します。
         /// </summary>
-        private static SaveDataContent GetOrCreateCache(Type dataType, out bool isFirstAccess)
+        private static SaveDataContent GetOrCreateCache(Type dataType)
         {
             lock (_lock)
             {
                 if (_cache.TryGetValue(dataType, out SaveDataContent cached) && cached != null)
                 {
-                    isFirstAccess = false;
                     return cached;
                 }
 
                 SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
                 _cache[dataType] = created;
-                isFirstAccess = true;
+                _entrySnapshotDirty = true;
                 return created;
+            }
+        }
+
+        private static bool IsLoaded(Type dataType)
+        {
+            lock (_lock)
+            {
+                return _loadedTypes.Contains(dataType);
+            }
+        }
+
+        private static void MarkLoaded(Type dataType, SaveDataContent data)
+        {
+            lock (_lock)
+            {
+                if (_cache.TryGetValue(dataType, out SaveDataContent cached)
+                    && ReferenceEquals(cached, data))
+                {
+                    _loadedTypes.Add(dataType);
+                }
             }
         }
 
@@ -158,6 +192,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             try
             {
                 await GetLoader().LoadAsync(dataType, current, token);
+                MarkLoaded(dataType, current);
             }
             finally
             {
@@ -213,13 +248,19 @@ namespace SymphonyFrameWork.System.SaveSystem
                 }
 
                 _cache.Clear();
+                _loadedTypes.Clear();
                 _loadingTasks.Clear();
+                _entrySnapshotDirty = true;
             }
         }
 
         private static readonly object _lock = new();
         private static readonly Dictionary<Type, SaveDataContent> _cache = new();
+        private static readonly HashSet<Type> _loadedTypes = new();
         private static readonly Dictionary<Type, Task> _loadingTasks = new();
+
+        private static IReadOnlyList<SaveDataRegistryEntryInfo> _entrySnapshot = Array.Empty<SaveDataRegistryEntryInfo>();
+        private static bool _entrySnapshotDirty = true;
 
         private static ISaveDataLoader _cachedLoader;
     }

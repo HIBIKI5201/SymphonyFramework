@@ -34,6 +34,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
             try
             {
+                OverwriteWithDefault(dataType, data);
                 JsonConvert.PopulateObject(json, data);
                 return default;
             }
