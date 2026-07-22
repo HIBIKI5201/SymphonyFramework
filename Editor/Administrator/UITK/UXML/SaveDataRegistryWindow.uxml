@@ -5,8 +5,8 @@
         <ui:Label name="save-current-loader" text="Current Loader:" class="text" style="margin-top: 6px;"/>
         <ui:Label name="save-loaded-entries" text="Loaded Entries:" class="text" style="margin-bottom: 8px;"/>
 
-        <ui:Label text="Save Data Type" class="text" style="-unity-text-align: middle-left; width: 100%;"/>
-        <ui:DropdownField name="save-type-dropdown" class="text" style="width: 100%; margin-top: 4px; margin-bottom: 8px;"/>
+        <ui:Label text="Registry Cache" class="text" style="-unity-text-align: middle-left; width: 100%;"/>
+        <ui:ListView name="save-cache-list" fixed-item-height="42" class="text" style="width: 100%; height: 180px; margin-top: 6px; margin-bottom: 8px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);"/>
 
         <ui:VisualElement style="width: 100%; flex-direction: row; flex-wrap: wrap; margin-bottom: 8px;">
             <ui:Button name="save-load" text="Load" class="button" style="width: 32%; height: 32px;"/>
@@ -15,11 +15,8 @@
         </ui:VisualElement>
 
         <ui:Label text="Status" class="text" style="-unity-text-align: middle-left; width: 100%;"/>
-        <ui:Label name="save-status" text="Type を選択して Load してください。" class="text" style="-unity-text-align: upper-left; width: 100%; white-space: normal; margin-top: 4px; margin-bottom: 8px;"/>
+        <ui:Label name="save-status" text="Registry Cache からセーブデータを選択してください。" class="text" style="-unity-text-align: upper-left; width: 100%; white-space: normal; margin-top: 4px; margin-bottom: 8px;"/>
 
-        <ui:IMGUIContainer name="save-editor" style="width: 100%; margin-bottom: 10px;"/>
-
-        <ui:Label text="Registry Cache" class="text" style="-unity-text-align: middle-left; width: 100%;"/>
-        <ui:ListView name="save-cache-list" fixed-item-height="42" class="text" style="width: 100%; height: 180px; margin-top: 6px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);"/>
+        <ui:IMGUIContainer name="save-editor" style="width: 100%; height: 240px; min-height: 240px; max-height: 240px; flex-shrink: 0; overflow: hidden; margin-bottom: 10px;"/>
     </ui:VisualElement>
 </ui:UXML>

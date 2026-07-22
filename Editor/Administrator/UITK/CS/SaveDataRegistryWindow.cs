@@ -21,14 +21,13 @@ namespace SymphonyFrameWork.Editor
         private readonly SaveDataDebugState _debugState;
         private SerializedObject _debugSerializedObject;
         private List<Type> _saveDataTypes = new();
-        private int _selectedIndex = -1;
         private Type _selectedType;
         private string _statusMessage = "初期化中です…";
+        private Vector2 _editorScrollPosition;
 
         private Label _currentLoaderLabel;
         private Label _loadedEntriesCountLabel;
         private Label _statusLabel;
-        private DropdownField _typeDropdown;
         private IMGUIContainer _editorContainer;
         private ListView _cacheListView;
         private string _lastViewSignature;
@@ -50,7 +49,6 @@ namespace SymphonyFrameWork.Editor
             _currentLoaderLabel = root.Q<Label>("save-current-loader");
             _loadedEntriesCountLabel = root.Q<Label>("save-loaded-entries");
             _statusLabel = root.Q<Label>("save-status");
-            _typeDropdown = root.Q<DropdownField>("save-type-dropdown");
             _editorContainer = root.Q<IMGUIContainer>("save-editor");
             _cacheListView = root.Q<ListView>("save-cache-list");
 
@@ -58,7 +56,6 @@ namespace SymphonyFrameWork.Editor
             root.Q<Button>("save-save").clicked += () => ExecuteAction(SaveSelected);
             root.Q<Button>("save-delete").clicked += () => ExecuteAction(DeleteSelected);
 
-            _typeDropdown.RegisterValueChangedCallback(OnTypeChanged);
             _editorContainer.onGUIHandler = DrawEditorInspector;
 
             ConfigureCacheList();
@@ -115,14 +112,11 @@ namespace SymphonyFrameWork.Editor
             }
 
             _saveDataTypes = latestTypes;
-            _typeDropdown.choices = _saveDataTypes.Select(type => type.FullName).ToList();
 
             if (_saveDataTypes.Count <= 0)
             {
-                _selectedIndex = -1;
                 _selectedType = null;
                 RebindDebugState(null);
-                _typeDropdown.value = string.Empty;
                 _statusMessage = "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
                 _lastViewSignature = null;
                 return;
@@ -139,28 +133,20 @@ namespace SymphonyFrameWork.Editor
         ///     解決済みの型（null の場合は「まだ何も選べない」）を実際に選択状態へ反映します。
         ///     Registry にも SessionState にも手がかりが無い場合は、先頭の型を勝手に選んで
         ///     Get() を呼ぶ（＝触られてもいないデータを新規インスタンス化する）ことはせず、
-        ///     選択を行わずユーザー操作（Type 選択 or Load）を待ちます。
+        ///     Registry Cache にデータが現れるまで選択を行いません。
         /// </summary>
         private void ApplyAutoSelection(Type typeToSelect)
         {
-            int index = typeToSelect == null
-                ? -1
-                : _saveDataTypes.FindIndex(type => type == typeToSelect);
-
-            if (index < 0)
+            if (typeToSelect == null || !_saveDataTypes.Contains(typeToSelect))
             {
-                _selectedIndex = -1;
                 _selectedType = null;
-                _typeDropdown.SetValueWithoutNotify(string.Empty);
                 RebindDebugState(null);
-                _statusMessage = "Type を選択するか、既存のセーブデータを Load してください。";
+                _statusMessage = "Registry Cache からセーブデータを選択してください。";
                 _lastViewSignature = null;
                 return;
             }
 
-            _selectedIndex = index;
-            SetSelectedType(_saveDataTypes[index]);
-            _typeDropdown.SetValueWithoutNotify(_selectedType.FullName);
+            SetSelectedType(typeToSelect);
             BindCurrentSelection();
         }
 
@@ -191,6 +177,11 @@ namespace SymphonyFrameWork.Editor
 
         private void SetSelectedType(Type type)
         {
+            if (_selectedType != type)
+            {
+                _editorScrollPosition = Vector2.zero;
+            }
+
             _selectedType = type;
             SessionState.SetString(SELECTED_TYPE_SESSION_KEY, type?.AssemblyQualifiedName ?? string.Empty);
         }
@@ -206,8 +197,7 @@ namespace SymphonyFrameWork.Editor
             _cacheListView.makeItem = () => new Label();
             _cacheListView.bindItem = (element, index) =>
             {
-                IReadOnlyList<SaveDataRegistryEntryInfo> entries = GetSortedEntries();
-                SaveDataRegistryEntryInfo entry = entries[index];
+                SaveDataRegistryEntryInfo entry = (SaveDataRegistryEntryInfo)_cacheListView.itemsSource[index];
                 bool isLoaded = entry.Data != null;
                 bool isSaved = SaveDataRegistry.Exists(entry.DataType);
                 string state = isLoaded
@@ -218,19 +208,31 @@ namespace SymphonyFrameWork.Editor
 
                 ((Label)element).text = $"{entry.DataType.FullName}\nState: {state} / Date: {entry.SaveDate ?? "(unknown)"}";
             };
-            _cacheListView.selectionType = SelectionType.None;
+            _cacheListView.selectionType = SelectionType.Single;
+            _cacheListView.selectionChanged += OnCacheSelectionChanged;
         }
 
-        private void OnTypeChanged(ChangeEvent<string> evt)
+        private void OnCacheSelectionChanged(IEnumerable<object> selectedItems)
         {
-            int newIndex = _saveDataTypes.FindIndex(type => type.FullName == evt.newValue);
-            if (newIndex < 0 || newIndex == _selectedIndex)
+            foreach (object selectedItem in selectedItems)
+            {
+                if (selectedItem is SaveDataRegistryEntryInfo entry)
+                {
+                    SelectType(entry.DataType);
+                }
+
+                return;
+            }
+        }
+
+        private void SelectType(Type type)
+        {
+            if (type == null || !_saveDataTypes.Contains(type) || type == _selectedType)
             {
                 return;
             }
 
-            _selectedIndex = newIndex;
-            SetSelectedType(_saveDataTypes[_selectedIndex]);
+            SetSelectedType(type);
             BindCurrentSelection();
             RefreshView(true);
         }
@@ -238,21 +240,32 @@ namespace SymphonyFrameWork.Editor
         private void DrawEditorInspector()
         {
             _debugSerializedObject.Update();
+            _editorScrollPosition = EditorGUILayout.BeginScrollView(
+                _editorScrollPosition,
+                GUILayout.ExpandWidth(true),
+                GUILayout.ExpandHeight(true));
 
-            SerializedProperty dataProperty = _debugSerializedObject.FindProperty("_data");
-            if (dataProperty.managedReferenceValue == null)
+            try
             {
-                // SaveDataRegistry.Get() は必ず何らかのインスタンスを返すため、型が選択されていれば
-                // ここには到達しない。到達するのは (a) プロジェクトに SaveDataContent を継承した型が
-                // 一つも無い、または (b) まだ何もインスタンス化されておらず自動選択もしていない場合のみ。
-                // どちらの理由かは _statusMessage 側で出し分けているので、そのままここに表示する。
-                EditorGUILayout.HelpBox(_statusMessage, MessageType.Info);
+                SerializedProperty dataProperty = _debugSerializedObject.FindProperty("_data");
+                if (dataProperty.managedReferenceValue == null)
+                {
+                    // SaveDataRegistry.Get() は必ず何らかのインスタンスを返すため、型が選択されていれば
+                    // ここには到達しない。到達するのは (a) プロジェクトに SaveDataContent を継承した型が
+                    // 一つも無い、または (b) まだ何もインスタンス化されておらず自動選択もしていない場合のみ。
+                    // どちらの理由かは _statusMessage 側で出し分けているので、そのままここに表示する。
+                    EditorGUILayout.HelpBox(_statusMessage, MessageType.Info);
+                }
+                else
+                {
+                    // SaveDataContent.SaveDate は [ReadOnly] なので、再帰描画の中で
+                    // SaveDate だけが読み取り専用になり、派生クラスのフィールドは編集できる。
+                    EditorGUILayout.PropertyField(dataProperty, new GUIContent("Data"), true);
+                }
             }
-            else
+            finally
             {
-                // SaveDataContent.SaveDate は [ReadOnly] なので、再帰描画の中で
-                // SaveDate だけが読み取り専用になり、派生クラスのフィールドは編集できる。
-                EditorGUILayout.PropertyField(dataProperty, new GUIContent("Data"), true);
+                EditorGUILayout.EndScrollView();
             }
 
             _debugSerializedObject.ApplyModifiedProperties();
@@ -345,7 +358,7 @@ namespace SymphonyFrameWork.Editor
         {
             if (_selectedType == null)
             {
-                _statusMessage = "Save Data Type が未選択です。";
+                _statusMessage = "Registry Cache からセーブデータを選択してください。";
                 RefreshView(false);
                 return;
             }
@@ -380,11 +393,33 @@ namespace SymphonyFrameWork.Editor
             _statusLabel.text = _statusMessage;
             _cacheListView.itemsSource = entries;
             _cacheListView.Rebuild();
+            SyncCacheSelection(entries);
 
             if (forceEditorRepaint)
             {
                 _editorContainer.MarkDirtyRepaint();
             }
+        }
+
+        private void SyncCacheSelection(IReadOnlyList<SaveDataRegistryEntryInfo> entries)
+        {
+            int selectedEntryIndex = -1;
+            for (int index = 0; index < entries.Count; index++)
+            {
+                if (entries[index].DataType == _selectedType)
+                {
+                    selectedEntryIndex = index;
+                    break;
+                }
+            }
+
+            if (selectedEntryIndex < 0)
+            {
+                _cacheListView.SetSelectionWithoutNotify(Array.Empty<int>());
+                return;
+            }
+
+            _cacheListView.SetSelectionWithoutNotify(new[] { selectedEntryIndex });
         }
 
         private static string BuildViewSignature(
