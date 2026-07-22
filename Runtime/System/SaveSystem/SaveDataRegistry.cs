@@ -146,7 +146,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             ClearCache();
         }
 
-        public static ISaveDataLoader GetCurrentLoader() => GetLoader();
+        public static SaveDataLoader GetCurrentLoader() => GetLoader();
 
         /// <summary>
         ///     ロードを発生させずにキャッシュ済みインスタンスを取得します。無ければ既定値で作成します。
@@ -203,7 +203,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
-        private static ISaveDataLoader GetLoader()
+        private static SaveDataLoader GetLoader()
         {
             if (_cachedLoader != null)
             {
@@ -262,6 +262,6 @@ namespace SymphonyFrameWork.System.SaveSystem
         private static IReadOnlyList<SaveDataRegistryEntryInfo> _entrySnapshot = Array.Empty<SaveDataRegistryEntryInfo>();
         private static bool _entrySnapshotDirty = true;
 
-        private static ISaveDataLoader _cachedLoader;
+        private static SaveDataLoader _cachedLoader;
     }
 }

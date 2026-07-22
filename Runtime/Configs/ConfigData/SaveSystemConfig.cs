@@ -8,9 +8,9 @@ namespace SymphonyFrameWork
     [Serializable]
     public class SaveSystemConfig : ScriptableObject
     {
-        public ISaveDataLoader Loader => _loader;
+        public SaveDataLoader Loader => _loader;
 
         [SerializeReference, SubclassSelector]
-        private ISaveDataLoader _loader = new JsonUtilitySaveDataLoader();
+        private SaveDataLoader _loader = new JsonUtilitySaveDataLoader();
     }
 }
