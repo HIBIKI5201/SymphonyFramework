@@ -8,8 +8,10 @@ using UnityEditor;
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
-    public class ServiceLocateManager
+    /// <summary> Service Locatorへの登録、解除、所有インスタンスの破棄を調停する。 </summary>
+    internal sealed class ServiceLocateManager
     {
+        /// <summary> 登録状態の保存先を指定して管理処理を生成する。 </summary>
         public ServiceLocateManager(ServiceLocateData data)
         {
             _data = data;
@@ -18,9 +20,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定されたインスタンスをロケーターに登録します。
         /// </summary>
-        /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
-        /// <param name="instance">登録するインスタンス。</param>
-        /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
+        /// <param name="type"> 登録時のキーとして使用する実行時型。 </param>
+        /// <param name="instance"> 登録するインスタンス。 </param>
+        /// <param name="locateType"> SingletonまたはLocatorの登録方式。 </param>
         public bool RegisterInstance(Type type, object instance, LocateType locateType = LocateType.Singleton)
         {
             if (instance == null) { return false; }
@@ -59,8 +61,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定した型のインスタンスをロケーターから登録解除します。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <param name="type"> 登録解除する実行時型。 </param>
+        /// <returns> 登録を解除できた場合はtrue。 </returns>
         public bool UnregisterInstance(Type type)
         {
             // 渡されたインスタンスが、指定された型で登録されているものと同一であるかを確認します。
@@ -84,7 +86,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定した型のインスタンスを破棄します。
         /// </summary>
-        /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
+        /// <param name="type"> 破棄する登録済みインスタンスの実行時型。 </param>
 
         public bool DestroyInstance(Type type)
         {
@@ -102,6 +104,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
         private readonly ServiceLocateData _data;
 
+        /// <summary> IDisposableまたはComponentとして登録インスタンスを解放する。 </summary>
         private bool Dispose(object instance)
         {
             bool isDispose = false;

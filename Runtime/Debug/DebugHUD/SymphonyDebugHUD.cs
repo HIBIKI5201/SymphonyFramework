@@ -43,7 +43,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <summary>
         ///     SymphonyDebugHUDに追加のテキストを登録する。
         /// </summary>
-        /// <param name="textFunc"></param>
+        /// <param name="textFunc"> 毎フレーム表示文字列を返す処理。 </param>
         public static void AddText(Func<string> textFunc)
         {
             if (_debugHUD == null)
@@ -57,7 +57,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <summary>
         ///     SymphonyDebugHUDから追加のテキストを解除する。
         /// </summary>
-        /// <param name="textFunc"></param>
+        /// <param name="textFunc"> 解除する文字列生成処理。 </param>
         public static void RemoveText(Func<string> textFunc)
         {
             if (_debugHUD == null)
@@ -71,7 +71,10 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <summary>
         ///     SymphonyDebugHUDに追加のテキストを表示する。
         /// </summary>
-        /// <param name="text"></param>
+        /// <param name="text"> 一時表示する文字列。 </param>
+        /// <param name="duration"> 表示を継続する秒数。 </param>
+        /// <param name="color"> 文字へ適用する色。既定値の場合は色指定なし。 </param>
+        /// <param name="token"> 表示待機を中断するためのトークン。 </param>
         public static async ValueTask AddText(string text, float duration = 3, Color color = default, CancellationToken token = default)
         {
             if (_debugHUD == null)
@@ -100,6 +103,7 @@ namespace SymphonyFrameWork.Debugger.HUD
             }
         }
 
+        /// <summary> 既存HUDを破棄し、遅延生成状態を初期化する。 </summary>
         internal static void Initialize()
         {
             if (_debugHUD?.IsValueCreated ?? false)
@@ -113,6 +117,8 @@ namespace SymphonyFrameWork.Debugger.HUD
 
         private static Lazy<SymphonyHUDDrawer> _debugHUD;
 
+        /// <summary> SymphonyのシステムオブジェクトとしてHUD描画コンポーネントを生成する。 </summary>
+        /// <returns> 生成したHUD描画コンポーネント。 </returns>
         private static SymphonyHUDDrawer CreateDebugHUD()
         {
             return SymphonyCoreSystem.CreateSystemObject<SymphonyHUDDrawer>();

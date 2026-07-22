@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,10 +9,13 @@ namespace SymphonyFrameWork.System.SaveSystem
     /// </summary>
     internal static class SaveSystem
     {
-        internal static void Initialize(CancellationToken destroyCancellationToken)
+        /// <summary> セーブデータレジストリをシステムのライフタイムへ関連付ける。 </summary>
+        internal static void Initialize(
+            CancellationToken destroyCancellationToken,
+            Func<SaveDataLoader> loaderResolver)
         {
             _destroyRegistration.Dispose();
-            SaveDataRegistry.ResetRuntimeState();
+            SaveDataRegistry.ConfigureLoaderResolver(loaderResolver);
             _destroyRegistration = destroyCancellationToken.Register(SaveDataRegistry.ResetRuntimeState);
         }
 
@@ -19,24 +23,29 @@ namespace SymphonyFrameWork.System.SaveSystem
     }
 
     /// <summary>
-    ///     セーブデータを管理する互換 API です。
+    ///     指定したSaveDataLoaderでセーブデータを管理するジェネリックFacadeです。
     /// </summary>
-    /// <typeparam name="TData">データの型</typeparam>
-    /// <typeparam name="TLoader">ローダーの型</typeparam>
+    /// <typeparam name="TData"> 管理するセーブデータの型。 </typeparam>
+    /// <typeparam name="TLoader"> 使用するSaveDataLoaderの型。 </typeparam>
     public static class SaveSystem<TData, TLoader>
         where TData : SaveDataContent, new()
-        where TLoader : ISaveDataLoader<TData>, new()
+        where TLoader : SaveDataLoader, new()
     {
+        /// <summary> キャッシュまたは保存先からセーブデータを取得する。 </summary>
+        /// <returns> 取得したセーブデータ。 </returns>
         public static async ValueTask<TData> Get()
         {
             if (_saveData == null)
             {
-                _saveData = await _loader.Load();
+                _saveData = new TData();
+                await _loader.LoadAsync(typeof(TData), _saveData);
             }
 
             return _saveData;
         }
 
+        /// <summary> セーブデータに記録された最終保存日時を取得する。 </summary>
+        /// <returns> ISO 8601形式の最終保存日時。 </returns>
         public static async ValueTask<string> GetDate()
         {
             if (_saveData == null)
@@ -48,22 +57,24 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary>
-        ///     既存のジェネリックローダーを用いて保存します。
+        ///     指定したSaveDataLoaderを用いて保存する。
         /// </summary>
         public static async ValueTask Save()
         {
             TData data = await Get();
-            _saveData = await _loader.Save(data);
+            await _loader.SaveAsync(typeof(TData), data);
         }
 
         /// <summary>
-        ///     既存のジェネリックローダーを用いてロードします。
+        ///     指定したSaveDataLoaderを用いて現在のインスタンスへロードする。
         /// </summary>
         public static async ValueTask Load()
         {
-            _saveData = await _loader.Load();
+            _saveData ??= new TData();
+            await _loader.LoadAsync(typeof(TData), _saveData);
         }
 
+        /// <summary> キャッシュ中のセーブデータを破棄する。 </summary>
         public static void Dispose()
         {
             if (_saveData == null) { return; }

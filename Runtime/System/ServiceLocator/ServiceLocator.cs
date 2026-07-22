@@ -21,9 +21,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定されたインスタンスをロケーターに登録します。
         /// </summary>
-        /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
-        /// <param name="instance">登録するインスタンス。</param>
-        /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
+        /// <typeparam name="T"> 登録するインスタンスの型。 </typeparam>
+        /// <param name="instance"> 登録するインスタンス。 </param>
+        /// <param name="type"> SingletonまたはLocatorの登録方式。 </param>
         public static bool RegisterInstance<T>(T instance, LocateType type = DEFAULT_LOCATE_TYPE) where T : class
         {
             return RegisterInstance(typeof(T), instance, type);
@@ -32,9 +32,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定されたインスタンスをロケーターに登録します。
         /// </summary>
-        /// <typeparam name="T">登録するインスタンスの型。クラスである必要があります。</typeparam>
-        /// <param name="instance">登録するインスタンス。</param>
-        /// <param name="type">登録の種類（SingletonまたはLocator）。</param>
+        /// <param name="type"> 登録時のキーとして使用する実行時型。 </param>
+        /// <param name="instance"> 登録するインスタンス。 </param>
+        /// <param name="locateType"> SingletonまたはLocatorの登録方式。 </param>
         public static bool RegisterInstance(Type type, object instance, LocateType locateType = DEFAULT_LOCATE_TYPE)
         {
             return _manager.RegisterInstance(type, instance, locateType);
@@ -43,9 +43,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定したインスタンスをロケーターから登録解除します。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="instance"></param>
-        /// <returns></returns>
+        /// <typeparam name="T"> 登録解除するインスタンスの型。 </typeparam>
+        /// <param name="instance"> 現在の登録と同一か確認するインスタンス。 </param>
+        /// <returns> 同一インスタンスの登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
             if (instance == null) { return false; }
@@ -57,8 +57,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定したタイプをロケーターから登録解除します。
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type"> 登録解除する実行時型。 </param>
+        /// <returns> 登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance(Type type)
         {
             return _manager.UnregisterInstance(type);
@@ -67,8 +67,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定した型のインスタンスをロケーターから登録解除します。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T"> 登録解除するインスタンスの型。 </typeparam>
+        /// <returns> 登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance<T>() where T : class
         {
             return _manager.UnregisterInstance(typeof(T));
@@ -113,16 +113,19 @@ namespace SymphonyFrameWork.System.ServiceLocate
             return true;
         }
 
+        /// <summary> 指定型のインスタンスが登録されているか確認する。 </summary>
         public static bool IsExistInstance<T>() where T : class
         {
             return IsExistInstance(typeof(T));
         }
 
+        /// <summary> 指定インスタンスの型が登録されているか確認する。 </summary>
         public static bool IsExistInstance<T>(T instance) where T : class
         {
             return IsExistInstance(typeof(T));
         }
 
+        /// <summary> 実行時型のインスタンスが登録されているか確認する。 </summary>
         public static bool IsExistInstance(Type type)
         {
             return _data.IsLocate(type);
@@ -147,9 +150,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary>
         ///     指定した型のインスタンスが登録されているかどうかを確認し、登録されていればそのインスタンスを返します。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="result"></param>
-        /// <returns></returns>
+        /// <typeparam name="T"> 取得するインスタンスの型。 </typeparam>
+        /// <param name="result"> 取得できた登録済みインスタンス。 </param>
+        /// <returns> インスタンスを取得できた場合はtrue。 </returns>
         public static bool TryGetInstance<T>(out T result) where T : class
         {
             result = _data.Get<T>();
@@ -188,6 +191,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             return new ValueTask<T>(tcs.Task);
         }
 
+        /// <summary> 制限時間内に指定型のインスタンスを取得し、成否と結果を返す。 </summary>
         public static async ValueTask<(bool success, T result)> TryGetInstanceAsync<T>(
             byte grace = 120,
             CancellationToken token = default)
@@ -244,6 +248,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _data.RegisterAction(action);
         }
 
+        /// <summary> Locator状態を初期化し、システム破棄時のリセットを登録する。 </summary>
         internal static void Initialize(CancellationToken destroyCancellationToken)
         {
             _destroyRegistration.Dispose();
@@ -253,6 +258,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _destroyRegistration = destroyCancellationToken.Register(ResetRuntimeState);
         }
 
+        /// <summary> 登録状態を消去してLocatorを未初期化状態へ戻す。 </summary>
         private static void ResetRuntimeState()
         {
             _data?.Clear();

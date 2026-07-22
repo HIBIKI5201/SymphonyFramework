@@ -13,8 +13,9 @@ using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
+    /// <summary> SaveDataRegistryのキャッシュ確認、編集、保存操作を提供する管理パネル。 </summary>
     [UxmlElement]
-    public partial class SaveDataRegistryWindow : SymphonyVisualElement, IDisposable
+    public sealed partial class SaveDataRegistryWindow : SymphonyVisualElement, IDisposable
     {
         private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataRegistryWindow.SelectedTypeName";
 
@@ -35,6 +36,7 @@ namespace SymphonyFrameWork.Editor
         private List<SaveDataRegistryEntryInfo> _sortedEntries = new();
         private bool _disposed;
 
+        /// <summary> 管理パネル用UXMLと一時編集状態の初期化を開始する。 </summary>
         public SaveDataRegistryWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "SaveDataRegistryWindow.uxml",
             InitializeType.None,
@@ -47,6 +49,7 @@ namespace SymphonyFrameWork.Editor
             _debugSerializedObject = new SerializedObject(_debugState);
         }
 
+        /// <summary> レジストリ操作ボタン、一覧、データInspectorを構成する。 </summary>
         protected override ValueTask Initialize_S(VisualElement root)
         {
             _currentLoaderLabel = root.Q<Label>("save-current-loader");
@@ -83,6 +86,7 @@ namespace SymphonyFrameWork.Editor
             RefreshView(false);
         }
 
+        /// <summary> UIコールバックと一時編集用Unityオブジェクトを破棄する。 </summary>
         public void Dispose()
         {
             if (_disposed)
@@ -126,6 +130,7 @@ namespace SymphonyFrameWork.Editor
             ApplyAutoSelection(typeToSelect);
         }
 
+        /// <summary> AppDomain内の対応セーブデータ型一覧を最新状態へ同期する。 </summary>
         private void EnsureTypeListCurrent()
         {
             List<Type> latestTypes = AppDomain.CurrentDomain.GetAssemblies()
@@ -207,6 +212,7 @@ namespace SymphonyFrameWork.Editor
                 .First();
         }
 
+        /// <summary> 選択型を更新し、ドメインリロード後に復元できるようSessionStateへ保存する。 </summary>
         private void SetSelectedType(Type type)
         {
             if (_selectedType != type)
@@ -218,12 +224,14 @@ namespace SymphonyFrameWork.Editor
             SessionState.SetString(SELECTED_TYPE_SESSION_KEY, type?.AssemblyQualifiedName ?? string.Empty);
         }
 
+        /// <summary> SessionStateから前回選択していたセーブデータ型を復元する。 </summary>
         private static Type RestoreSelectedTypeFromSession()
         {
             string typeName = SessionState.GetString(SELECTED_TYPE_SESSION_KEY, string.Empty);
             return string.IsNullOrEmpty(typeName) ? null : Type.GetType(typeName);
         }
 
+        /// <summary> キャッシュ一覧の要素生成、表示内容、選択イベントを構成する。 </summary>
         private void ConfigureCacheList()
         {
             _cacheListView.makeItem = () => new Label();
@@ -244,6 +252,7 @@ namespace SymphonyFrameWork.Editor
             _cacheListView.selectionChanged += OnCacheSelectionChanged;
         }
 
+        /// <summary> キャッシュ一覧で選択されたセーブデータ型を編集対象へ反映する。 </summary>
         private void OnCacheSelectionChanged(IEnumerable<object> selectedItems)
         {
             foreach (object selectedItem in selectedItems)
@@ -257,6 +266,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> 有効なセーブデータ型を選択して現在のキャッシュへバインドする。 </summary>
         private void SelectType(Type type)
         {
             if (type == null || !_saveDataTypes.Contains(type) || type == _selectedType)
@@ -269,6 +279,7 @@ namespace SymphonyFrameWork.Editor
             RefreshView(true);
         }
 
+        /// <summary> 選択中セーブデータをスクロール可能なInspectorとして描画する。 </summary>
         private void DrawEditorInspector()
         {
             _debugSerializedObject.Update();
@@ -303,12 +314,14 @@ namespace SymphonyFrameWork.Editor
             _debugSerializedObject.ApplyModifiedProperties();
         }
 
+        /// <summary> 対応型一覧と管理パネル表示を強制更新する。 </summary>
         private void RefreshTypeList()
         {
             EnsureTypeListCurrent();
             RefreshView(true);
         }
 
+        /// <summary> 選択型のレジストリ正本を一時編集状態へバインドする。 </summary>
         private void BindCurrentSelection()
         {
             if (_selectedType == null)
@@ -322,6 +335,7 @@ namespace SymphonyFrameWork.Editor
             _lastViewSignature = null;
         }
 
+        /// <summary> 選択中の型を保存先から再ロードして編集状態へ反映する。 </summary>
         private void LoadSelected()
         {
             SaveDataRegistry.LoadAsync(_selectedType).GetAwaiter().GetResult();
@@ -332,6 +346,7 @@ namespace SymphonyFrameWork.Editor
             RefreshView(true);
         }
 
+        /// <summary> Inspectorの編集内容をレジストリ正本へ同期して保存する。 </summary>
         private void SaveSelected()
         {
             SaveDataContent editingData = _debugState.GetData();
@@ -357,6 +372,7 @@ namespace SymphonyFrameWork.Editor
             RefreshView(true);
         }
 
+        /// <summary> 確認後に選択型の保存データを削除し、現在インスタンスを初期化する。 </summary>
         private void DeleteSelected()
         {
             if (!EditorUtility.DisplayDialog(
@@ -392,6 +408,7 @@ namespace SymphonyFrameWork.Editor
             _debugSerializedObject = new SerializedObject(_debugState);
         }
 
+        /// <summary> 選択状態を検証し、管理パネル操作中の例外をステータス表示へ変換する。 </summary>
         private void ExecuteAction(Action action)
         {
             if (_selectedType == null)
@@ -413,6 +430,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> 表示署名が変わった場合、または強制指定時に管理パネルを更新する。 </summary>
         private void RefreshView(bool forceEditorRepaint)
         {
             List<SaveDataRegistryEntryInfo> entries = GetSortedEntries();
@@ -439,6 +457,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> 現在の選択型に対応する一覧行を通知なしで選択状態へ同期する。 </summary>
         private void SyncCacheSelection(IReadOnlyList<SaveDataRegistryEntryInfo> entries)
         {
             int selectedEntryIndex = -1;
@@ -460,6 +479,7 @@ namespace SymphonyFrameWork.Editor
             _cacheListView.SetSelectionWithoutNotify(new[] { selectedEntryIndex });
         }
 
+        /// <summary> 不要なUI再構築を避けるため、現在の表示内容を表す署名を生成する。 </summary>
         private static string BuildViewSignature(
             IReadOnlyList<SaveDataRegistryEntryInfo> entries,
             string currentLoaderText,
@@ -486,6 +506,7 @@ namespace SymphonyFrameWork.Editor
             return builder.ToString();
         }
 
+        /// <summary> 対応型の順序に揃えた保存済みまたはキャッシュ済みエントリ一覧を取得する。 </summary>
         private List<SaveDataRegistryEntryInfo> GetSortedEntries()
         {
             IReadOnlyList<SaveDataRegistryEntryInfo> registryEntries = SaveDataRegistry.GetEntries();
@@ -518,6 +539,7 @@ namespace SymphonyFrameWork.Editor
             return _sortedEntries;
         }
 
+        /// <summary> 一部の型をロードできないAssemblyからも取得可能な型だけを列挙する。 </summary>
         private static IEnumerable<Type> GetTypesSafe(Assembly assembly)
         {
             try
@@ -530,6 +552,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> 管理パネルで生成・編集できるセーブデータ具象型か検証する。 </summary>
         private static bool IsSupportedSaveDataType(Type type)
         {
             if (type == null

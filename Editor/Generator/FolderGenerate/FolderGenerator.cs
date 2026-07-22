@@ -45,7 +45,7 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     パスのフォルダを生成する。
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path"> 再帰的に生成するAssets配下のフォルダパス。 </param>
         private static void FolderCreate(string path)
         {
             // フォルダがあれば終了。
@@ -68,7 +68,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     全てのフォルダのパスを生成して返す。
         /// </summary>
-        /// <returns></returns>
+        /// <param name="markdownPath"> フォルダ構成を記述したMarkdownファイルのパス。 </param>
+        /// <returns> Assetsからの相対フォルダパス一覧。 </returns>
         public static string[] LoadFolderPaths(string markdownPath)
         {
             string[] lines = File.ReadAllLines(markdownPath);

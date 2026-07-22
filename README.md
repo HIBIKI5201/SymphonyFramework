@@ -3,7 +3,7 @@
 Unity プロジェクトで繰り返し必要になる、シーン遷移、サービス管理、セーブデータ、オーディオ、ポーズ、デバッグ機能をまとめたゲーム開発向けフレームワークです。
 
 - 対応 Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **1.27.20**
+- 現在のバージョン: **2.0.0**
 - ライセンス: **MIT**
 
 ## 主な機能
@@ -138,7 +138,7 @@ ServiceLocator.RegisterInstance<IGameSession>(session);
 IGameSession current = ServiceLocator.GetInstance<IGameSession>();
 ```
 
-`IInjectable<T...>` と `ServiceInjector.Inject(...)` を使った、最大4依存までの明示的な注入にも対応しています。
+`IInjectable<T...>` を実装したコンポーネントは、`SceneLoader` がシーンをロードした際にルートオブジェクトへ自動的に注入します（最大4依存まで）。シーンロードを経由しない生成（実行時Instantiateなど）では、`ServiceInjector.Inject(...)` を手動で呼び出してください。
 
 ### Scene Loader
 

@@ -6,16 +6,18 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     SymphonyFrameWorkのディレクトリを保護するクラス
     /// </summary>
-    public class SymphonyAssetProtector : AssetPostprocessor
+    public sealed class SymphonyAssetProtector : AssetPostprocessor
     {
         private const string LOCK_PATH = SymphonyConstant.TOOL_MENU_SETTING_PATH + "Symphony Asset Lock";
 
+        /// <summary> 保存済みのロック状態をEditor起動後のメニューへ反映する。 </summary>
         static SymphonyAssetProtector()
         {
             // Unityエディタが再起動された後でも状態が反映されるようにする
             EditorApplication.delayCall += () => ValidateLock();
         }
 
+        /// <summary> アセット移動を検知し、Framework配下の移動制限を適用する。 </summary>
         private static void OnPostprocessAllAssets(
             string[] importedAssets,
             string[] deletedAssets,
@@ -55,8 +57,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     SymphonyFrameWorkフォルダ内の物が移動されたら戻す
         /// </summary>
-        /// <param name="movedAssets"></param>
-        /// <param name="movedFromAssetPaths"></param>
+        /// <param name="movedAssets"> 移動後のアセットパス一覧。 </param>
+        /// <param name="movedFromAssetPaths"> 移動前のアセットパス一覧。 </param>
         private static void SymphonyFileDontMove(string[] movedAssets, string[] movedFromAssetPaths)
         {
             for (var i = 0; i < movedAssets.Length; i++)

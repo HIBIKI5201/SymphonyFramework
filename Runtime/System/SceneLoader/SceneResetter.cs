@@ -6,8 +6,10 @@ using UnityEngine.SceneManagement;
 
 namespace SymphonyFrameWork.System.SceneLoad
 {
-    public static class SceneResetter
+    /// <summary> 起動時のシーン整理と初期シーンロードを実行する。 </summary>
+    internal static class SceneResetter
     {
+        /// <summary> 指定した除外シーン以外をすべてアンロードする。 </summary>
         public static ValueTask ResetScene(SceneLoadManager manager, ReadOnlySpan<string> ignores)
         {
             int sceneCount = SceneManager.sceneCount;
@@ -39,6 +41,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
 
+        /// <summary> Configに設定された初期シーンをロードする。 </summary>
         public static ValueTask LoadScene(SceneLoadManager manager, SceneManagerConfig config)
         {
             return ConvertTask(manager.LoadScenes(config.InitializeSceneList));
@@ -47,8 +50,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     入れられたシーンを全てアンロードする。
         /// </summary>
-        /// <param name="scenes"></param>
-        /// <returns></returns>
+        /// <param name="scenes"> アンロードするUnityシーンの一覧。 </param>
+        /// <returns> 全アンロード処理を表すValueTask。 </returns>
         private static async ValueTask UnloadScenes(Scene[] scenes)
         {
             AsyncOperation[] tasks = new AsyncOperation[scenes.Length];
@@ -68,9 +71,9 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     文字列スパンに特定の文字が含まれているか。
         /// </summary>
-        /// <param name="span"></param>
-        /// <param name="element"></param>
-        /// <returns></returns>
+        /// <param name="span"> 検索対象の文字列Span。 </param>
+        /// <param name="element"> 検索する文字列。 </param>
+        /// <returns> 一致する要素が含まれる場合はtrue。 </returns>
         private static bool Contain(this ReadOnlySpan<string> span, string element)
         {
             for (int i = 0; i < span.Length; i++)
@@ -82,6 +85,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             return false;
         }
 
+        /// <summary> 結果付きValueTaskを結果なしValueTaskとして待機する。 </summary>
         private static async ValueTask ConvertTask<T>(ValueTask<T> task) => await task;
     }
 }

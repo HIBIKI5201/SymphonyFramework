@@ -9,9 +9,11 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
+    /// <summary> プロジェクト設定変更に応じてシーン、タグ、レイヤーのenumを自動生成する。 </summary>
     [InitializeOnLoad]
     public static class AutoEnumGenerator
     {
+        /// <summary> 各設定変更イベントを自動生成処理へ接続する。 </summary>
         static AutoEnumGenerator()
         {
             var config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
@@ -50,18 +52,21 @@ namespace SymphonyFrameWork.Editor
                 EditorSymphonyConstant.SceneListEnumFileName);
         }
 
+        /// <summary> 登録済みタグからenumを生成する。 </summary>
         public static void TagsEnumGenerate()
         {
             EnumGenerator.EnumGenerate(InternalEditorUtility.tags,
                 EditorSymphonyConstant.TagsEnumFileName, true);
         }
 
+        /// <summary> 登録済みレイヤーからフラグenumを生成する。 </summary>
         public static void LayersEnumGenerate()
         {
             EnumGenerator.EnumGenerate(InternalEditorUtility.layers,
                 EditorSymphonyConstant.LayersEnumFileName, true);
         }
         
+        /// <summary> AudioManagerConfigのグループ名からenumを生成する。 </summary>
         public static void AudioEnumGenerate()
         {
             var config = SymphonyConfigLocator.GetConfig<AudioManagerConfig>();

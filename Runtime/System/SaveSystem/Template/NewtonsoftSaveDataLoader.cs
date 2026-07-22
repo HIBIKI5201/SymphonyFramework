@@ -7,13 +7,15 @@ namespace SymphonyFrameWork.System.SaveSystem
     ///     Newtonsoft.Json と PlayerPrefs を利用するセーブデータローダーです。
     /// </summary>
     [Serializable]
-    public class NewtonsoftSaveDataLoader : PlayerPrefsSaveDataLoader
+    internal sealed class NewtonsoftSaveDataLoader : PlayerPrefsSaveDataLoader
     {
+        /// <summary> Newtonsoft.JsonでセーブデータをJSONへ変換する。 </summary>
         protected override string SerializeToJson(Type dataType, SaveDataContent data)
         {
             return JsonConvert.SerializeObject(data, Formatting.Indented);
         }
 
+        /// <summary> Newtonsoft.JsonでJSONを既存インスタンスへ上書きする。 </summary>
         protected override void OverwriteFromJson(Type dataType, string json, SaveDataContent data)
         {
             JsonConvert.PopulateObject(json, data, _settings);

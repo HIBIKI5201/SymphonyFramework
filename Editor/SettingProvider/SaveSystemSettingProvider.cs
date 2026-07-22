@@ -6,11 +6,16 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor.SettingProvider
 {
-    public class SaveSystemSettingProvider
+    /// <summary> Save SystemのProject Settings画面を提供する。 </summary>
+    public sealed class SaveSystemSettingProvider
     {
+        /// <summary> Project Settingsに表示する設定項目名。 </summary>
         public const string LABEL = "Save System";
+
+        /// <summary> SettingsProviderの完全な設定パス。 </summary>
         public const string SELF_PATH = SymphonySettingProvider.PROVIDER_PATH + LABEL;
 
+        /// <summary> セーブローダー設定用のSettingsProviderを生成する。 </summary>
         [SettingsProvider]
         public static SettingsProvider CreateCustomSettingsProvider()
         {
@@ -22,6 +27,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             };
         }
 
+        /// <summary> ローダー選択と現在のローダー情報を描画する。 </summary>
         private static void IMGUI(string searchContext)
         {
             SaveSystemConfig config = GetOrCreateConfig();
@@ -64,6 +70,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             }
         }
 
+        /// <summary> SaveSystemConfigを取得し、存在しない場合は生成して再取得する。 </summary>
         private static SaveSystemConfig GetOrCreateConfig()
         {
             SaveSystemConfig config = SymphonyConfigLocator.GetConfig<SaveSystemConfig>();

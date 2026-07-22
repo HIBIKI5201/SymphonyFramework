@@ -5,12 +5,16 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
+    /// <summary> 保存日時を含むセーブデータの基底型。 </summary>
     [Serializable]
     public abstract class SaveDataContent : IDisposable
     {
+        /// <summary> ISO 8601形式で記録された最終保存日時。 </summary>
         [ReadOnly]
         public string SaveDate;
 
+        /// <summary> 最終保存日時を指定値または現在日時で更新する。 </summary>
+        /// <param name="saveDate"> 記録する日時。既定値の場合は現在日時。 </param>
         public void UpdateSaveDate(DateTime saveDate = default)
         {
             if (saveDate == default)
@@ -21,11 +25,13 @@ namespace SymphonyFrameWork.System.SaveSystem
             SaveDate = saveDate.ToString("O");
         }
 
+        /// <summary> 記録されている保存日時を消去する。 </summary>
         public void ClearSaveDate()
         {
             SaveDate = null;
         }
 
+        /// <summary> セーブデータが保持する基底状態を破棄する。 </summary>
         public virtual void Dispose()
         {
             SaveDate = null;

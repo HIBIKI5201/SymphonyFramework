@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.0] - 2026-07-22
+### Add
+- `IInjectable<T...>` を実装したシーンのルートオブジェクトへ、`SceneLoader` がロード完了時に自動注入する機能
+
+### Change
+- Configの解決を `SymphonyCoreSystem` とEditorのCompositionからの注入へ変更
+- `SaveDataRegistry.RefreshLoader()` が注入済みResolverからローダーを再解決する構造へ変更
+- Service LocatorとScene Loaderの内部Manager／状態型をinternal化
+- 組み込みのJsonUtility／Newtonsoftセーブローダー実装をinternal化
+- `SymphonyCoreSystem`（Composition Root）と `MoveObjectToSymphonySystem` をinternal化
+- `AudioManagerConfig`、`SaveSystemConfig`、`SceneManagerConfig`、`SymphonyHUDDrawer` をinternal化
+- Editorアセンブリへ `InternalsVisibleTo` を追加
+- `SaveSystem<TData, TLoader>` のローダー制約を旧 `ISaveDataLoader<T>` から新 `SaveDataLoader` APIへ移行
+- Framework内部のログ呼び出しを `LogDirect`／`LogText` へ移行
+- 継承用に設計されたabstract基底クラスを除き、具象クラスをsealed化
+
+### Compatibility
+- `ServiceLocator`、`SceneLoader`、`SaveDataRegistry`、`AudioManager`、`PauseManager` のFacade APIは維持
+- `SaveDataLoader` と `PlayerPrefsSaveDataLoader` は利用側の拡張点としてpublicを維持
+- `ServiceInjector.Inject(...)` は手動呼び出し用のAPIとして維持（シーンロードを経由しない生成向け）
+
 ## [1.27.20] - 2026-07-12
 ### Update
 - SceneLoader

@@ -7,8 +7,10 @@ using static SymphonyFrameWork.Editor.AssetStoreToolsPackager;
 
 namespace SymphonyFrameWork.Editor
 {
-    public class AssetStoreToolsPackageWindow : EditorWindow
+    /// <summary> Asset Store Toolsの出力対象とパッケージ形式を選択するEditorWindow。 </summary>
+    public sealed class AssetStoreToolsPackageWindow : EditorWindow
     {
+        /// <summary> 設定済みパスを検証してPackagerウィンドウを表示する。 </summary>
         public static void ShowWindow()
         {
             string assetStoreToolsPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
@@ -30,11 +32,18 @@ namespace SymphonyFrameWork.Editor
             GetWindow<AssetStoreToolsPackageWindow>(false, "Asset Store Tools Packager", true);
         }
 
-        private class DirectoryItem
+        private sealed class DirectoryItem
         {
+            /// <summary> パッケージ対象ディレクトリのパス。 </summary>
             public string Path;
+
+            /// <summary> UIへ表示するディレクトリ名。 </summary>
             public string Name;
+
+            /// <summary> ユーザーが出力対象として選択しているかを示す。 </summary>
             public bool IsSelected;
+
+            /// <summary> 除外設定により選択できないかを示す。 </summary>
             public bool IsIgnored;
         }
 
@@ -44,11 +53,13 @@ namespace SymphonyFrameWork.Editor
         private bool _createZip = false;
         private bool _usedDependencies = false;
 
+        /// <summary> ウィンドウ有効化時に出力対象ディレクトリ一覧を読み込む。 </summary>
         private void OnEnable()
         {
             RefreshDirectories();
         }
 
+        /// <summary> ディレクトリ選択、出力形式、エクスポート操作を描画する。 </summary>
         private void OnGUI()
         {
             GUILayout.Label("Asset Store Tools Packager", EditorStyles.boldLabel);

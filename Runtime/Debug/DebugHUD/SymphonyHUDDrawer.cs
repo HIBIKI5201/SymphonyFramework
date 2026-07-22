@@ -6,10 +6,16 @@ using UnityEngine.Profiling;
 
 namespace SymphonyFrameWork.Debugger.HUD
 {
+    /// <summary> フレーム統計と任意のデバッグ文字列を画面上へ描画する。 </summary>
     [DefaultExecutionOrder(-1000)]
-    public class SymphonyHUDDrawer : MonoBehaviour
+    internal sealed class SymphonyHUDDrawer : MonoBehaviour
     {
+        /// <summary> HUDへ毎フレーム評価する文字列生成処理を追加する。 </summary>
+        /// <param name="func"> 表示文字列を返す処理。 </param>
         public void Add(Func<string> func) => _extraTexts.Add(func);
+
+        /// <summary> HUDから文字列生成処理を削除する。 </summary>
+        /// <param name="func"> 削除する文字列生成処理。 </param>
         public void Remove(Func<string> func) => _extraTexts.Remove(func);
 
         private readonly List<Func<string>> _extraTexts = new();
@@ -19,6 +25,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         private Rect _rect;
         private GUIStyle _style;
 
+        /// <summary> 現在の画面サイズに合わせてHUDの表示領域とスタイルを生成する。 </summary>
         private void Awake()
         {
             int w = Screen.width, h = Screen.height;
@@ -34,6 +41,7 @@ namespace SymphonyFrameWork.Debugger.HUD
             _style = style;
         }
 
+        /// <summary> フレーム統計と追加テキストの表示内容を更新する。 </summary>
         private void Update()
         {
             _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f; // デルタタイムの計算（タイムスケールに影響しない）
@@ -46,12 +54,15 @@ namespace SymphonyFrameWork.Debugger.HUD
             _textToDisplay.AppendLine(GetExtraText());
         }
 
+        /// <summary> 構築済みのHUD文字列を画面へ描画する。 </summary>
         private void OnGUI()
         {
             GUI.Label(_rect, _textToDisplay.ToString(), _style);
         }
 
 
+        /// <summary> FPSとメモリ使用量を表示用文字列へ追加する。 </summary>
+        /// <param name="text"> 統計情報の追加先。 </param>
         private void GetProfilingText(in StringBuilder text)
         {
             float msec;
@@ -79,6 +90,9 @@ namespace SymphonyFrameWork.Debugger.HUD
             text.AppendLine($"Total Reserved: {GetMemoryUsageString(totalReserved)}");
         }
 
+        /// <summary> バイト数を読みやすい単位付き文字列へ変換する。 </summary>
+        /// <param name="bytes"> 変換するバイト数。 </param>
+        /// <returns> 適切な単位へ変換したメモリ量。 </returns>
         private string GetMemoryUsageString(long bytes)
         {
             if (bytes < 1024) { return $"{bytes} B"; }
@@ -87,6 +101,8 @@ namespace SymphonyFrameWork.Debugger.HUD
             return $"{(bytes / (1024d * 1024d * 1024d)):0.00} GB";
         }
 
+        /// <summary> 登録されたすべての文字列生成処理を評価して結合する。 </summary>
+        /// <returns> 改行で結合した追加テキスト。 </returns>
         private string GetExtraText()
         {
             StringBuilder extraTextBuilder = new();

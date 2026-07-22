@@ -11,19 +11,22 @@ using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
+    /// <summary> SceneLoaderが追跡するシーン状態を一覧表示する管理パネル。 </summary>
     [UxmlElement]
-    public partial class SceneLoaderWindow : SymphonyVisualElement
+    public sealed partial class SceneLoaderWindow : SymphonyVisualElement
     {
         private Dictionary<string, SceneLoadData.SceneInfo> _sceneDict;
         private FieldInfo _dataField;
         private ListView _sceneList;
 
+        /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
         public SceneLoaderWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "SceneLoaderWindow.uxml",
             InitializeType.None,
             LoadType.AssetDataBase)
         { }
 
+        /// <summary> SceneLoaderの追跡データを参照するシーン一覧を構成する。 </summary>
         protected override ValueTask Initialize_S(VisualElement container)
         {
             _dataField = typeof(SceneLoader).GetField("_data", BindingFlags.Static | BindingFlags.NonPublic);
@@ -46,6 +49,7 @@ namespace SymphonyFrameWork.Editor
             return default;
         }
 
+        /// <summary> SceneLoader内部の最新シーン辞書参照を取得する。 </summary>
         private void UpdateSceneDict()
         {
             if (_dataField == null) return;
@@ -73,6 +77,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> 表示時の列挙変更を避けるため、シーン辞書のスナップショットを生成する。 </summary>
         private List<KeyValuePair<string, SceneLoadData.SceneInfo>> GetSceneList()
         {
             UpdateSceneDict();
@@ -81,6 +86,7 @@ namespace SymphonyFrameWork.Editor
                 : new List<KeyValuePair<string, SceneLoadData.SceneInfo>>();
         }
 
+        /// <summary> シーン一覧を最新の追跡状態で再構築する。 </summary>
         public void Update()
         {
             if (_sceneList != null)

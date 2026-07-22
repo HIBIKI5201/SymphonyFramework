@@ -7,13 +7,16 @@ using UnityEngine.SceneManagement;
 
 namespace SymphonyFrameWork.Samples.ServiceLocatorSample
 {
-    public class ServiceLocatorSample_Sequences : MonoBehaviour
+    /// <summary> Service Locatorの取得、待機、シーン遷移時の保持を順に実演する。 </summary>
+    public sealed class ServiceLocatorSample_Sequences : MonoBehaviour
     {
+        /// <summary> Service Locatorのサンプルシーケンスを開始する。 </summary>
         private void Start()
         {
             _ = Sequence();
         }
 
+        /// <summary> 登録取得、Single相当のシーン再読込、遅延登録待機を実行する。 </summary>
         private async ValueTask Sequence()
         {
             StringBuilder logBuilder = new StringBuilder();

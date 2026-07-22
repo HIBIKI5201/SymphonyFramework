@@ -18,9 +18,9 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     ロードされているシーンを返す。
         /// </summary>
-        /// <param name="sceneName"></param>
-        /// <param name="scene"></param>
-        /// <returns></returns>
+        /// <param name="sceneName"> 取得するシーン名。 </param>
+        /// <param name="scene"> 取得できたロード済みシーン。 </param>
+        /// <returns> ロード済みシーンを取得できた場合はtrue。 </returns>
         public static bool GetExistScene(string sceneName, out Scene scene)
         {
             scene = default;
@@ -52,23 +52,23 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     シーンが存在するかどうか。
         /// </summary>
-        /// <param name="sceneName"></param>
-        /// <returns></returns>
+        /// <param name="sceneName"> 存在を確認するシーン名。 </param>
+        /// <returns> シーンが追跡中の場合はtrue。 </returns>
         public static bool IsExist(string sceneName) => _data.IsExistScene(sceneName);
 
         /// <summary>
         ///     シーンの状態を返す。
         /// </summary>
-        /// <param name="sceneName"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
+        /// <param name="sceneName"> 状態を取得するシーン名。 </param>
+        /// <param name="state"> 取得できたシーン状態。 </param>
+        /// <returns> 状態を取得できた場合はtrue。 </returns>
         public static bool TryGetState(string sceneName, out SceneLoadState state) => _data.TryGetSceneState(sceneName, out state);
 
         /// <summary>
         ///     シーンをアクティブにする。
         /// </summary>
-        /// <param name="sceneName"></param>
-        /// <returns></returns>
+        /// <param name="sceneName"> アクティブにするロード済みシーン名。 </param>
+        /// <returns> アクティブシーンを変更できた場合はtrue。 </returns>
         public static bool SetActiveScene(string sceneName) => _manager.TrySetActiveScene(sceneName);
 
         /// <summary>
@@ -85,8 +85,9 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         /// <param name="sceneName">シーン名</param>
         /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
-        /// <param name="mode"></param>
-        /// <param name="token"></param>
+        /// <param name="mode"> AdditiveまたはSingle相当のロード方式。 </param>
+        /// <param name="priority"> ロード後のアクティブシーン選択に使用する優先度。 </param>
+        /// <param name="token"> ロード処理を中断するためのトークン。 </param>
         /// <returns>ロードに成功したか</returns>
         public static ValueTask<bool> LoadScene(
             string sceneName,
@@ -106,10 +107,10 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     シーンをロードする。
         /// </summary>
-        /// <param name="sceneNames"></param>
-        /// <param name="loadingAction"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
+        /// <param name="sceneNames"> ロードするシーン名の一覧。 </param>
+        /// <param name="loadingAction"> 全シーンの平均進捗率を受け取る処理。 </param>
+        /// <param name="token"> ロード処理を中断するためのトークン。 </param>
+        /// <returns> すべてのシーンをロードできた場合はtrue。 </returns>
         public static ValueTask<bool> LoadScenes(
             string[] sceneNames,
             Action<float> loadingAction = null,
@@ -126,7 +127,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         /// <param name="sceneName">シーン名</param>
         /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
-        /// <param name="token"></param>
+        /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
         /// <returns>アンロードに成功したか</returns>
         public static ValueTask<bool> UnloadScene(
             string sceneName,
@@ -143,10 +144,10 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     シーンをアンロードする。
         /// </summary>
-        /// <param name="sceneNames"></param>
-        /// <param name="loadingAction"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
+        /// <param name="sceneNames"> アンロードするシーン名の一覧。 </param>
+        /// <param name="loadingAction"> 全シーンの平均進捗率を受け取る処理。 </param>
+        /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
+        /// <returns> すべてのシーンをアンロードできた場合はtrue。 </returns>
         public static ValueTask<bool> UnloadScenes(
             string[] sceneNames,
             Action<float> loadingAction = null,
@@ -162,15 +163,16 @@ namespace SymphonyFrameWork.System.SceneLoad
         ///     シーンがロードされた時に実行されるイベントを登録する。
         ///     ロード済みの場合は即座に実行される。
         /// </summary>
-        /// <param name="sceneName"></param>
-        /// <param name="action"></param>
+        /// <param name="sceneName"> ロード完了を監視するシーン名。 </param>
+        /// <param name="action"> ロード完了後に一度実行する処理。 </param>
         public static void RegisterAfterSceneLoad(string sceneName, Action action) =>
             _data.AddLoadedAction(sceneName, action);
 
         /// <summary>
         ///     指定したシーンがロードされるまで待機する
         /// </summary>
-        /// <param name="sceneName"></param>
+        /// <param name="sceneName"> ロード完了を待機するシーン名。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
         public static async ValueTask WaitForLoadSceneAsync(string sceneName, CancellationToken token = default)
         {
             while (!_data.TryGetSceneState(sceneName, out SceneLoadState state) || state < SceneLoadState.Complete)
@@ -182,6 +184,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     コアシステムからの初期化
         /// </summary>
+        /// <param name="destroyCancellationToken"> システム破棄時に状態を消去するためのトークン。 </param>
         internal static void Initialize(CancellationToken destroyCancellationToken)
         {
             _destroyRegistration.Dispose();
@@ -191,6 +194,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             _destroyRegistration = destroyCancellationToken.Register(ResetRuntimeState);
         }
 
+        /// <summary> 追跡データと管理インスタンスを破棄して未初期化状態へ戻す。 </summary>
         private static void ResetRuntimeState()
         {
             _data?.Clear();
@@ -201,11 +205,13 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     ゲーム開始時の初期化処理
         /// </summary>
-        internal static async ValueTask AfterSceneLoad()
+        /// <param name="config"> 起動時のシーン整理とロード設定。 </param>
+        internal static async ValueTask AfterSceneLoad(SceneManagerConfig config)
         {
-            await InitializeSceneLoad();
+            await InitializeSceneLoad(config);
         }
 
+        /// <summary> Unityシーンが有効かつロード済みで、名前を持つか確認する。 </summary>
         private static bool IsLoadedScene(Scene scene) =>
             scene.IsValid()
             && scene.isLoaded
@@ -214,13 +220,13 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     シーンの初期化
         /// </summary>
-        /// <returns></returns>
-        private static async ValueTask InitializeSceneLoad()
+        /// <param name="config"> 起動時のシーン整理とロード設定。 </param>
+        /// <returns> シーン初期化処理を表すValueTask。 </returns>
+        private static async ValueTask InitializeSceneLoad(SceneManagerConfig config)
         {
             // 現状のシーン状況を保存する。
             _manager.ResetSceneData();
 
-            SceneManagerConfig config = SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
             // シーンリセットの条件が揃っていない場合は何もしない。
             if (config == null
                 || !config.IsResetAndLoadOnPlay 
@@ -236,6 +242,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             await SceneResetter.LoadScene(_manager, config);
         }
 
+        /// <summary> リセット対象外シーンへ初期シーンとシステムシーンを追加する。 </summary>
         private static string[] GetResetIgnoreScenes(SceneManagerConfig config)
         {
             int resetIgnoreCount = config.ResetIgnoreSceneList?.Length ?? 0;
