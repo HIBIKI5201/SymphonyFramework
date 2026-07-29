@@ -1,5 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.Debugger.Logger;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

@@ -1,5 +1,6 @@
 ﻿using SymphonyFrameWork.Debugger;
 using SymphonyFrameWork.Debugger.HUD;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Exceptions;
 using System;
 using System.Collections.Generic;

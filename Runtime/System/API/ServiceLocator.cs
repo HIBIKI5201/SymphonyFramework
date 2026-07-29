@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.System.ServiceLocate;
 

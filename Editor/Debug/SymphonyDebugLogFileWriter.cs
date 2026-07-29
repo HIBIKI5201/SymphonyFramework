@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.Debugger.Logger;
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor.Debugger
+namespace SymphonyFrameWork.Editor.Debugger.Logger
 {
     /// <summary>
     ///     SymphonyDebugLogger.OnLogDirectを購読し、ログをファイルへキャッシュ出力する。

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.Debugger.Logger;
 using UnityEditor;
 using UnityEngine;
 

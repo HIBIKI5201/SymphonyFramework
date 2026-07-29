@@ -4,7 +4,7 @@ using System.Text;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace SymphonyFrameWork.Debugger
+namespace SymphonyFrameWork.Debugger.Logger
 {
     /// <summary>
     ///     UnityEditor上のみのログを発行する

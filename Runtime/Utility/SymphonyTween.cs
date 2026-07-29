@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.System.API;
 using UnityEngine;
 
