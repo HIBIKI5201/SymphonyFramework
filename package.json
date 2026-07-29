@@ -1,6 +1,6 @@
 {
   "name": "symphonyframework",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "displayName": "Symphony Framework",
   "description": "This is Symphony Framework",
   "unity": "6000.0",
@@ -38,6 +38,11 @@
       "displayName": "Audio Manager Sample",
       "description": "AudioManager を使用したAudioSource取得と音量制御のサンプルが含まれています。",
       "path": "Samples~/Runtime/AudioManagerSample"
+    },
+    {
+      "displayName": "Debugger Sample",
+      "description": "SymphonyDebugLogger のログ出力、SymphonyDebugHUD の表示と追加テキスト、SymphonyStopWatch の計測のサンプルが含まれています。",
+      "path": "Samples~/Runtime/DebuggerSample"
     }
   ]
 }

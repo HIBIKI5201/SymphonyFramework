@@ -274,6 +274,7 @@ PauseManager.Pause = false;
 - `SceneLoaderSample`: 追加ロード、優先度によるActive Scene切り替え、アンロード、ロード完了待機（使用前にサブシーンをBuild Settingsへ追加してください）
 - `PauseManagerSample`: Pause状態の切り替え、`IPausable`、`PausableWaitForSecondAsync`/`PausableNextFrameAsync`
 - `AudioManagerSample`: `AudioManager.GetAudioSource`/`VolumeSliderChanged`（使用前にAudioMixerと`AudioManagerConfig`を設定してください）
+- `DebuggerSample`: `SymphonyDebugLogger`のログ出力と蓄積、`SymphonyDebugHUD`の表示・追加テキスト・一時表示、`SymphonyStopWatch`の計測
 
 ## ディレクトリ構成
 
