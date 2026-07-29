@@ -56,6 +56,7 @@ SymphonyFrameWork
 - Sampleは `SymphonyFrameWork.Samples.<SampleName>` とする。
 - ファイルの配置と名前空間を一致させる。
 - 名前空間はディレクトリ構成を反映する。並び順を示す数字など、コード上の責務を表さないディレクトリ名は除外する。
+- どのサブシステムにも属さず、フレームワーク内部だけで使う横断的なヘルパーは `Internal/` サブフォルダへ置く。`Internal` は可視性を表すだけで責務ではないため、名前空間には含めない（例: `Runtime/Utility/Internal/SymphonyLazyObject.cs` の名前空間は `SymphonyFrameWork.Utility`）。サブシステムの実装クラスは、`internal` であってもそのサブシステムのフォルダへ置く。
 - 1ファイルには1つの公開型だけを定義し、ファイル名を型名と一致させる。
 - privateな入れ子型は、所有する型と密接に関係し、単独で再利用しない場合に限り同じファイルへ置ける。
 

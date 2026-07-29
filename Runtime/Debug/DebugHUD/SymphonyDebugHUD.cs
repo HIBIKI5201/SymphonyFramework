@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Utility;
 
 
 #if UNITY_EDITOR
@@ -106,16 +107,15 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <summary> 既存HUDを破棄し、遅延生成状態を初期化する。 </summary>
         internal static void Initialize()
         {
-            if (_debugHUD?.IsValueCreated ?? false)
-            {
-                UnityEngine.Object.Destroy(_debugHUD.Value.gameObject);
-                _debugHUD = null;
-            }
+            // 破棄済み判定はSymphonyLazyObjectが担うため、ここでは前回の生成物を片付けるだけでよい。
+            _debugHUD?.Destroy();
 
-            _debugHUD = new Lazy<SymphonyHUDDrawer>(CreateDebugHUD);
+            _debugHUD = new SymphonyLazyObject<SymphonyHUDDrawer>(
+                CreateDebugHUD,
+                drawer => UnityEngine.Object.Destroy(drawer.gameObject));
         }
 
-        private static Lazy<SymphonyHUDDrawer> _debugHUD;
+        private static SymphonyLazyObject<SymphonyHUDDrawer> _debugHUD;
 
         /// <summary> SymphonyのシステムオブジェクトとしてHUD描画コンポーネントを生成する。 </summary>
         /// <returns> 生成したHUD描画コンポーネント。 </returns>
