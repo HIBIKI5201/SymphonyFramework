@@ -3,7 +3,7 @@
 Unity プロジェクトで繰り返し必要になる、シーン遷移、サービス管理、セーブデータ、オーディオ、ポーズ、デバッグ機能をまとめたゲーム開発向けフレームワークです。
 
 - 対応 Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.0.0**
+- 現在のバージョン: **2.1.0**
 - ライセンス: **MIT**
 
 ## 主な機能
@@ -256,7 +256,7 @@ PauseManager.Pause = false;
 
 - `Symphony Administrator`: Service Locator、Scene Loader、Save Data Registry、Pause状態を再生中に確認
 - `SymphonyDebugHUD`: FPS、メモリ使用量と任意テキストをGame Viewへ表示
-- `SymphonyDebugLogger`: 複数行ログの組み立てと種別付き出力
+- `SymphonyDebugLogger`: 複数行ログの組み立てと種別付き出力（`LogDirect` 経由のログはEditor限定でパッケージ直下の `Cache/Log.txt` へバッファリングして永続化）
 - `SymphonyStopWatch`: ID単位の簡易処理時間計測
 - `AutoEnumGenerator`: Scene List、Tag、Layer、Audio Groupのenumを生成
 - `FolderGenerator`: Markdownで定義したプロジェクトフォルダを生成

@@ -13,6 +13,7 @@
 2. 消費者側の asmdef に **`SymphonyFrameWork`（Runtimeアセンブリ）への参照**があるか確認する。無ければ追加が必要。
 3. 自動生成enumを使う場合のみ `SymphonyFrameWork.Enum` も参照に追加する（後述）。
 4. `internal` なクラス（`SceneManagerConfig` / `AudioManagerConfig` / `SaveSystemConfig` など設定ScriptableObject本体）はコンシューマー側から直接 `new` したり型として参照したりできない。設定はInspector経由でしか触れない前提でコードを書く。
+5. パッケージ直下（`Assets/SymphonyFrameWork/` または `Packages/symphonyframework/`）に自動生成される `Cache/Log.txt` は、`SymphonyDebugLogger.LogDirect` 経由のログをEditorが永続化キャッシュしたものであり、削除しても実害はない。手動編集・バージョン管理への追加は不要（`.gitignore` 済み）。
 
 ## 1. アセンブリ／namespace 早見表
 

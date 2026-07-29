@@ -26,3 +26,7 @@ obj/
 *.unityproj
 *.pidb
 *.booproj
+
+# --- Runtime-generated cache (SymphonyDebugLogger file output, etc.) ---
+/Cache/
+/Cache.meta

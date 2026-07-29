@@ -41,7 +41,15 @@ namespace SymphonyFrameWork.Debugger
                 case LogKind.Warning: Debug.LogWarning(text, context); break;
                 case LogKind.Error: Debug.LogError(text, context); break;
             }
+
+            OnLogDirect?.Invoke(text, kind);
         }
+
+        /// <summary>
+        ///     LogDirectで出力されたログを外部へ通知する内部イベント。
+        ///     ファイル出力など、Runtime層が関知すべきでない後続処理はEditor側の購読者に委ねる。
+        /// </summary>
+        internal static event Action<string, LogKind> OnLogDirect;
 
         /// <summary>
         ///     直接出力されるデバッグログ。
