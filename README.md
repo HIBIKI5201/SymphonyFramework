@@ -285,15 +285,17 @@ Runtime/    ビルドに含まれるシステム、Component、Utility、属性
   Obsolete/ 旧namespace互換の[Obsolete]シム（移行用。今後は System/API を使用）
 Editor/     設定画面、管理ウィンドウ、Drawer、Generator
 Samples/    利用例
+Documentation~/ 開発向けドキュメント（末尾の~によりUnityのインポート対象外）
 ```
 
 ## ドキュメント
 
 - [Symphony Framework Document](https://lying-foxglove-81a.notion.site/Symphony-Framework-Document-19b7c2c6cc02806b9b97cb8a97c9f11a?pvs=74)
 - [変更履歴](./CHANGELOG.md)
-- [設計思想](./DesignPhilosophy.md)
-- [コーディングガイドライン](./CodeGuidelines.md)
 - [AGENTS.md（AIエージェント向け利用ガイド）](./AGENTS.md)
+- [設計思想](./Documentation~/DesignPhilosophy.md)
+- [コーディングガイドライン](./Documentation~/CodeGuidelines.md)
+- [本体開発ガイド（コントリビューター・AIエージェント向け）](./Documentation~/CONTRIBUTING.md)
 
 ## コントリビューター
 
