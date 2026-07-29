@@ -270,6 +270,9 @@ PauseManager.Pause = false;
 
 - `ServiceLocatorSample`: 登録、同期取得、非同期取得、Singletonのシーン跨ぎ
 - `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除、Registry状態表示
+- `SceneLoaderSample`: 追加ロード、優先度によるActive Scene切り替え、アンロード、ロード完了待機（使用前にサブシーンをBuild Settingsへ追加してください）
+- `PauseManagerSample`: Pause状態の切り替え、`IPausable`、`PausableWaitForSecondAsync`/`PausableNextFrameAsync`
+- `AudioManagerSample`: `AudioManager.GetAudioSource`/`VolumeSliderChanged`（使用前にAudioMixerと`AudioManagerConfig`を設定してください）
 
 ## ディレクトリ構成
 
