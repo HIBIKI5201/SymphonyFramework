@@ -311,7 +311,9 @@ namespace SymphonyFrameWork.Editor
                         // 中間フィールドの場合、次のフィールドの探索のための型を更新する。
                         // SerializedProperty.FindProperty は 'targetObject'から全てのパスを解決するので、
                         // 中間パスを構築してそのプロパティを取得する。
-                        string intermediatePath = string.Join(".", pathElements.Take(i + 1));
+                        // pathElementsは配列アクセスを"name[index]"の形に簡略化済みのため、
+                        // FindPropertyが要求する本来の"name.Array.data[index]"形式に戻してから結合する。
+                        string intermediatePath = BuildPropertyPath(pathElements, i + 1);
                         SerializedProperty intermediateProperty = property.serializedObject.FindProperty(intermediatePath);
 
                         if (intermediateProperty != null && intermediateProperty.propertyType == SerializedPropertyType.ManagedReference)
@@ -329,6 +331,34 @@ namespace SymphonyFrameWork.Editor
                 }
             }
             return fieldAtLastElement;
+        }
+
+        /// <summary>
+        ///     簡略化されたパス要素("name[index]"形式)から、SerializedProperty.FindPropertyが解決できる
+        ///     本来のUnityパス("name.Array.data[index]"形式)を再構築する。
+        /// </summary>
+        /// <param name="pathElements"> 簡略化済みのパス要素配列。 </param>
+        /// <param name="count"> 先頭から何要素を対象に含めるか。 </param>
+        /// <returns> Unity標準形式のプロパティパス。 </returns>
+        private static string BuildPropertyPath(string[] pathElements, int count)
+        {
+            string[] segments = new string[count];
+            for (int i = 0; i < count; i++)
+            {
+                string element = pathElements[i];
+                int bracketIndex = element.IndexOf('[');
+                if (bracketIndex < 0)
+                {
+                    segments[i] = element;
+                    continue;
+                }
+
+                string fieldName = element.Substring(0, bracketIndex);
+                string indexPart = element.Substring(bracketIndex);
+                segments[i] = fieldName + ".Array.data" + indexPart;
+            }
+
+            return string.Join(".", segments);
         }
 
         /// <summary>
