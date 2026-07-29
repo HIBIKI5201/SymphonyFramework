@@ -92,7 +92,7 @@ Unityは全ファイル・全フォルダに `.meta` を対で持ちます。GUI
 
 | 変更の種類 | 同時に更新するもの |
 | --- | --- |
-| 公開API（`public`/`protected`）の追加・変更・削除 | XMLドキュメント、[README.md](./README.md)、[AGENTS.md](./AGENTS.md)、[CHANGELOG.md](./CHANGELOG.md)、`package.json` の `version`、該当する Sample |
+| 公開API（`public`/`protected`）の追加・変更・削除 | XMLドキュメント、[README.md](../README.md)、[AGENTS.md](../AGENTS.md)、[CHANGELOG.md](../CHANGELOG.md)、`package.json` の `version`、該当する Sample |
 | 公開挙動の変更（シグネチャは同じだが結果が変わる） | CHANGELOG.md、`version`、必要なら README のクイックスタート |
 | 設定アセット（Config）の項目の追加・変更 | README の初期設定、AGENTS.md、CHANGELOG.md |
 | Sample の追加 | `package.json` の `samples`、CHANGELOG.md |
@@ -124,7 +124,7 @@ Unityは全ファイル・全フォルダに `.meta` を対で持ちます。GUI
 
 コード品質のチェックは [CodeGuidelines.md `## レビュー用チェックリスト`](./CodeGuidelines.md) を使ってください。それに加えて、本体開発では次を確認します。
 
-- [ ] 追加・削除・移動したファイルに対して `.meta` が対で揃っている
+- [ ] 追加・削除・移動したファイルに対して `.meta` が対で揃っている（`Documentation~/` 配下を除く）
 - [ ] 移動・リネームでGUIDを維持している
 - [ ] `.cs` がUTF-8 BOM付きで保存されている
 - [ ] 公開APIを変更したなら、§6の表にある全ファイルを更新した（不要と判断したものは理由を書いた）
