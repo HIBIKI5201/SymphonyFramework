@@ -22,7 +22,7 @@
 
 | ディレクトリ | 用途 | 主な制約 |
 | --- | --- | --- |
-| `Core/` | RuntimeとEditorで共有する最小限の基盤 | 上位機能へ依存させない |
+| `Core/` | RuntimeとEditorで共有する最小限の基盤と内部ヘルパー | 上位機能へ依存させない。`internal` な型は `Core/AssemblyInfo.cs` の `InternalsVisibleTo` でRuntime／Editorへ公開する |
 | `Runtime/` | Playerビルドに含まれる機能 | `UnityEditor` を参照しない |
 | `Runtime/Obsolete/` | 旧namespace互換の `[Obsolete]` シム | 移行期間のみ存在させ、メジャー更新でフォルダごと削除する |
 | `Editor/` | Inspector、設定画面、Generatorなど | `SymphonyFrameWork.Editor` asmdefに含める |
@@ -57,7 +57,7 @@ SymphonyFrameWork
 - Sampleは `SymphonyFrameWork.Samples.<SampleName>` とする。
 - ファイルの配置と名前空間を一致させる。
 - 名前空間はディレクトリ構成を反映する。並び順を示す数字など、コード上の責務を表さないディレクトリ名は除外する。
-- どのサブシステムにも属さず、フレームワーク内部だけで使う横断的なヘルパーは `Internal/` サブフォルダへ置く。`Internal` は可視性を表すだけで責務ではないため、名前空間には含めない（例: `Runtime/Utility/Internal/SymphonyLazyObject.cs` の名前空間は `SymphonyFrameWork.Utility`）。サブシステムの実装クラスは、`internal` であってもそのサブシステムのフォルダへ置く。
+- どのサブシステムにも属さず、フレームワーク内部だけで使う横断的なヘルパーは `Core/Internal/` へ置く。`Internal` は可視性を表すだけで責務ではないため、名前空間には含めない（例: `Core/Internal/SymphonyLazyObject.cs` の名前空間は `SymphonyFrameWork.Core`）。サブシステムの実装クラスは、`internal` であってもそのサブシステムのフォルダへ置く。
 - `Runtime/Obsolete/` は、フォルダ構成と名前空間を一致させる唯一の例外とする。旧namespaceを維持することがシムの目的であるため、配下は移行元の名前空間（`SymphonyFrameWork.System`、`SymphonyFrameWork.System.SaveSystem` など）のままにし、サブフォルダ名で対応する名前空間を示す。新しい `[Obsolete]` シムを追加する場合もここへ置く。
 - 1ファイルには1つの公開型だけを定義し、ファイル名を型名と一致させる。
 - privateな入れ子型は、所有する型と密接に関係し、単独で再利用しない場合に限り同じファイルへ置ける。

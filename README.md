@@ -280,6 +280,7 @@ PauseManager.Pause = false;
 
 ```text
 Core/       Runtime／Editor共通の定数と基盤asmdef
+  Internal/ フレームワーク内部専用のヘルパー（internal。InternalsVisibleToでRuntime／Editorへ公開）
 Runtime/    ビルドに含まれるシステム、Component、Utility、属性
   Obsolete/ 旧namespace互換の[Obsolete]シム（移行用。今後は System/API を使用）
 Editor/     設定画面、管理ウィンドウ、Drawer、Generator
