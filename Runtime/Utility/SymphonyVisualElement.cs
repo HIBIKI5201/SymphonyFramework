@@ -22,19 +22,10 @@ namespace SymphonyFrameWork.Utility
         [Flags]
         public enum InitializeType
         {
-            /// <summary> ルート要素へ自動設定を適用しない。 </summary>
             None = 0,
-
-            /// <summary> positionをAbsoluteへ設定する。 </summary>
             Absolute = 1 << 0,
-
-            /// <summary> 幅と高さを親要素の100%へ設定する。 </summary>
             FullRangth = 1 << 1,
-
-            /// <summary> PickingModeをIgnoreへ設定する。 </summary>
             PickModeIgnore = 1 << 2,
-
-            /// <summary> すべての自動設定を適用する。 </summary>
             All = Absolute | FullRangth | PickModeIgnore
         }
 
@@ -43,13 +34,8 @@ namespace SymphonyFrameWork.Utility
         /// </summary>
         public enum LoadType
         {
-            /// <summary> Unity ResourcesからUXMLを読み込む。 </summary>
             Resources = 0,
-
-            /// <summary> AddressablesからUXMLを非同期に読み込む。 </summary>
             Addressable = 1,
-
-            /// <summary> EditorのAssetDatabaseからUXMLを読み込む。 </summary>
             AssetDataBase = 2
         }
 
