@@ -1,40 +1,54 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using SymphonyFrameWork.Utility;
 using UnityEngine;
-using Api = SymphonyFrameWork.System.API;
+using Object = UnityEngine.Object;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFrameWork.System.API
 {
     /// <summary>
-    ///     <see cref="Api.PauseManager"/> へ移動しました。
+    ///     ポーズ状態を管理する型
     /// </summary>
-    [Obsolete("SymphonyFrameWork.System.API.PauseManager に移動しました。今後はそちらを使用してください。", error: false)]
     public static class PauseManager
     {
+        private static bool _pause;
+
         /// <summary> 現在のポーズ状態を取得または変更する。 </summary>
         public static bool Pause
         {
-            get => Api.PauseManager.Pause;
-            set => Api.PauseManager.Pause = value;
+            get => _pause;
+            set
+            {
+                _pause = value;
+                OnPauseChanged?.Invoke(value);
+            }
+        }
+
+        /// <summary> ポーズ状態とイベント購読を初期状態へ戻す。 </summary>
+        internal static void Initialize()
+        {
+            _pause = false;
+            OnPauseChanged = null;
         }
 
         /// <summary> ポーズ状態が変更されたときに新しい状態を通知する。 </summary>
         [Tooltip("ポーズ時にtrue、リズーム時にfalseで実行するイベント")]
-        public static event Action<bool> OnPauseChanged
-        {
-            add => Api.PauseManager.OnPauseChanged += value;
-            remove => Api.PauseManager.OnPauseChanged -= value;
-        }
+        public static event Action<bool> OnPauseChanged;
 
         /// <summary>
         ///     ポーズ時に停止するNextFrameAsync
         /// </summary>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        public static Task PausableNextFrameAsync(CancellationToken token = default)
-            => Api.PauseManager.PausableNextFrameAsync(token);
+        public static async Task PausableNextFrameAsync(CancellationToken token = default)
+        {
+            //ポーズ中は終わるまで待機し続ける
+            if (_pause) await Awaitable.NextFrameAsync(token);
+            
+            await Awaitable.NextFrameAsync(token);
+        }
 
         /// <summary>
         ///     ポーズ時に停止するWaitForSecond
@@ -42,7 +56,13 @@ namespace SymphonyFrameWork.System
         /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
         /// <returns> Unity Coroutineで実行するEnumerator。 </returns>
         public static IEnumerator PausableWaitForSecond(float time)
-            => Api.PauseManager.PausableWaitForSecond(time);
+        {
+            while (time > 0)
+            {
+                if (!_pause) time -= Time.deltaTime;
+                yield return null;
+            }
+        }
 
         /// <summary>
         ///     ポーズ時に停止するWaitForSecond
@@ -50,8 +70,14 @@ namespace SymphonyFrameWork.System
         /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         /// <returns> 待機処理を表すTask。 </returns>
-        public static Task PausableWaitForSecondAsync(float time, CancellationToken token = default)
-            => Api.PauseManager.PausableWaitForSecondAsync(time, token);
+        public static async Task PausableWaitForSecondAsync(float time, CancellationToken token = default)
+        {
+            while (time > 0)
+            {
+                if (!_pause) time -= Time.deltaTime;
+                await Awaitable.NextFrameAsync(token);
+            }
+        }
 
         /// <summary>
         ///     ポーズ中は待機するWaitUntil
@@ -59,8 +85,12 @@ namespace SymphonyFrameWork.System
         /// <param name="action"> 待機終了条件を返す処理。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         /// <returns> 条件成立までの待機処理を表すTask。 </returns>
-        public static Task PausableWaitUntil(Func<bool> action, CancellationToken token = default)
-            => Api.PauseManager.PausableWaitUntil(action, token);
+        public static async Task PausableWaitUntil(Func<bool> action, CancellationToken token = default)
+        {
+            await SymphonyTask.WaitUntil(action, token);
+
+            if (_pause) await Awaitable.NextFrameAsync(token);
+        }
 
         /// <summary>
         ///     ポーズ中に停止するGameObjectのDestroy
@@ -68,8 +98,12 @@ namespace SymphonyFrameWork.System
         /// <param name="obj"> 待機後に破棄するGameObject。 </param>
         /// <param name="t"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        public static void PausableDestroy(GameObject obj, float t, CancellationToken token = default)
-            => Api.PauseManager.PausableDestroy(obj, t, token);
+        public static async void PausableDestroy(GameObject obj, float t, CancellationToken token = default)
+        {
+            await PausableWaitForSecondAsync(t, token);
+
+            Object.Destroy(obj);
+        }
 
         /// <summary>
         ///     ポーズ中に停止するInvoke
@@ -77,8 +111,12 @@ namespace SymphonyFrameWork.System
         /// <param name="action"> 待機後に実行する処理。 </param>
         /// <param name="t"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        public static void PausableInvoke(Action action, float t, CancellationToken token = default)
-            => Api.PauseManager.PausableInvoke(action, t, token);
+        public static async void PausableInvoke(Action action, float t, CancellationToken token = default)
+        {
+            await PausableWaitForSecondAsync(t, token);
+
+            action?.Invoke();
+        }
 
         /// <summary>
         ///     ポーズできるクラスに実装するインターフェース

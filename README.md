@@ -95,6 +95,7 @@ asmdefを使用しているゲーム側コードから本フレームワーク�
 インスタンスはコードから登録できるほか、GameObjectへ `SymphonyLocate` を追加してInspectorから登録できます。
 
 ```csharp
+using SymphonyFrameWork.System.API;
 using SymphonyFrameWork.System.ServiceLocate;
 using UnityEngine;
 
@@ -145,7 +146,7 @@ IGameSession current = ServiceLocator.GetInstance<IGameSession>();
 対象シーンをBuild SettingsのScene Listへ追加してから使用してください。
 
 ```csharp
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFrameWork.System.API;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -222,7 +223,7 @@ await SaveDataRegistry.DeleteAsync<PlayerData>();
 3. グループ名でAudioSourceを取得して再生します。
 
 ```csharp
-using SymphonyFrameWork.System;
+using SymphonyFrameWork.System.API;
 using UnityEngine;
 
 AudioSource bgm = AudioManager.GetAudioSource("BGM");
@@ -238,7 +239,7 @@ AudioSourceはグループごとに遅延生成され、`SymphonySystem` シー�
 ### Pause Manager
 
 ```csharp
-using SymphonyFrameWork.System;
+using SymphonyFrameWork.System.API;
 
 PauseManager.OnPauseChanged += paused =>
 {

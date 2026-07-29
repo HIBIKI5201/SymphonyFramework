@@ -19,16 +19,18 @@
 
 | namespace | 主なAPI | 用途 |
 | --- | --- | --- |
-| `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `LocateType`, `ServiceInjector` | インスタンス登録・取得 |
-| `SymphonyFrameWork.System.SceneLoad` | `SceneLoader` | シーンの非同期ロード／アンロード |
-| `SymphonyFrameWork.System.SaveSystem` | `SaveDataRegistry`, `SaveDataContent`, `SaveDataLoader` | セーブデータ |
-| `SymphonyFrameWork.System` | `AudioManager`, `PauseManager` | オーディオ・ポーズ |
+| `SymphonyFrameWork.System.API` | `ServiceLocator`, `ServiceInjector`, `SceneLoader`, `SaveDataRegistry`, `AudioManager`, `PauseManager` | 消費者向けFacade（実際に呼び出すAPIはすべてここ） |
+| `SymphonyFrameWork.System.ServiceLocate` | `LocateType` | `ServiceLocator` へ渡すValue Object |
+| `SymphonyFrameWork.System.SceneLoad` | `SceneLoadState` | `SceneLoader` が返すValue Object |
+| `SymphonyFrameWork.System.SaveSystem` | `SaveDataContent`, `SaveDataLoader` | セーブデータの基底クラス／拡張点 |
 | `SymphonyFrameWork` | `IInjectable<T...>`, `IInitializeAsync` | DI用インターフェース |
 | `SymphonyFrameWork.Utility` | `SymphonyLocate`, `SymphonyTask`, `SymphonyTween` | 補助コンポーネント／ユーティリティ |
 | `SymphonyFrameWork.Attribute` | `[ReadOnly]`, `[SubclassSelector]`, `[SceneNameSelector]`, `[TagSelector]` 等 | Inspector拡張属性 |
 | `SymphonyFrameWork.Editor` (Editor専用) | `SymphonyAdministrator` 他 | エディタツール。Runtimeコードから参照不可 |
 
-主要APIは**すべて `public static class`**（`ServiceLocator` / `SceneLoader` / `AudioManager` / `PauseManager` / `SaveDataRegistry`）。インスタンス化やシングルトンの `.Instance` パターンは存在しない。`XxxManager.Instance` のようなコードを書いたら誤り。
+主要APIは**すべて `public static class`**（`ServiceLocator` / `SceneLoader` / `AudioManager` / `PauseManager` / `SaveDataRegistry`、いずれも `SymphonyFrameWork.System.API` 名前空間）。インスタンス化やシングルトンの `.Instance` パターンは存在しない。`XxxManager.Instance` のようなコードを書いたら誤り。
+
+> バージョン2.1.0以前は `SymphonyFrameWork.System.ServiceLocate` / `.SceneLoad` / `.SaveSystem` / `SymphonyFrameWork.System`（無印）にこれらのFacadeが直接存在していた。旧namespaceのクラスは`[Obsolete]`シムとして当面残るため既存コードはそのまま動くが、新規コードは必ず`SymphonyFrameWork.System.API`を使うこと。
 
 初期化は `SymphonyCoreSystem`（internal, `[RuntimeInitializeOnLoadMethod]`）が最初のシーンより前に自動実行し、`SymphonySystem` という専用シーンを生成する。**Bootstrap用GameObjectをシーンに手動配置する必要はない**。逆に、これらのstaticクラスを `Awake` より前（エディタの `InitializeOnLoad` など）で呼び出すのは避ける。
 
@@ -37,6 +39,7 @@
 ### 2.1 Service Locator — 登録は必ず対で行う
 
 ```csharp
+using SymphonyFrameWork.System.API;
 using SymphonyFrameWork.System.ServiceLocate;
 using UnityEngine;
 
@@ -57,7 +60,7 @@ public sealed class GameSession : MonoBehaviour
 ### 2.2 Scene Loader — Build Settingsへの追加が前提
 
 ```csharp
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFrameWork.System.API;
 using UnityEngine.SceneManagement;
 
 public async void OpenGameScene()
@@ -103,7 +106,7 @@ await SaveDataRegistry.SaveAsync<PlayerData>();
 ### 2.4 Audio Manager — 事前にAudioMixer/グループ登録が必須
 
 ```csharp
-using SymphonyFrameWork.System;
+using SymphonyFrameWork.System.API;
 
 AudioSource bgm = AudioManager.GetAudioSource("BGM");
 bgm.clip = bgmClip;
@@ -117,7 +120,7 @@ AudioManager.VolumeSliderChanged("BGM", 0.5f); // 0.0〜1.0の比率 → dBへ�
 ### 2.5 Pause Manager
 
 ```csharp
-using SymphonyFrameWork.System;
+using SymphonyFrameWork.System.API;
 
 PauseManager.OnPauseChanged += paused => { /* UI更新 */ };
 PauseManager.Pause = true;
@@ -138,10 +141,7 @@ await PauseManager.PausableWaitForSecondAsync(1.0f, destroyCancellationToken);
 
 ```csharp
 // Assets/Scripts/_SymphonyVerify/Editor/SymphonyVerifyMenu.cs
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.System.ServiceLocate;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFrameWork.System.API;
 using UnityEditor;
 using UnityEngine;
 
@@ -181,7 +181,7 @@ Assets/Scripts/SymphonyFrameWork/SceneListEnum.cs 等
 ```csharp
 // Assets/Scripts/_SymphonyVerify/SymphonyVerifyRuntime.cs
 using System;
-using SymphonyFrameWork.System;
+using SymphonyFrameWork.System.API;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.System.SaveSystem;
 using UnityEngine;

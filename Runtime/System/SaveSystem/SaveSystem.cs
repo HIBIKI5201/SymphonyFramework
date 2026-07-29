@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Api = SymphonyFrameWork.System.API;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
@@ -15,75 +16,40 @@ namespace SymphonyFrameWork.System.SaveSystem
             Func<SaveDataLoader> loaderResolver)
         {
             _destroyRegistration.Dispose();
-            SaveDataRegistry.ConfigureLoaderResolver(loaderResolver);
-            _destroyRegistration = destroyCancellationToken.Register(SaveDataRegistry.ResetRuntimeState);
+            Api.SaveDataRegistry.ConfigureLoaderResolver(loaderResolver);
+            _destroyRegistration = destroyCancellationToken.Register(Api.SaveDataRegistry.ResetRuntimeState);
         }
 
         private static CancellationTokenRegistration _destroyRegistration;
     }
 
     /// <summary>
-    ///     指定したSaveDataLoaderでセーブデータを管理するジェネリックFacadeです。
+    ///     <see cref="Api.SaveSystem{TData, TLoader}"/> へ移動しました。
     /// </summary>
-    /// <typeparam name="TData"> 管理するセーブデータの型。 </typeparam>
-    /// <typeparam name="TLoader"> 使用するSaveDataLoaderの型。 </typeparam>
+    [Obsolete("SymphonyFrameWork.System.API.SaveSystem<TData, TLoader> に移動しました。今後はそちらを使用してください。", error: false)]
     public static class SaveSystem<TData, TLoader>
         where TData : SaveDataContent, new()
         where TLoader : SaveDataLoader, new()
     {
         /// <summary> キャッシュまたは保存先からセーブデータを取得する。 </summary>
         /// <returns> 取得したセーブデータ。 </returns>
-        public static async ValueTask<TData> Get()
-        {
-            if (_saveData == null)
-            {
-                _saveData = new TData();
-                await _loader.LoadAsync(typeof(TData), _saveData);
-            }
-
-            return _saveData;
-        }
+        public static ValueTask<TData> Get() => Api.SaveSystem<TData, TLoader>.Get();
 
         /// <summary> セーブデータに記録された最終保存日時を取得する。 </summary>
         /// <returns> ISO 8601形式の最終保存日時。 </returns>
-        public static async ValueTask<string> GetDate()
-        {
-            if (_saveData == null)
-            {
-                await Load();
-            }
-
-            return _saveData?.SaveDate;
-        }
+        public static ValueTask<string> GetDate() => Api.SaveSystem<TData, TLoader>.GetDate();
 
         /// <summary>
         ///     指定したSaveDataLoaderを用いて保存する。
         /// </summary>
-        public static async ValueTask Save()
-        {
-            TData data = await Get();
-            await _loader.SaveAsync(typeof(TData), data);
-        }
+        public static ValueTask Save() => Api.SaveSystem<TData, TLoader>.Save();
 
         /// <summary>
         ///     指定したSaveDataLoaderを用いて現在のインスタンスへロードする。
         /// </summary>
-        public static async ValueTask Load()
-        {
-            _saveData ??= new TData();
-            await _loader.LoadAsync(typeof(TData), _saveData);
-        }
+        public static ValueTask Load() => Api.SaveSystem<TData, TLoader>.Load();
 
         /// <summary> キャッシュ中のセーブデータを破棄する。 </summary>
-        public static void Dispose()
-        {
-            if (_saveData == null) { return; }
-
-            _saveData.Dispose();
-            _saveData = null;
-        }
-
-        private static TData _saveData;
-        private static readonly TLoader _loader = new();
+        public static void Dispose() => Api.SaveSystem<TData, TLoader>.Dispose();
     }
 }

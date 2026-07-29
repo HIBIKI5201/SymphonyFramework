@@ -45,12 +45,14 @@ SymphonyFrameWork
 ├─ Debugger
 ├─ Editor
 ├─ System
+│  ├─ API
 │  ├─ SaveSystem
 │  ├─ SceneLoad
 │  └─ ServiceLocate
 └─ Utility
 ```
 
+- 消費者向けAPI（Facadeクラス）はモジュールを問わず`SymphonyFrameWork.System.API`に集約する。内部実装（Manager、Data、Entity等）は各サブシステムのフォルダ・名前空間（`SaveSystem`、`SceneLoad`、`ServiceLocate`）に残す。
 - Sampleは `SymphonyFrameWork.Samples.<SampleName>` とする。
 - ファイルの配置と名前空間を一致させる。
 - 名前空間はディレクトリ構成を反映する。並び順を示す数字など、コード上の責務を表さないディレクトリ名は除外する。

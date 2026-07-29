@@ -35,7 +35,7 @@ namespace SymphonyFrameWork.Debugger
             LogKind kind = LogKind.Normal,
             UnityEngine.Object context = null)
         {
-            switch (kind)
+            switch (kind) 
             {
                 case LogKind.Normal: Debug.Log(text, context); break;
                 case LogKind.Warning: Debug.LogWarning(text, context); break;
