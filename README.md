@@ -286,6 +286,7 @@ Samples/    利用例
 - [変更履歴](./CHANGELOG.md)
 - [設計思想](./DesignPhilosophy.md)
 - [コーディングガイドライン](./CodeGuidelines.md)
+- [AGENTS.md（AIエージェント向け利用ガイド）](./AGENTS.md)
 
 ## コントリビューター
 
