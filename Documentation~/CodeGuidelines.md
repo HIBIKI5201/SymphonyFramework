@@ -105,7 +105,7 @@ public static bool TryGetScene(string sceneName, out Scene scene)
 | bool property | `Is`、`Has`、`Can` などから始める | `IsResetAndLoadOnPlay` |
 | parameter、local variable | camelCase | `sceneName` |
 | private field | `_` + camelCase | `_initializeSceneList` |
-| const | UPPER_SNAKE_CASE | `SYMPHONY_SCENE_NAME` |
+| const | UPPER_SNAKE_CASE | `SYMPHONY_PACKAGE` |
 | event | `On` + PascalCase | `OnPauseChanged` |
 | event handler | 対象と動作 + `Handler` | `PauseChangedHandler` |
 | async method | `Async` で終える | `LoadAsync` |

@@ -380,7 +380,7 @@ Symphony Frameworkは他プロジェクトが依存するパッケージであ�
 - Facadeが回復方法の異なる失敗を通知するための専用例外。特定サブシステムの例外はFacadeと同じ名前空間へ置き、原因例外と診断に必要な文脈を保持する。
 - 利用側が自身のフィールド／クラスへ直接付与するInspector属性（`PropertyAttribute`の派生。例: `ReadOnlyAttribute`、`SubclassSelectorAttribute`）。
 - 特定のサブシステムに紐づかない、汎用の再利用可能なユーティリティ（例: `SymphonyTask`、`SymphonyStringUtil`、`SymphonyConfigLocator`）。特定サブシステム専用のFacadeとは区別し、汎用性がある場合に限定する。
-- Composition Rootは`internal`にする。`SymphonyOrchestrator`とその`MoveObjectToSymphonySystem`を含む全メンバーは内部実装であり、利用側へ公開しない。
+- Composition Rootは`internal`にする。`SymphonyOrchestrator`とその`PreserveObject`を含む全メンバーは内部実装であり、利用側へ公開しない。
 - Config（ScriptableObject設定資産）はInfrastructureに属するため`internal`にする。Editorの設定画面・Drawerからは`InternalsVisibleTo`経由でアクセスする。
 - 上記に該当しない内部Manager、Adaptor、Infrastructureの具象実装（Template実装の具象クラス、Config、内部専用Component）、Entity、DTO、Registry内部実装は`internal`にする。
 - Editor拡張やCompositionのためだけに存在するメンバーは、Facade上にあっても`public`にしない。ローダーやManagerなど内部実装を取り出すアクセサ、状態のリセット、初期化・注入のフックは`internal`にし、`[assembly: InternalsVisibleTo("SymphonyFrameWork.Editor")]` など明示的なアセンブリ間許可で参照する。Editor拡張がRuntimeのinternal型を必要とする場合も、無条件にpublicへ広げない。

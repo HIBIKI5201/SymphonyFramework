@@ -65,7 +65,7 @@ namespace SymphonyFrameWork.System
 
             var instance = new GameObject(nameof(AudioManager));
 
-            SymphonyOrchestrator.MoveObjectToSymphonySystem(instance);
+            SymphonyOrchestrator.PreserveObject(instance);
             _instance = instance;
         }
 

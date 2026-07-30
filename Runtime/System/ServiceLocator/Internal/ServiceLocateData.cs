@@ -14,7 +14,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public ServiceLocateData()
         {
             _gameObject = new GameObject("ServiceLocateData");
-            SymphonyOrchestrator.MoveObjectToSymphonySystem(_gameObject);
+            SymphonyOrchestrator.PreserveObject(_gameObject);
         }
 
         /// <summary> Singleton登録されたComponentの所有元GameObject。 </summary>
