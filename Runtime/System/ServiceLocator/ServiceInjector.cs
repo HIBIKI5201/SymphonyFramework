@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SymphonyFrameWork.System.API
+namespace SymphonyFrameWork.System.ServiceLocate
 {
     /// <summary>
     ///     IInjectableへServiceLocator登録済みインスタンスを注入する補助Facadeです。

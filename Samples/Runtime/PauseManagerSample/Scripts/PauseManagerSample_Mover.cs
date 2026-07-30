@@ -1,4 +1,4 @@
-using SymphonyFrameWork.System.API;
+using SymphonyFrameWork.System;
 using UnityEngine;
 
 namespace SymphonyFrameWork.Samples.PauseManagerSample

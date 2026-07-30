@@ -1,7 +1,6 @@
 ﻿using SymphonyFrameWork.Core;
 using SymphonyFrameWork.System.SceneLoad;
 using SymphonyFrameWork.Utility;
-using SceneLoader = SymphonyFrameWork.System.API.SceneLoader;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

@@ -1,12 +1,11 @@
 ﻿using SymphonyFrameWork.Config;
-using SymphonyFrameWork.System.SceneLoad;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.System.API
+namespace SymphonyFrameWork.System.SceneLoad
 {
     /// <summary>
     ///     シーンのロードを管理するクラス

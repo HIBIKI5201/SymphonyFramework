@@ -1,11 +1,10 @@
 using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System.SaveSystem;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SymphonyFrameWork.System.API
+namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
     ///     プロジェクト設定に従ってセーブデータを一括管理するレジストリです。

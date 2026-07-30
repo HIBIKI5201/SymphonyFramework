@@ -4,13 +4,12 @@ using System.Threading.Tasks;
 using UnityEngine;
 using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Core;
-using SymphonyFrameWork.System.ServiceLocate;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace SymphonyFrameWork.System.API
+namespace SymphonyFrameWork.System.ServiceLocate
 {
     /// <summary>
     ///     シングルトンのインスタンスを統括して管理するクラスです。

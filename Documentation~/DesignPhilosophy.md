@@ -170,7 +170,7 @@ Composition ───────────────┘
 
 ### Facadeと内部Manager
 
-Facadeは、View層に属する、1つのサブシステムが公開する唯一の入口です。Application層のユースケースをまとめ、複数実装の切り替えが必要になった時点でAdaptorが選択した実装へ処理を委譲します。利用側（消費者）から見ると、これらFacadeクラスがSymphonyFrameWorkの「API」そのものです。サブシステムを問わず、Facadeクラスの実装は`Runtime/System/API/`ディレクトリおよび`SymphonyFrameWork.System.API`名前空間に物理的に集約し、内部Manager等の実装詳細とは別の場所に置くことで、公開されているAPIが一目で分かるようにします。
+Facadeは、View層に属する、1つのサブシステムが公開する唯一の入口です。Application層のユースケースをまとめ、複数実装の切り替えが必要になった時点でAdaptorが選択した実装へ処理を委譲します。利用側（消費者）から見ると、これらFacadeクラスがSymphonyFrameWorkの「API」そのものです。Facadeは自身が属するサブシステムのフォルダ直下および同じサブシステムの名前空間に置き、内部Manager等の実装詳細は同じフォルダの`Internal/`配下へ分離します。名前空間ではなくフォルダで公開範囲を表すことで、Facadeとその引数・戻り値のValue Objectが利用側から1つの`using`で揃い、かつ公開されているAPIが一目で分かるようにします。
 
 - 公開APIは原則としてstaticなFacadeクラス1つに集約する（例: `SceneLoader`、`AudioManager`、`PauseManager`、`ServiceLocator`、`SaveDataRegistry`）。View層に属するため、DomainのValueObjectやApplicationのQueryを直接受け渡ししてよい。
 - 1つのFacadeへ統合すると責務が曖昧になる場合は、同じサブシステムに用途を限定した複数のFacadeを設けてよい。`ServiceInjector` は注入操作だけを提供する補助Facadeとして、`ServiceLocator` から分離したまま公開する。`SceneLoader` は、ロードしたシーンのルートオブジェクトが `IInjectable` を実装している場合、`ServiceInjector` を介して自動的に注入する。手動での `ServiceInjector.Inject(...)` 呼び出しは、シーンロードを経由しない生成（実行時Instantiateなど）向けに引き続き公開する。
@@ -370,7 +370,7 @@ Symphony Frameworkは他プロジェクトが依存するパッケージであ�
 
 公開APIを最小に保つため、`public`にする型は次に限定します。それ以外は`internal`にします。
 
-- Facade（View層の静的公開クラス。例: `SceneLoader`、`ServiceLocator`、`SaveDataRegistry`）。これらFacadeクラスは利用側からは`SymphonyFrameWork.System.API`名前空間のAPIとして参照される。
+- Facade（View層の静的公開クラス。例: `SceneLoader`、`ServiceLocator`、`SaveDataRegistry`）。これらFacadeクラスは、それが属するサブシステムの名前空間（`SymphonyFrameWork.System.SceneLoad` など）のAPIとして利用側から参照される。
 - 利用側プロジェクトが拡張・実装する前提の契約（Applicationの抽象基底クラスやinterface、またはViewの購読契約。例: `SaveDataLoader`、`IInitializeAsync`、`IPausable`）。
 - Facadeの引数・戻り値として利用側へ渡るDomainのValue Object。
 - 利用側が自身のフィールド／クラスへ直接付与するInspector属性（`PropertyAttribute`の派生。例: `ReadOnlyAttribute`、`SubclassSelectorAttribute`）。

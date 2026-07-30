@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace SymphonyFrameWork.System.API
+namespace SymphonyFrameWork.System
 {
     /// <summary>
     /// オーディオ再生

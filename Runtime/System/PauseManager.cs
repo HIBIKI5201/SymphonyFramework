@@ -7,7 +7,7 @@ using SymphonyFrameWork.Utility;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SymphonyFrameWork.System.API
+namespace SymphonyFrameWork.System
 {
     /// <summary>
     ///     ポーズ状態を管理する型

@@ -1,5 +1,4 @@
 ﻿using SymphonyFrameWork.System.ServiceLocate;
-using ServiceLocator = SymphonyFrameWork.System.API.ServiceLocator;
 using UnityEngine;
 
 namespace SymphonyFrameWork.Samples.ServiceLocatorSample

@@ -3,7 +3,7 @@
 Unity プロジェクトで繰り返し必要になる、シーン遷移、サービス管理、セーブデータ、オーディオ、ポーズ、デバッグ機能をまとめたゲーム開発向けフレームワークです。
 
 - 対応 Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.1.0**
+- 現在のバージョン: **3.0.0**
 - ライセンス: **MIT**
 
 ## 主な機能
@@ -95,7 +95,6 @@ asmdefを使用しているゲーム側コードから本フレームワーク�
 インスタンスはコードから登録できるほか、GameObjectへ `SymphonyLocate` を追加してInspectorから登録できます。
 
 ```csharp
-using SymphonyFrameWork.System.API;
 using SymphonyFrameWork.System.ServiceLocate;
 using UnityEngine;
 
@@ -146,7 +145,7 @@ IGameSession current = ServiceLocator.GetInstance<IGameSession>();
 対象シーンをBuild SettingsのScene Listへ追加してから使用してください。
 
 ```csharp
-using SymphonyFrameWork.System.API;
+using SymphonyFrameWork.System.SceneLoad;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -223,7 +222,7 @@ await SaveDataRegistry.DeleteAsync<PlayerData>();
 3. グループ名でAudioSourceを取得して再生します。
 
 ```csharp
-using SymphonyFrameWork.System.API;
+using SymphonyFrameWork.System;
 using UnityEngine;
 
 AudioSource bgm = AudioManager.GetAudioSource("BGM");
@@ -239,7 +238,7 @@ AudioSourceはグループごとに遅延生成され、`SymphonySystem` シー�
 ### Pause Manager
 
 ```csharp
-using SymphonyFrameWork.System.API;
+using SymphonyFrameWork.System;
 
 PauseManager.OnPauseChanged += paused =>
 {
@@ -282,7 +281,8 @@ PauseManager.Pause = false;
 Core/       Runtime／Editor共通の定数と基盤asmdef
   Internal/ フレームワーク内部専用のヘルパー（internal。InternalsVisibleToでRuntime／Editorへ公開）
 Runtime/    ビルドに含まれるシステム、Component、Utility、属性
-  Obsolete/ 旧namespace互換の[Obsolete]シム（移行用。今後は System/API を使用）
+  Obsolete/ 代替APIへ移行済みの[Obsolete]シム（移行用。次のメジャー更新で削除）
+  */Internal/ 各フォルダのinternalな実装（利用側から使う型はInternal/の外にある）
 Editor/     設定画面、管理ウィンドウ、Drawer、Generator
 Samples/    利用例
 Documentation~/ 開発向けドキュメント（末尾の~によりUnityのインポート対象外）

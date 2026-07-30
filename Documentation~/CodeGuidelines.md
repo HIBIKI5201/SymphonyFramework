@@ -26,7 +26,8 @@
 | --- | --- | --- |
 | `Core/` | RuntimeとEditorで共有する最小限の基盤と内部ヘルパー | 上位機能へ依存させない。`internal` な型は `Core/AssemblyInfo.cs` の `InternalsVisibleTo` でRuntime／Editorへ公開する |
 | `Runtime/` | Playerビルドに含まれる機能 | `UnityEditor` を参照しない |
-| `Runtime/Obsolete/` | 旧namespace互換の `[Obsolete]` シム | 移行期間のみ存在させ、メジャー更新でフォルダごと削除する |
+| `*/Internal/` | 各フォルダの `internal` な実装 | `internal` な型はここへ置き、`Internal/` の外には利用側から使える型だけを残す。名前空間には `Internal` を含めない（→ `## 名前空間`） |
+| `Runtime/Obsolete/` | 代替APIへ移行済みの `[Obsolete]` シム | 移行期間のみ存在させ、メジャー更新で削除する |
 | `Editor/` | Inspector、設定画面、Generatorなど | `SymphonyFrameWork.Editor` asmdefに含める |
 | `Samples/` | 利用例 | 製品コードから依存しない |
 
@@ -48,19 +49,23 @@ SymphonyFrameWork
 ├─ Debugger
 ├─ Editor
 ├─ System
-│  ├─ API
 │  ├─ SaveSystem
 │  ├─ SceneLoad
 │  └─ ServiceLocate
 └─ Utility
 ```
 
-- 消費者向けAPI（Facadeクラス）はモジュールを問わず`SymphonyFrameWork.System.API`に集約する。内部実装（Manager、Data、Entity等）は各サブシステムのフォルダ・名前空間（`SaveSystem`、`SceneLoad`、`ServiceLocate`）に残す。
+- 消費者向けAPI（Facadeクラス）は、それが属するサブシステムの名前空間へ置く（`SaveDataRegistry`・`SaveSystem<TData, TLoader>` は `SymphonyFrameWork.System.SaveSystem`、`SceneLoader` は `SymphonyFrameWork.System.SceneLoad`、`ServiceLocator`・`ServiceInjector` は `SymphonyFrameWork.System.ServiceLocate`、どのサブシステムにも属さない `AudioManager`・`PauseManager` は `SymphonyFrameWork.System`）。Facadeとその引数・戻り値のValue Objectが同じ名前空間に揃うため、利用側は1つの `using` で1つのサブシステムを使える。
+- 公開Facadeと内部実装の区別は、名前空間ではなくフォルダで表す。Facadeはサブシステムのフォルダ直下、内部実装は同じフォルダの `Internal/` 配下に置く（後述）。
 - Sampleは `SymphonyFrameWork.Samples.<SampleName>` とする。
 - ファイルの配置と名前空間を一致させる。
 - 名前空間はディレクトリ構成を反映する。並び順を示す数字など、コード上の責務を表さないディレクトリ名は除外する。
-- どのサブシステムにも属さず、フレームワーク内部だけで使う横断的なヘルパーは `Core/Internal/` へ置く。`Internal` は可視性を表すだけで責務ではないため、名前空間には含めない（例: `Core/Internal/SymphonyLazyObject.cs` の名前空間は `SymphonyFrameWork.Core`）。サブシステムの実装クラスは、`internal` であってもそのサブシステムのフォルダへ置く。
-- `Runtime/Obsolete/` は、フォルダ構成と名前空間を一致させる唯一の例外とする。旧namespaceを維持することがシムの目的であるため、配下は移行元の名前空間（`SymphonyFrameWork.System`、`SymphonyFrameWork.System.SaveSystem` など）のままにし、サブフォルダ名で対応する名前空間を示す。新しい `[Obsolete]` シムを追加する場合もここへ置く。
+- `internal` な型は、所属するフォルダ直下の `Internal/` へ置く。`Internal` は可視性を表すだけで責務ではないため、名前空間には含めない（例: `Core/Internal/SymphonyLazyObject.cs` の名前空間は `SymphonyFrameWork.Core`、`Runtime/System/SceneLoader/Internal/SceneLoadManager.cs` の名前空間は `SymphonyFrameWork.System.SceneLoad`）。
+  - どのサブシステムにも属さない横断的なヘルパーは `Core/Internal/` へ置く。
+  - サブシステムの実装クラス（Manager、Data、Entity等）は、そのサブシステムのフォルダ配下の `Internal/` へ置く（`Runtime/System/SaveSystem/Internal/`、`Runtime/System/SceneLoader/Internal/`、`Runtime/System/ServiceLocator/Internal/`）。どのサブシステムにも属さないRuntime全体の基盤は `Runtime/System/Internal/` へ置く。
+  - 設定アセット（`internal` な `ScriptableObject`）は `Runtime/Configs/Internal/` へ置く。
+  - これにより、フォルダを見ればそのフォルダの公開範囲が分かる。`Internal/` の外にあるのは利用側から使える型だけになる。
+- `Runtime/Obsolete/` は、フォルダ構成と名前空間を一致させる唯一の例外とする。非推奨APIは移行先と同じ名前空間に居続ける必要があるため、配下は元の名前空間（`SymphonyFrameWork.System.SaveSystem` など）のままにし、サブフォルダ名で対応する名前空間を示す。新しい `[Obsolete]` シムを追加する場合もここへ置く。
 - 1ファイルには1つの公開型だけを定義し、ファイル名を型名と一致させる。
 - privateな入れ子型は、所有する型と密接に関係し、単独で再利用しない場合に限り同じファイルへ置ける。
 

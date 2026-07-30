@@ -1,6 +1,8 @@
 ﻿using SymphonyFrameWork.Debugger.HUD;
 using SymphonyFrameWork.Config;
+using SymphonyFrameWork.System.SceneLoad;
 using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 using System;
 using UnityEngine;
@@ -58,10 +60,10 @@ namespace SymphonyFrameWork.System
                 ResolveSaveDataLoader);
 
             //各クラスの初期化
-            API.PauseManager.Initialize();
-            API.ServiceLocator.Initialize(_systemObject.destroyCancellationToken);
-            API.SceneLoader.Initialize(_systemObject.destroyCancellationToken);
-            API.AudioManager.Initialize(
+            PauseManager.Initialize();
+            ServiceLocator.Initialize(_systemObject.destroyCancellationToken);
+            SceneLoader.Initialize(_systemObject.destroyCancellationToken);
+            AudioManager.Initialize(
                 SymphonyConfigLocator.GetConfig<AudioManagerConfig>());
 
             SymphonyDebugHUD.Initialize();
@@ -75,7 +77,7 @@ namespace SymphonyFrameWork.System
         {
             SceneManagerConfig config =
                 SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
-            _ = API.SceneLoader.AfterSceneLoad(config);
+            _ = SceneLoader.AfterSceneLoad(config);
         }
 
         /// <summary>
