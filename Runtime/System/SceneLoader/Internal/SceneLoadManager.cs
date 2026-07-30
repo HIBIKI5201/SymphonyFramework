@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFrameWork.Orchestrator;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 
@@ -564,7 +565,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> システムシーンと指定シーンを残し、それ以外の追跡シーンをアンロードする。 </summary>
         private async ValueTask ResetScene(params string[] scenesToUnload)
         {
-            string[] ignore = new string[] { SymphonyCoreSystem.SYMPHONY_SCENE_NAME }.Concat(scenesToUnload).ToArray();
+            string[] ignore = new string[] { SymphonyOrchestrator.SYMPHONY_SCENE_NAME }.Concat(scenesToUnload).ToArray();
             List<string> unloadScenes = new();
             foreach (var kvp in _data.SceneDict)
             {

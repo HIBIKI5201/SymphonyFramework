@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Orchestrator;
 using SymphonyFrameWork.System;
 
 using UnityEngine;
@@ -137,7 +138,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <returns> 生成したHUD描画コンポーネント。 </returns>
         private static SymphonyHUDDrawer CreateDebugHUD()
         {
-            return SymphonyCoreSystem.CreateSystemObject<SymphonyHUDDrawer>();
+            return SymphonyOrchestrator.CreateSystemObject<SymphonyHUDDrawer>();
         }
 
         /// <summary> Debug HUDが利用可能な状態か検証する。 </summary>

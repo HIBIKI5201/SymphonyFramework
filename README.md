@@ -77,7 +77,7 @@ Assets/
    └─ SymphonyFrameWork.Enum.asmdef
 ```
 
-ランタイムでは `SymphonyCoreSystem` が最初のシーンより前に自動初期化され、専用の `SymphonySystem` シーンを作成します。Bootstrap用のGameObjectを手動で置く必要はありません。
+ランタイムでは `SymphonyOrchestrator` が最初のシーンより前に自動初期化され、専用の `SymphonySystem` シーンを作成します。Bootstrap用のGameObjectを手動で置く必要はありません。
 
 主な設定場所は次のとおりです。
 

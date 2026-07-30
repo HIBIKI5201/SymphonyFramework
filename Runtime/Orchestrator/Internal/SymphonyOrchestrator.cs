@@ -1,19 +1,22 @@
-﻿using SymphonyFrameWork.Debugger.HUD;
+﻿using System;
+
 using SymphonyFrameWork.Config;
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFrameWork.Debugger.HUD;
+using SymphonyFrameWork.System;
 using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFrameWork.System.SceneLoad;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
-using System;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFrameWork.Orchestrator
 {
     /// <summary>
     ///     SymphonyFrameWorkの管理シーンを持つ、パッケージ全体のComposition Rootです。
     /// </summary>
-    internal static class SymphonyCoreSystem
+    internal static class SymphonyOrchestrator
     {
         /// <summary>
         ///     オブジェクトをSymphonySystemシーンに移動する
@@ -41,7 +44,7 @@ namespace SymphonyFrameWork.System
         internal const string SYMPHONY_SCENE_NAME = "SymphonySystem";
 
         private static Scene? _systemScene;
-        private static SymphonyCoreSystemObject _systemObject;
+        private static SymphonyOrchestratorObject _systemObject;
 
         /// <summary>
         ///     初期化でシステム用のシーンを作成
@@ -52,8 +55,8 @@ namespace SymphonyFrameWork.System
             //専用のシーン生成
             _systemScene = SceneManager.CreateScene(SYMPHONY_SCENE_NAME);
 
-            var systemGameObject = new GameObject(nameof(SymphonyCoreSystem));
-            _systemObject = systemGameObject.AddComponent<SymphonyCoreSystemObject>();
+            var systemGameObject = new GameObject(nameof(SymphonyOrchestrator));
+            _systemObject = systemGameObject.AddComponent<SymphonyOrchestratorObject>();
             SceneManager.MoveGameObjectToScene(systemGameObject, _systemScene.Value);
             SaveSystem.SaveSystem.Initialize(
                 _systemObject.destroyCancellationToken,

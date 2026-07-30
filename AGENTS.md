@@ -38,7 +38,7 @@
 
 > バージョン2.2.0〜2.2.1では、これらのFacadeが `SymphonyFrameWork.System.API` 名前空間に集約されていた。2.3.0でサブシステムごとの名前空間へ戻したため、`using SymphonyFrameWork.System.API;` を含むコードはコンパイルできない。上の表に従って `using` を張り替えること（クラス名とメンバーは変わっていない）。
 
-初期化は `SymphonyCoreSystem`（internal, `[RuntimeInitializeOnLoadMethod]`）が最初のシーンより前に自動実行し、`SymphonySystem` という専用シーンを生成する。**Bootstrap用GameObjectをシーンに手動配置する必要はない**。逆に、これらのstaticクラスを `Awake` より前（エディタの `InitializeOnLoad` など）で呼び出すのは避ける。
+初期化は `SymphonyOrchestrator`（internal, `[RuntimeInitializeOnLoadMethod]`）が最初のシーンより前に自動実行し、`SymphonySystem` という専用シーンを生成する。**Bootstrap用GameObjectをシーンに手動配置する必要はない**。逆に、これらのstaticクラスを `Awake` より前（エディタの `InitializeOnLoad` など）で呼び出すのは避ける。
 
 ## 2. ボイラープレートと作法
 
@@ -183,7 +183,7 @@ Assets/Resources/SymphonyFrameWork/SaveSystemConfig.asset
 Assets/Scripts/SymphonyFrameWork/SceneListEnum.cs 等
 ```
 
-無ければ、`Window > SymphonyFrameWork > Symphony Administrator` を一度開くか、Playモードに入ることでトリガーされる（`SymphonyCoreSystem` の `RuntimeInitializeOnLoadMethod`／Editor側の生成処理）。存在しない場合、コードから設定を参照するAPI呼び出し（Audioグループ登録など）は動かない。
+無ければ、`Window > SymphonyFrameWork > Symphony Administrator` を一度開くか、Playモードに入ることでトリガーされる（`SymphonyOrchestrator` の `RuntimeInitializeOnLoadMethod`／Editor側の生成処理）。存在しない場合、コードから設定を参照するAPI呼び出し（Audioグループ登録など）は動かない。
 
 ### 3.3 ランタイム動作確認（Play Mode / テストシーン）
 
@@ -240,7 +240,7 @@ public sealed class SymphonyVerifyRuntime : MonoBehaviour
 [SymphonyVerify] Save/Delete cycle done. Counter was 1
 ```
 
-`ServiceLocator round-trip` が `False` になる場合はSymphonyCoreSystemの初期化が完了する前にコードが走っている（別シーンの `Awake` が早すぎる等）ことを疑う。Save/Delete cycleでエラーが出る場合はSave System設定（ローダー選択）かPlayerPrefsの権限を確認する。
+`ServiceLocator round-trip` が `False` になる場合はSymphonyOrchestratorの初期化が完了する前にコードが走っている（別シーンの `Awake` が早すぎる等）ことを疑う。Save/Delete cycleでエラーが出る場合はSave System設定（ローダー選択）かPlayerPrefsの権限を確認する。
 
 ### 3.4 ビルド時の確認
 

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Orchestrator;
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -362,7 +363,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 resetIgnoreScenes[resetIgnoreCount + i] = config.InitializeSceneList[i];
             }
 
-            resetIgnoreScenes[resetIgnoreCount + initializeSceneCount] = SymphonyCoreSystem.SYMPHONY_SCENE_NAME;
+            resetIgnoreScenes[resetIgnoreCount + initializeSceneCount] = SymphonyOrchestrator.SYMPHONY_SCENE_NAME;
             return resetIgnoreScenes;
         }
 

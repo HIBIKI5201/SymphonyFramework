@@ -49,6 +49,7 @@ SymphonyFrameWork
 ├─ Debugger
 ├─ Editor
 ├─ Exceptions
+├─ Orchestrator
 ├─ System
 │  ├─ SaveSystem
 │  ├─ SceneLoad
@@ -64,7 +65,7 @@ SymphonyFrameWork
 - 名前空間はディレクトリ構成を反映する。並び順を示す数字など、コード上の責務を表さないディレクトリ名は除外する。
 - `internal` な型は、所属するフォルダ直下の `Internal/` へ置く。`Internal` は可視性を表すだけで責務ではないため、名前空間には含めない（例: `Core/Internal/SymphonyLazyObject.cs` の名前空間は `SymphonyFrameWork.Core`、`Runtime/System/SceneLoader/Internal/SceneLoadManager.cs` の名前空間は `SymphonyFrameWork.System.SceneLoad`）。
   - どのサブシステムにも属さない横断的なヘルパーは `Core/Internal/` へ置く。
-  - サブシステムの実装クラス（Manager、Data、Entity等）は、そのサブシステムのフォルダ配下の `Internal/` へ置く（`Runtime/System/SaveSystem/Internal/`、`Runtime/System/SceneLoader/Internal/`、`Runtime/System/ServiceLocator/Internal/`）。どのサブシステムにも属さないRuntime全体の基盤は `Runtime/System/Internal/` へ置く。
+  - サブシステムの実装クラス（Manager、Data、Entity等）は、そのサブシステムのフォルダ配下の `Internal/` へ置く（`Runtime/System/SaveSystem/Internal/`、`Runtime/System/SceneLoader/Internal/`、`Runtime/System/ServiceLocator/Internal/`）。パッケージ全体のComposition Rootとそのライフタイム用Componentは `Runtime/Orchestrator/Internal/` へ置く。
   - 設定アセット（`internal` な `ScriptableObject`）は `Runtime/Configs/Internal/` へ置く。
   - これにより、フォルダを見ればそのフォルダの公開範囲が分かる。`Internal/` の外にあるのは利用側から使える型だけになる。
 - `Runtime/Obsolete/` は、フォルダ構成と名前空間を一致させる唯一の例外とする。非推奨APIは移行先と同じ名前空間に居続ける必要があるため、配下は元の名前空間（`SymphonyFrameWork.System.SaveSystem` など）のままにし、サブフォルダ名で対応する名前空間を示す。新しい `[Obsolete]` シムを追加する場合もここへ置く。

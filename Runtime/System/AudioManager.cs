@@ -4,6 +4,7 @@ using System.Linq;
 
 using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Orchestrator;
 
 using UnityEngine;
 using UnityEngine.Audio;
@@ -64,7 +65,7 @@ namespace SymphonyFrameWork.System
 
             var instance = new GameObject(nameof(AudioManager));
 
-            SymphonyCoreSystem.MoveObjectToSymphonySystem(instance);
+            SymphonyOrchestrator.MoveObjectToSymphonySystem(instance);
             _instance = instance;
         }
 
