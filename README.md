@@ -304,6 +304,12 @@ Samples/    利用例
 
 - [5unad0ke1](https://github.com/5unad0ke1)
 
+## 参考にしたライブラリ
+
+- `SubclassSelector`: [mackysoft/Unity-SerializeReferenceExtensions](https://github.com/mackysoft/Unity-SerializeReferenceExtensions)
+- `ReactiveProperty`: [neuecc/UniRx](https://github.com/neuecc/unirx)（今後実装予定）
+- `SymphonyTween`: [DOTween](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676)
+
 ## ライセンス
 
 Copyright (c) 2026 HIBIKI_5201
