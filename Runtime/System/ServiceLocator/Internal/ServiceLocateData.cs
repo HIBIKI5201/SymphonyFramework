@@ -104,6 +104,28 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
         }
 
+        /// <summary> 指定型の登録待ち処理を解除する。 </summary>
+        /// <typeparam name="T"> 登録を待っていたサービス型。 </typeparam>
+        /// <param name="action"> 解除する登録待ち処理。 </param>
+        public void UnregisterAction<T>(Action<T> action)
+        {
+            Type type = typeof(T);
+
+            if (!_waitingActionsWithInstance.TryGetValue(type, out Delegate existing))
+            {
+                return;
+            }
+
+            Delegate remaining = Delegate.Remove(existing, action);
+            if (remaining == null)
+            {
+                _waitingActionsWithInstance.Remove(type);
+                return;
+            }
+
+            _waitingActionsWithInstance[type] = remaining;
+        }
+
         /// <summary> 指定型の登録を待っている処理を実行し、待機一覧から削除する。 </summary>
         public void InvokeWaitingAction(Type type, object instance)
         {

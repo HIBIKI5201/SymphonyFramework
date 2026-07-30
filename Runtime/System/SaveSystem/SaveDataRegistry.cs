@@ -1,8 +1,9 @@
-using SymphonyFrameWork.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+using SymphonyFrameWork.Exceptions;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
@@ -12,19 +13,43 @@ namespace SymphonyFrameWork.System.SaveSystem
     public static class SaveDataRegistry
     {
         /// <summary> 指定型の永続化データが存在するか確認する。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で存在確認に失敗した場合。 </exception>
         public static bool Exists<T>() where T : SaveDataContent, new()
         {
             return Exists(typeof(T));
         }
 
         /// <summary> 指定型の永続化データが存在するか確認する。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で存在確認に失敗した場合。 </exception>
         public static bool Exists(Type dataType)
         {
             ValidateDataType(dataType);
-            return GetLoader().Exists(dataType);
+            SaveDataLoader loader = GetLoader();
+
+            try
+            {
+                return loader.Exists(dataType);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (SaveDataOperationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new SaveDataOperationException(
+                    SaveDataOperation.Exists,
+                    dataType,
+                    loader.GetType(),
+                    ex);
+            }
         }
 
         /// <summary> 指定型のキャッシュまたは保存済みデータを同期的に取得する。 </summary>
+        /// <exception cref="SaveDataOperationException"> 初回の同期読み込みに失敗した場合。 </exception>
         public static T Get<T>() where T : SaveDataContent, new()
         {
             return (T)Get(typeof(T));
@@ -34,6 +59,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         ///     Registry が保持している現在のインスタンスを取得します。
         ///     キャッシュが無い初回アクセス時は、自動的に永続化データをロードします。
         /// </summary>
+        /// <exception cref="SaveDataOperationException"> 初回の同期読み込みに失敗した場合。 </exception>
         public static SaveDataContent Get(Type dataType)
         {
             ValidateDataType(dataType);
@@ -49,6 +75,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
         public static async ValueTask<T> LoadAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
         {
             await LoadAsync(typeof(T), token);
@@ -56,6 +84,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
         public static ValueTask LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
@@ -87,27 +117,40 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
         public static ValueTask SaveAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
         {
             return SaveAsync(typeof(T), token);
         }
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
         public static async ValueTask SaveAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             SaveDataContent data = GetOrCreateCache(dataType);
-            await GetLoader().SaveAsync(dataType, data, token);
+            SaveDataLoader loader = GetLoader();
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperation.Save,
+                dataType,
+                loader,
+                () => loader.SaveAsync(dataType, data, token));
             MarkLoaded(dataType, data);
         }
 
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
         public static async ValueTask DeleteAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
         {
             await DeleteAsync(typeof(T), token);
         }
 
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
         public static async ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
@@ -118,8 +161,17 @@ namespace SymphonyFrameWork.System.SaveSystem
                 _loadedTypes.Remove(dataType);
             }
 
-            await GetLoader().DeleteAsync(dataType, token);
-            await GetLoader().LoadAsync(dataType, current, token);
+            SaveDataLoader loader = GetLoader();
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperation.Delete,
+                dataType,
+                loader,
+                () => loader.DeleteAsync(dataType, token));
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperation.Load,
+                dataType,
+                loader,
+                () => loader.LoadAsync(dataType, current, token));
             MarkLoaded(dataType, current);
         }
 
@@ -225,7 +277,12 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             try
             {
-                await GetLoader().LoadAsync(dataType, current, token);
+                SaveDataLoader loader = GetLoader();
+                await ExecuteLoaderOperationAsync(
+                    SaveDataOperation.Load,
+                    dataType,
+                    loader,
+                    () => loader.LoadAsync(dataType, current, token));
                 MarkLoaded(dataType, current);
             }
             finally
@@ -234,6 +291,39 @@ namespace SymphonyFrameWork.System.SaveSystem
                 {
                     _loadingTasks.Remove(dataType);
                 }
+            }
+        }
+
+        /// <summary> ローダー操作へセーブデータ型とローダー型の文脈を付けて実行する。 </summary>
+        /// <param name="operation"> 実行する操作。 </param>
+        /// <param name="dataType"> 操作対象のセーブデータ型。 </param>
+        /// <param name="loader"> 操作に使用するローダー。 </param>
+        /// <param name="execute"> 実行するローダー処理。 </param>
+        private static async ValueTask ExecuteLoaderOperationAsync(
+            SaveDataOperation operation,
+            Type dataType,
+            SaveDataLoader loader,
+            Func<ValueTask> execute)
+        {
+            try
+            {
+                await execute();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (SaveDataOperationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new SaveDataOperationException(
+                    operation,
+                    dataType,
+                    loader.GetType(),
+                    ex);
             }
         }
 

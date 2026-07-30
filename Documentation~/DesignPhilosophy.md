@@ -172,7 +172,7 @@ Composition ───────────────┘
 
 Facadeは、View層に属する、1つのサブシステムが公開する唯一の入口です。Application層のユースケースをまとめ、複数実装の切り替えが必要になった時点でAdaptorが選択した実装へ処理を委譲します。利用側（消費者）から見ると、これらFacadeクラスがSymphonyFrameWorkの「API」そのものです。Facadeは自身が属するサブシステムのフォルダ直下および同じサブシステムの名前空間に置き、内部Manager等の実装詳細は同じフォルダの`Internal/`配下へ分離します。名前空間ではなくフォルダで公開範囲を表すことで、Facadeとその引数・戻り値のValue Objectが利用側から1つの`using`で揃い、かつ公開されているAPIが一目で分かるようにします。
 
-- 公開APIは原則としてstaticなFacadeクラス1つに集約する（例: `SceneLoader`、`AudioManager`、`PauseManager`、`ServiceLocator`、`SaveDataRegistry`）。View層に属するため、DomainのValueObjectやApplicationのQueryを直接受け渡ししてよい。
+- 公開APIは原則としてstaticなFacadeクラス1つに集約する（例: `SceneLoader`、`AudioManager`、`PauseManager`、`ServiceLocator`、`SaveDataRegistry`）。View層に属するため、DomainのValueObjectやApplicationのQueryを直接受け渡ししてよい。サブシステムの機能はすべてこのFacadeを経由して呼び出し、他の公開型から同じ機能へ到達できる経路を作らない（[公開範囲](#公開範囲)）。
 - 1つのFacadeへ統合すると責務が曖昧になる場合は、同じサブシステムに用途を限定した複数のFacadeを設けてよい。`ServiceInjector` は注入操作だけを提供する補助Facadeとして、`ServiceLocator` から分離したまま公開する。`SceneLoader` は、ロードしたシーンのルートオブジェクトが `IInjectable` を実装している場合、`ServiceInjector` を介して自動的に注入する。手動での `ServiceInjector.Inject(...)` 呼び出しは、シーンロードを経由しない生成（実行時Instantiateなど）向けに引き続き公開する。
 - Facadeのメソッドは参照透過な実行にする。同じ入力に対して常に同じ内部Managerの対応する処理へ転送し、Facade自身が分岐ロジックや累積するビジネス状態を持つことは避ける。
 - ただし、Compositionが `Build` フェーズで注入する協力者（内部Manager、サービスインスタンス）を保持しているかどうかという状態は、Facadeが持つことを許可する。未初期化判定や `TryXxx` はこの状態に基づく。
@@ -368,17 +368,23 @@ Symphony Frameworkは他プロジェクトが依存するパッケージであ�
 
 ### 公開範囲
 
-公開APIを最小に保つため、`public`にする型は次に限定します。それ以外は`internal`にします。
+**サブシステムの機能は、すべてFacade経由で呼び出します。** 利用側がサブシステムに何かを「させる」経路はFacadeのメソッドだけであり、それ以外の公開型から機能を起動できてはいけません。副作用を持つ操作、内部状態を変える操作、永続化・シーン遷移・登録解除などを引き起こす操作は、Facadeにだけ`public`メンバーとして置きます。
 
-- Facade（View層の静的公開クラス。例: `SceneLoader`、`ServiceLocator`、`SaveDataRegistry`）。これらFacadeクラスは、それが属するサブシステムの名前空間（`SymphonyFrameWork.System.SceneLoad` など）のAPIとして利用側から参照される。
-- 利用側プロジェクトが拡張・実装する前提の契約（Applicationの抽象基底クラスやinterface、またはViewの購読契約。例: `SaveDataLoader`、`IInitializeAsync`、`IPausable`）。
-- Facadeの引数・戻り値として利用側へ渡るDomainのValue Object。
+したがって、Facade以外に`public`にしてよい型は、**機能ではなくデータと契約を表すもの**に限ります。具体的には、enum、利用側が実装・継承する抽象基底クラスとinterface、Value Object、例外、Inspector属性です。これらの型が`public`なのは、利用側がFacadeへ値を渡し、Facadeから値を受け取り、Facadeが駆動する実装を差し込むためであって、利用側がそれらを直接操作するためではありません。
+
+この原則に沿って、`public`にする型は次に限定します。それ以外は`internal`にします。
+
+- Facade（View層の静的公開クラス。例: `SceneLoader`、`ServiceLocator`、`SaveDataRegistry`）。これらFacadeクラスは、それが属するサブシステムの名前空間（`SymphonyFrameWork.System.SceneLoad` など）のAPIとして利用側から参照される。サブシステムの機能を持つ`public`メンバーを宣言できるのはFacadeだけである。
+- 利用側プロジェクトが拡張・実装する前提の契約（Applicationの抽象基底クラスやinterface、またはViewの購読契約。例: `SaveDataLoader`、`PlayerPrefsSaveDataLoader`、`SaveDataContent`、`IInitializeAsync`、`IPausable`）。`Template/`配下にあっても、利用側が継承して保存先や変換方法を差し替えるための抽象基底クラスはこれに含める。継承させる型であることと、その型を利用側が直接呼べることは別問題であり、**利用側が実装するメンバーは`protected abstract`、Facadeや内部Managerが駆動するメンバーは`internal`にする**。契約型に`public`メソッドを置いてよいのは、利用側が自身のインスタンスへ対して行う操作（`Dispose`など）に限られる。
+- Facadeの引数・戻り値として利用側へ渡るDomainのValue Object（例: `LocateType`、`SceneLoadState`、`SaveDataRegistryEntryInfo`）。フレームワーク側が生成して返すだけのValue Objectは、型は`public`のままコンストラクタを`internal`にする。
+- Facadeが回復方法の異なる失敗を通知するための専用例外。特定サブシステムの例外はFacadeと同じ名前空間へ置き、原因例外と診断に必要な文脈を保持する。
 - 利用側が自身のフィールド／クラスへ直接付与するInspector属性（`PropertyAttribute`の派生。例: `ReadOnlyAttribute`、`SubclassSelectorAttribute`）。
 - 特定のサブシステムに紐づかない、汎用の再利用可能なユーティリティ（例: `SymphonyTask`、`SymphonyStringUtil`、`SymphonyConfigLocator`）。特定サブシステム専用のFacadeとは区別し、汎用性がある場合に限定する。
 - Composition Rootは`internal`にする。`SymphonyCoreSystem`とその`MoveObjectToSymphonySystem`を含む全メンバーは内部実装であり、利用側へ公開しない。
 - Config（ScriptableObject設定資産）はInfrastructureに属するため`internal`にする。Editorの設定画面・Drawerからは`InternalsVisibleTo`経由でアクセスする。
-- 上記に該当しない内部Manager、Adaptor、Infrastructureの具象実装（Template実装、Config、内部専用Component）、Entity、DTO、Registry内部実装は`internal`にする。
-- Editor拡張がRuntimeのinternal型を参照する必要がある場合は、無条件にpublicへ広げず、`[assembly: InternalsVisibleTo("SymphonyFrameWork.Editor")]` など明示的なアセンブリ間許可を使う。
+- 上記に該当しない内部Manager、Adaptor、Infrastructureの具象実装（Template実装の具象クラス、Config、内部専用Component）、Entity、DTO、Registry内部実装は`internal`にする。
+- Editor拡張やCompositionのためだけに存在するメンバーは、Facade上にあっても`public`にしない。ローダーやManagerなど内部実装を取り出すアクセサ、状態のリセット、初期化・注入のフックは`internal`にし、`[assembly: InternalsVisibleTo("SymphonyFrameWork.Editor")]` など明示的なアセンブリ間許可で参照する。Editor拡張がRuntimeのinternal型を必要とする場合も、無条件にpublicへ広げない。
+- 1つのサブシステムに複数の`public`な入口を作らない。同じ機能へ別経路で到達できるFacadeを追加すると、キャッシュ・Config解決・Editorからの可視性が経路ごとに分岐し、[Facadeと内部Manager](#facadeと内部manager)の「唯一の入口」が成立しなくなる。用途を限定した補助Facade（`ServiceInjector`）は、既存Facadeと機能が重複しない場合に限り認める。
 - 既存のpublicな内部Manager等をinternalへ変更する場合も、破壊的変更として次の規約に従う。
 
 ### バージョニング
@@ -395,9 +401,9 @@ Symphony Frameworkは他プロジェクトが依存するパッケージであ�
 フレームワークは、利用側プロジェクトのゲーム設計・データ構造・アーキテクチャを前提にしません。
 
 - Domain、Application、Adaptorの型は、利用側の具象クラス・enum・namespaceを知らない。型引数、interface、DTOを介して利用側の型を受け取る。
-- 利用側が拡張する前提の型（`SaveDataLoader` の継承、`IInitializeAsync` の実装など）は、抽象基底クラスまたはinterfaceとして公開し、実装すべき最小のメンバーだけを要求する。
+- 利用側が拡張する前提の型（`SaveDataLoader` の継承、`IInitializeAsync` の実装など）は、抽象基底クラスまたはinterfaceとして公開し、実装すべき最小のメンバーだけを要求する。公開するのは「実装させるため」であり、その型を利用側が直接呼び出す前提は置かない（[公開範囲](#公開範囲)）。
 - Configはフレームワークの動作を調整するためだけに使い、利用側のゲームデータ（アイテム、ステージ、キャラクターなど）を表現する場所として設計しない。
-- Sampleやテンプレート実装（`Template/` 以下のLoaderなど）は「動く例」であり、利用側が変更せず本番で使うことを前提にしない。
+- Sampleは「動く例」であり、利用側が変更せず本番で使うことを前提にしない。`Template/` 配下は、利用側が継承して差分だけを実装するための抽象基底クラス（`PlayerPrefsSaveDataLoader` など）を置く場所であり、そのまま使う具象実装は`Internal/`へ置いて`internal`にする。
 - フレームワークのログ、例外メッセージ、Editorウィンドウは、利用側のプロジェクト固有語彙（ゲームタイトル、独自ルール名）に依存しない。
 - 利用側プロジェクトの都合（特定ジャンル、特定入力デバイスなど）に合わせた分岐を、Domain／Applicationへ追加しない。必要な場合はConfigまたは拡張点として切り出す。
 

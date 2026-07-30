@@ -48,6 +48,7 @@ SymphonyFrameWork
 ├─ Core
 ├─ Debugger
 ├─ Editor
+├─ Exceptions
 ├─ System
 │  ├─ SaveSystem
 │  ├─ SceneLoad
@@ -55,7 +56,8 @@ SymphonyFrameWork
 └─ Utility
 ```
 
-- 消費者向けAPI（Facadeクラス）は、それが属するサブシステムの名前空間へ置く（`SaveDataRegistry`・`SaveSystem<TData, TLoader>` は `SymphonyFrameWork.System.SaveSystem`、`SceneLoader` は `SymphonyFrameWork.System.SceneLoad`、`ServiceLocator`・`ServiceInjector` は `SymphonyFrameWork.System.ServiceLocate`、どのサブシステムにも属さない `AudioManager`・`PauseManager` は `SymphonyFrameWork.System`）。Facadeとその引数・戻り値のValue Objectが同じ名前空間に揃うため、利用側は1つの `using` で1つのサブシステムを使える。
+- 消費者向けAPI（Facadeクラス）は、それが属するサブシステムの名前空間へ置く（`SaveDataRegistry` は `SymphonyFrameWork.System.SaveSystem`、`SceneLoader` は `SymphonyFrameWork.System.SceneLoad`、`ServiceLocator`・`ServiceInjector` は `SymphonyFrameWork.System.ServiceLocate`、どのサブシステムにも属さない `AudioManager`・`PauseManager` は `SymphonyFrameWork.System`）。Facadeとその引数・戻り値のValue Objectが同じ名前空間に揃うため、利用側は1つの `using` で1つのサブシステムを使える。
+- 特定サブシステムの公開APIが送出する専用例外は、そのFacadeと同じ名前空間へ置く（`ServiceNotRegisteredException`、`SceneInitializationException`、`SaveDataOperationException`）。複数サブシステムで共通する `SymphonyNotInitializedException` は `SymphonyFrameWork.Exceptions` に置く。
 - 公開Facadeと内部実装の区別は、名前空間ではなくフォルダで表す。Facadeはサブシステムのフォルダ直下、内部実装は同じフォルダの `Internal/` 配下に置く（後述）。
 - Sampleは `SymphonyFrameWork.Samples.<SampleName>` とする。
 - ファイルの配置と名前空間を一致させる。

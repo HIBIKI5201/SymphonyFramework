@@ -1,6 +1,10 @@
-﻿using SymphonyFrameWork.Debugger.Logger;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFrameWork.Exceptions;
+
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -13,6 +17,7 @@ namespace SymphonyFrameWork.System
     {
         private static AudioManagerConfig _config;
         private static GameObject _instance;
+        private static bool _isInitialized;
 
         private static
             Dictionary<string, AudioSettingData> _audioDict = new();
@@ -45,9 +50,11 @@ namespace SymphonyFrameWork.System
         /// <param name="config"> オーディオミキサーとグループ設定。 </param>
         internal static void Initialize(AudioManagerConfig config)
         {
+            _isInitialized = false;
             _instance = null;
             _audioDict = null;
             _config = config;
+            _isInitialized = true;
         }
 
         /// <summary> AudioSourceを所有するシステムオブジェクトを必要な場合だけ生成する。 </summary>
@@ -64,6 +71,8 @@ namespace SymphonyFrameWork.System
         /// <summary> Configに定義されたミキサーグループごとのAudioSourceを遅延生成する。 </summary>
         private static void AudioSourceInitialize()
         {
+            EnsureInitialized();
+
             if (_audioDict != null)
             {
                 return;
@@ -142,18 +151,22 @@ namespace SymphonyFrameWork.System
         /// <param name="value"> 0から1までの音量割合。 </param>
         public static void VolumeSliderChanged(string name, float value)
         {
-            AudioSourceInitialize();
+            EnsureInitialized();
 
             if (string.IsNullOrEmpty(name))
             {
-                return;
+                throw new ArgumentException("オーディオグループ名を指定してください。", nameof(name));
             }
 
             if (value < 0 || 1 < value)
             {
-                Debug.LogWarning("入力は無効な値です");
-                return;
+                throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    value,
+                    "音量割合は0から1の範囲で指定してください。");
             }
+
+            AudioSourceInitialize();
 
             if (!_audioDict.TryGetValue(name, out var data)) return;
 
@@ -176,14 +189,25 @@ namespace SymphonyFrameWork.System
         /// <returns> 対応するAudioSource。未登録の場合はnull。 </returns>
         public static AudioSource GetAudioSource(string name)
         {
-            AudioSourceInitialize();
+            EnsureInitialized();
 
             if (string.IsNullOrEmpty(name))
             {
-                return null;
+                throw new ArgumentException("オーディオグループ名を指定してください。", nameof(name));
             }
 
+            AudioSourceInitialize();
+
             return _audioDict.TryGetValue(name, out var data) ? data.Source : null;
+        }
+
+        /// <summary> Audio Managerが利用可能な状態か検証する。 </summary>
+        private static void EnsureInitialized()
+        {
+            if (!_isInitialized)
+            {
+                throw new SymphonyNotInitializedException(typeof(AudioManager));
+            }
         }
     }
 }

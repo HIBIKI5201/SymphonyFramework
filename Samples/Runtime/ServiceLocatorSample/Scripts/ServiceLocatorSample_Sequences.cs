@@ -22,8 +22,8 @@ namespace SymphonyFrameWork.Samples.ServiceLocatorSample
             StringBuilder logBuilder = new StringBuilder();
             string currentSceneName = SceneManager.GetActiveScene().name;
 
-            Camera camera = ServiceLocator.GetInstance<Camera>();
-            ServiceLocatorSample_1 serviceLocatorSample_1 = ServiceLocator.GetInstance<ServiceLocatorSample_1>();
+            Camera camera = ServiceLocator.GetRequiredInstance<Camera>();
+            ServiceLocatorSample_1 serviceLocatorSample_1 = ServiceLocator.GetRequiredInstance<ServiceLocatorSample_1>();
 
             logBuilder.AppendLine($"Camera instance retrieved from ServiceLocator | name: {camera.name}, id: {camera.GetInstanceID()}");
             logBuilder.AppendLine($"ServiceLocatorSample_1 instance retrieved from ServiceLocator | name: {serviceLocatorSample_1.name}, id: {serviceLocatorSample_1.GetInstanceID()}");
@@ -37,7 +37,7 @@ namespace SymphonyFrameWork.Samples.ServiceLocatorSample
             await SceneLoader.LoadScene(currentSceneName, mode: LoadSceneMode.Single, priority: 1);
             Debug.Log("Reloading done.");
 
-            camera = ServiceLocator.GetInstance<Camera>();
+            camera = ServiceLocator.GetRequiredInstance<Camera>();
 
             logBuilder.AppendLine($"Camera instance retrieved from ServiceLocator | name: {camera.name}, id: {camera.GetInstanceID()}");
             logBuilder.AppendLine($"ServiceLocatorSample_1 still exists because it is a singleton. | name: {serviceLocatorSample_1.name}, id: {serviceLocatorSample_1.GetInstanceID()}");

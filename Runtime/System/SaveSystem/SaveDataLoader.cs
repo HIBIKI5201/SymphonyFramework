@@ -85,7 +85,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定した型の永続化データを削除する。 </summary>
         /// <param name="dataType"> 削除するセーブデータ型。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        public ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
+        internal ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();

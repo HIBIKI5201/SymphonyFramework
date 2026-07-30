@@ -24,13 +24,14 @@
 
 | namespace | 主なAPI | 用途 |
 | --- | --- | --- |
-| `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector`, `LocateType` | Service LocatorのFacadeと、渡すValue Object |
-| `SymphonyFrameWork.System.SceneLoad` | `SceneLoader`, `SceneLoadState` | シーンロードのFacadeと、返されるValue Object |
-| `SymphonyFrameWork.System.SaveSystem` | `SaveDataRegistry`, `SaveSystem<TData, TLoader>`, `SaveDataContent`, `SaveDataLoader` | セーブデータのFacadeと、基底クラス／拡張点 |
+| `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector`, `LocateType`, `ServiceNotRegisteredException` | Service LocatorのFacade、Value Object、必須サービス取得時の例外 |
+| `SymphonyFrameWork.System.SceneLoad` | `SceneLoader`, `SceneLoadState`, `SceneInitializationException` | シーンロードのFacade、Value Object、シーン初期化時の例外 |
+| `SymphonyFrameWork.System.SaveSystem` | `SaveDataRegistry`, `SaveDataContent`, `SaveDataLoader`, `SaveDataOperationException` | セーブデータのFacade、基底クラス／拡張点、操作失敗時の例外 |
 | `SymphonyFrameWork.System` | `AudioManager`, `PauseManager` | どのサブシステムにも属さないFacade |
 | `SymphonyFrameWork` | `IInjectable<T...>`, `IInitializeAsync` | DI用インターフェース |
 | `SymphonyFrameWork.Utility` | `SymphonyLocate`, `SymphonyTask`, `SymphonyTween` | 補助コンポーネント／ユーティリティ |
 | `SymphonyFrameWork.Attribute` | `[ReadOnly]`, `[SubclassSelector]`, `[SceneNameSelector]`, `[TagSelector]` 等 | Inspector拡張属性 |
+| `SymphonyFrameWork.Exceptions` | `SymphonyNotInitializedException` | Facadeを初期化前に使用した場合の共通例外 |
 | `SymphonyFrameWork.Editor` (Editor専用) | `SymphonyAdministrator` 他 | エディタツール。Runtimeコードから参照不可 |
 
 主要APIは**すべて `public static class`**（`ServiceLocator` / `SceneLoader` / `AudioManager` / `PauseManager` / `SaveDataRegistry`）。Facadeは自分が属するサブシステムの名前空間にあるため、1つのサブシステムを使うのに必要な `using` は1つだけ。インスタンス化やシングルトンの `.Instance` パターンは存在しない。`XxxManager.Instance` のようなコードを書いたら誤り。
@@ -56,7 +57,8 @@ public sealed class GameSession : MonoBehaviour
 
 - `LocateType.Locator`: 参照登録のみ。GameObjectの階層は変更されない。
 - `LocateType.Singleton`: Componentの場合、管理オブジェクト配下へ**移動**する（シーン破棄から切り離される）。シーンローカルに留めたいオブジェクトには使わない。
-- 取得側で存在保証がない場合は `GetInstance<T>()`（同期・未登録なら例外/失敗）ではなく `GetInstanceAsync<T>(grace, token)` か `TryGetInstance<T>(out var v)` を使う。
+- 存在が任意なら `TryGetInstance<T>`、未登録時のnullを扱う既存コードでは `GetInstance<T>`、必須依存なら `GetRequiredInstance<T>` を使う。必須サービスが未登録なら `ServiceNotRegisteredException` が発生する。
+- `GetInstanceAsync<T>` の期限超過は `TimeoutException`、呼び出し側キャンセルは `OperationCanceledException`。`TryGetInstanceAsync<T>` がfalseへ変換するのは期限超過だけなので、キャンセルは呼び出し側で処理する。
 - シーンロードで生成されるルートオブジェクトへの注入は `IInjectable<T0..T3>` を実装すれば `SceneLoader` が自動で行う。`Instantiate` で動的生成したオブジェクトには **`ServiceInjector.Inject(...)` を手動で呼ぶこと**（自動注入されない）。
 
 **アンチパターン**: `OnEnable`/`OnDisable` の片方だけ登録・解除を書く（Unregisterし忘れるとシーン跨ぎでゴースト参照が残る）。`RegisterInstance` を `Start` で呼び `OnDestroy` で解除しない、なども同様に漏れの原因。
@@ -78,6 +80,7 @@ public async void OpenGameScene()
 - ロード対象シーンが **File > Build Settings > Scenes In Build** に無いと失敗する。エージェントはシーン名を書く前に `EditorBuildSettings.scenes` に含まれているか確認するか、ユーザーに追加を促すこと。
 - `LoadSceneMode.Single` を使うとSymphonyFrameworkが管理する `SymphonySystem` シーンごと消える可能性があるため、通常は `Additive` を使う。
 - ロードしたシーンのルートに `IInitializeAsync` を実装すると、その完了を `LoadScene` が待ってから成功を返す。重い初期化をルートで行うならこれを使う（`Start()` 内の非同期処理を呼び出し側で別途待つ必要はない）。
+- ルートへの依存注入または `IInitializeAsync` が失敗すると `SceneInitializationException` が発生する。`SceneName`、`GameObjectName`、`InitializerType` と `InnerException` を診断に使う。Build Settings未登録などの通常のロード失敗は従来どおりfalse。
 
 **アンチパターン**: `SceneManager.LoadSceneAsync` をUnity標準APIで直接呼ぶ（フレームワークの優先度管理・IInjectable注入・SceneLoadStateが効かなくなる）。本パッケージ導入後は、シーン遷移は原則 `SceneLoader` 経由に統一する。
 
@@ -104,6 +107,7 @@ await SaveDataRegistry.SaveAsync<PlayerData>();
 - `SaveDataContent` の派生classは**デフォルトコンストラクタが必須**（`Get<T>() where T : SaveDataContent, new()`）。
 - カスタム保存先（ファイル・クラウド等）が要る場合は `SaveDataLoader` を継承し `ExistsCore` / `LoadJsonAsync` / `SaveJsonAsync` / `DeleteCoreAsync` / `SerializeToJson` / `OverwriteFromJson` を実装する。実装したクラスは自動的に `Project Settings > SymphonyFrameWork > Save System` のドロップダウンに現れる（`[SerializeReference, SubclassSelector]` 経由）ので、ScriptableObjectアセットを手動生成する必要はない。
 - 非同期I/Oを行う独自ローダーを使う場合は、メインスレッドをブロックしないよう `await SaveDataRegistry.LoadAsync<T>()` を先に呼んでから `Get<T>()` する。
+- ローダーまたは保存先で操作が失敗すると `SaveDataOperationException` が発生する。`Operation`、`DataType`、`LoaderType`、`InnerException` を確認する。キャンセルはラップされず `OperationCanceledException` のまま伝播する。破損JSONをデフォルト状態へ戻す既存の復旧動作は例外に変更されていない。
 
 **アンチパターン**: `SaveDataContent` を継承したclassにコンストラクタ引数を必須にする（`new()` 制約違反でコンパイルエラー）。`Get<T>()` を呼ばずに独自にインスタンスを保持して保存・ロードのタイミングをずらす（Registryのキャッシュと二重管理になる）。
 

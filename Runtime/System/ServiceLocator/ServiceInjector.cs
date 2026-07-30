@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
@@ -11,46 +12,74 @@ namespace SymphonyFrameWork.System.ServiceLocate
     public static class ServiceInjector
     {
         /// <summary> Service Locatorから1件の依存関係を解決して対象へ注入する。 </summary>
+        /// <exception cref="ArgumentNullException"> 注入対象がnullの場合。 </exception>
+        /// <exception cref="ServiceNotRegisteredException"> 必須サービスが未登録の場合。 </exception>
         public static void Inject<T0>(IInjectable<T0> target)
             where T0 : class
         {
-            target.Inject(ServiceLocator.GetInstance<T0>());
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
+            target.Inject(ServiceLocator.GetRequiredInstance<T0>());
         }
 
         /// <summary> Service Locatorから2件の依存関係を解決して対象へ注入する。 </summary>
+        /// <exception cref="ArgumentNullException"> 注入対象がnullの場合。 </exception>
+        /// <exception cref="ServiceNotRegisteredException"> 必須サービスが未登録の場合。 </exception>
         public static void Inject<T0, T1>(IInjectable<T0, T1> target)
             where T0 : class
             where T1 : class
         {
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
             target.Inject(
-                ServiceLocator.GetInstance<T0>(),
-                ServiceLocator.GetInstance<T1>());
+                ServiceLocator.GetRequiredInstance<T0>(),
+                ServiceLocator.GetRequiredInstance<T1>());
         }
 
         /// <summary> Service Locatorから3件の依存関係を解決して対象へ注入する。 </summary>
+        /// <exception cref="ArgumentNullException"> 注入対象がnullの場合。 </exception>
+        /// <exception cref="ServiceNotRegisteredException"> 必須サービスが未登録の場合。 </exception>
         public static void Inject<T0, T1, T2>(IInjectable<T0, T1, T2> target)
             where T0 : class
             where T1 : class
             where T2 : class
         {
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
             target.Inject(
-                ServiceLocator.GetInstance<T0>(),
-                ServiceLocator.GetInstance<T1>(),
-                ServiceLocator.GetInstance<T2>());
+                ServiceLocator.GetRequiredInstance<T0>(),
+                ServiceLocator.GetRequiredInstance<T1>(),
+                ServiceLocator.GetRequiredInstance<T2>());
         }
 
         /// <summary> Service Locatorから4件の依存関係を解決して対象へ注入する。 </summary>
+        /// <exception cref="ArgumentNullException"> 注入対象がnullの場合。 </exception>
+        /// <exception cref="ServiceNotRegisteredException"> 必須サービスが未登録の場合。 </exception>
         public static void Inject<T0, T1, T2, T3>(IInjectable<T0, T1, T2, T3> target)
             where T0 : class
             where T1 : class
             where T2 : class
             where T3 : class
         {
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
             target.Inject(
-                ServiceLocator.GetInstance<T0>(),
-                ServiceLocator.GetInstance<T1>(),
-                ServiceLocator.GetInstance<T2>(),
-                ServiceLocator.GetInstance<T3>());
+                ServiceLocator.GetRequiredInstance<T0>(),
+                ServiceLocator.GetRequiredInstance<T1>(),
+                ServiceLocator.GetRequiredInstance<T2>(),
+                ServiceLocator.GetRequiredInstance<T3>());
         }
 
         private static readonly Dictionary<Type, MethodInfo> _injectMethods = BuildInjectMethodMap();
@@ -100,7 +129,16 @@ namespace SymphonyFrameWork.System.ServiceLocate
                     continue;
                 }
 
-                method.MakeGenericMethod(interfaceType.GetGenericArguments()).Invoke(null, new object[] { target });
+                try
+                {
+                    method.MakeGenericMethod(interfaceType.GetGenericArguments()).Invoke(null, new object[] { target });
+                }
+                catch (TargetInvocationException ex) when (ex.InnerException != null)
+                {
+                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    throw;
+                }
+
                 return true;
             }
 

@@ -1,7 +1,10 @@
-﻿using SymphonyFrameWork.Config;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
+using SymphonyFrameWork.Config;
+using SymphonyFrameWork.Exceptions;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -23,6 +26,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns> ロード済みシーンを取得できた場合はtrue。 </returns>
         public static bool GetExistScene(string sceneName, out Scene scene)
         {
+            EnsureInitialized();
             scene = default;
 
             if (string.IsNullOrWhiteSpace(sceneName))
@@ -54,7 +58,11 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         /// <param name="sceneName"> 存在を確認するシーン名。 </param>
         /// <returns> シーンが追跡中の場合はtrue。 </returns>
-        public static bool IsExist(string sceneName) => _data.IsExistScene(sceneName);
+        public static bool IsExist(string sceneName)
+        {
+            EnsureInitialized();
+            return _data.IsExistScene(sceneName);
+        }
 
         /// <summary>
         ///     シーンの状態を返す。
@@ -62,14 +70,22 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="sceneName"> 状態を取得するシーン名。 </param>
         /// <param name="state"> 取得できたシーン状態。 </param>
         /// <returns> 状態を取得できた場合はtrue。 </returns>
-        public static bool TryGetState(string sceneName, out SceneLoadState state) => _data.TryGetSceneState(sceneName, out state);
+        public static bool TryGetState(string sceneName, out SceneLoadState state)
+        {
+            EnsureInitialized();
+            return _data.TryGetSceneState(sceneName, out state);
+        }
 
         /// <summary>
         ///     シーンをアクティブにする。
         /// </summary>
         /// <param name="sceneName"> アクティブにするロード済みシーン名。 </param>
         /// <returns> アクティブシーンを変更できた場合はtrue。 </returns>
-        public static bool SetActiveScene(string sceneName) => _manager.TrySetActiveScene(sceneName);
+        public static bool SetActiveScene(string sceneName)
+        {
+            EnsureInitialized();
+            return _manager.TrySetActiveScene(sceneName);
+        }
 
         /// <summary>
         ///     既にロード済みのシーンを指定優先度で追跡登録する。
@@ -77,8 +93,11 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="sceneName"> シーン名。 </param>
         /// <param name="priority"> 優先度。 </param>
         /// <returns> 登録に成功した場合はtrue。 </returns>
-        public static bool RegisterLoadedScene(string sceneName, int priority) =>
-            _manager.TryRegisterLoadedScene(sceneName, priority);
+        public static bool RegisterLoadedScene(string sceneName, int priority)
+        {
+            EnsureInitialized();
+            return _manager.TryRegisterLoadedScene(sceneName, priority);
+        }
 
         /// <summary>
         ///     シーンをロードする。
@@ -89,6 +108,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="priority"> ロード後のアクティブシーン選択に使用する優先度。 </param>
         /// <param name="token"> ロード処理を中断するためのトークン。 </param>
         /// <returns>ロードに成功したか</returns>
+        /// <exception cref="ArgumentException"> シーン名がnull、空、空白の場合。 </exception>
+        /// <exception cref="SceneInitializationException"> ロード後の依存注入または非同期初期化に失敗した場合。 </exception>
         public static ValueTask<bool> LoadScene(
             string sceneName,
             Action<float> loadingAction = null,
@@ -96,6 +117,13 @@ namespace SymphonyFrameWork.System.SceneLoad
             int priority = 0,
             CancellationToken token = default)
         {
+            EnsureInitialized();
+
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                throw new ArgumentException("シーン名を指定してください。", nameof(sceneName));
+            }
+
             return _manager.LoadScene(
                 name: sceneName,
                 loadingAction: loadingAction,
@@ -111,11 +139,17 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="loadingAction"> 全シーンの平均進捗率を受け取る処理。 </param>
         /// <param name="token"> ロード処理を中断するためのトークン。 </param>
         /// <returns> すべてのシーンをロードできた場合はtrue。 </returns>
+        /// <exception cref="ArgumentNullException"> シーン名一覧がnullの場合。 </exception>
+        /// <exception cref="ArgumentException"> シーン名一覧が空、または無効なシーン名を含む場合。 </exception>
+        /// <exception cref="SceneInitializationException"> ロード後の依存注入または非同期初期化に失敗した場合。 </exception>
         public static ValueTask<bool> LoadScenes(
             string[] sceneNames,
             Action<float> loadingAction = null,
             CancellationToken token = default)
         {
+            EnsureInitialized();
+            ValidateSceneNames(sceneNames);
+
             return _manager.LoadScenes(
                 sceneNames,
                 loadingAction,
@@ -129,11 +163,19 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="loadingAction">ロードの進捗率を引数にしたメソッド</param>
         /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
         /// <returns>アンロードに成功したか</returns>
+        /// <exception cref="ArgumentException"> シーン名がnull、空、空白の場合。 </exception>
         public static ValueTask<bool> UnloadScene(
             string sceneName,
             Action<float> loadingAction = null,
             CancellationToken token = default)
         {
+            EnsureInitialized();
+
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                throw new ArgumentException("シーン名を指定してください。", nameof(sceneName));
+            }
+
             return _manager.UnloadScene(
                 sceneName,
                 loadingAction,
@@ -148,11 +190,16 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="loadingAction"> 全シーンの平均進捗率を受け取る処理。 </param>
         /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
         /// <returns> すべてのシーンをアンロードできた場合はtrue。 </returns>
+        /// <exception cref="ArgumentNullException"> シーン名一覧がnullの場合。 </exception>
+        /// <exception cref="ArgumentException"> シーン名一覧が空、または無効なシーン名を含む場合。 </exception>
         public static ValueTask<bool> UnloadScenes(
             string[] sceneNames,
             Action<float> loadingAction = null,
             CancellationToken token = default)
         {
+            EnsureInitialized();
+            ValidateSceneNames(sceneNames);
+
             return _manager.UnloadScenes(
                 sceneNames,
                 loadingAction,
@@ -165,8 +212,22 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// </summary>
         /// <param name="sceneName"> ロード完了を監視するシーン名。 </param>
         /// <param name="action"> ロード完了後に一度実行する処理。 </param>
-        public static void RegisterAfterSceneLoad(string sceneName, Action action) =>
+        public static void RegisterAfterSceneLoad(string sceneName, Action action)
+        {
+            EnsureInitialized();
+
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                throw new ArgumentException("シーン名を指定してください。", nameof(sceneName));
+            }
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             _data.AddLoadedAction(sceneName, action);
+        }
 
         /// <summary>
         ///     指定したシーンがロードされるまで待機する
@@ -175,6 +236,13 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         public static async ValueTask WaitForLoadSceneAsync(string sceneName, CancellationToken token = default)
         {
+            EnsureInitialized();
+
+            if (string.IsNullOrWhiteSpace(sceneName))
+            {
+                throw new ArgumentException("シーン名を指定してください。", nameof(sceneName));
+            }
+
             while (!_data.TryGetSceneState(sceneName, out SceneLoadState state) || state < SceneLoadState.Complete)
             {
                 await Awaitable.NextFrameAsync(token);
@@ -200,6 +268,40 @@ namespace SymphonyFrameWork.System.SceneLoad
             _data?.Clear();
             _manager = null;
             _data = null;
+        }
+
+        /// <summary> Scene Loaderが利用可能な状態か検証する。 </summary>
+        private static void EnsureInitialized()
+        {
+            if (_manager == null || _data == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(SceneLoader));
+            }
+        }
+
+        /// <summary> 複数シーン操作へ渡されたシーン名一覧を検証する。 </summary>
+        /// <param name="sceneNames"> 検証するシーン名一覧。 </param>
+        private static void ValidateSceneNames(string[] sceneNames)
+        {
+            if (sceneNames == null)
+            {
+                throw new ArgumentNullException(nameof(sceneNames));
+            }
+
+            if (sceneNames.Length == 0)
+            {
+                throw new ArgumentException("シーン名を1件以上指定してください。", nameof(sceneNames));
+            }
+
+            for (int i = 0; i < sceneNames.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(sceneNames[i]))
+                {
+                    throw new ArgumentException(
+                        $"インデックス{i}のシーン名がnullまたは空です。",
+                        nameof(sceneNames));
+                }
+            }
         }
 
         /// <summary>

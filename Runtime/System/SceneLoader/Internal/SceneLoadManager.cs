@@ -1,12 +1,14 @@
-﻿using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System.ServiceLocate;
-using SymphonyFrameWork.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFrameWork.Utility;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -173,16 +175,19 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             List<Task> initializeTasks = new();
 
-            foreach (var obj in objs) //注入・初期化インターフェースを取得して実行。
+            foreach (GameObject obj in objs)
             {
-                if (obj.TryGetComponent<IInjectable>(out var injectable))
-                {
-                    ServiceInjector.TryAutoInject(injectable);
-                }
+                obj.TryGetComponent(out IInjectable injectable);
+                obj.TryGetComponent(out IInitializeAsync initializer);
 
-                if (obj.TryGetComponent<IInitializeAsync>(out var initialize))
+                if (injectable != null || initializer != null)
                 {
-                    initializeTasks.Add(initialize.DoInitialize());
+                    initializeTasks.Add(
+                        InitializeRootObjectAsync(
+                            name,
+                            obj,
+                            injectable,
+                            initializer));
                 }
             }
 
@@ -491,6 +496,60 @@ namespace SymphonyFrameWork.System.SceneLoad
             foreach (var task in initializeTasks)
             {
                 await task;
+            }
+        }
+
+        /// <summary> ルートオブジェクトへの依存注入と非同期初期化を文脈付きで実行する。 </summary>
+        /// <param name="sceneName"> 初期化中のシーン名。 </param>
+        /// <param name="rootObject"> 初期化するルートGameObject。 </param>
+        /// <param name="injectable"> 依存注入を受ける実装。未実装の場合はnull。 </param>
+        /// <param name="initializer"> 非同期初期化を行う実装。未実装の場合はnull。 </param>
+        private static async Task InitializeRootObjectAsync(
+            string sceneName,
+            GameObject rootObject,
+            IInjectable injectable,
+            IInitializeAsync initializer)
+        {
+            if (injectable != null)
+            {
+                try
+                {
+                    ServiceInjector.TryAutoInject(injectable);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    throw new SceneInitializationException(
+                        sceneName,
+                        rootObject.name,
+                        injectable.GetType(),
+                        ex);
+                }
+            }
+
+            if (initializer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await initializer.DoInitialize();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new SceneInitializationException(
+                    sceneName,
+                    rootObject.name,
+                    initializer.GetType(),
+                    ex);
             }
         }
 

@@ -1,6 +1,6 @@
 {
   "name": "symphonyframework",
-  "version": "2.3.0",
+  "version": "2.4.1",
   "displayName": "Symphony Framework",
   "description": "This is Symphony Framework",
   "unity": "6000.0",
@@ -16,7 +16,7 @@
   "samples": [
     {
       "displayName": "Service Locator Sample",
-      "description": "サービスロケーターを使用したサンプルが含まれています。",
+      "description": "サービスの登録、必須取得、非同期待機を行うService Locatorサンプルが含まれています。",
       "path": "Samples~/Runtime/ServiceLocatorSample"
     },
     {

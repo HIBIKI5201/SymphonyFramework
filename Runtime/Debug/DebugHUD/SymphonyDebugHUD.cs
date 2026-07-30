@@ -1,15 +1,16 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.System;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SymphonyFrameWork.Exceptions;
 
+using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.System;
+
+using UnityEngine;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
 namespace SymphonyFrameWork.Debugger.HUD
 {
@@ -26,6 +27,7 @@ namespace SymphonyFrameWork.Debugger.HUD
 #endif
         public static void Show()
         {
+            EnsureInitialized();
             _ = _debugHUD.Value; // アクセスしてインスタンスを作成。
         }
 
@@ -37,6 +39,7 @@ namespace SymphonyFrameWork.Debugger.HUD
 #endif
         public static void Hide()
         {
+            EnsureInitialized();
             Initialize();
         }
 
@@ -46,9 +49,11 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="textFunc"> 毎フレーム表示文字列を返す処理。 </param>
         public static void AddText(Func<string> textFunc)
         {
-            if (_debugHUD == null)
+            EnsureInitialized();
+
+            if (textFunc == null)
             {
-                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+                throw new ArgumentNullException(nameof(textFunc));
             }
 
                 _debugHUD.Value.Add(textFunc);
@@ -60,9 +65,11 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="textFunc"> 解除する文字列生成処理。 </param>
         public static void RemoveText(Func<string> textFunc)
         {
-            if (_debugHUD == null)
+            EnsureInitialized();
+
+            if (textFunc == null)
             {
-                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+                throw new ArgumentNullException(nameof(textFunc));
             }
 
             _debugHUD.Value.Remove(textFunc);
@@ -77,9 +84,19 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="token"> 表示待機を中断するためのトークン。 </param>
         public static async ValueTask AddText(string text, float duration = 3, Color color = default, CancellationToken token = default)
         {
-            if (_debugHUD == null)
+            EnsureInitialized();
+
+            if (text == null)
             {
-                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (duration < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(duration),
+                    duration,
+                    "表示時間は0秒以上で指定してください。");
             }
 
 
@@ -121,6 +138,15 @@ namespace SymphonyFrameWork.Debugger.HUD
         private static SymphonyHUDDrawer CreateDebugHUD()
         {
             return SymphonyCoreSystem.CreateSystemObject<SymphonyHUDDrawer>();
+        }
+
+        /// <summary> Debug HUDが利用可能な状態か検証する。 </summary>
+        private static void EnsureInitialized()
+        {
+            if (_debugHUD == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+            }
         }
     }
 }

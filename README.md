@@ -3,7 +3,7 @@
 Unity プロジェクトで繰り返し必要になる、シーン遷移、サービス管理、セーブデータ、オーディオ、ポーズ、デバッグ機能をまとめたゲーム開発向けフレームワークです。
 
 - 対応 Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.3.0**
+- 現在のバージョン: **2.4.0**
 - ライセンス: **MIT**
 
 ## 主な機能
@@ -120,8 +120,8 @@ public sealed class PlayerController : MonoBehaviour
             grace: 10,
             token: destroyCancellationToken);
 
-        // 登録済みと分かっている場合は同期的に取得できます。
-        GameSession sameSession = ServiceLocator.GetInstance<GameSession>();
+        // 必須サービスとして同期取得します。未登録の場合は例外になります。
+        GameSession sameSession = ServiceLocator.GetRequiredInstance<GameSession>();
     }
 }
 ```
@@ -135,8 +135,10 @@ interface型で登録する場合は型引数を明示します。
 
 ```csharp
 ServiceLocator.RegisterInstance<IGameSession>(session);
-IGameSession current = ServiceLocator.GetInstance<IGameSession>();
+IGameSession current = ServiceLocator.GetRequiredInstance<IGameSession>();
 ```
+
+存在が任意なら `TryGetInstance<T>`、未登録時にnullを許容する既存コードでは `GetInstance<T>`、必須依存なら `GetRequiredInstance<T>` を使用します。必須サービスが未登録の場合は `ServiceNotRegisteredException` が発生します。`GetInstanceAsync<T>` は待機期限を超えると `TimeoutException`、呼び出し側からキャンセルすると `OperationCanceledException` を送出します。`TryGetInstanceAsync<T>` が失敗へ変換するのは待機期限超過だけです。
 
 `IInjectable<T...>` を実装したコンポーネントは、`SceneLoader` がシーンをロードした際にルートオブジェクトへ自動的に注入します（最大4依存まで）。シーンロードを経由しない生成（実行時Instantiateなど）では、`ServiceInjector.Inject(...)` を手動で呼び出してください。
 
@@ -178,6 +180,7 @@ public sealed class SceneTransition : MonoBehaviour
 `SceneManagerConfig` では、再生開始時に既存シーンをリセットするか、最初にロードするシーン、リセット対象外のシーンを設定できます。
 
 ロードしたシーンのルートGameObjectが `IInitializeAsync` を実装している場合、`SceneLoader` はその初期化処理がすべて完了してからロード成功を返します。
+依存注入または `IInitializeAsync` が失敗した場合は、シーン名、ルートGameObject名、初期化型を保持する `SceneInitializationException` が発生し、元の例外は `InnerException` から確認できます。シーンがBuild Settingsに存在しないなど、通常起こり得るロード失敗は従来どおり戻り値のfalseで通知されます。
 
 ### Save Data System
 
@@ -214,6 +217,8 @@ await SaveDataRegistry.DeleteAsync<PlayerData>();
 既定では `JsonUtilitySaveDataLoader` がJSONをPlayerPrefsへ保存します。`Project Settings > SymphonyFrameWork > Save System` から `NewtonsoftSaveDataLoader` へ変更できます。ファイルやクラウドなど別の保存先を使う場合は `SaveDataLoader` を継承して各抽象メソッドを実装してください。
 
 非同期I/Oを行う独自ローダーでは、メインスレッドをブロックしないよう、最初に `await SaveDataRegistry.LoadAsync<T>()` を呼んでから `Get<T>()` することを推奨します。
+
+ローダーまたは保存先で存在確認、読み込み、保存、削除が失敗した場合は `SaveDataOperationException` が発生します。`Operation`、`DataType`、`LoaderType` で失敗箇所を判定でき、元のI/O例外や変換例外は `InnerException` に保持されます。キャンセルはこの例外へ変換されず、`OperationCanceledException` のまま伝播します。破損データをデフォルト状態へ戻す既存の復旧動作は変更されません。
 
 ### Audio Manager
 
@@ -268,7 +273,7 @@ PauseManager.Pause = false;
 
 リポジトリの [`Samples/Runtime`](./Samples/Runtime) に次のサンプルがあります。
 
-- `ServiceLocatorSample`: 登録、同期取得、非同期取得、Singletonのシーン跨ぎ
+- `ServiceLocatorSample`: 登録、必須サービスの同期取得、非同期取得、Singletonのシーン跨ぎ
 - `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除、Registry状態表示
 - `SceneLoaderSample`: 追加ロード、優先度によるActive Scene切り替え、アンロード、ロード完了待機（使用前にサブシーンをBuild Settingsへ追加してください）
 - `PauseManagerSample`: Pause状態の切り替え、`IPausable`、`PausableWaitForSecondAsync`/`PausableNextFrameAsync`

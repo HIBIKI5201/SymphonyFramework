@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
-using SymphonyFrameWork.Debugger.Logger;
+
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFrameWork.Exceptions;
+
+using UnityEngine;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -37,6 +40,25 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="locateType"> SingletonまたはLocatorの登録方式。 </param>
         public static bool RegisterInstance(Type type, object instance, LocateType locateType = DEFAULT_LOCATE_TYPE)
         {
+            EnsureInitialized();
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (instance != null && !type.IsInstanceOfType(instance))
+            {
+                throw new ArgumentException(
+                    $"{type.FullName} として登録できるインスタンスを指定してください。",
+                    nameof(instance));
+            }
+
+            if (locateType != LocateType.Locator && locateType != LocateType.Singleton)
+            {
+                throw new ArgumentOutOfRangeException(nameof(locateType), locateType, "有効な登録方式を指定してください。");
+            }
+
             return _manager.RegisterInstance(type, instance, locateType);
         }
 
@@ -48,6 +70,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> 同一インスタンスの登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
+            EnsureInitialized();
             if (instance == null) { return false; }
             if (instance != _data.Get<T>()) { return false; }
 
@@ -61,6 +84,13 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> 登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance(Type type)
         {
+            EnsureInitialized();
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return _manager.UnregisterInstance(type);
         }
 
@@ -71,6 +101,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> 登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance<T>() where T : class
         {
+            EnsureInitialized();
             return _manager.UnregisterInstance(typeof(T));
         }
 
@@ -81,6 +112,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="instance">破棄の対象となるインスタンス。</param>
         public static bool DestroyInstance<T>(T instance) where T : class
         {
+            EnsureInitialized();
             if (instance == null) return false;
 
             DestroyInstance<T>();
@@ -94,6 +126,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
         public static bool DestroyInstance<T>() where T : class
         {
+            EnsureInitialized();
             Type type = typeof(T);
 
             if (!_data.IsLocate(type))
@@ -128,6 +161,13 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary> 実行時型のインスタンスが登録されているか確認する。 </summary>
         public static bool IsExistInstance(Type type)
         {
+            EnsureInitialized();
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return _data.IsLocate(type);
         }
 
@@ -138,6 +178,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns>指定した型のインスタンス。見つからない場合や破棄済みの場合はnull。</returns>
         public static T GetInstance<T>() where T : class
         {
+            EnsureInitialized();
 #if UNITY_EDITOR
             //ログを出力
             if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorGetInstanceKey,
@@ -148,6 +189,25 @@ namespace SymphonyFrameWork.System.ServiceLocate
         }
 
         /// <summary>
+        ///     登録済みであることが必須のインスタンスを取得する。
+        /// </summary>
+        /// <typeparam name="T"> 取得したい必須サービスの型。 </typeparam>
+        /// <returns> 登録済みのインスタンス。 </returns>
+        /// <exception cref="ServiceNotRegisteredException"> 指定型が登録されていない場合。 </exception>
+        public static T GetRequiredInstance<T>() where T : class
+        {
+            EnsureInitialized();
+
+            T instance = _data.Get<T>();
+            if (instance == null)
+            {
+                throw new ServiceNotRegisteredException(typeof(T));
+            }
+
+            return instance;
+        }
+
+        /// <summary>
         ///     指定した型のインスタンスが登録されているかどうかを確認し、登録されていればそのインスタンスを返します。
         /// </summary>
         /// <typeparam name="T"> 取得するインスタンスの型。 </typeparam>
@@ -155,6 +215,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> インスタンスを取得できた場合はtrue。 </returns>
         public static bool TryGetInstance<T>(out T result) where T : class
         {
+            EnsureInitialized();
             result = _data.Get<T>();
             return result != null;
         }
@@ -163,35 +224,57 @@ namespace SymphonyFrameWork.System.ServiceLocate
         ///     指定した型のインスタンスが登録されるまで非同期で待機し、取得します。
         /// </summary>
         /// <typeparam name="T">取得したいインスタンスの型。</typeparam>
-        /// <param name="grace">最大待機時間（秒）。この時間を超えるとnullを返します。</param>
+        /// <param name="grace"> 最大待機時間（秒）。 </param>
         /// <param name="token">キャンセルトークン。</param>
-        /// <returns>指定した型のインスタンス。見つからない場合はnull。</returns>
-        public static ValueTask<T> GetInstanceAsync<T>(
+        /// <returns> 指定した型のインスタンス。 </returns>
+        /// <exception cref="TimeoutException"> 制限時間内にインスタンスが登録されなかった場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
+        public static async ValueTask<T> GetInstanceAsync<T>(
             byte grace = 120,
             CancellationToken token = default) where T : class
         {
+            EnsureInitialized();
+
             // 既に登録されている場合は即座に返します。
             if (TryGetInstance<T>(out var instance))
             {
-                return new ValueTask<T>(instance);
+                return instance;
             }
 
             // 登録されるまで待機します。
-            TaskCompletionSource<T> tcs = new();
-            CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(token);
-            cts.Token.Register(() => tcs.TrySetCanceled());
-            cts.CancelAfter(grace * 1000);
+            ServiceLocateData data = _data;
+            TaskCompletionSource<T> completionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            Action<T> locatedHandler = value => completionSource.TrySetResult(value);
 
-            // インスタンスが登録されたらタスクを完了させるアクションを登録します。
-            RegisterAfterLocate<T>(t =>
+            data.RegisterAction(locatedHandler);
+
+            using CancellationTokenSource timeoutSource = new();
+            using CancellationTokenRegistration timeoutRegistration = timeoutSource.Token.Register(() =>
             {
-                tcs.TrySetResult(t);
-                cts.Dispose();
+                completionSource.TrySetException(
+                    new TimeoutException(
+                        $"[{nameof(ServiceLocator)}] {typeof(T).FullName} の登録待機が{grace}秒でタイムアウトしました。"));
             });
-            return new ValueTask<T>(tcs.Task);
+            using CancellationTokenRegistration cancellationRegistration = token.Register(
+                () => completionSource.TrySetCanceled());
+
+            timeoutSource.CancelAfter(grace * 1000);
+
+            try
+            {
+                return await completionSource.Task;
+            }
+            finally
+            {
+                data.UnregisterAction(locatedHandler);
+            }
         }
 
-        /// <summary> 制限時間内に指定型のインスタンスを取得し、成否と結果を返す。 </summary>
+        /// <summary>
+        ///     制限時間内に指定型のインスタンスを取得し、成否と結果を返す。
+        ///     呼び出し側からのキャンセルは失敗へ変換せず伝播する。
+        /// </summary>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
         public static async ValueTask<(bool success, T result)> TryGetInstanceAsync<T>(
             byte grace = 120,
             CancellationToken token = default)
@@ -203,9 +286,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 T result = await GetInstanceAsync<T>(grace, token);
                 return (result != null, result);
             }
-            catch
+            catch (TimeoutException)
             {
-                // 例外をキャッチして失敗を返す
                 return (false, null);
             }
         }
@@ -218,6 +300,13 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="action">実行するアクション。</param>
         public static void RegisterAfterLocate<T>(Action action) where T : class
         {
+            EnsureInitialized();
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             // 既にインスタンスが登録済みであれば、即座にアクションを実行します。
             if (_data.IsLocate(typeof(T)))
             {
@@ -237,6 +326,13 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="action">実行するアクション。引数として登録されたインスタンスを受け取ります。</param>
         public static void RegisterAfterLocate<T>(Action<T> action) where T : class
         {
+            EnsureInitialized();
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             // 既にインスタンスが登録済みであれば、そのインスタンスを引数にして即座にアクションを実行します。
             if (_data.IsLocate(typeof(T)))
             {
@@ -264,6 +360,15 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _data?.Clear();
             _manager = null;
             _data = null;
+        }
+
+        /// <summary> Service Locatorが利用可能な状態か検証する。 </summary>
+        private static void EnsureInitialized()
+        {
+            if (_manager == null || _data == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(ServiceLocator));
+            }
         }
 
         private const LocateType DEFAULT_LOCATE_TYPE = LocateType.Locator;
