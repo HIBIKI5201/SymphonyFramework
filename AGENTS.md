@@ -35,7 +35,7 @@
 
 主要APIは**すべて `public static class`**（`ServiceLocator` / `SceneLoader` / `AudioManager` / `PauseManager` / `SaveDataRegistry`）。Facadeは自分が属するサブシステムの名前空間にあるため、1つのサブシステムを使うのに必要な `using` は1つだけ。インスタンス化やシングルトンの `.Instance` パターンは存在しない。`XxxManager.Instance` のようなコードを書いたら誤り。
 
-> バージョン2.2.0〜2.2.1では、これらのFacadeが `SymphonyFrameWork.System.API` 名前空間に集約されていた。3.0.0でサブシステムごとの名前空間へ戻したため、`using SymphonyFrameWork.System.API;` を含むコードはコンパイルできない。上の表に従って `using` を張り替えること（クラス名とメンバーは変わっていない）。
+> バージョン2.2.0〜2.2.1では、これらのFacadeが `SymphonyFrameWork.System.API` 名前空間に集約されていた。2.3.0でサブシステムごとの名前空間へ戻したため、`using SymphonyFrameWork.System.API;` を含むコードはコンパイルできない。上の表に従って `using` を張り替えること（クラス名とメンバーは変わっていない）。
 
 初期化は `SymphonyCoreSystem`（internal, `[RuntimeInitializeOnLoadMethod]`）が最初のシーンより前に自動実行し、`SymphonySystem` という専用シーンを生成する。**Bootstrap用GameObjectをシーンに手動配置する必要はない**。逆に、これらのstaticクラスを `Awake` より前（エディタの `InitializeOnLoad` など）で呼び出すのは避ける。
 

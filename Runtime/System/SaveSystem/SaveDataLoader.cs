@@ -7,6 +7,8 @@ namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
     ///     セーブデータのライフサイクルを保証し、派生クラスをJSONの変換と永続化処理に限定します。
+    ///     利用側は本クラスを継承して保存先を差し替えますが、呼び出しは
+    ///     <see cref="SaveDataRegistry" />が行うため、ここで宣言する操作は`internal`です。
     /// </summary>
     [Serializable]
     public abstract class SaveDataLoader
@@ -14,7 +16,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定した型の永続化データが存在するか確認する。 </summary>
         /// <param name="dataType"> 確認するセーブデータ型。 </param>
         /// <returns> 永続化データが存在する場合はtrue。 </returns>
-        public bool Exists(Type dataType)
+        internal bool Exists(Type dataType)
         {
             ValidateDataType(dataType);
             return ExistsCore(dataType);
@@ -24,7 +26,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <param name="dataType"> 復元するセーブデータ型。 </param>
         /// <param name="data"> 復元結果を上書きするインスタンス。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        public async ValueTask LoadAsync(
+        internal async ValueTask LoadAsync(
             Type dataType,
             SaveDataContent data,
             CancellationToken token = default)
@@ -56,7 +58,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <param name="dataType"> 保存するセーブデータ型。 </param>
         /// <param name="data"> 保存するインスタンス。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        public async ValueTask SaveAsync(
+        internal async ValueTask SaveAsync(
             Type dataType,
             SaveDataContent data,
             CancellationToken token = default)

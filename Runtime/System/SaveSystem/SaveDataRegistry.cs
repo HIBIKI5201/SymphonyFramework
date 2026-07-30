@@ -145,8 +145,11 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
-        /// <summary> ローダーとキャッシュを破棄し、次回アクセス時にConfigから再解決する。 </summary>
-        public static void RefreshLoader()
+        /// <summary>
+        ///     ローダーとキャッシュを破棄し、次回アクセス時にConfigから再解決する。
+        ///     Configを編集するEditorのProject Settings画面から呼び出す。
+        /// </summary>
+        internal static void RefreshLoader()
         {
             ResetRuntimeState();
         }
@@ -170,8 +173,11 @@ namespace SymphonyFrameWork.System.SaveSystem
             ClearCache();
         }
 
-        /// <summary> 現在選択されているローダーを取得する。 </summary>
-        public static SaveDataLoader GetCurrentLoader() => GetLoader();
+        /// <summary>
+        ///     現在選択されているローダーを取得する。
+        ///     Adaptorが選んだ実装は公開APIへ出さず、状態を表示するEditorウィンドウからのみ参照する。
+        /// </summary>
+        internal static SaveDataLoader GetCurrentLoader() => GetLoader();
 
         /// <summary>
         ///     ロードを発生させずにキャッシュ済みインスタンスを取得します。無ければ既定値で作成します。
