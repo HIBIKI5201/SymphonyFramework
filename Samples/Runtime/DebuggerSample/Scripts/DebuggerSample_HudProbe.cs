@@ -30,7 +30,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
             }
             catch (SymphonyNotInitializedException)
             {
-                // SymphonyCoreSystemの初期化前（Playモード外など）はHUDを操作できない。
+                // SymphonyOrchestratorの初期化前（Playモード外など）はHUDを操作できない。
                 return false;
             }
 

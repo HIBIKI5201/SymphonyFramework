@@ -141,7 +141,7 @@ Viewと、Application・Domainの形式を相互変換し、**利用するApplic
 具象型を生成し、依存性注入、初期化順、公開、終了処理を担当します。
 
 - Domain、Application、Adaptor、View、Infrastructureの具象型を結合する。
-- `SymphonyCoreSystem` はパッケージ全体のComposition Rootとして扱う。
+- `SymphonyOrchestrator` はパッケージ全体のComposition Rootとして扱う。
 - 他レイヤーに具象型の組み立てやService Locator登録を分散させない。
 - 初期化に失敗した場合は、部分的に構築された状態を残さない。
 
@@ -294,7 +294,7 @@ DTOは、境界を越えて更新データを渡す不変の値です。
 
 ## 初期化ライフサイクル
 
-複数の依存を持つ新しいシステムでは、初期化を次のフェーズへ分けます。`SymphonyCoreSystem` はこのフェーズを、全サブシステムに対するComposition Rootとして統括します。
+複数の依存を持つ新しいシステムでは、初期化を次のフェーズへ分けます。`SymphonyOrchestrator` はこのフェーズを、全サブシステムに対するComposition Rootとして統括します。
 
 ```text
 Init → ResourceLoadAsync → Build → Ready
@@ -315,7 +315,7 @@ Shutdown ← 登録と購読を逆順に解除
 - `Shutdown` は構築順の逆順で実行する。
 - 各フェーズは繰り返し呼び出されても二重登録や二重解放を起こさないよう設計する。
 - 単純な機能へ形式的な5フェーズを強制しない。状態と依存が複雑になった時点で導入する。
-- 新しいサブシステムを `SymphonyCoreSystem` へ組み込む場合、既存サブシステムの初期化順・失敗時挙動を変えないことを確認する。
+- 新しいサブシステムを `SymphonyOrchestrator` へ組み込む場合、既存サブシステムの初期化順・失敗時挙動を変えないことを確認する。
 
 ## 依存性注入とService Locator
 
@@ -380,7 +380,7 @@ Symphony Frameworkは他プロジェクトが依存するパッケージであ�
 - Facadeが回復方法の異なる失敗を通知するための専用例外。特定サブシステムの例外はFacadeと同じ名前空間へ置き、原因例外と診断に必要な文脈を保持する。
 - 利用側が自身のフィールド／クラスへ直接付与するInspector属性（`PropertyAttribute`の派生。例: `ReadOnlyAttribute`、`SubclassSelectorAttribute`）。
 - 特定のサブシステムに紐づかない、汎用の再利用可能なユーティリティ（例: `SymphonyTask`、`SymphonyStringUtil`、`SymphonyConfigLocator`）。特定サブシステム専用のFacadeとは区別し、汎用性がある場合に限定する。
-- Composition Rootは`internal`にする。`SymphonyCoreSystem`とその`MoveObjectToSymphonySystem`を含む全メンバーは内部実装であり、利用側へ公開しない。
+- Composition Rootは`internal`にする。`SymphonyOrchestrator`とその`PreserveObject`を含む全メンバーは内部実装であり、利用側へ公開しない。
 - Config（ScriptableObject設定資産）はInfrastructureに属するため`internal`にする。Editorの設定画面・Drawerからは`InternalsVisibleTo`経由でアクセスする。
 - 上記に該当しない内部Manager、Adaptor、Infrastructureの具象実装（Template実装の具象クラス、Config、内部専用Component）、Entity、DTO、Registry内部実装は`internal`にする。
 - Editor拡張やCompositionのためだけに存在するメンバーは、Facade上にあっても`public`にしない。ローダーやManagerなど内部実装を取り出すアクセサ、状態のリセット、初期化・注入のフックは`internal`にし、`[assembly: InternalsVisibleTo("SymphonyFrameWork.Editor")]` など明示的なアセンブリ間許可で参照する。Editor拡張がRuntimeのinternal型を必要とする場合も、無条件にpublicへ広げない。

@@ -250,7 +250,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         /// <summary>
-        ///     コアシステムからの初期化
+        ///     Orchestratorからの初期化。
         /// </summary>
         /// <param name="destroyCancellationToken"> システム破棄時に状態を消去するためのトークン。 </param>
         internal static void Initialize(CancellationToken destroyCancellationToken)
@@ -344,13 +344,13 @@ namespace SymphonyFrameWork.System.SceneLoad
             await SceneResetter.LoadScene(_manager, config);
         }
 
-        /// <summary> リセット対象外シーンへ初期シーンとシステムシーンを追加する。 </summary>
+        /// <summary> Configのリセット対象外シーンと初期シーンを統合する。 </summary>
         private static string[] GetResetIgnoreScenes(SceneManagerConfig config)
         {
             int resetIgnoreCount = config.ResetIgnoreSceneList?.Length ?? 0;
             int initializeSceneCount = config.InitializeSceneList?.Length ?? 0;
 
-            string[] resetIgnoreScenes = new string[resetIgnoreCount + initializeSceneCount + 1];
+            string[] resetIgnoreScenes = new string[resetIgnoreCount + initializeSceneCount];
 
             if (0 < resetIgnoreCount)
             {
@@ -362,7 +362,6 @@ namespace SymphonyFrameWork.System.SceneLoad
                 resetIgnoreScenes[resetIgnoreCount + i] = config.InitializeSceneList[i];
             }
 
-            resetIgnoreScenes[resetIgnoreCount + initializeSceneCount] = SymphonyCoreSystem.SYMPHONY_SCENE_NAME;
             return resetIgnoreScenes;
         }
 

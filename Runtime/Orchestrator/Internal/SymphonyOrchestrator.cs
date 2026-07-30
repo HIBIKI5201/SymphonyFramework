@@ -1,60 +1,57 @@
-﻿using SymphonyFrameWork.Debugger.HUD;
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.System.ServiceLocate;
-using SymphonyFrameWork.Utility;
-using System;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using System;
 
-namespace SymphonyFrameWork.System
+using SymphonyFrameWork.Config;
+using SymphonyFrameWork.Debugger.HUD;
+using SymphonyFrameWork.System;
+using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFrameWork.System.ServiceLocate;
+
+using UnityEngine;
+
+namespace SymphonyFrameWork.Orchestrator
 {
     /// <summary>
-    ///     SymphonyFrameWorkの管理シーンを持つ、パッケージ全体のComposition Rootです。
+    ///     SymphonyFrameWorkの永続オブジェクトを管理する、パッケージ全体のComposition Rootです。
     /// </summary>
-    internal static class SymphonyCoreSystem
+    internal static class SymphonyOrchestrator
     {
         /// <summary>
-        ///     オブジェクトをSymphonySystemシーンに移動する
+        ///     ルートGameObjectをシーン遷移時も破棄されない永続オブジェクトにする。
         /// </summary>
-        /// <param name="go"> システムシーンへ移動するGameObject。 </param>
-        internal static async void MoveObjectToSymphonySystem(GameObject go)
+        /// <param name="gameObject"> 永続化するルートGameObject。 </param>
+        internal static void PreserveObject(GameObject gameObject)
         {
-            //シーンが制作されているか、対象がnullになったら進む
-            await SymphonyTask.WaitUntil(() => _systemScene != null || go == null);
+            if (!gameObject)
+            {
+                return;
+            }
 
-            if (go) SceneManager.MoveGameObjectToScene(go, _systemScene.Value);
+            UnityEngine.Object.DontDestroyOnLoad(gameObject);
         }
 
-        /// <summary> SymphonySystemシーンで管理するコンポーネントを生成する。 </summary>
+        /// <summary> シーン遷移時も破棄されないコンポーネントを生成する。 </summary>
         /// <typeparam name="T"> 生成するコンポーネントの型。 </typeparam>
         /// <returns> 生成したコンポーネント。 </returns>
         internal static T CreateSystemObject<T>() where T : Component
         {
             var go = new GameObject(typeof(T).Name);
             T component = go.AddComponent<T>();
-            MoveObjectToSymphonySystem(go);
+            PreserveObject(go);
             return component;
         }
 
-        internal const string SYMPHONY_SCENE_NAME = "SymphonySystem";
-
-        private static Scene? _systemScene;
-        private static SymphonyCoreSystemObject _systemObject;
+        private static SymphonyOrchestratorObject _systemObject;
 
         /// <summary>
-        ///     初期化でシステム用のシーンを作成
+        ///     永続オブジェクトを生成し、各サブシステムを初期化する。
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void GameBeforeSceneLoaded()
         {
-            //専用のシーン生成
-            _systemScene = SceneManager.CreateScene(SYMPHONY_SCENE_NAME);
-
-            var systemGameObject = new GameObject(nameof(SymphonyCoreSystem));
-            _systemObject = systemGameObject.AddComponent<SymphonyCoreSystemObject>();
-            SceneManager.MoveGameObjectToScene(systemGameObject, _systemScene.Value);
+            var systemGameObject = new GameObject(nameof(SymphonyOrchestrator));
+            _systemObject = systemGameObject.AddComponent<SymphonyOrchestratorObject>();
+            PreserveObject(systemGameObject);
             SaveSystem.SaveSystem.Initialize(
                 _systemObject.destroyCancellationToken,
                 ResolveSaveDataLoader);

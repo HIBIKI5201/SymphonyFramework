@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
+using SymphonyFrameWork.Orchestrator;
+
 using UnityEngine;
 
 namespace SymphonyFrameWork.System.ServiceLocate
@@ -11,7 +14,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public ServiceLocateData()
         {
             _gameObject = new GameObject("ServiceLocateData");
-            SymphonyCoreSystem.MoveObjectToSymphonySystem(_gameObject);
+            SymphonyOrchestrator.PreserveObject(_gameObject);
         }
 
         /// <summary> Singleton登録されたComponentの所有元GameObject。 </summary>

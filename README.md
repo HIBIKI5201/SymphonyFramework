@@ -77,7 +77,7 @@ Assets/
    └─ SymphonyFrameWork.Enum.asmdef
 ```
 
-ランタイムでは `SymphonyCoreSystem` が最初のシーンより前に自動初期化され、専用の `SymphonySystem` シーンを作成します。Bootstrap用のGameObjectを手動で置く必要はありません。
+ランタイムでは `SymphonyOrchestrator` が最初のシーンより前に自動初期化され、管理GameObjectを `DontDestroyOnLoad` で永続化します。Bootstrap用のGameObjectや専用シーンを手動で用意する必要はありません。
 
 主な設定場所は次のとおりです。
 
@@ -238,7 +238,7 @@ bgm.Play();
 AudioManager.VolumeSliderChanged("BGM", 0.5f);
 ```
 
-AudioSourceはグループごとに遅延生成され、`SymphonySystem` シーンで管理されます。
+AudioSourceはグループごとに遅延生成され、`DontDestroyOnLoad` でシーン遷移後も保持されます。
 
 ### Pause Manager
 

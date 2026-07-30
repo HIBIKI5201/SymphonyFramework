@@ -561,14 +561,13 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         private readonly SceneLoadData _data;
 
-        /// <summary> システムシーンと指定シーンを残し、それ以外の追跡シーンをアンロードする。 </summary>
-        private async ValueTask ResetScene(params string[] scenesToUnload)
+        /// <summary> 指定シーンを残し、それ以外の追跡シーンをアンロードする。 </summary>
+        private async ValueTask ResetScene(params string[] scenesToKeep)
         {
-            string[] ignore = new string[] { SymphonyCoreSystem.SYMPHONY_SCENE_NAME }.Concat(scenesToUnload).ToArray();
             List<string> unloadScenes = new();
             foreach (var kvp in _data.SceneDict)
             {
-                if (ignore.Contains(kvp.Key)) { continue; }
+                if (scenesToKeep.Contains(kvp.Key)) { continue; }
                 unloadScenes.Add(kvp.Key);
             }
 

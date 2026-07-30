@@ -38,7 +38,7 @@
 
 > バージョン2.2.0〜2.2.1では、これらのFacadeが `SymphonyFrameWork.System.API` 名前空間に集約されていた。2.3.0でサブシステムごとの名前空間へ戻したため、`using SymphonyFrameWork.System.API;` を含むコードはコンパイルできない。上の表に従って `using` を張り替えること（クラス名とメンバーは変わっていない）。
 
-初期化は `SymphonyCoreSystem`（internal, `[RuntimeInitializeOnLoadMethod]`）が最初のシーンより前に自動実行し、`SymphonySystem` という専用シーンを生成する。**Bootstrap用GameObjectをシーンに手動配置する必要はない**。逆に、これらのstaticクラスを `Awake` より前（エディタの `InitializeOnLoad` など）で呼び出すのは避ける。
+初期化は `SymphonyOrchestrator`（internal, `[RuntimeInitializeOnLoadMethod]`）が最初のシーンより前に自動実行し、管理GameObjectを `DontDestroyOnLoad` で永続化する。**Bootstrap用GameObjectや専用シーンを手動で用意する必要はない**。逆に、これらのstaticクラスを `Awake` より前（エディタの `InitializeOnLoad` など）で呼び出すのは避ける。
 
 ## 2. ボイラープレートと作法
 
@@ -78,7 +78,7 @@ public async void OpenGameScene()
 ```
 
 - ロード対象シーンが **File > Build Settings > Scenes In Build** に無いと失敗する。エージェントはシーン名を書く前に `EditorBuildSettings.scenes` に含まれているか確認するか、ユーザーに追加を促すこと。
-- `LoadSceneMode.Single` を使うとSymphonyFrameworkが管理する `SymphonySystem` シーンごと消える可能性があるため、通常は `Additive` を使う。
+- `LoadSceneMode.Single` は対象シーンをAdditiveでロードした後、それ以外の追跡シーンをアンロードする。フレームワークの管理オブジェクトは `DontDestroyOnLoad` のため保持される。現在のシーンを残す場合は `Additive` を使う。
 - ロードしたシーンのルートに `IInitializeAsync` を実装すると、その完了を `LoadScene` が待ってから成功を返す。重い初期化をルートで行うならこれを使う（`Start()` 内の非同期処理を呼び出し側で別途待つ必要はない）。
 - ルートへの依存注入または `IInitializeAsync` が失敗すると `SceneInitializationException` が発生する。`SceneName`、`GameObjectName`、`InitializerType` と `InnerException` を診断に使う。Build Settings未登録などの通常のロード失敗は従来どおりfalse。
 
@@ -183,7 +183,7 @@ Assets/Resources/SymphonyFrameWork/SaveSystemConfig.asset
 Assets/Scripts/SymphonyFrameWork/SceneListEnum.cs 等
 ```
 
-無ければ、`Window > SymphonyFrameWork > Symphony Administrator` を一度開くか、Playモードに入ることでトリガーされる（`SymphonyCoreSystem` の `RuntimeInitializeOnLoadMethod`／Editor側の生成処理）。存在しない場合、コードから設定を参照するAPI呼び出し（Audioグループ登録など）は動かない。
+無ければ、`Window > SymphonyFrameWork > Symphony Administrator` を一度開くか、Playモードに入ることでトリガーされる（`SymphonyOrchestrator` の `RuntimeInitializeOnLoadMethod`／Editor側の生成処理）。存在しない場合、コードから設定を参照するAPI呼び出し（Audioグループ登録など）は動かない。
 
 ### 3.3 ランタイム動作確認（Play Mode / テストシーン）
 
@@ -240,11 +240,11 @@ public sealed class SymphonyVerifyRuntime : MonoBehaviour
 [SymphonyVerify] Save/Delete cycle done. Counter was 1
 ```
 
-`ServiceLocator round-trip` が `False` になる場合はSymphonyCoreSystemの初期化が完了する前にコードが走っている（別シーンの `Awake` が早すぎる等）ことを疑う。Save/Delete cycleでエラーが出る場合はSave System設定（ローダー選択）かPlayerPrefsの権限を確認する。
+`ServiceLocator round-trip` が `False` になる場合はSymphonyOrchestratorの初期化が完了する前にコードが走っている（別シーンの `Awake` が早すぎる等）ことを疑う。Save/Delete cycleでエラーが出る場合はSave System設定（ローダー選択）かPlayerPrefsの権限を確認する。
 
 ### 3.4 ビルド時の確認
 
-実機/スタンドアロンビルドを行う場合、`SymphonySystem` シーンは自動生成されるためBuild Settingsへの追加は不要だが、`SceneLoader` でロードする**遷移先シーン**は必ずBuild Settingsに含める。ビルドログで `Scene 'X' couldn't be loaded` 系のエラーが出たら、まずこのシーン未登録を疑う。
+実機/スタンドアロンビルドを行う場合、フレームワークの管理オブジェクトはランタイムで生成され `DontDestroyOnLoad` で保持されるため、管理用シーンのBuild Settings登録は不要。`SceneLoader` でロードする**遷移先シーン**は必ずBuild Settingsに含める。ビルドログで `Scene 'X' couldn't be loaded` 系のエラーが出たら、まずこのシーン未登録を疑う。
 
 ### 3.5 検証用コードの後始末
 
