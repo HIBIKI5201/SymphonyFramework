@@ -241,7 +241,28 @@ public sealed class SymphonyVerifyRuntime : MonoBehaviour
 
 実機/スタンドアロンビルドを行う場合、フレームワークの管理オブジェクトはランタイムで生成され `DontDestroyOnLoad` で保持されるため、管理用シーンのBuild Settings登録は不要。`SceneLoader` でロードする**遷移先シーン**は必ずBuild Settingsに含める。ビルドログで `Scene 'X' couldn't be loaded` 系のエラーが出たら、まずこのシーン未登録を疑う。
 
-### 3.5 検証用コードの後始末
+### 3.5 エージェントが状態を確認する方法
+
+uLoopMCPの`execute-dynamic-code`からEditor専用の`SymphonyMcpTools`を呼ぶと、リフレクションや状態変更を行わずに各サブシステムの現在状態をJSONで取得できる。
+
+```csharp
+using SymphonyFrameWork.Editor.Debugger;
+
+string serviceLocatorJson = SymphonyMcpTools.GetServiceLocatorJson();
+string sceneLoaderJson = SymphonyMcpTools.GetSceneLoaderJson();
+string saveDataJson = SymphonyMcpTools.GetSaveDataJson();
+string pauseJson = SymphonyMcpTools.GetPauseJson();
+```
+
+- Play Mode外など未初期化の場合も例外ではなく`"initialized": false`を含むJSONを返す。
+- 読み取りに失敗した場合は`"error"`を含むJSONを返す。
+- Save Dataの出力は型名、保存日時、ロード済み状態だけを含み、`SaveDataContent`の内容を含まない。
+- `SymphonyMcpTools`はEditorアセンブリ専用であり、RuntimeコードやPlayerビルドからは参照できない。
+- Service Locatorの`effectiveLocateType`は**登録時に渡された値ではなく、現在の状態から導いた実効値**である。Service Locatorは`LocateType`を保持しないため。Componentでない登録は`Singleton`を指定しても階層移動が起きず挙動が同じになるため、常に`Locator`と表示される。
+
+このAPIはArchitecture Revision Phase 3までの暫定手段であり、将来はAdaptor QueryとInfoによる状態照会へ置き換える予定。
+
+### 3.6 検証用コードの後始末
 
 検証が終わったら `Assets/Scripts/_SymphonyVerify/` 配下は削除する。パッケージ本体（`Packages/symphonyframework/` または `Assets/SymphonyFrameWork/`）には一切書き込まない。
 

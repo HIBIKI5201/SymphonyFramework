@@ -197,6 +197,21 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
+        /// <summary> Save Data Registryが初期化済みかどうか。 </summary>
+        internal static bool IsInitialized => _loaderResolver != null;
+
+        /// <summary> 読み込み済みとして記録されているセーブデータ型のスナップショット。 </summary>
+        internal static IReadOnlyCollection<Type> LoadedTypes
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return new List<Type>(_loadedTypes).AsReadOnly();
+                }
+            }
+        }
+
         /// <summary>
         ///     ローダーとキャッシュを破棄し、次回アクセス時にConfigから再解決する。
         ///     Configを編集するEditorのProject Settings画面から呼び出す。

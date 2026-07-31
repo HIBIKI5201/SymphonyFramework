@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.7.0] - 2026-07-31
+### Add
+- Editor専用の `SymphonyMcpTools` を追加。`GetServiceLocatorJson()` / `GetSceneLoaderJson()` / `GetSaveDataJson()` / `GetPauseJson()` で、各サブシステムの現在状態をJSONで取得できる。uLoopMCP の `execute-dynamic-code` など自動化されたデバッグから状態を**列挙**するための入口。従来は点検索（`IsExistInstance<T>()`、`TryGetState(name, out)`）しか無く、「何が登録されているか」を知るにはリフレクションを書くしかなかった。
+  - どのメソッドも**例外を投げず、必ず有効なJSONを返す**。未初期化時は `"initialized": false`、読み取り失敗時は `"error"` を含む。
+  - Save Dataの出力は型名・保存日時・ロード済み状態だけで、**`SaveDataContent` の内容は含まない**（セーブデータに機微な値が入りうるため）。
+  - Service Locatorの `effectiveLocateType` は登録時に渡された値ではなく、現在の状態から導いた実効値。Service Locatorは `LocateType` を保持しないため。
+  - Editorアセンブリ専用であり、Runtimeコードからは参照できない。Playerビルドにも含まれない。
+  - **Architecture Revision Phase 3 までの暫定手段**であり、将来は Adaptor の Query と Info による状態照会へ置き換える。
+
+### Change
+- 上記の実装のため、`ServiceLocator` / `SceneLoader` / `PauseManager` / `SaveDataRegistry` へ `internal` の読み取り専用アクセサを追加した。公開APIは増えていない。setterも副作用も持たない。従来Editor側がリフレクションでprivateフィールドを覗いていた経路を、型安全な参照へ置き換えるための土台になる。
+
 ## [2.6.0] - 2026-07-31
 ### Add
 - `SymphonyAwaitable` を追加。Unity 6 の `Awaitable` に対して、完了済み値（`Completed` / `FromResult`）、複数処理の待機（`WhenAll`）、条件待機（`WaitUntil` / `WaitWhile`）、協調的タイムアウト（`WithTimeout`）、`Task` との相互変換（`FromTask` / `AsTask`）を提供する。3.0.0 で予定している Awaitable 全面移行の基盤になる。

@@ -53,6 +53,15 @@ namespace SymphonyFrameWork.System
             }
         }
 
+        /// <summary> Pause Managerが初期化済みかどうか。 </summary>
+        internal static bool IsInitialized => _isInitialized;
+
+        /// <summary> 初期化チェックを行わずに読み取る現在のポーズ状態。 </summary>
+        internal static bool IsPaused => _pause;
+
+        /// <summary> ポーズ通知を購読しているIPausableの件数。 </summary>
+        internal static int PausableSubscriberCount => _pauseEventDictionary.Count;
+
         /// <summary> ポーズ状態とイベント購読を初期状態へ戻す。 </summary>
         internal static void Initialize()
         {

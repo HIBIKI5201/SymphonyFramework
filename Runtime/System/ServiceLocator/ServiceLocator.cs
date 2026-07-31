@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -341,6 +342,15 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
             _data.RegisterAction(action);
         }
+
+        /// <summary> Service Locatorが初期化済みかどうか。 </summary>
+        internal static bool IsInitialized => _manager != null && _data != null;
+
+        /// <summary> 型をキーとする登録済みインスタンス一覧。 </summary>
+        internal static IReadOnlyDictionary<Type, object> RegisteredInstances => _data?.LocateObjects;
+
+        /// <summary> Singleton登録されたComponentの所有先Transform。 </summary>
+        internal static Transform SingletonRoot => _data?.Instance != null ? _data.Instance.transform : null;
 
         /// <summary> Locator状態を初期化し、システム破棄時のリセットを登録する。 </summary>
         internal static void Initialize(CancellationToken destroyCancellationToken)

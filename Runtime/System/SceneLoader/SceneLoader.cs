@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -248,6 +249,15 @@ namespace SymphonyFrameWork.System.SceneLoad
                 await Awaitable.NextFrameAsync(token);
             }
         }
+
+        /// <summary> Scene Loaderが初期化済みかどうか。 </summary>
+        internal static bool IsInitialized => _manager != null && _data != null;
+
+        /// <summary> 名前をキーとする追跡中シーン一覧。 </summary>
+        internal static IReadOnlyDictionary<string, SceneLoadData.SceneInfo> TrackedScenes => _data?.SceneDict;
+
+        /// <summary> Scene Loaderが記録しているアクティブシーン名。 </summary>
+        internal static string ActiveSceneName => _data?.ActiveScene.Name;
 
         /// <summary>
         ///     Orchestratorからの初期化。
