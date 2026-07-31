@@ -1,7 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -22,7 +25,9 @@ namespace SymphonyFrameWork.Editor
             
             // Editor用 (ScriptableSingleton)
             // GetConfigを呼ぶだけで、アセットが存在しなければ自動生成、あればロードされる
+            CreateUserSettingFolder();
             EditorFileCheck<AutoEnumGeneratorConfig>();
+            EditorFileCheck<SymphonyUserSettingConfig>();
         }
 
         /// <summary>
@@ -75,6 +80,21 @@ namespace SymphonyFrameWork.Editor
             {
                 Directory.CreateDirectory(resourcesPath);
                 AssetDatabase.Refresh();
+            }
+        }
+
+        /// <summary> UserSettings内にFramework設定の保存先フォルダを生成する。 </summary>
+        private static void CreateUserSettingFolder()
+        {
+            try
+            {
+                Directory.CreateDirectory(EditorSymphonyConstant.USER_SETTING_FILE_PATH);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning(
+                    $"[{nameof(SymphonyConfigManager)}] UserSettingsの保存先を生成できませんでした。" +
+                    $" path: '{EditorSymphonyConstant.USER_SETTING_FILE_PATH}', reason: '{exception.Message}'");
             }
         }
     }

@@ -1,9 +1,14 @@
 ﻿using System.IO;
+
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFrameWork.Utility;
+
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
@@ -17,12 +22,29 @@ namespace SymphonyFrameWork.Editor
         static PackageInitializer()
         {
             SymphonyConfigManager.AllConfigCheck();
+            ApplyServiceLocateLogOptions();
+            SymphonyVisualElement.EditorAssetLoader =
+                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>;
             SaveDataRegistry.ConfigureLoaderResolver(ResolveSaveDataLoader);
             EnumInitialize();
             
             AssetDatabase.Refresh();
             
             Debug.Log("Symphony Framework Initialized");
+        }
+
+        /// <summary> UserSettingsの設定値をRuntimeのService Locatorログ設定へ注入する。 </summary>
+        internal static void ApplyServiceLocateLogOptions()
+        {
+            SymphonyUserSettingConfig config =
+                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+
+            ServiceLocateLogOption.IsSetInstanceLogEnabled =
+                config.IsServiceLocatorSetInstanceLogEnabled;
+            ServiceLocateLogOption.IsGetInstanceLogEnabled =
+                config.IsServiceLocatorGetInstanceLogEnabled;
+            ServiceLocateLogOption.IsDestroyInstanceLogEnabled =
+                config.IsServiceLocatorDestroyInstanceLogEnabled;
         }
 
         /// <summary> 自動生成enumとAssembly Definitionの配置・参照を整備する。 </summary>

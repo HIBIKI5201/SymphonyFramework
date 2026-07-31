@@ -3,7 +3,7 @@
 Unity プロジェクトで繰り返し必要になる、シーン遷移、サービス管理、セーブデータ、オーディオ、ポーズ、デバッグ機能をまとめたゲーム開発向けフレームワークです。
 
 - 対応 Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.4.3**
+- 現在のバージョン: **2.5.0**
 - ライセンス: **MIT**
 
 ## 主な機能
@@ -267,7 +267,7 @@ PauseManager.Pause = false;
 - `FolderGenerator`: Markdownで定義したプロジェクトフォルダを生成
 - `AssemblyGenerator`: asmdefの作成と参照追加
 - Inspector属性: `[ReadOnly]`、`[DisplayText]`、`[TagSelector]`、`[SceneNameSelector]`、`[SubclassSelector]`
-- Utility: `SymphonyTask`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`
+- Utility: `SymphonyAwaitable`、`SymphonyTask`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`
 
 ## サンプル
 
@@ -304,11 +304,13 @@ Samples/    利用例
 
 - [5unad0ke1](https://github.com/5unad0ke1)
 
-## 参考にしたライブラリ
+## 参考・謝辞
 
-- `SubclassSelector`: [mackysoft/Unity-SerializeReferenceExtensions](https://github.com/mackysoft/Unity-SerializeReferenceExtensions)
-- `ReactiveProperty`: [neuecc/UniRx](https://github.com/neuecc/unirx)（今後実装予定）
-- `SymphonyTween`: [DOTween](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676)
+本フレームワークの設計・実装にあたり、以下のライブラリを参考にしています。
+
+- [Unity SerializeReferenceExtensions（mackysoft）](https://github.com/mackysoft/Unity-SerializeReferenceExtensions)
+- [UniRx（neuecc）](https://github.com/neuecc/UniRx)（今後の機能実装で参考予定）
+- [DOTween（Demigiant）](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676)
 
 ## ライセンス
 

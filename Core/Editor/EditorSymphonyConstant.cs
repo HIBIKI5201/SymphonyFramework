@@ -52,29 +52,12 @@ namespace SymphonyFrameWork.Core
         /// <summary> 管理ウィンドウ用UI Toolkitアセットの基準パス。 </summary>
         public static string UITK_PATH = FRAMEWORK_PATH + "/Editor/Administrator/UITK/";
 
-        #region ウィンドウのコンフィグ
-        /// <summary> インスタンス登録ログ設定を保存するEditorPrefsキー。 </summary>
-        public const string ServiceLocatorSetInstanceKey = "ServiceLocatorSetInstanceLog";
-
-        /// <summary> インスタンス登録ログの既定値。 </summary>
-        public const bool ServiceLocatorSetInstanceDefault = true;
-
-        /// <summary> インスタンス取得ログ設定を保存するEditorPrefsキー。 </summary>
-        public const string ServiceLocatorGetInstanceKey = "ServiceLocatorGetInstanceLog";
-
-        /// <summary> インスタンス取得ログの既定値。 </summary>
-        public const bool ServiceLocatorGetInstanceDefault = false;
-
-        /// <summary> インスタンス破棄ログ設定を保存するEditorPrefsキー。 </summary>
-        public const string ServiceLocatorDestroyInstanceKey = "ServiceLocatorDestroyInstanceLog";
-
-        /// <summary> インスタンス破棄ログの既定値。 </summary>
-        public const bool ServiceLocatorDestroyInstanceDefault = true;
-        #endregion
-
         #region Setting Provider
         /// <summary> パッケージ固有のProjectSettingsファイルを保存する基準パス。 </summary>
         public const string PROJCET_SETTING_FILE_PATH = "ProjectSettings/Packages/" + SymphonyConstant.SYMPHONY_PACKAGE + "/";
+
+        /// <summary> 開発者ごとのFramework設定ファイルを保存する基準パス。 </summary>
+        public const string USER_SETTING_FILE_PATH = "UserSettings/" + SymphonyConstant.SYMPHONY_FRAMEWORK + "/";
 
         /// <summary> Unity Project Settings内の設定項目基準パス。 </summary>
         public const string PROJECT_SETTING_PATH = "Project/";

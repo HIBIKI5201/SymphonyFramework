@@ -1,10 +1,6 @@
-﻿using SymphonyFrameWork.Core;
-using System;
-using UnityEngine;
+﻿using System;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using UnityEngine;
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
@@ -38,8 +34,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
 #if UNITY_EDITOR
             // デバッグログ。
-            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorSetInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorSetInstanceDefault))
+            if (ServiceLocateLogOption.IsSetInstanceLogEnabled)
             {
                 string instanceName = instance is Component c ? c.name : instance.GetType().Name;
                 Debug.Log($"{type.Name}クラスの{instanceName}が{locateType switch { LocateType.Locator => "ロケート", LocateType.Singleton => "シングルトン", _ => string.Empty }}登録されました");
@@ -75,10 +70,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _data.Remove(type);
 
 #if UNITY_EDITOR
-            //ログを出力。
-            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
+            // ログを出力する。
+            if (ServiceLocateLogOption.IsDestroyInstanceLogEnabled)
+            {
                 Debug.Log($"{type.Name}が登録解除されました。");
+            }
 #endif
             return true;
         }

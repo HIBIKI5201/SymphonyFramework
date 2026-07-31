@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using SymphonyFrameWork.Core;
+
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
-using UnityEditor;
+
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -58,20 +58,23 @@ namespace SymphonyFrameWork.Editor
             _locateList.selectionType = SelectionType.None;
 
             //ログのコンフィグを初期化
+            SymphonyUserSettingConfig config =
+                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+
             var setInstanceLogActive = container.Q<Toggle>("set_instance-log-active");
             InitializeToggle(setInstanceLogActive,
-                EditorSymphonyConstant.ServiceLocatorSetInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorSetInstanceDefault);
+                config.IsServiceLocatorSetInstanceLogEnabled,
+                value => config.IsServiceLocatorSetInstanceLogEnabled = value);
 
             var getInstanceLogActive = container.Q<Toggle>("get_instance-log-active");
             InitializeToggle(getInstanceLogActive,
-                EditorSymphonyConstant.ServiceLocatorGetInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorGetInstanceDefault);
+                config.IsServiceLocatorGetInstanceLogEnabled,
+                value => config.IsServiceLocatorGetInstanceLogEnabled = value);
 
             var destroyInstanceLogActive = container.Q<Toggle>("destroy_instance-log-active");
             InitializeToggle(destroyInstanceLogActive,
-                EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault);
+                config.IsServiceLocatorDestroyInstanceLogEnabled,
+                value => config.IsServiceLocatorDestroyInstanceLogEnabled = value);
 
             return default;
         }
@@ -127,13 +130,17 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
-        /// <summary> EditorPrefsに保存されるログ設定Toggleを初期化する。 </summary>
-        private void InitializeToggle(Toggle toggle, string key, bool defaultValue)
+        /// <summary> UserSettingsへ保存されるログ設定Toggleを初期化する。 </summary>
+        private static void InitializeToggle(Toggle toggle, bool currentValue, Action<bool> valueSetter)
         {
             if (toggle != null)
             {
-                toggle.value = EditorPrefs.GetBool(key, defaultValue);
-                toggle.RegisterValueChangedCallback(e => EditorPrefs.SetBool(key, e.newValue));
+                toggle.value = currentValue;
+                toggle.RegisterValueChangedCallback(changeEvent =>
+                {
+                    valueSetter(changeEvent.newValue);
+                    PackageInitializer.ApplyServiceLocateLogOptions();
+                });
             }
         }
     }

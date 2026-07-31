@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Utility
 {
@@ -54,6 +51,9 @@ namespace SymphonyFrameWork.Utility
         /// </summary>
         public Task InitializeTask { get; private set; }
 
+        /// <summary> Editor側から注入されたAssetDatabase用のUXMLローダー。 </summary>
+        internal static Func<string, VisualTreeAsset> EditorAssetLoader { get; set; }
+
         /// <summary>
         ///     初期化処理
         /// </summary>
@@ -95,7 +95,7 @@ namespace SymphonyFrameWork.Utility
 
                 case LoadType.AssetDataBase:
 #if UNITY_EDITOR
-                    treeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
+                    treeAsset = EditorAssetLoader?.Invoke(path);
 #else
                         Debug.Log("AssetDataBaseを使用したロードはエディタ専用です");
 #endif

@@ -8,10 +8,6 @@ using SymphonyFrameWork.Exceptions;
 
 using UnityEngine;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace SymphonyFrameWork.System.ServiceLocate
 {
     /// <summary>
@@ -138,10 +134,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _manager.DestroyInstance(type);
 
 #if UNITY_EDITOR
-            //ログを出力
-            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorDestroyInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorDestroyInstanceDefault))
+            // ログを出力する。
+            if (ServiceLocateLogOption.IsDestroyInstanceLogEnabled)
+            {
                 Debug.Log($"{typeof(T).Name}が破棄されました");
+            }
 #endif
             return true;
         }
@@ -180,10 +177,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             EnsureInitialized();
 #if UNITY_EDITOR
-            //ログを出力
-            if (EditorPrefs.GetBool(EditorSymphonyConstant.ServiceLocatorGetInstanceKey,
-                EditorSymphonyConstant.ServiceLocatorGetInstanceDefault))
+            // ログを出力する。
+            if (ServiceLocateLogOption.IsGetInstanceLogEnabled)
+            {
                 SymphonyDebugLogger.AddText($"ServiceLocator\n{typeof(T).Name}の取得がリクエストされました。");
+            }
 #endif
             return _data.Get<T>();
         }

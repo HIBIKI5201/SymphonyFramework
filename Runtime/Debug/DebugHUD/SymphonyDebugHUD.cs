@@ -9,10 +9,6 @@ using SymphonyFrameWork.System;
 
 using UnityEngine;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace SymphonyFrameWork.Debugger.HUD
 {
     /// <summary>
@@ -23,9 +19,6 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <summary>
         ///     HUDを表示する。
         /// </summary>
-#if UNITY_EDITOR
-        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Show))]
-#endif
         public static void Show()
         {
             EnsureInitialized();
@@ -35,9 +28,6 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <summary>
         ///     HUDを非表示にする。
         /// </summary>
-#if UNITY_EDITOR
-        [MenuItem(SymphonyConstant.TOOL_MENU_PATH + nameof(SymphonyDebugHUD) + "/" + nameof(Hide))]
-#endif
         public static void Hide()
         {
             EnsureInitialized();
