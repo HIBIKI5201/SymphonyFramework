@@ -65,11 +65,17 @@ namespace SymphonyFrameWork.System
         /// <summary> ポーズ状態とイベント購読を初期状態へ戻す。 </summary>
         internal static void Initialize()
         {
-            _isInitialized = false;
+            ResetRuntimeState();
+            _isInitialized = true;
+        }
+
+        /// <summary> ポーズ状態とイベント購読を消去して未初期化状態へ戻す。 </summary>
+        internal static void ResetRuntimeState()
+        {
             _pause = false;
+            _isInitialized = false;
             _onPauseChanged = null;
             _pauseEventDictionary.Clear();
-            _isInitialized = true;
         }
 
         /// <summary>

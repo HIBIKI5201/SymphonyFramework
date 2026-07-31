@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.Orchestrator;
 using SymphonyFrameWork.System;
 
 using UnityEngine;
@@ -31,7 +30,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         public static void Hide()
         {
             EnsureInitialized();
-            Initialize();
+            _debugHUD.Destroy();
         }
 
         /// <summary>
@@ -112,23 +111,37 @@ namespace SymphonyFrameWork.Debugger.HUD
         }
 
         /// <summary> 既存HUDを破棄し、遅延生成状態を初期化する。 </summary>
-        internal static void Initialize()
+        /// <param name="systemObjectFactory"> HUD描画用GameObjectの生成契約。 </param>
+        internal static void Initialize(ISystemObjectFactory systemObjectFactory)
         {
-            // 破棄済み判定はSymphonyLazyObjectが担うため、ここでは前回の生成物を片付けるだけでよい。
-            _debugHUD?.Destroy();
-
+            ResetRuntimeState();
+            _systemObjectFactory = systemObjectFactory;
             _debugHUD = new SymphonyLazyObject<SymphonyHUDDrawer>(
                 CreateDebugHUD,
                 drawer => UnityEngine.Object.Destroy(drawer.gameObject));
         }
 
+        /// <summary> 生成済みHUDと遅延生成状態を解放する。 </summary>
+        internal static void ResetRuntimeState()
+        {
+            _debugHUD?.Destroy();
+            _debugHUD = null;
+            _systemObjectFactory = null;
+        }
+
         private static SymphonyLazyObject<SymphonyHUDDrawer> _debugHUD;
+        private static ISystemObjectFactory _systemObjectFactory;
 
         /// <summary> SymphonyのシステムオブジェクトとしてHUD描画コンポーネントを生成する。 </summary>
         /// <returns> 生成したHUD描画コンポーネント。 </returns>
         private static SymphonyHUDDrawer CreateDebugHUD()
         {
-            return SymphonyOrchestrator.CreateSystemObject<SymphonyHUDDrawer>();
+            if (_systemObjectFactory == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD));
+            }
+
+            return _systemObjectFactory.CreateComponent<SymphonyHUDDrawer>(nameof(SymphonyHUDDrawer));
         }
 
         /// <summary> Debug HUDが利用可能な状態か検証する。 </summary>

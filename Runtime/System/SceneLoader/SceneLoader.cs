@@ -262,18 +262,15 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary>
         ///     Orchestratorからの初期化。
         /// </summary>
-        /// <param name="destroyCancellationToken"> システム破棄時に状態を消去するためのトークン。 </param>
-        internal static void Initialize(CancellationToken destroyCancellationToken)
+        internal static void Initialize()
         {
-            _destroyRegistration.Dispose();
             ResetRuntimeState();
             _data = new SceneLoadData();
             _manager = new(_data);
-            _destroyRegistration = destroyCancellationToken.Register(ResetRuntimeState);
         }
 
         /// <summary> 追跡データと管理インスタンスを破棄して未初期化状態へ戻す。 </summary>
-        private static void ResetRuntimeState()
+        internal static void ResetRuntimeState()
         {
             _data?.Clear();
             _manager = null;
@@ -374,7 +371,5 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             return resetIgnoreScenes;
         }
-
-        private static CancellationTokenRegistration _destroyRegistration;
     }
 }

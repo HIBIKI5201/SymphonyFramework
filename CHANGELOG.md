@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.9.0] - 2026-07-31
+### Fix
+- **Play Mode 終了時に解放されていなかった状態を解放するようにした。** `PauseManager` の `IPausable` 購読辞書と `OnPauseChanged` の購読、`AudioManager` が生成した GameObject と AudioSource、`SymphonyDebugHUD` の描画コンポーネントは、これまで終了処理を持っておらず残り続けていた。Enter Play Mode Options で Domain Reload を無効にしている環境では、これがゴースト参照や二重購読の原因になる。**利用側への影響**: Play Mode を繰り返したときに、前回の購読が残って通知が多重に飛ぶ問題が解消される。
+
+### Change
+- Runtime の終了処理を `SymphonyOrchestrator` の1件へ集約した。従来は `SaveDataRegistry`・`SceneLoader`・`ServiceLocator` がそれぞれ `destroyCancellationToken` へ登録しており、**解放順が保証されていなかった**。今後は Orchestrator が1回だけ登録し、初期化の逆順（`SymphonyDebugHUD` → `AudioManager` → `SceneLoader` → `ServiceLocator` → `PauseManager` → `SaveSystem`）で解放する。1つの解放が失敗しても残りを解放し、例外は記録してから握り潰さずまとめて報告する。
+- サブシステムから Composition Root への逆参照を除去した。従来 `ServiceLocateData`・`AudioManager`・`SymphonyDebugHUD` が `SymphonyOrchestrator.PreserveObject()` / `CreateSystemObject()` を直接呼んでいたが、`ISystemObjectFactory` 契約を Composition が実装して注入する形へ変えた。`Runtime/` から Composition 内部への参照は0件になった。
+  - **`AudioManager` と `SymphonyDebugHUD` の遅延生成は維持している。** GameObject は従来どおり初回利用時に生成され、使わなければ生成されない。
+  - `ServiceLocateData` はコンストラクタでの GameObject 生成をやめ、生成済みのものを受け取る形にした。コンストラクタから副作用を出さないため。
+- `ServiceLocateData` が持っていた `[RuntimeInitializeOnLoadMethod]` を除去し、終了検知の初期化と解除を Orchestrator の初期化・終了フェーズへ移した。二重購読が残らなくなる。
+
 ## [2.8.0] - 2026-07-31
 ### Change
 - Editorの初期化を `SymphonyEditorOrchestrator` へ集約した。従来は `PackageInitializer`・`AutoEnumGenerator`・`SymphonyDebugLogFileWriter`・`TagsAndLayersPostProcessor` の4型がそれぞれ `[InitializeOnLoad]` を持ち、互いの順序を知らないまま並行して走っていた。今後は自動初期化属性を持つのはOrchestratorだけで、各モジュールは明示的に `Initialize()` / `Shutdown()` を呼ばれる。初期化順が確定し、assembly reload とEditor終了時に構築順の逆順で解放されるようになった。

@@ -352,20 +352,24 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary> Singleton登録されたComponentの所有先Transform。 </summary>
         internal static Transform SingletonRoot => _data?.Instance != null ? _data.Instance.transform : null;
 
-        /// <summary> Locator状態を初期化し、システム破棄時のリセットを登録する。 </summary>
-        internal static void Initialize(CancellationToken destroyCancellationToken)
+        /// <summary> Compositionが生成した所有先を使用してLocator状態を初期化する。 </summary>
+        /// <param name="singletonRoot"> Singleton登録されたComponentの所有用GameObject。 </param>
+        internal static void Initialize(GameObject singletonRoot)
         {
-            _destroyRegistration.Dispose();
             ResetRuntimeState();
-            _data = new();
+            _data = new(singletonRoot);
             _manager = new(_data);
-            _destroyRegistration = destroyCancellationToken.Register(ResetRuntimeState);
         }
 
         /// <summary> 登録状態を消去してLocatorを未初期化状態へ戻す。 </summary>
-        private static void ResetRuntimeState()
+        internal static void ResetRuntimeState()
         {
             _data?.Clear();
+            if (_data?.Instance)
+            {
+                UnityEngine.Object.Destroy(_data.Instance);
+            }
+
             _manager = null;
             _data = null;
         }
@@ -383,6 +387,5 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
         private static ServiceLocateManager _manager;
         private static ServiceLocateData _data;
-        private static CancellationTokenRegistration _destroyRegistration;
     }
 }

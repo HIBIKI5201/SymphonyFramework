@@ -1,23 +1,17 @@
 ﻿using System;
-using System.Threading;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
-    ///     CoreSystemが所有するライフタイムにSaveDataRegistryを連動させます。
+    ///     CompositionからSaveDataRegistryへ依存を設定する。
     /// </summary>
     internal static class SaveSystem
     {
-        /// <summary> セーブデータレジストリをシステムのライフタイムへ関連付ける。 </summary>
-        internal static void Initialize(
-            CancellationToken destroyCancellationToken,
-            Func<SaveDataLoader> loaderResolver)
+        /// <summary> セーブデータレジストリへローダーの解決処理を設定する。 </summary>
+        /// <param name="loaderResolver"> 現在のConfigに対応するローダーを返す処理。 </param>
+        internal static void Initialize(Func<SaveDataLoader> loaderResolver)
         {
-            _destroyRegistration.Dispose();
             SaveDataRegistry.ConfigureLoaderResolver(loaderResolver);
-            _destroyRegistration = destroyCancellationToken.Register(SaveDataRegistry.ResetRuntimeState);
         }
-
-        private static CancellationTokenRegistration _destroyRegistration;
     }
 }

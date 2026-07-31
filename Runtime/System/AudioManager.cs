@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.Orchestrator;
 
 using UnityEngine;
 using UnityEngine.Audio;
@@ -19,6 +19,7 @@ namespace SymphonyFrameWork.System
         private static AudioManagerConfig _config;
         private static GameObject _instance;
         private static bool _isInitialized;
+        private static ISystemObjectFactory _systemObjectFactory;
 
         private static
             Dictionary<string, AudioSettingData> _audioDict = new();
@@ -49,24 +50,44 @@ namespace SymphonyFrameWork.System
 
         /// <summary> Configを受け取り、遅延生成されるランタイム状態を初期化する。 </summary>
         /// <param name="config"> オーディオミキサーとグループ設定。 </param>
-        internal static void Initialize(AudioManagerConfig config)
+        /// <param name="systemObjectFactory"> AudioSource所有用GameObjectの生成契約。 </param>
+        internal static void Initialize(
+            AudioManagerConfig config,
+            ISystemObjectFactory systemObjectFactory)
         {
-            _isInitialized = false;
-            _instance = null;
-            _audioDict = null;
+            ResetRuntimeState();
             _config = config;
+            _systemObjectFactory = systemObjectFactory;
             _isInitialized = true;
+        }
+
+        /// <summary> 生成済みAudioSourceとランタイム状態を解放する。 </summary>
+        internal static void ResetRuntimeState()
+        {
+            if (_instance)
+            {
+                UnityEngine.Object.Destroy(_instance);
+            }
+
+            _audioDict?.Clear();
+            _audioDict = null;
+            _instance = null;
+            _config = null;
+            _systemObjectFactory = null;
+            _isInitialized = false;
         }
 
         /// <summary> AudioSourceを所有するシステムオブジェクトを必要な場合だけ生成する。 </summary>
         private static void CreateInstance()
         {
-            if (_instance is not null) return;
+            if (_instance) return;
 
-            var instance = new GameObject(nameof(AudioManager));
+            if (_systemObjectFactory == null)
+            {
+                throw new SymphonyNotInitializedException(typeof(AudioManager));
+            }
 
-            SymphonyOrchestrator.PreserveObject(instance);
-            _instance = instance;
+            _instance = _systemObjectFactory.CreateObject(nameof(AudioManager));
         }
 
         /// <summary> Configに定義されたミキサーグループごとのAudioSourceを遅延生成する。 </summary>

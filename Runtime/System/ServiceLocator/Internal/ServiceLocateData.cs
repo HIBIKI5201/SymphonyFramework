@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.Orchestrator;
-
 using UnityEngine;
 
 namespace SymphonyFrameWork.System.ServiceLocate
@@ -10,11 +8,16 @@ namespace SymphonyFrameWork.System.ServiceLocate
     /// <summary> Service Locatorの登録情報と登録待ちコールバックを保持する。 </summary>
     internal sealed class ServiceLocateData
     {
-        /// <summary> Locator所有用GameObjectと空の登録状態を生成する。 </summary>
-        public ServiceLocateData()
+        /// <summary> Locator所有用GameObjectと空の登録状態を保持する。 </summary>
+        /// <param name="gameObject"> Compositionが生成したLocator所有用GameObject。 </param>
+        public ServiceLocateData(GameObject gameObject)
         {
-            _gameObject = new GameObject("ServiceLocateData");
-            SymphonyOrchestrator.PreserveObject(_gameObject);
+            if (!gameObject)
+            {
+                throw new ArgumentNullException(nameof(gameObject));
+            }
+
+            _gameObject = gameObject;
         }
 
         /// <summary> Singleton登録されたComponentの所有元GameObject。 </summary>
@@ -174,12 +177,18 @@ namespace SymphonyFrameWork.System.ServiceLocate
         private static bool s_IsQuitting;
 
         /// <summary> Editorでの終了検知状態と購読をPlay Mode開始ごとに初期化する。 </summary>
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        internal static void InitializeQuittingState()
         {
             s_IsQuitting = false;
             Application.quitting -= OnQuitting;
             Application.quitting += OnQuitting;
+        }
+
+        /// <summary> Editorでの終了検知購読を解除し、状態を初期化する。 </summary>
+        internal static void ResetQuittingState()
+        {
+            Application.quitting -= OnQuitting;
+            s_IsQuitting = false;
         }
 
         /// <summary> Unity終了中であることを記録し、破棄済みTransformへの操作を防ぐ。 </summary>
