@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.11.0] - 2026-07-31
+### Add
+- `ReactiveProperty<T>` の単体テストを21件追加した。等値比較（既定と custom comparer、配列が参照比較になること）、`notifyCurrent` の有無、購読解除と多重 Dispose、通知中に購読者が購読・解除した場合、購読者が例外を投げた場合の分離、破棄後の拒否、メインスレッド以外からの呼び出しの拒否を検証する。2.10.0 で追加した時点ではテストを持てなかったため、レビューだけが品質保証になっていた。
+
+### Change
+- **テストをパッケージ内へ戻した。** `Tests/Editor/` と `Tests/Runtime/` に配置し、パッケージへ同梱する。両 asmdef の `defineConstraints` に `UNITY_INCLUDE_TESTS` を指定しているため、**利用側のビルドには含まれない。**
+- `Runtime/AssemblyInfo.cs` と `Core/AssemblyInfo.cs` がテストアセンブリへ `InternalsVisibleTo` を与えるようにした。これにより `internal` な内部実装も単体テストの対象にできる。従来は公開APIの範囲でしかテストできず、`ReactiveProperty` のような内部基盤を検証できなかった。
+
+### Fix
+- `ReactiveProperty` のメインスレッド判定が `Awaitable` を毎回生成し、await せずに破棄していた問題を修正した。Unity の `Awaitable` はプールされた型で、await されないとプールへ返却されない。値の更新ごとに呼ばれる経路であり、後続の ViewModel が高頻度に更新するとプールを圧迫する。副作用のない Unity API 読み取りでスレッドを判定する形へ変更し、メインスレッド上ではアロケーションが発生しないようにした。
+
 ## [2.10.0] - 2026-07-31
 ### Add
 - `ReactiveProperty<T>` と `IReadOnlyReactiveProperty<T>` を `Core` へ追加した。値が変化したときだけ購読者へ通知する最小の基盤で、後続バージョンで導入する ViewModel が表示状態を View と Editor Window へ伝えるために使う。現在 Editor Window は毎フレーム内部状態をポーリングしているが、これを変更時のみの反映へ移行するための土台になる。外部ライブラリ（R3 / UniRx）は導入していない。
