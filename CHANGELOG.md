@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.10.0] - 2026-07-31
+### Add
+- `ReactiveProperty<T>` と `IReadOnlyReactiveProperty<T>` を `Core` へ追加した。値が変化したときだけ購読者へ通知する最小の基盤で、後続バージョンで導入する ViewModel が表示状態を View と Editor Window へ伝えるために使う。現在 Editor Window は毎フレーム内部状態をポーリングしているが、これを変更時のみの反映へ移行するための土台になる。外部ライブラリ（R3 / UniRx）は導入していない。
+  - どちらも `internal` のため、**利用側の公開APIは増えていない。**
+  - 通知は購読者リストのスナップショットに対して行うため、通知中に購読者が購読・解除しても壊れない。
+  - 1人の購読者が例外を投げても残りへの通知は続き、例外はまとめて1回記録する。
+  - 値の更新・購読・破棄はメインスレッドに限定し、それ以外からの呼び出しは例外にする。
+  - 配列や `List` は既定では参照比較になるため、内容比較用の comparer とスナップショットの用意は利用側の責務としている。
+
 ## [2.9.0] - 2026-07-31
 ### Fix
 - **Play Mode 終了時に解放されていなかった状態を解放するようにした。** `PauseManager` の `IPausable` 購読辞書と `OnPauseChanged` の購読、`AudioManager` が生成した GameObject と AudioSource、`SymphonyDebugHUD` の描画コンポーネントは、これまで終了処理を持っておらず残り続けていた。Enter Play Mode Options で Domain Reload を無効にしている環境では、これがゴースト参照や二重購読の原因になる。**利用側への影響**: Play Mode を繰り返したときに、前回の購読が残って通知が多重に飛ぶ問題が解消される。
