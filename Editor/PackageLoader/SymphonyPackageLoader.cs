@@ -78,7 +78,8 @@ namespace SymphonyFrameWork.Editor
 
             var timer = Time.time;
             // IAsyncOperation を非同期タスクで待機
-            await SymphonyTask.WaitUntil(() => listRequest.IsCompleted || timer + 60 < Time.time);
+            await SymphonyAwaitable.WaitWhile(
+                () => !listRequest.IsCompleted && Time.time <= timer + 60);
 
             EditorUtility.ClearProgressBar();
 

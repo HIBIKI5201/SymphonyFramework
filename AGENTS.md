@@ -22,10 +22,12 @@
 | `SymphonyFrameWork.System.SaveSystem` | `SaveDataRegistry`, `SaveDataContent`, `SaveDataLoader`, `SaveDataOperationException` | セーブデータのFacade、基底クラス／拡張点、操作失敗時の例外 |
 | `SymphonyFrameWork.System` | `AudioManager`, `PauseManager` | どのサブシステムにも属さないFacade |
 | `SymphonyFrameWork` | `IInjectable<T...>`, `IInitializeAsync` | DI用インターフェース |
-| `SymphonyFrameWork.Utility` | `SymphonyLocate`, `SymphonyTask`, `SymphonyTween` | 補助コンポーネント／ユーティリティ |
+| `SymphonyFrameWork.Utility` | `SymphonyAwaitable`, `SymphonyLocate`, `SymphonyTask`, `SymphonyTween` | 補助コンポーネント／ユーティリティ |
 | `SymphonyFrameWork.Attribute` | `[ReadOnly]`, `[SubclassSelector]`, `[SceneNameSelector]`, `[TagSelector]` 等 | Inspector拡張属性 |
 | `SymphonyFrameWork.Exceptions` | `SymphonyNotInitializedException` | Facadeを初期化前に使用した場合の共通例外 |
 | `SymphonyFrameWork.Editor` (Editor専用) | `SymphonyAdministrator` 他 | エディタツール。Runtimeコードから参照不可 |
+
+`SymphonyTask` は非推奨であり、3.0.0で削除予定。新規コードと既存コードの移行先には `SymphonyAwaitable` を使用する。
 
 主要APIは**すべて `public static class`**（`ServiceLocator` / `SceneLoader` / `AudioManager` / `PauseManager` / `SaveDataRegistry`）。Facadeは自分が属するサブシステムの名前空間にあるため、1つのサブシステムを使うのに必要な `using` は1つだけ。インスタンス化やシングルトンの `.Instance` パターンは存在しない。`XxxManager.Instance` のようなコードを書いたら誤り。
 

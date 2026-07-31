@@ -8,6 +8,7 @@ namespace SymphonyFrameWork.Utility
     /// <summary>
     ///     Taskの機能を拡張するクラス
     /// </summary>
+    [Obsolete("SymphonyAwaitableを使用してください。", error: false)]
     public static class SymphonyTask
     {
         /// <summary>
@@ -16,8 +17,22 @@ namespace SymphonyFrameWork.Utility
         /// <param name="action"> バックグラウンドスレッドで実行する処理。 </param>
         public static async void BackGroundThreadAction(Action action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             await Awaitable.BackgroundThreadAsync();
-            action.Invoke();
+
+            try
+            {
+                action.Invoke();
+            }
+            finally
+            {
+                await Awaitable.MainThreadAsync();
+            }
+
             Debug.Log($"{action.Method} is done");
         }
 
@@ -27,8 +42,22 @@ namespace SymphonyFrameWork.Utility
         /// <param name="action"> バックグラウンドスレッドで実行する処理。 </param>
         public static async Awaitable BackGroundThreadActionAsync(Action action)
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             await Awaitable.BackgroundThreadAsync();
-            action.Invoke();
+
+            try
+            {
+                action.Invoke();
+            }
+            finally
+            {
+                await Awaitable.MainThreadAsync();
+            }
+
             Debug.Log($"{action.Method} is done");
         }
 

@@ -125,11 +125,11 @@ namespace SymphonyFrameWork.System.SceneLoad
             #endregion
 
             #region ロード中。
-            await SymphonyTask.WaitUntil(
+            await SymphonyAwaitable.WaitWhile(
                 () =>
                 {
                     loadingAction?.Invoke(operation.progress);
-                    return operation.isDone;
+                    return !operation.isDone;
                 },
                 token);
 
@@ -328,11 +328,11 @@ namespace SymphonyFrameWork.System.SceneLoad
             _data.UnloadStart(name);
 
             //ロード中。
-            await SymphonyTask.WaitUntil(
+            await SymphonyAwaitable.WaitWhile(
                 () =>
                 {
                     loadingAction?.Invoke(operation.progress);
-                    return operation.isDone;
+                    return !operation.isDone;
                 },
                 token);
 

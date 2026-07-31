@@ -127,7 +127,7 @@ namespace SymphonyFrameWork.System
                 throw new ArgumentNullException(nameof(action));
             }
 
-            await SymphonyTask.WaitUntil(action, token);
+            await SymphonyAwaitable.WaitWhile(() => !action.Invoke(), token);
 
             if (_pause) await Awaitable.NextFrameAsync(token);
         }

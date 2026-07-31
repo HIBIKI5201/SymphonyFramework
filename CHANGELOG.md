@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.6.0] - 2026-07-31
+### Add
+- `SymphonyAwaitable` を追加。Unity 6 の `Awaitable` に対して、完了済み値（`Completed` / `FromResult`）、複数処理の待機（`WhenAll`）、条件待機（`WaitUntil` / `WaitWhile`）、協調的タイムアウト（`WithTimeout`）、`Task` との相互変換（`FromTask` / `AsTask`）を提供する。3.0.0 で予定している Awaitable 全面移行の基盤になる。
+  - `WhenAny` は提供しない。未完了側の Awaitable と例外を安全に消費する一般契約を定められないため。具体的な利用要件が生じた時点で追加を判断する。
+  - `WhenAll` へ渡した Awaitable は、このメソッドが唯一の消費者になる。呼び出し側で別途awaitしてはならない。
+  - `FromTask` は元 Task がどのスレッドで完了しても、await 側が必ずメインスレッドで再開する。待機をキャンセルした後も元 Task の完了と例外を観測し続けるため、未観測例外を作らない。
+  - `WithTimeout` は開始済みの Awaitable ではなく、linked token を受け取る factory を取る。token を無視する処理は強制停止できない協調的なタイムアウトである。
+
+### Change
+- `SymphonyTask.BackGroundThreadAction` / `BackGroundThreadActionAsync` が、処理後に `Awaitable.MainThreadAsync()` でメインスレッドへ戻るようにした。従来は復帰せず、後続処理と完了ログがメインスレッド外で実行されていた。あわせて引数 null の検証を追加した。**利用側への影響**: 従来バックグラウンドスレッドで継続していたコードが、メインスレッドで動くようになる。
+- `SceneLoader`、`PauseManager`、`SymphonyPackageLoader` の内部待機を `SymphonyAwaitable` へ置き換えた。公開APIの挙動は変わらない。
+- テストをパッケージへ同梱しなくなった。EditMode / PlayMode のテストは開発用ワークスペースリポジトリ側で管理する。
+
+### Deprecated
+- `SymphonyTask` を非推奨にした。`SymphonyAwaitable` が同等以上の機能を提供するため。3.0.0 で削除する。**移行方法**:
+  - `SymphonyTask.WaitUntil(cond)` → `SymphonyAwaitable.WaitUntil(cond)`。条件の反転は不要（同名同義のAPIを用意した）
+  - `SymphonyTask.BackGroundThreadAction` / `BackGroundThreadActionAsync` → `SymphonyAwaitable` の同名メソッド
+  - `SymphonyTask.OnComplete(this Awaitable, ...)` → `SymphonyAwaitable.OnComplete`
+  - `SymphonyTask.OnComplete(this Task, ...)` は以前から非推奨。`Awaitable` 版へ移行する
+
 ## [2.5.0] - 2026-07-31
 ### Add
 - Framework配下のアセット移動に対する保護の強さを、`Project Settings > SymphonyFrameWork` から「有効化／警告／無効化」の3段階で選べるようにした。従来は一律で差し戻すか警告するかの2択で、切り替えもメニューに隠れていたため、テストフォルダの移設のように意図した移動を行いたい場面で扱いにくかった。「警告」では移動を続行するか元に戻すかをその場で選べる。1回の移動操作でダイアログは1回だけ表示する。
