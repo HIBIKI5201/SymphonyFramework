@@ -52,7 +52,7 @@ namespace SymphonyFrameWork.Orchestrator
             var systemGameObject = new GameObject(nameof(SymphonyOrchestrator));
             _systemObject = systemGameObject.AddComponent<SymphonyOrchestratorObject>();
             PreserveObject(systemGameObject);
-            SaveSystem.SaveSystem.Initialize(
+            SaveSystem.Initialize(
                 _systemObject.destroyCancellationToken,
                 ResolveSaveDataLoader);
 
