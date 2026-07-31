@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger.Logger;
-using UnityEditor;
+
 using UnityEngine;
 
 namespace SymphonyFrameWork.Editor.Debugger.Logger
@@ -12,7 +13,6 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
     /// <summary>
     ///     SymphonyDebugLogger.OnLogDirectを購読し、ログをファイルへキャッシュ出力する。
     /// </summary>
-    [InitializeOnLoad]
     internal static class SymphonyDebugLogFileWriter
     {
         /// <summary> ログをファイルへ出力するかどうか。 </summary>
@@ -37,7 +37,8 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
         private static readonly List<string> s_PendingLines = new();
         private static Timer s_FlushTimer;
 
-        static SymphonyDebugLogFileWriter()
+        /// <summary> ログ購読と定期書き込みTimerを開始する。 </summary>
+        internal static void Initialize()
         {
             SymphonyDebugLogger.OnLogDirect -= EnqueueLog;
             SymphonyDebugLogger.OnLogDirect += EnqueueLog;
@@ -48,12 +49,14 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
                 null,
                 TimeSpan.FromSeconds(FLUSH_INTERVAL_SECONDS),
                 TimeSpan.FromSeconds(FLUSH_INTERVAL_SECONDS));
+        }
 
-            Application.quitting -= Flush;
-            Application.quitting += Flush;
-
-            AssemblyReloadEvents.beforeAssemblyReload -= Flush;
-            AssemblyReloadEvents.beforeAssemblyReload += Flush;
+        /// <summary> ログ購読を解除して定期書き込みTimerを破棄する。 </summary>
+        internal static void Shutdown()
+        {
+            SymphonyDebugLogger.OnLogDirect -= EnqueueLog;
+            s_FlushTimer?.Dispose();
+            s_FlushTimer = null;
         }
 
         /// <summary> ログをファイル出力用のバッファへ蓄積する。 </summary>

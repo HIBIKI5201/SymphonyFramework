@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.8.0] - 2026-07-31
+### Change
+- Editorの初期化を `SymphonyEditorOrchestrator` へ集約した。従来は `PackageInitializer`・`AutoEnumGenerator`・`SymphonyDebugLogFileWriter`・`TagsAndLayersPostProcessor` の4型がそれぞれ `[InitializeOnLoad]` を持ち、互いの順序を知らないまま並行して走っていた。今後は自動初期化属性を持つのはOrchestratorだけで、各モジュールは明示的に `Initialize()` / `Shutdown()` を呼ばれる。初期化順が確定し、assembly reload とEditor終了時に構築順の逆順で解放されるようになった。
+  - 初期化状態（`Uninitialized` / `Initializing` / `Ready` / `ShuttingDown`）を持ち、`Ready` 以外では再初期化しない。
+  - `Shutdown` は多重呼び出しを無害にし、同期的かつ非ブロッキングで動く。1モジュールの終了処理が失敗しても残りを解放する。
+  - `AssetPostprocessor` が `Ready` 前に受け取った変更は、その場で処理せず `Ready` 後に1回だけ処理する。
+- 起動時の `AssetDatabase.Refresh()` を、最大5回からOrchestratorでの1回へ集約した。実際にアセット変更があった場合だけ実行する。メニューや設定変更を起点とするRefresh（`AssetStoreToolsPackager`・`FolderGenerator`・`SaveSystemSettingProvider`・enum生成のメニュー経路）は従来どおり残している。
+- `PackageInitializer` を `public static` から `internal static` へ変更した。`[InitializeOnLoad]` により自動実行される型であり、外部から呼ぶ想定のAPIではないため。**利用側への影響**: Editorアセンブリの型のため、Runtimeコードとビルド済みプレイヤーには影響しない。
+
 ## [2.7.0] - 2026-07-31
 ### Add
 - Editor専用の `SymphonyMcpTools` を追加。`GetServiceLocatorJson()` / `GetSceneLoaderJson()` / `GetSaveDataJson()` / `GetPauseJson()` で、各サブシステムの現在状態をJSONで取得できる。uLoopMCP の `execute-dynamic-code` など自動化されたデバッグから状態を**列挙**するための入口。従来は点検索（`IsExistInstance<T>()`、`TryGetState(name, out)`）しか無く、「何が登録されているか」を知るにはリフレクションを書くしかなかった。

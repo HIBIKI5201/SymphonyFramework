@@ -12,7 +12,11 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     public sealed class SymphonyAssetProtector : AssetPostprocessor
     {
+        /// <summary> host callbackによる状態リセットが処理待ちになったときに通知する。 </summary>
+        internal static event Action OnHostChangesPending;
+
         private static bool _hasDisplayedEnabledDialog;
+        private static bool _hasPendingOperationReset;
         private static AssetMoveResult? _warningMoveResult;
 
         /// <summary> 1回のアセット操作で保持したダイアログ状態を破棄する。 </summary>
@@ -22,8 +26,8 @@ namespace SymphonyFrameWork.Editor
             string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            _hasDisplayedEnabledDialog = false;
-            _warningMoveResult = null;
+            _hasPendingOperationReset = true;
+            OnHostChangesPending?.Invoke();
         }
 
         /// <summary>
@@ -109,6 +113,19 @@ namespace SymphonyFrameWork.Editor
             string frameworkPath = EditorSymphonyConstant.FRAMEWORK_PATH;
             return sourcePath.Equals(frameworkPath, StringComparison.Ordinal) ||
                    sourcePath.StartsWith(frameworkPath + "/", StringComparison.Ordinal);
+        }
+
+        /// <summary> coalesceしたアセット操作状態のリセットを1回だけ処理する。 </summary>
+        internal static void ProcessPendingChanges()
+        {
+            if (!_hasPendingOperationReset)
+            {
+                return;
+            }
+
+            _hasPendingOperationReset = false;
+            _hasDisplayedEnabledDialog = false;
+            _warningMoveResult = null;
         }
     }
 }

@@ -1,12 +1,15 @@
-﻿using SymphonyFrameWork.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+
+using SymphonyFrameWork.Core;
+
 using UnityEditor;
 using UnityEngine;
+
 using FileMode = System.IO.FileMode;
 using Task = System.Threading.Tasks.Task;
 
@@ -21,7 +24,21 @@ namespace SymphonyFrameWork.Editor
         private static readonly string[] ReservedWords = { "abstract", "as", "base", "bool", "break", "while" };
 
         /// <summary> 有効な識別子を抽出し、通常またはフラグ形式のenumソースを生成する。 </summary>
-        public static async void EnumGenerate(string[] strings, string fileName, bool flag = false)
+        public static void EnumGenerate(string[] strings, string fileName, bool flag = false)
+        {
+            EnumGenerate(strings, fileName, flag, true);
+        }
+
+        /// <summary> AssetDatabase更新の所有者を指定してenumソースを生成する。 </summary>
+        /// <param name="strings"> enumの列挙子候補。 </param>
+        /// <param name="fileName"> 生成するenumの型名。 </param>
+        /// <param name="flag"> Flags形式で生成する場合はtrue。 </param>
+        /// <param name="refreshAssetDatabase"> 生成後にAssetDatabaseを更新する場合はtrue。 </param>
+        internal static async void EnumGenerate(
+            string[] strings,
+            string fileName,
+            bool flag,
+            bool refreshAssetDatabase)
         {
             //重複を削除
             var hash = new HashSet<string>(new string[1] { "None" }.Concat(strings))
@@ -66,6 +83,14 @@ namespace SymphonyFrameWork.Editor
                         }
                     }
 
+                    File.SetLastAccessTime(enumFilePath, DateTime.Now);
+                    AssetDatabase.ImportAsset(enumFilePath, ImportAssetOptions.ForceUpdate);
+                    if (refreshAssetDatabase)
+                    {
+                        AssetDatabase.Refresh();
+                    }
+
+                    Debug.Log($"{fileName}Enumを生成しました");
                     return; // 成功したら終了
                 }
                 catch (IOException e)
@@ -81,11 +106,6 @@ namespace SymphonyFrameWork.Editor
                 }
             }
 
-// アセット更新
-            File.SetLastAccessTime(enumFilePath, DateTime.Now);
-            AssetDatabase.ImportAsset(enumFilePath, ImportAssetOptions.ForceUpdate);
-
-            Debug.Log($"{fileName}Enumを生成しました");
         }
 
         /// <summary> 指定名の自動生成enumファイルパスを取得する。 </summary>
@@ -94,23 +114,40 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     リソースフォルダが無ければ生成
         /// </summary>
-        private static void CreateResourcesFolder(string resourcesPath)
+        /// <returns> フォルダまたはAssembly Definitionを生成・変更した場合はtrue。 </returns>
+        private static bool CreateResourcesFolder(string resourcesPath)
         {
+            bool hasAssetChanges = false;
+
             //リソースがなければ生成
             if (!Directory.Exists(resourcesPath))
             {
                 Directory.CreateDirectory(resourcesPath);
                 AssetDatabase.ImportAsset(resourcesPath, ImportAssetOptions.ForceUpdate);
+                hasAssetChanges = true;
             }
+
+            string enumAsmdefPath =
+                EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum.asmdef";
+            string mainAsmdefPath =
+                EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork.asmdef";
+            string previousEnumAsmdef = File.Exists(enumAsmdefPath)
+                ? File.ReadAllText(enumAsmdefPath)
+                : null;
+            string previousMainAsmdef = File.Exists(mainAsmdefPath)
+                ? File.ReadAllText(mainAsmdefPath)
+                : null;
 
             AssemblyGenerator.CreateEnumAssembly(
                 EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum",
                 EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork");
 
-            AssetDatabase.Refresh();
+            hasAssetChanges |= !File.Exists(enumAsmdefPath) ||
+                               previousEnumAsmdef != File.ReadAllText(enumAsmdefPath);
+            hasAssetChanges |= File.Exists(mainAsmdefPath) &&
+                               previousMainAsmdef != File.ReadAllText(mainAsmdefPath);
+            return hasAssetChanges;
         }
-
-
 
         /// <summary>
         ///     通常のEnumを生成する
@@ -162,6 +199,13 @@ namespace SymphonyFrameWork.Editor
 
         /// <summary> デバッグメニューからenum出力先とAssembly Definitionを生成する。 </summary>
         [MenuItem(SymphonyConstant.TOOL_MENU_PATH + "Debug/" + nameof(CreateResourcesFolder), priority = 1000)]
-        private static void CreateResourceFolderDebug() => CreateResourcesFolder($"{EditorSymphonyConstant.ENUM_PATH}/");
+        private static void CreateResourceFolderDebug()
+        {
+            bool hasAssetChanges = CreateResourcesFolder($"{EditorSymphonyConstant.ENUM_PATH}/");
+            if (hasAssetChanges)
+            {
+                AssetDatabase.Refresh();
+            }
+        }
     }
 }
