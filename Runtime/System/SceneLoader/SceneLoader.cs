@@ -15,6 +15,8 @@ namespace SymphonyFrameWork.System.SceneLoad
     {
         private static SceneLoadRegistry _registry;
         private static SceneLoadService _service;
+        private static SceneLoadQuery _query;
+        private static SceneLoadViewModel _viewModel;
 
         /// <summary> ロードされているシーンを返す。 </summary>
         /// <param name="sceneName"> 取得するシーン名。 </param>
@@ -32,7 +34,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         public static bool IsExist(string sceneName)
         {
             EnsureInitialized();
-            return _registry.Contains(sceneName);
+            return _query.TryGetInfo(sceneName, out _);
         }
 
         /// <summary> シーンの状態を返す。 </summary>
@@ -43,14 +45,34 @@ namespace SymphonyFrameWork.System.SceneLoad
         {
             EnsureInitialized();
 
-            if (_registry.TryGet(sceneName, out SceneLoadEntity entity))
+            if (_query.TryGetInfo(sceneName, out SceneLoadInfo sceneInfo))
             {
-                state = entity.State;
+                state = sceneInfo.State;
                 return true;
             }
 
             state = SceneLoadState.None;
             return false;
+        }
+
+        /// <summary> 追跡中シーンの不変な状態スナップショット一覧を返す。 </summary>
+        /// <returns> シーン名のordinal昇順で並んだ変更不能な一覧。 </returns>
+        public static IReadOnlyList<SceneLoadInfo> GetSceneInfos()
+        {
+            EnsureInitialized();
+            return _query.GetInfos();
+        }
+
+        /// <summary> 指定した追跡中シーンの不変な状態スナップショットを返す。 </summary>
+        /// <param name="sceneName"> 状態を取得するシーン名。 </param>
+        /// <param name="sceneInfo"> 取得できた状態スナップショット。 </param>
+        /// <returns> 状態を取得できた場合はtrue。 </returns>
+        public static bool TryGetSceneInfo(
+            string sceneName,
+            out SceneLoadInfo sceneInfo)
+        {
+            EnsureInitialized();
+            return _query.TryGetInfo(sceneName, out sceneInfo);
         }
 
         /// <summary> シーンをActive Sceneにする。 </summary>
@@ -259,14 +281,14 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         /// <summary> Scene Loaderが初期化済みかどうか。 </summary>
-        internal static bool IsInitialized => _service != null && _registry != null;
+        internal static bool IsInitialized =>
+            _service != null
+            && _registry != null
+            && _query != null
+            && _viewModel != null;
 
-        /// <summary> 名前をキーとする追跡中Scene Entity一覧。 </summary>
-        internal static IReadOnlyDictionary<string, SceneLoadEntity> TrackedScenes =>
-            _registry?.Entities;
-
-        /// <summary> Scene Loaderが記録しているActive Scene名。 </summary>
-        internal static string ActiveSceneName => _registry?.ActiveSceneName;
+        /// <summary> Compositionが所有する現在のScene Load ViewModel。 </summary>
+        internal static SceneLoadViewModel CurrentViewModel => _viewModel;
 
         /// <summary> OrchestratorからScene Loaderを初期化する。 </summary>
         internal static void Initialize()
@@ -274,12 +296,17 @@ namespace SymphonyFrameWork.System.SceneLoad
             ResetRuntimeState();
             _registry = new SceneLoadRegistry();
             _service = new SceneLoadService(_registry, new UnitySceneLoader());
+            _query = new SceneLoadQuery(_registry);
+            _viewModel = new SceneLoadViewModel(_query, _service);
         }
 
         /// <summary> 追跡状態とServiceを破棄して未初期化状態へ戻す。 </summary>
         internal static void ResetRuntimeState()
         {
+            _viewModel?.Dispose();
             _registry?.Clear();
+            _viewModel = null;
+            _query = null;
             _service = null;
             _registry = null;
         }
@@ -300,7 +327,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> Scene Loaderが利用可能な状態か検証する。 </summary>
         private static void EnsureInitialized()
         {
-            if (_service == null || _registry == null)
+            if (!IsInitialized)
             {
                 throw new SymphonyNotInitializedException(typeof(SceneLoader));
             }
