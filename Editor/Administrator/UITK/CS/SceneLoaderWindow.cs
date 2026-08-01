@@ -15,8 +15,8 @@ namespace SymphonyFrameWork.Editor
     [UxmlElement]
     public sealed partial class SceneLoaderWindow : SymphonyVisualElement
     {
-        private Dictionary<string, SceneLoadData.SceneInfo> _sceneDict;
-        private FieldInfo _dataField;
+        private Dictionary<string, SceneLoadEntity> _sceneDict;
+        private FieldInfo _registryField;
         private ListView _sceneList;
 
         /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
@@ -29,7 +29,9 @@ namespace SymphonyFrameWork.Editor
         /// <summary> SceneLoaderの追跡データを参照するシーン一覧を構成する。 </summary>
         protected override ValueTask Initialize_S(VisualElement container)
         {
-            _dataField = typeof(SceneLoader).GetField("_data", BindingFlags.Static | BindingFlags.NonPublic);
+            _registryField = typeof(SceneLoader).GetField(
+                "_registry",
+                BindingFlags.Static | BindingFlags.NonPublic);
 
             UpdateSceneDict();
 
@@ -52,38 +54,40 @@ namespace SymphonyFrameWork.Editor
         /// <summary> SceneLoader内部の最新シーン辞書参照を取得する。 </summary>
         private void UpdateSceneDict()
         {
-            if (_dataField == null) return;
+            if (_registryField == null) return;
 
-            var sceneLoadDataInstance = _dataField.GetValue(null);
+            var sceneLoadRegistryInstance = _registryField.GetValue(null);
 
-            if (sceneLoadDataInstance == null)
+            if (sceneLoadRegistryInstance == null)
             {
-                _sceneDict = new Dictionary<string, SceneLoadData.SceneInfo>();
+                _sceneDict = new Dictionary<string, SceneLoadEntity>();
                 return;
             }
 
             var sceneDictField =
-                sceneLoadDataInstance.GetType()
-                .GetField("_sceneDict",
+                sceneLoadRegistryInstance.GetType()
+                .GetField("_entities",
                     BindingFlags.Instance | BindingFlags.NonPublic);
 
             if (sceneDictField != null)
             {
-                _sceneDict = (Dictionary<string, SceneLoadData.SceneInfo>)sceneDictField.GetValue(sceneLoadDataInstance);
+                _sceneDict =
+                    (Dictionary<string, SceneLoadEntity>)sceneDictField.GetValue(
+                        sceneLoadRegistryInstance);
             }
             else
             {
-                _sceneDict = new Dictionary<string, SceneLoadData.SceneInfo>();
+                _sceneDict = new Dictionary<string, SceneLoadEntity>();
             }
         }
 
         /// <summary> 表示時の列挙変更を避けるため、シーン辞書のスナップショットを生成する。 </summary>
-        private List<KeyValuePair<string, SceneLoadData.SceneInfo>> GetSceneList()
+        private List<KeyValuePair<string, SceneLoadEntity>> GetSceneList()
         {
             UpdateSceneDict();
             return _sceneDict != null
-                ? new List<KeyValuePair<string, SceneLoadData.SceneInfo>>(_sceneDict)
-                : new List<KeyValuePair<string, SceneLoadData.SceneInfo>>();
+                ? new List<KeyValuePair<string, SceneLoadEntity>>(_sceneDict)
+                : new List<KeyValuePair<string, SceneLoadEntity>>();
         }
 
         /// <summary> シーン一覧を最新の追跡状態で再構築する。 </summary>

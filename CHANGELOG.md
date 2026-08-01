@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.12.0] - 2026-08-02
+### Add
+- シーン名とActive Scene選択用の優先度を一体で扱う公開Value Object `SceneLoadRequest`を追加した。単一／複数ロード用の新しいoverloadへ渡せるため、複数シーンでもシーン名と優先度の対応を崩さず指定できる。
+- `SceneLoadRequest` overloadの進捗通知へC#標準の`IProgress<float>`を採用した。既存の`Action<float>` overloadは同期adapterとして維持し、ソース互換性と通知タイミングを保つ。
+- `SceneLoadRequest`、シーン単位の状態遷移、Registry、Serviceの優先度判断と進捗伝播を検証するEditModeテストを追加した。
+
+### Change
+- Scene LoadのRuntime内部を`SceneLoadEntity`、`SceneLoadRegistry`、`SceneLoadService`、`ISceneLoader`、`UnitySceneLoader`へ分割した。状態と優先度の判断をUnityの`SceneManager`／`AsyncOperation`境界から切り離し、`SceneLoadManager`、`SceneLoadData`、`SceneResetter`を置き換えた。
+- 起動時のScene同期とリセット処理を`SceneLoadService`へ統合した。公開`SceneLoader`の既存シグネチャ、`SceneLoadState`、`SceneManagerConfig`、シリアライズ済みアセットは変更していない。
+- Scene Loader SampleのScene A経路を`SceneLoadRequest`と`IProgress<float>`の利用例へ更新した。Editor WindowとMCP診断は新しいEntity一覧へ追従し、表示するJSONの意味を維持する。
+
 ## [2.11.0] - 2026-07-31
 ### Add
 - `ReactiveProperty<T>` の単体テストを21件追加した。等値比較（既定と custom comparer、配列が参照比較になること）、`notifyCurrent` の有無、購読解除と多重 Dispose、通知中に購読者が購読・解除した場合、購読者が例外を投げた場合の分離、破棄後の拒否、メインスレッド以外からの呼び出しの拒否を検証する。2.10.0 で追加した時点ではテストを持てなかったため、レビューだけが品質保証になっていた。

@@ -18,6 +18,7 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
         private readonly Queue<string> _commentaryLogs = new();
         private Vector2 _scrollPosition;
         private bool _isBusy;
+        private float _sceneAProgress;
         private string _waitResult = "(not run)";
 
         /// <summary> ロード完了通知を登録し、実況ログを開始する。 </summary>
@@ -40,12 +41,16 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
             }
 
             _isBusy = true;
+            _sceneAProgress = 0f;
             AddCommentary($"{SCENE_A} を優先度{PRIORITY_A}で追加ロードします。");
 
+            var request = new SceneLoadRequest(SCENE_A, PRIORITY_A);
+            IProgress<float> progress = new Progress<float>(
+                value => _sceneAProgress = value);
             bool succeeded = await SceneLoader.LoadScene(
-                SCENE_A,
+                request,
+                progress,
                 mode: LoadSceneMode.Additive,
-                priority: PRIORITY_A,
                 token: destroyCancellationToken);
 
             AddCommentary(succeeded
@@ -174,6 +179,7 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
             GUILayout.Label($"Active Scene : {SceneManager.GetActiveScene().name}");
             GUILayout.Label($"Wait Result  : {_waitResult}");
             GUILayout.Label($"Busy         : {_isBusy}");
+            GUILayout.Label($"Scene A Progress : {_sceneAProgress:P0}");
             GUILayout.Space(8f);
 
             DrawSceneStatus(SCENE_A);
