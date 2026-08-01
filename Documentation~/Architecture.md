@@ -93,6 +93,11 @@ classDiagram
         UnloadScene()
         SetActiveScene()
     }
+    class SceneLoadRequest {
+        <<readonly struct>>
+        SceneName
+        Priority
+    }
     class IInitializeAsync {
         <<interface>>
         InitializeAsync()
@@ -133,6 +138,7 @@ classDiagram
 
     ServiceInjector ..> ServiceLocator : 登録済み依存を取得
     ServiceInjector --> IInjectable : 注入
+    SceneLoader --> SceneLoadRequest : ロード対象と優先度
     SceneLoader ..> ServiceInjector : ルートへ自動注入
     SceneLoader --> IInitializeAsync : 完了を待機
     SaveDataRegistry --> SaveDataContent : 型単位でキャッシュ
