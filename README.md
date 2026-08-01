@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.12.0**
+- 現在のバージョン: **2.13.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -162,6 +162,23 @@ public async void OpenGameScene()
 ```
 
 `SceneLoadRequest`はシーン名とActive Scene選択用の優先度を1つの値として扱います。複数シーンでは`SceneLoadRequest[]`を`LoadScenes`へ渡せるため、シーン名と優先度の対応を崩しません。進捗の推奨契約は`IProgress<float>`です。既存のシーン名と`Action<float>`を使うoverloadも互換性のため利用できます。
+
+追跡中の全シーンは、変更不能な`SceneLoadInfo`のスナップショットとして取得できます。取得後にロード状態が変わっても、既に取得した値は変化しません。
+
+```csharp
+foreach (SceneLoadInfo sceneInfo in SceneLoader.GetSceneInfos())
+{
+    Debug.Log(
+        $"{sceneInfo.SceneName}: {sceneInfo.State}, "
+        + $"Priority={sceneInfo.Priority}, Progress={sceneInfo.Progress:P0}, "
+        + $"Active={sceneInfo.IsActive}");
+}
+
+if (SceneLoader.TryGetSceneInfo("Game", out SceneLoadInfo gameScene))
+{
+    Debug.Log($"Game scene progress: {gameScene.Progress:P0}");
+}
+```
 
 Scene Loaderは非同期ロード、進捗、複数シーン、優先度によるActive Scene切り替えをまとめて扱います。ルートGameObjectが`IInjectable<T...>`や`IInitializeAsync`を実装している場合は、注入と初期化の完了も待機します。
 

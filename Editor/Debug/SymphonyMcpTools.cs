@@ -15,8 +15,7 @@ using Newtonsoft.Json;
 namespace SymphonyFrameWork.Editor.Debugger
 {
     /// <summary>
-    ///     MCPや自動化スクリプトからSymphonyのランタイム状態をJSONで読み取るための暫定ツール群。
-    ///     Architecture Revision Phase 3でAdaptor QueryとInfoへ置き換える。
+    ///     MCPや自動化スクリプトからSymphonyのランタイム状態をJSONで読み取るためのツール群。
     /// </summary>
     public static class SymphonyMcpTools
     {
@@ -85,20 +84,26 @@ namespace SymphonyFrameWork.Editor.Debugger
                     });
                 }
 
-                var scenes = SceneLoader.TrackedScenes
-                    .Select(pair => new
+                IReadOnlyList<SceneLoadInfo> sceneInfos = SceneLoader.GetSceneInfos();
+                var scenes = sceneInfos
+                    .Select(sceneInfo => new
                     {
-                        name = pair.Key,
-                        state = pair.Value.State.ToString(),
-                        priority = pair.Value.Priority
+                        name = sceneInfo.SceneName,
+                        state = sceneInfo.State.ToString(),
+                        priority = sceneInfo.Priority,
+                        progress = sceneInfo.Progress,
+                        isActive = sceneInfo.IsActive
                     })
                     .ToArray();
+                string activeSceneName = sceneInfos
+                    .FirstOrDefault(sceneInfo => sceneInfo.IsActive)
+                    .SceneName;
 
                 return Serialize(new
                 {
                     initialized = true,
                     scenes,
-                    activeSceneName = SceneLoader.ActiveSceneName
+                    activeSceneName
                 });
             }
             catch (Exception exception)

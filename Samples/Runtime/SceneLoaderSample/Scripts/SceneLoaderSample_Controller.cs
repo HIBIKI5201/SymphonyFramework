@@ -1,4 +1,4 @@
-using SymphonyFrameWork.System.SceneLoad;
+﻿using SymphonyFrameWork.System.SceneLoad;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -208,12 +208,20 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
             GUILayout.EndArea();
         }
 
-        /// <summary> 指定シーンの存在有無とロード状態をラベル表示する。 </summary>
+        /// <summary> 指定シーンの公開状態スナップショットをラベル表示する。 </summary>
+        /// <param name="sceneName"> 表示するScene名。 </param>
         private void DrawSceneStatus(string sceneName)
         {
-            bool exists = SceneLoader.IsExist(sceneName);
-            string state = SceneLoader.TryGetState(sceneName, out SceneLoadState loadState) ? loadState.ToString() : "Untracked";
-            GUILayout.Label($"{sceneName} | Exists: {exists} | State: {state}");
+            if (!SceneLoader.TryGetSceneInfo(sceneName, out SceneLoadInfo sceneInfo))
+            {
+                GUILayout.Label($"{sceneName} | Untracked");
+                return;
+            }
+
+            GUILayout.Label(
+                $"{sceneInfo.SceneName} | State: {sceneInfo.State} | "
+                + $"Priority: {sceneInfo.Priority} | Progress: {sceneInfo.Progress:P0} | "
+                + $"Active: {sceneInfo.IsActive}");
         }
 
         /// <summary> 表示上限を維持しながら実況ログを末尾へ追加する。 </summary>

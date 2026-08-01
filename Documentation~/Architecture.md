@@ -92,11 +92,21 @@ classDiagram
         LoadScene()
         UnloadScene()
         SetActiveScene()
+        GetSceneInfos()
+        TryGetSceneInfo()
     }
     class SceneLoadRequest {
         <<readonly struct>>
         SceneName
         Priority
+    }
+    class SceneLoadInfo {
+        <<readonly struct>>
+        SceneName
+        State
+        Priority
+        Progress
+        IsActive
     }
     class IInitializeAsync {
         <<interface>>
@@ -139,6 +149,7 @@ classDiagram
     ServiceInjector ..> ServiceLocator : 登録済み依存を取得
     ServiceInjector --> IInjectable : 注入
     SceneLoader --> SceneLoadRequest : ロード対象と優先度
+    SceneLoader --> SceneLoadInfo : 追跡状態のスナップショット
     SceneLoader ..> ServiceInjector : ルートへ自動注入
     SceneLoader --> IInitializeAsync : 完了を待機
     SaveDataRegistry --> SaveDataContent : 型単位でキャッシュ
@@ -147,6 +158,22 @@ classDiagram
 ```
 
 Facadeは利用側の入口、interfaceと抽象classは利用側が実装する拡張点です。ConfigとManagerの内部実装はFacadeの背後に隠し、利用側へ公開しません。
+
+Scene Loadの内部では、Commandと読み取りを分離しています。
+
+```mermaid
+flowchart LR
+    Loader["SceneLoader"] -->|Command| Service["SceneLoadService"]
+    Service --> Registry["SceneLoadRegistry"]
+    Registry --> Entity["SceneLoadEntity"]
+    Loader -->|Query| Query["SceneLoadQuery"]
+    Query --> Registry
+    Query --> Info["SceneLoadInfo"]
+    Service -->|状態変更event| ViewModel["SceneLoadViewModel"]
+    ViewModel -->|ReactiveProperty| Window["SceneLoaderWindow"]
+```
+
+`SceneLoadQuery`だけがRegistry／Entityを読み取り、利用側には`SceneLoadInfo`、Viewには内部Dtoを返します。`SceneLoaderWindow`はViewModelを購読し、RuntimeのRegistryやEntityを直接参照しません。
 
 ## シーンロード時の連携
 

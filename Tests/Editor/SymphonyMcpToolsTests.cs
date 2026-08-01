@@ -21,7 +21,10 @@ namespace SymphonyFrameWork.Tests
         [Test]
         public void GetSceneLoaderJson_WhenUninitialized_ReturnsValidJson()
         {
-            AssertUninitializedJson(SymphonyMcpTools.GetSceneLoaderJson);
+            JObject result = AssertUninitializedJson(SymphonyMcpTools.GetSceneLoaderJson);
+
+            Assert.That(result["scenes"], Is.Empty);
+            Assert.That(result["activeSceneName"].Type, Is.EqualTo(JTokenType.Null));
         }
 
         /// <summary> Save Data Registryが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
@@ -40,7 +43,7 @@ namespace SymphonyFrameWork.Tests
 
         /// <summary> 呼び出しが例外を投げず、未初期化を示すJSONを返すことを検証する。 </summary>
         /// <param name="getJson"> 検証対象のJSON取得処理。 </param>
-        private static void AssertUninitializedJson(Func<string> getJson)
+        private static JObject AssertUninitializedJson(Func<string> getJson)
         {
             string json = null;
             Assert.DoesNotThrow(() => json = getJson());
@@ -48,6 +51,7 @@ namespace SymphonyFrameWork.Tests
             JObject result = null;
             Assert.DoesNotThrow(() => result = JObject.Parse(json));
             Assert.That(result.Value<bool>("initialized"), Is.False);
+            return result;
         }
     }
 }

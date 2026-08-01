@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.13.0] - 2026-08-02
+### Add
+- 追跡中Sceneの名前、状態、優先度、進捗、Active判定を取得時点の不変値として返す公開`SceneLoadInfo`を追加した。`SceneLoader.GetSceneInfos()`で既知のScene名なしに一覧を取得でき、`TryGetSceneInfo`で1件を安全に照会できる。既存の`IsExist`と`TryGetState`は互換性を維持する。
+- `SceneLoadQuery`の点検索、一覧順、Active判定、スナップショット性と、`SceneLoadViewModel`の初期値、内容同値時の通知抑制、購読解除を検証するEditModeテストを追加した。
+
+### Change
+- Scene Loadの読み取り経路を内部`SceneLoadQuery`へ集約し、公開API向け`SceneLoadInfo`とView向け`SceneLoadDto`を分離した。`SceneLoader`はRegistry／Entityを直接読まず、状態照会をQueryへ転送する。
+- `SceneLoaderWindow`を`SceneLoadViewModel`の読み取り専用ReactiveProperty購読へ変更した。private fieldのリフレクションとEditor更新ごとのDictionary再取得を廃止し、状態変更時だけScene名、状態、優先度、進捗、Active判定を再描画する。Play Mode終了時には購読を解除するため、Domain Reload無効でも前回の表示状態を残さない。
+- `SymphonyMcpTools.GetSceneLoaderJson()`を公開`SceneLoadInfo`から生成するようにし、既存JSONフィールドを維持したまま`progress`と`isActive`を追加した。Scene Loader Sampleと利用者向け文書も新しい状態照会APIへ更新した。
+
 ## [2.12.0] - 2026-08-02
 ### Add
 - シーン名とActive Scene選択用の優先度を一体で扱う公開Value Object `SceneLoadRequest`を追加した。単一／複数ロード用の新しいoverloadへ渡せるため、複数シーンでもシーン名と優先度の対応を崩さず指定できる。

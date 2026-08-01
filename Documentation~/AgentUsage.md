@@ -38,6 +38,7 @@
 - シーン遷移は原則`SceneLoader`を使う。`SceneManager.LoadScene`を直接使うと、優先度管理、依存注入、`IInitializeAsync`が働かない。
 - `LoadSceneMode.Single`は対象をAdditiveでロードした後、他の追跡シーンをアンロードする。現在のシーンを残す場合は`Additive`を使う。
 - 依存注入または`IInitializeAsync`の失敗は`SceneInitializationException`。Build Settings未登録など通常のロード失敗はfalseで返る。
+- 追跡中のScene名が分からない状態で一覧を調べる場合は`SceneLoader.GetSceneInfos()`を使う。既知のScene名だけを調べる場合は`TryGetSceneInfo`を使い、戻る`SceneLoadInfo`を取得時点のスナップショットとして扱う。
 
 ## Save Data System
 
