@@ -1,43 +1,47 @@
 # Symphony Framework
 
-Unity プロジェクトで繰り返し必要になる、シーン遷移、サービス管理、セーブデータ、オーディオ、ポーズ、デバッグ機能をまとめたゲーム開発向けフレームワークです。
+Symphony Frameworkは、Unityゲームで何度も作ることになる「シーン遷移」「サービス共有」「セーブ」「オーディオ」「ポーズ」を、同じ使い方で扱えるようにまとめたフレームワークです。
 
-- 対応 Unity: **Unity 6（6000.0）以降**
+最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
+
+- 対応Unity: **Unity 6（6000.0）以降**
 - 現在のバージョン: **2.11.0**
 - ライセンス: **MIT**
 
-## 主な機能
+## Symphony Frameworkでできること
 
-| 機能 | 概要 |
+| やりたいこと | 使う機能 |
 | --- | --- |
-| Scene Loader | 非同期ロード／アンロード、進捗通知、複数シーン、優先度によるActive Scene管理 |
-| Service Locator | Component、interface、通常のclassの登録・取得・待機・破棄 |
-| Save Data System | 型単位のキャッシュ、ロード、保存、削除、ローダーの差し替え |
-| Audio Manager | AudioMixerGroupごとのAudioSource生成と音量制御 |
-| Pause Manager | ポーズ状態、通知イベント、ポーズ対応の待機・Tween |
-| Debug Tools | 管理ウィンドウ、ランタイムHUD、ロガー、ストップウォッチ |
-| Editor Tools | Scene／Tag／Layer／Audio enum生成、フォルダ・asmdef生成、Inspector属性 |
+| シーンを非同期で読み込み、進捗やActive Sceneを管理したい | Scene Loader |
+| シーンを跨いでサービスやComponentを共有したい | Service Locator |
+| データ型ごとに保存・読み込み・削除したい | Save Data System |
+| AudioMixerGroupごとの再生元と音量をまとめたい | Audio Manager |
+| ゲーム全体を止め、待機やTweenもポーズへ追従させたい | Pause Manager |
+| 実行中の状態、FPS、ログ、処理時間を確認したい | Debug Tools |
+| Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい | Editor Tools |
 
-## 必要なパッケージ
+すべてを導入時に設定する必要はありません。使いたい機能のクイックスタートとサンプルから始められます。
 
-依存パッケージは `package.json` に定義されています。UPMで導入した場合はUnityが自動的に解決します。
+## まず試す
 
-- Addressables `1.21.19`
-- Newtonsoft Json `3.2.1`
+1. Package Managerからパッケージを導入します。
+2. Unityのコンパイル完了を待ちます。必要な設定アセットとenumが自動生成されます。
+3. Package Managerの`Samples`から、試したい機能のサンプルをインポートします。
+4. サンプルシーンを開いてPlayします。
+
+Scene Loader Sampleは対象シーンをBuild Settingsへ追加、Audio Manager SampleはAudioMixerの設定が必要です。各サンプルの説明は[サンプル](#サンプル)にあります。
 
 ## インストール
 
 ### Unity Package Managerから導入する
 
-1. Unityで `Window > Package Manager` を開きます。
-2. `+` から `Install package from git URL...` を選びます。
-3. 次のURLを入力します。
+Unityで`Window > Package Manager`を開き、`+ > Install package from git URL...`へ次のURLを入力します。
 
 ```text
 https://github.com/HIBIKI5201/SymphonyFramework.git
 ```
 
-`Packages/manifest.json` に直接追加する場合は、`dependencies` に次の項目を追加します。
+`Packages/manifest.json`へ直接追加する場合:
 
 ```json
 {
@@ -47,21 +51,28 @@ https://github.com/HIBIKI5201/SymphonyFramework.git
 }
 ```
 
-特定バージョンに固定する場合は、リポジトリに存在するタグまたはコミットをURL末尾の `#` 以降へ指定してください。
+特定バージョンに固定する場合は、リポジトリに存在するタグまたはコミットをURL末尾の`#`以降へ指定してください。
 
 ### Assetsとして導入する
 
-ソースを直接配置する場合は、フレームワークのルートが次のパスになるようにします。
+ソースを直接配置する場合は、フレームワークのルートを次のパスにします。
 
 ```text
 Assets/SymphonyFrameWork
 ```
 
-Editor拡張のパス判定とアセット保護がこの配置を前提としているため、フォルダ名は変更しないでください。
+Editor拡張のパス判定とアセット保護がこの配置を前提とするため、フォルダ名は変更しないでください。
+
+### 依存パッケージ
+
+依存関係は`package.json`に定義され、UPM導入時にUnityが解決します。
+
+- Addressables `1.21.19`
+- Newtonsoft Json `3.2.1`
 
 ## 初期設定
 
-導入後にスクリプトのコンパイルが完了すると、必要な設定アセットと自動生成コードが作成されます。
+導入後のコンパイルで、次の設定アセットとコードが利用プロジェクト側へ生成されます。
 
 ```text
 Assets/
@@ -77,22 +88,20 @@ Assets/
    └─ SymphonyFrameWork.Enum.asmdef
 ```
 
-ランタイムでは `SymphonyOrchestrator` が最初のシーンより前に自動初期化され、管理GameObjectを `DontDestroyOnLoad` で永続化します。Bootstrap用のGameObjectや専用シーンを手動で用意する必要はありません。
+主な設定場所:
 
-主な設定場所は次のとおりです。
-
-- `Window > SymphonyFrameWork > Symphony Administrator`: Scene、Service Locator、Save Data、Pause、enum生成の状態確認と操作
+- `Window > SymphonyFrameWork > Symphony Administrator`: 各機能の状態確認とenum生成
 - `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択
-- `Assets/Resources/SymphonyFrameWork/SceneManagerConfig.asset`: 再生開始時のシーン初期化
-- `Assets/Resources/SymphonyFrameWork/AudioManagerConfig.asset`: AudioMixerとグループ設定
+- `SceneManagerConfig.asset`: 再生開始時のシーン初期化
+- `AudioManagerConfig.asset`: AudioMixerとグループ設定
 
-asmdefを使用しているゲーム側コードから本フレームワークを利用する場合は、`SymphonyFrameWork` を参照に追加してください。自動生成enumを直接使う場合は `SymphonyFrameWork.Enum` も追加します。
+asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してください。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も追加します。
 
-## クイックスタート
+## 機能ごとの使い方
 
 ### Service Locator
 
-インスタンスはコードから登録できるほか、GameObjectへ `SymphonyLocate` を追加してInspectorから登録できます。
+共有したいインスタンスを登録し、必要な場所から型で取得します。
 
 ```csharp
 using SymphonyFrameWork.System.ServiceLocate;
@@ -110,81 +119,49 @@ public sealed class GameSession : MonoBehaviour
         ServiceLocator.UnregisterInstance(this);
     }
 }
-
-public sealed class PlayerController : MonoBehaviour
-{
-    private async void Start()
-    {
-        // 未登録なら、登録されるまで最大10秒待機します。
-        GameSession session = await ServiceLocator.GetInstanceAsync<GameSession>(
-            grace: 10,
-            token: destroyCancellationToken);
-
-        // 必須サービスとして同期取得します。未登録の場合は例外になります。
-        GameSession sameSession = ServiceLocator.GetRequiredInstance<GameSession>();
-    }
-}
 ```
-
-`LocateType` の違い:
-
-- `Locator`: 参照のみを登録し、GameObjectの親子関係を変更しません。
-- `Singleton`: Componentの場合はService Locatorの管理オブジェクト配下へ移動し、通常のシーン遷移から分離します。
-
-interface型で登録する場合は型引数を明示します。
 
 ```csharp
-ServiceLocator.RegisterInstance<IGameSession>(session);
-IGameSession current = ServiceLocator.GetRequiredInstance<IGameSession>();
+GameSession session = ServiceLocator.GetRequiredInstance<GameSession>();
+GameSession awaited = await ServiceLocator.GetInstanceAsync<GameSession>(
+    grace: 10,
+    token: destroyCancellationToken);
 ```
 
-存在が任意なら `TryGetInstance<T>`、未登録時にnullを許容する既存コードでは `GetInstance<T>`、必須依存なら `GetRequiredInstance<T>` を使用します。必須サービスが未登録の場合は `ServiceNotRegisteredException` が発生します。`GetInstanceAsync<T>` は待機期限を超えると `TimeoutException`、呼び出し側からキャンセルすると `OperationCanceledException` を送出します。`TryGetInstanceAsync<T>` が失敗へ変換するのは待機期限超過だけです。
+`Locator`は参照だけを登録し、`Singleton`はComponentを永続管理オブジェクト配下へ移動します。GameObjectへ`SymphonyLocate`を追加してInspectorから登録することもできます。
 
-`IInjectable<T...>` を実装したコンポーネントは、`SceneLoader` がシーンをロードした際にルートオブジェクトへ自動的に注入します（最大4依存まで）。シーンロードを経由しない生成（実行時Instantiateなど）では、`ServiceInjector.Inject(...)` を手動で呼び出してください。
+シーンロード時の自動注入には`IInjectable<T...>`、実行時に生成したオブジェクトへの手動注入には`ServiceInjector.Inject(...)`を使います。
 
 ### Scene Loader
 
-対象シーンをBuild SettingsのScene Listへ追加してから使用してください。
+対象シーンをBuild Settingsへ追加してから、名前を指定してロードします。
 
 ```csharp
 using SymphonyFrameWork.System.SceneLoad;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public sealed class SceneTransition : MonoBehaviour
+public async void OpenGameScene()
 {
-    public async void OpenGameScene()
-    {
-        bool succeeded = await SceneLoader.LoadScene(
-            sceneName: "Game",
-            loadingAction: progress => Debug.Log($"Loading: {progress:P0}"),
-            mode: LoadSceneMode.Additive,
-            priority: 10,
-            token: destroyCancellationToken);
+    bool succeeded = await SceneLoader.LoadScene(
+        sceneName: "Game",
+        loadingAction: progress => Debug.Log($"Loading: {progress:P0}"),
+        mode: LoadSceneMode.Additive,
+        priority: 10,
+        token: destroyCancellationToken);
 
-        if (succeeded)
-        {
-            SceneLoader.SetActiveScene("Game");
-        }
-    }
-
-    public async void CloseGameScene()
+    if (succeeded)
     {
-        await SceneLoader.UnloadScene("Game", token: destroyCancellationToken);
+        SceneLoader.SetActiveScene("Game");
     }
 }
 ```
 
-優先度が現在のActive Scene以上のシーンをロードすると、そのシーンがActiveになります。Active Sceneをアンロードした場合は、ロード済みの中から最も優先度が高いシーンへ切り替わります。
-
-`SceneManagerConfig` では、再生開始時に既存シーンをリセットするか、最初にロードするシーン、リセット対象外のシーンを設定できます。
-
-ロードしたシーンのルートGameObjectが `IInitializeAsync` を実装している場合、`SceneLoader` はその初期化処理がすべて完了してからロード成功を返します。
-依存注入または `IInitializeAsync` が失敗した場合は、シーン名、ルートGameObject名、初期化型を保持する `SceneInitializationException` が発生し、元の例外は `InnerException` から確認できます。シーンがBuild Settingsに存在しないなど、通常起こり得るロード失敗は従来どおり戻り値のfalseで通知されます。
+Scene Loaderは非同期ロード、進捗、複数シーン、優先度によるActive Scene切り替えをまとめて扱います。ルートGameObjectが`IInjectable<T...>`や`IInitializeAsync`を実装している場合は、注入と初期化の完了も待機します。
 
 ### Save Data System
 
-セーブ対象は `SaveDataContent` を継承した、デフォルトコンストラクタを持つ具象classとして定義します。
+保存したいデータを`SaveDataContent`の派生classとして定義します。
 
 ```csharp
 using System;
@@ -198,7 +175,7 @@ public sealed class PlayerData : SaveDataContent
 }
 ```
 
-Registryが保持するインスタンスを編集し、その型を指定して保存します。
+Registryが保持するインスタンスを編集し、型を指定して保存します。
 
 ```csharp
 PlayerData data = SaveDataRegistry.Get<PlayerData>();
@@ -209,22 +186,11 @@ await SaveDataRegistry.LoadAsync<PlayerData>();
 await SaveDataRegistry.DeleteAsync<PlayerData>();
 ```
 
-- `Get<T>()`: 同じ型について単一のキャッシュを返します。初回は永続化データを同期的にロードします。
-- `LoadAsync<T>()`: 永続化データを現在のキャッシュへ読み込みます。
-- `SaveAsync<T>()`: 現在のキャッシュを保存し、`SaveDate` を更新します。
-- `DeleteAsync<T>()`: 永続化データを削除し、キャッシュを初期値へ戻します。
-
-既定では `JsonUtilitySaveDataLoader` がJSONをPlayerPrefsへ保存します。`Project Settings > SymphonyFrameWork > Save System` から `NewtonsoftSaveDataLoader` へ変更できます。ファイルやクラウドなど別の保存先を使う場合は `SaveDataLoader` を継承して各抽象メソッドを実装してください。
-
-非同期I/Oを行う独自ローダーでは、メインスレッドをブロックしないよう、最初に `await SaveDataRegistry.LoadAsync<T>()` を呼んでから `Get<T>()` することを推奨します。
-
-ローダーまたは保存先で存在確認、読み込み、保存、削除が失敗した場合は `SaveDataOperationException` が発生します。`Operation`、`DataType`、`LoaderType` で失敗箇所を判定でき、元のI/O例外や変換例外は `InnerException` に保持されます。キャンセルはこの例外へ変換されず、`OperationCanceledException` のまま伝播します。破損データをデフォルト状態へ戻す既存の復旧動作は変更されません。
+既定ではJSONをPlayerPrefsへ保存します。別のシリアライザ、ファイル、クラウド等を使う場合は`SaveDataLoader`を継承し、Project Settingsから選択します。
 
 ### Audio Manager
 
-1. `AudioManagerConfig.asset` にAudioMixerを割り当てます。
-2. AudioMixerGroup名、公開したVolume Parameter名、Loopの有無を登録します。
-3. グループ名でAudioSourceを取得して再生します。
+`AudioManagerConfig.asset`へAudioMixerとグループを登録すると、グループ名からAudioSourceを取得できます。
 
 ```csharp
 using SymphonyFrameWork.System;
@@ -234,79 +200,88 @@ AudioSource bgm = AudioManager.GetAudioSource("BGM");
 bgm.clip = bgmClip;
 bgm.Play();
 
-// 0.0～1.0の割合で音量を変更します。
 AudioManager.VolumeSliderChanged("BGM", 0.5f);
 ```
 
-AudioSourceはグループごとに遅延生成され、`DontDestroyOnLoad` でシーン遷移後も保持されます。
+AudioSourceはグループごとに必要になった時点で生成され、シーン遷移後も保持されます。音量は0〜1の比率で指定します。
 
 ### Pause Manager
+
+ゲーム全体のポーズ状態を切り替え、通知やポーズ対応の待機処理を利用できます。
 
 ```csharp
 using SymphonyFrameWork.System;
 
-PauseManager.OnPauseChanged += paused =>
+private void OnEnable()
+{
+    PauseManager.OnPauseChanged += HandlePauseChanged;
+}
+
+private void OnDisable()
+{
+    PauseManager.OnPauseChanged -= HandlePauseChanged;
+}
+
+private void HandlePauseChanged(bool paused)
 {
     // UI更新など
-};
+}
 
-PauseManager.Pause = true;
-await PauseManager.PausableWaitForSecondAsync(1.0f, destroyCancellationToken);
-PauseManager.Pause = false;
+public void SetPaused(bool paused)
+{
+    PauseManager.Pause = paused;
+}
+
+private async void RunAfterOneActiveSecond()
+{
+    await PauseManager.PausableWaitForSecondAsync(1.0f, destroyCancellationToken);
+    // ポーズ時間を除く1秒後の処理
+}
 ```
 
-ポーズ中に経過時間を止めるCoroutine／Task、遅延Destroy、遅延Invoke、`PausableTweening` を利用できます。オブジェクト単位の通知には `PauseManager.IPausable` を実装し、`IPausable.RegisterPauseManager(this)`／`IPausable.UnregisterPauseManager(this)` で購読を管理します。
+Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズへ追従させられます。オブジェクト単位の通知には`PauseManager.IPausable`を実装します。
+
+実装時の例外、キャンセル、登録解除などの注意点は[AIエージェント向け利用上の注意](./Documentation~/AgentUsage.md)にまとめています。
 
 ## Editor・デバッグ支援
 
-- `Symphony Administrator`: Service Locator、Scene Loader、Save Data Registry、Pause状態を再生中に確認
-- `SymphonyDebugHUD`: FPS、メモリ使用量と任意テキストをGame Viewへ表示
-- `SymphonyDebugLogger`: 複数行ログの組み立てと種別付き出力（`LogDirect` 経由のログはEditor限定でパッケージ直下の `Cache/Log.txt` へバッファリングして永続化）
+- `Symphony Administrator`: Service Locator、Scene Loader、Save Data、Pauseの状態確認
+- `SymphonyDebugHUD`: FPS、メモリ使用量、任意テキストのGame View表示
+- `SymphonyDebugLogger`: 複数行ログとEditorでの`Cache/Log.txt`出力
 - `SymphonyStopWatch`: ID単位の簡易処理時間計測
-- `AutoEnumGenerator`: Scene List、Tag、Layer、Audio Groupのenumを生成
-- `FolderGenerator`: Markdownで定義したプロジェクトフォルダを生成
+- `AutoEnumGenerator`: Scene、Tag、Layer、Audio Groupのenum生成
+- `FolderGenerator`: Markdownからプロジェクトフォルダを生成
 - `AssemblyGenerator`: asmdefの作成と参照追加
 - Inspector属性: `[ReadOnly]`、`[DisplayText]`、`[TagSelector]`、`[SceneNameSelector]`、`[SubclassSelector]`
-- Utility: `SymphonyAwaitable`、`SymphonyTask`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`
+- Utility: `SymphonyAwaitable`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`
 
 ## サンプル
 
-リポジトリの [`Samples/Runtime`](./Samples/Runtime) に次のサンプルがあります。
+Package Managerから[`Samples/Runtime`](./Samples/Runtime)の各サンプルを利用プロジェクトへインポートできます。
 
-- `ServiceLocatorSample`: 登録、必須サービスの同期取得、非同期取得、Singletonのシーン跨ぎ
-- `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除、Registry状態表示
-- `SceneLoaderSample`: 追加ロード、優先度によるActive Scene切り替え、アンロード、ロード完了待機（使用前にサブシーンをBuild Settingsへ追加してください）
-- `PauseManagerSample`: Pause状態の切り替え、`IPausable`、`PausableWaitForSecondAsync`/`PausableNextFrameAsync`
-- `AudioManagerSample`: `AudioManager.GetAudioSource`/`VolumeSliderChanged`（使用前にAudioMixerと`AudioManagerConfig`を設定してください）
-- `DebuggerSample`: `SymphonyDebugLogger`のログ出力と蓄積、`SymphonyDebugHUD`の表示・追加テキスト・一時表示、`SymphonyStopWatch`の計測
-
-## ディレクトリ構成
-
-```text
-Core/       Runtime／Editor共通の定数と基盤asmdef
-  Internal/ フレームワーク内部専用のヘルパー（internal。InternalsVisibleToでRuntime／Editorへ公開）
-Runtime/    ビルドに含まれるシステム、Component、Utility、属性
-  Obsolete/ 代替APIへ移行済みの[Obsolete]シム（移行用。次のメジャー更新で削除）
-  */Internal/ 各フォルダのinternalな実装（利用側から使う型はInternal/の外にある）
-Editor/     設定画面、管理ウィンドウ、Drawer、Generator
-Samples/    利用例
-```
+- `ServiceLocatorSample`: 登録、同期取得、非同期取得、Singleton
+- `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除
+- `SceneLoaderSample`: 追加ロード、Active Scene切り替え、アンロード
+- `PauseManagerSample`: Pause切り替え、`IPausable`、ポーズ対応待機
+- `AudioManagerSample`: AudioSource取得と音量制御
+- `DebuggerSample`: Logger、HUD、StopWatch
 
 ## ドキュメント
 
-- [Symphony Framework Document](https://lying-foxglove-81a.notion.site/Symphony-Framework-Document-19b7c2c6cc02806b9b97cb8a97c9f11a?pvs=74)
 - [変更履歴](./CHANGELOG.md)
-- [AGENTS.md（AIエージェント向け利用ガイド）](./AGENTS.md)
+- [パッケージ構成・クラス図](./Documentation~/Architecture.md)
+- [AGENTS.md（AIエージェント向けの導線と常時ルール）](./AGENTS.md)
+  - [利用コードを書くときの注意事項](./Documentation~/AgentUsage.md)
+  - [利用コードの検証手順](./Documentation~/AgentVerification.md)
+- [Symphony Framework Document](https://lying-foxglove-81a.notion.site/Symphony-Framework-Document-19b7c2c6cc02806b9b97cb8a97c9f11a?pvs=74)
 
-本体開発（コントリビューター・AIエージェント）向けの作業手順、コーディングガイドライン、設計思想は、開発用ワークスペースリポジトリ [SymphonyWorkspace](https://github.com/HIBIKI5201/SymphonyWorkspace) の `Documentation/` にあります。
+本体開発向けの作業手順、コーディング規約、設計思想は、開発用リポジトリ[SymphonyWorkspace](https://github.com/HIBIKI5201/SymphonyWorkspace)の`Documentation/`にあります。
 
 ## コントリビューター
 
 - [5unad0ke1](https://github.com/5unad0ke1)
 
 ## 参考・謝辞
-
-本フレームワークの設計・実装にあたり、以下のライブラリを参考にしています。
 
 - [Unity SerializeReferenceExtensions（mackysoft）](https://github.com/mackysoft/Unity-SerializeReferenceExtensions)
 - [UniRx（neuecc）](https://github.com/neuecc/UniRx)（今後の機能実装で参考予定）
@@ -316,4 +291,4 @@ Samples/    利用例
 
 Copyright (c) 2026 HIBIKI_5201
 
-このプロジェクトはMIT Licenseで公開されています。詳細は [`LICENSE.txt`](./LICENSE.txt) を参照してください。
+このプロジェクトはMIT Licenseで公開されています。詳細は[LICENSE.txt](./LICENSE.txt)を参照してください。
