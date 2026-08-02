@@ -5,17 +5,17 @@ using System.Threading.Tasks;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 
-using UnityEngine;
+using UnityEditor;
 using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
     /// <summary> Service Locatorの登録状態とデバッグログ設定を表示する管理パネル。 </summary>
     [UxmlElement]
-    public sealed partial class ServiceLocatorWindow : SymphonyVisualElement
+    public sealed partial class ServiceLocatorWindow :
+        SymphonyVisualElement,
+        IDisposable
     {
-        private ListView _locateList;
-
         /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
         public ServiceLocatorWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "ServiceLocatorWindow.uxml",
@@ -23,91 +23,179 @@ namespace SymphonyFrameWork.Editor
             LoadType.AssetDataBase)
         { }
 
+        private IDisposable _registrationSubscription;
+        private List<ServiceLocateDto> _registrationItems = new();
+        private ListView _locateList;
+        private bool _isDisposed;
+
+        /// <summary> ViewModelとEditor callbackの購読を解除する。 </summary>
+        public void Dispose()
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            _isDisposed = true;
+            EditorApplication.playModeStateChanged -= PlayModeStateChangedHandler;
+            EditorApplication.delayCall -= DelayedBindViewModel;
+            UnbindViewModel();
+        }
+
         /// <summary> 登録一覧とService Locatorのログ設定Toggleを構成する。 </summary>
+        /// <param name="container"> UXMLから生成されたルート要素。 </param>
+        /// <returns> 同期的に完了する初期化処理。 </returns>
         protected override ValueTask Initialize_S(VisualElement container)
         {
+            if (_isDisposed)
+            {
+                return default;
+            }
+
             _locateList = container.Q<ListView>("locate-list");
-
             _locateList.makeItem = () => new Label();
-
-            // 項目のバインド（データを UI に反映）
             _locateList.bindItem = (element, index) =>
             {
-                var kvp =
-                    (KeyValuePair<Type, object>)_locateList.itemsSource[index];
-                if (kvp.Value is UnityEngine.Object unityObject && unityObject == null)
-                {
-                    (element as Label).text = $"type : {kvp.Key.Name}\nobj : (Destroyed)";
-                    return;
-                }
-                // Componentの場合のみnameプロパティにアクセス
-                string objName = (kvp.Value is Component component) ? component.name : kvp.Value.GetType().Name;
-                (element as Label).text = $"type : {kvp.Key.Name}\nobj : {objName}";
+                ServiceLocateDto registration = _registrationItems[index];
+                (element as Label).text =
+                    $"type : {registration.ServiceTypeName}\n"
+                    + $"obj : {registration.InstanceName}\n"
+                    + $"locate type : {registration.LocateType}";
             };
-            
-            // データのセット
-            _locateList.itemsSource = GetLocateList();
-
-            // 選択タイプの設定
+            _locateList.itemsSource = _registrationItems;
             _locateList.selectionType = SelectionType.None;
 
-            //ログのコンフィグを初期化
-            SymphonyUserSettingConfig config =
-                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
-
-            var setInstanceLogActive = container.Q<Toggle>("set_instance-log-active");
-            InitializeToggle(setInstanceLogActive,
-                config.IsServiceLocatorSetInstanceLogEnabled,
-                value => config.IsServiceLocatorSetInstanceLogEnabled = value);
-
-            var getInstanceLogActive = container.Q<Toggle>("get_instance-log-active");
-            InitializeToggle(getInstanceLogActive,
-                config.IsServiceLocatorGetInstanceLogEnabled,
-                value => config.IsServiceLocatorGetInstanceLogEnabled = value);
-
-            var destroyInstanceLogActive = container.Q<Toggle>("destroy_instance-log-active");
-            InitializeToggle(destroyInstanceLogActive,
-                config.IsServiceLocatorDestroyInstanceLogEnabled,
-                value => config.IsServiceLocatorDestroyInstanceLogEnabled = value);
-
+            InitializeLogToggles(container);
+            EditorApplication.playModeStateChanged += PlayModeStateChangedHandler;
+            BindViewModel();
             return default;
         }
 
-        /// <summary> 表示用に登録payloadの変更不能なスナップショットをListへ変換する。 </summary>
-        private List<KeyValuePair<Type, object>> GetLocateList()
+        /// <summary> Play Mode遷移に合わせて現在のViewModelへ接続し直す。 </summary>
+        /// <param name="state"> 遷移後のPlay Mode状態。 </param>
+        private void PlayModeStateChangedHandler(PlayModeStateChange state)
         {
-            IReadOnlyDictionary<Type, object> registeredInstances =
-                ServiceLocator.IsInitialized
-                    ? ServiceLocator.RegisteredInstances
-                    : null;
-
-            return registeredInstances != null
-                ? new List<KeyValuePair<Type, object>>(registeredInstances)
-                : new List<KeyValuePair<Type, object>>();
-        }
-
-        /// <summary> 登録一覧を最新のService Locator状態で再構築する。 </summary>
-        public void Update()
-        {
-            if (_locateList != null)
+            switch (state)
             {
-                _locateList.itemsSource = GetLocateList();
-                _locateList.Rebuild();
+                case PlayModeStateChange.EnteredPlayMode:
+                    EditorApplication.delayCall -= DelayedBindViewModel;
+                    EditorApplication.delayCall += DelayedBindViewModel;
+                    break;
+
+                case PlayModeStateChange.ExitingPlayMode:
+                case PlayModeStateChange.EnteredEditMode:
+                    EditorApplication.delayCall -= DelayedBindViewModel;
+                    UnbindViewModel();
+                    ApplyRegistrations(Array.Empty<ServiceLocateDto>());
+                    break;
             }
         }
 
-        /// <summary> UserSettingsへ保存されるログ設定Toggleを初期化する。 </summary>
-        private static void InitializeToggle(Toggle toggle, bool currentValue, Action<bool> valueSetter)
+        /// <summary> Service Locator初期化後のEditor callbackでViewModelへ接続する。 </summary>
+        private void DelayedBindViewModel()
         {
-            if (toggle != null)
+            EditorApplication.delayCall -= DelayedBindViewModel;
+            BindViewModel();
+        }
+
+        /// <summary> 現在のService Locate ViewModelへ接続する。 </summary>
+        private void BindViewModel()
+        {
+            UnbindViewModel();
+
+            if (_isDisposed
+                || !EditorApplication.isPlaying
+                || !ServiceLocator.IsInitialized)
             {
-                toggle.value = currentValue;
-                toggle.RegisterValueChangedCallback(changeEvent =>
-                {
-                    valueSetter(changeEvent.newValue);
-                    PackageInitializer.ApplyServiceLocateLogOptions();
-                });
+                ApplyRegistrations(Array.Empty<ServiceLocateDto>());
+                return;
             }
+
+            ServiceLocateViewModel viewModel = ServiceLocator.CurrentViewModel;
+            if (viewModel == null)
+            {
+                ApplyRegistrations(Array.Empty<ServiceLocateDto>());
+                return;
+            }
+
+            _registrationSubscription =
+                viewModel.Registrations.Subscribe(ApplyRegistrations);
+        }
+
+        /// <summary> 現在のViewModel購読を解除する。 </summary>
+        private void UnbindViewModel()
+        {
+            _registrationSubscription?.Dispose();
+            _registrationSubscription = null;
+        }
+
+        /// <summary> 最新Dto一覧をListViewへ反映する。 </summary>
+        /// <param name="serviceDtos"> ViewModelが公開した変更不能なDto一覧。 </param>
+        private void ApplyRegistrations(
+            IReadOnlyList<ServiceLocateDto> serviceDtos)
+        {
+            _registrationItems = serviceDtos == null
+                ? new List<ServiceLocateDto>()
+                : new List<ServiceLocateDto>(serviceDtos);
+
+            if (_locateList == null)
+            {
+                return;
+            }
+
+            _locateList.itemsSource = _registrationItems;
+            _locateList.Rebuild();
+        }
+
+        /// <summary> User Settingsへ保存されるログ設定Toggleを初期化する。 </summary>
+        /// <param name="container"> Toggleを所有するルート要素。 </param>
+        private static void InitializeLogToggles(VisualElement container)
+        {
+            SymphonyUserSettingConfig config =
+                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+
+            Toggle setInstanceLogActive =
+                container.Q<Toggle>("set_instance-log-active");
+            InitializeToggle(
+                setInstanceLogActive,
+                config.IsServiceLocatorSetInstanceLogEnabled,
+                value => config.IsServiceLocatorSetInstanceLogEnabled = value);
+
+            Toggle getInstanceLogActive =
+                container.Q<Toggle>("get_instance-log-active");
+            InitializeToggle(
+                getInstanceLogActive,
+                config.IsServiceLocatorGetInstanceLogEnabled,
+                value => config.IsServiceLocatorGetInstanceLogEnabled = value);
+
+            Toggle destroyInstanceLogActive =
+                container.Q<Toggle>("destroy_instance-log-active");
+            InitializeToggle(
+                destroyInstanceLogActive,
+                config.IsServiceLocatorDestroyInstanceLogEnabled,
+                value => config.IsServiceLocatorDestroyInstanceLogEnabled = value);
+        }
+
+        /// <summary> User Settingsへ保存されるログ設定Toggleを初期化する。 </summary>
+        /// <param name="toggle"> 初期化するToggle。 </param>
+        /// <param name="currentValue"> 現在の設定値。 </param>
+        /// <param name="valueSetter"> 変更後の値を保存する処理。 </param>
+        private static void InitializeToggle(
+            Toggle toggle,
+            bool currentValue,
+            Action<bool> valueSetter)
+        {
+            if (toggle == null)
+            {
+                return;
+            }
+
+            toggle.value = currentValue;
+            toggle.RegisterValueChangedCallback(changeEvent =>
+            {
+                valueSetter(changeEvent.newValue);
+                PackageInitializer.ApplyServiceLocateLogOptions();
+            });
         }
     }
 }

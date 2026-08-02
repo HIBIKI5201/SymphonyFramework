@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
     /// <summary> 型をキーにService Registration Entityと登録待機callbackを所有する。 </summary>
     internal sealed class ServiceLocateRegistry
     {
+        /// <summary> Queryが読み取る登録Entity一覧。 </summary>
+        internal IReadOnlyDictionary<Type, ServiceRegistrationEntity> Entities =>
+            _entities;
+
         /// <summary> 型とpayloadを重複なしで登録する。 </summary>
         /// <param name="serviceType"> 登録キーとして使用する型。 </param>
         /// <param name="instance"> 登録するpayload。 </param>
@@ -66,22 +69,6 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
             entity.Unregister();
             return true;
-        }
-
-        /// <summary> 登録payload一覧の変更不能なスナップショットを返す。 </summary>
-        /// <returns> 型をキーとするpayload一覧。 </returns>
-        internal IReadOnlyDictionary<Type, object> GetInstancesSnapshot()
-        {
-            var snapshot = new Dictionary<Type, object>(_entities.Count);
-            foreach (KeyValuePair<Type, ServiceRegistrationEntity> pair in _entities)
-            {
-                if (pair.Value.IsRegistered)
-                {
-                    snapshot.Add(pair.Key, pair.Value.Instance);
-                }
-            }
-
-            return new ReadOnlyDictionary<Type, object>(snapshot);
         }
 
         /// <summary> 指定型の登録後に引数なしで実行するcallbackを追加する。 </summary>

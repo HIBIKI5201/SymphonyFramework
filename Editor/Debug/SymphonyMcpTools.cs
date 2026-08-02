@@ -40,13 +40,14 @@ namespace SymphonyFrameWork.Editor.Debugger
                     });
                 }
 
-                IReadOnlyDictionary<Type, object> registeredInstances = ServiceLocator.RegisteredInstances;
-                var registrations = registeredInstances
-                    .Select(pair => new
+                IReadOnlyList<ServiceRegistrationInfo> registrationInfos =
+                    ServiceLocator.GetRegistrationInfos();
+                var registrations = registrationInfos
+                    .Select(registrationInfo => new
                     {
-                        typeName = GetTypeName(pair.Key),
-                        effectiveLocateType = GetLocateType(pair.Value).ToString(),
-                        instanceName = GetInstanceName(pair.Value)
+                        typeName = GetTypeName(registrationInfo.ServiceType),
+                        effectiveLocateType = GetLocateType(registrationInfo).ToString(),
+                        instanceName = GetInstanceName(registrationInfo.Instance)
                     })
                     .ToArray();
 
@@ -197,23 +198,18 @@ namespace SymphonyFrameWork.Editor.Debugger
         }
 
         /// <summary>
-        ///     登録済みインスタンスに実際に適用されている登録方式を判定する。
-        ///     Service Locatorは登録時に渡された<see cref="LocateType"/>を保持しないため、
-        ///     これは記録値ではなく現在の状態から導いた**実効値**である。
+        ///     登録情報から診断上の実効登録方式を判定する。
         ///     Componentでない登録は<see cref="LocateType.Singleton"/>を指定しても
         ///     階層移動が起きず両者の挙動が同じになるため、常にLocatorとして扱う。
         /// </summary>
-        /// <param name="instance"> 登録済みインスタンス。 </param>
-        /// <returns> ComponentがLocator所有階層にある場合はSingleton、それ以外はLocator。 </returns>
-        private static LocateType GetLocateType(object instance)
+        /// <param name="registrationInfo"> 登録方式とpayloadを持つ公開スナップショット。 </param>
+        /// <returns> Componentでは記録された登録方式、それ以外はLocator。 </returns>
+        private static LocateType GetLocateType(
+            ServiceRegistrationInfo registrationInfo)
         {
-            Transform singletonRoot = ServiceLocator.SingletonRoot;
-            if (instance is Component component
-                && component != null
-                && singletonRoot != null
-                && component.transform.parent == singletonRoot)
+            if (registrationInfo.Instance is Component)
             {
-                return LocateType.Singleton;
+                return registrationInfo.LocateType;
             }
 
             return LocateType.Locator;
