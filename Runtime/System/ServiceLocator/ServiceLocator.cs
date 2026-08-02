@@ -225,11 +225,12 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 SymphonyDebugLogger.AddText($"ServiceLocator\n{typeof(T).Name}の取得がリクエストされました。");
             }
 #endif
-            return _registry.TryGet(
+            T instance = _registry.TryGet(
                 typeof(T),
                 out ServiceRegistrationEntity entity)
                 ? (T)entity.Instance
                 : default;
+            return IsAvailableInstance(instance) ? instance : default;
         }
 
         /// <summary>
@@ -247,7 +248,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 out ServiceRegistrationEntity entity)
                 ? (T)entity.Instance
                 : default;
-            if (instance == null)
+            if (!IsAvailableInstance(instance))
             {
                 throw new ServiceNotRegisteredException(typeof(T));
             }
@@ -269,7 +270,13 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 out ServiceRegistrationEntity entity)
                 ? (T)entity.Instance
                 : default;
-            return result != null;
+            if (IsAvailableInstance(result))
+            {
+                return true;
+            }
+
+            result = default;
+            return false;
         }
 
         /// <summary>
@@ -443,6 +450,20 @@ namespace SymphonyFrameWork.System.ServiceLocate
             {
                 throw new SymphonyNotInitializedException(typeof(ServiceLocator));
             }
+        }
+
+        /// <summary> 通常のnullと破棄済みUnity Objectを取得不能として判定する。 </summary>
+        /// <param name="instance"> 判定する登録payload。 </param>
+        /// <returns> 現在利用可能な参照の場合はtrue。 </returns>
+        private static bool IsAvailableInstance(object instance)
+        {
+            if (instance == null)
+            {
+                return false;
+            }
+
+            return instance is not UnityEngine.Object unityObject
+                || unityObject != null;
         }
 
         /// <summary> 登録入力を検証し、所有権方針を指定してServiceへ転送する。 </summary>

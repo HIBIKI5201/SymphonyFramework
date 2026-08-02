@@ -96,6 +96,29 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
         }
 
+        /// <summary> 指定した引数なし登録待機callbackを解除する。 </summary>
+        /// <typeparam name="T"> 登録を待っていたサービス型。 </typeparam>
+        /// <param name="action"> 解除するcallback。 </param>
+        internal void UnregisterWaitingAction<T>(Action action)
+        {
+            Type serviceType = typeof(T);
+            if (!_waitingActions.TryGetValue(
+                serviceType,
+                out Action existing))
+            {
+                return;
+            }
+
+            Action remaining = existing - action;
+            if (remaining == null)
+            {
+                _waitingActions.Remove(serviceType);
+                return;
+            }
+
+            _waitingActions[serviceType] = remaining;
+        }
+
         /// <summary> 指定型のpayloadを受け取る登録待機callbackを追加する。 </summary>
         /// <typeparam name="T"> 登録を待つサービス型。 </typeparam>
         /// <param name="action"> 登録payloadを受け取るcallback。 </param>
@@ -147,8 +170,14 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 serviceType,
                 out Delegate waitingActionWithInstance);
 
-            waitingAction?.Invoke();
-            waitingActionWithInstance?.DynamicInvoke(instance);
+            try
+            {
+                waitingAction?.Invoke();
+            }
+            finally
+            {
+                waitingActionWithInstance?.DynamicInvoke(instance);
+            }
         }
 
         /// <summary> 登録Entityと未実行の待機callbackをすべて消去する。 </summary>

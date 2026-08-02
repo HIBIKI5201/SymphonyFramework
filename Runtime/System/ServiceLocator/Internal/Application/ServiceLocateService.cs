@@ -105,8 +105,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 return false;
             }
 
-            _host.DisposeInstance(entity.Instance);
             _host.Detach(entity.Instance);
+            _host.DisposeInstance(entity.Instance);
             _registry.TryRemove(serviceType, out _);
             OnStateChanged?.Invoke();
             return true;
@@ -117,6 +117,12 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="action"> 登録後に実行するcallback。 </param>
         internal void RegisterWaitingAction<T>(Action action) =>
             _registry.RegisterWaitingAction<T>(action);
+
+        /// <summary> 引数なしの登録待機callbackを解除する。 </summary>
+        /// <typeparam name="T"> 登録を待っていたサービス型。 </typeparam>
+        /// <param name="action"> 解除するcallback。 </param>
+        internal void UnregisterWaitingAction<T>(Action action) =>
+            _registry.UnregisterWaitingAction<T>(action);
 
         /// <summary> payload付き登録待機callbackを追加する。 </summary>
         /// <typeparam name="T"> 登録を待つサービス型。 </typeparam>

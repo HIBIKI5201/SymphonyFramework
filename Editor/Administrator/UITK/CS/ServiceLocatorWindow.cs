@@ -33,7 +33,8 @@ namespace SymphonyFrameWork.Editor
             // 項目のバインド（データを UI に反映）
             _locateList.bindItem = (element, index) =>
             {
-                var kvp = GetLocateList()[index];
+                var kvp =
+                    (KeyValuePair<Type, object>)_locateList.itemsSource[index];
                 if (kvp.Value is UnityEngine.Object unityObject && unityObject == null)
                 {
                     (element as Label).text = $"type : {kvp.Key.Name}\nobj : (Destroyed)";

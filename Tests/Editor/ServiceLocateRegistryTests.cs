@@ -137,6 +137,41 @@ namespace SymphonyFrameWork.Tests
             Assert.That(invocationCount, Is.Zero);
         }
 
+        /// <summary> 引数なし待機callbackを解除すると登録後も実行しない。 </summary>
+        [Test]
+        public void UnregisterWaitingAction_RegisteredParameterlessAction_DoesNotInvoke()
+        {
+            var registry = new ServiceLocateRegistry();
+            int invocationCount = 0;
+            Action action = () => invocationCount++;
+            registry.RegisterWaitingAction<ServiceA>(action);
+
+            registry.UnregisterWaitingAction<ServiceA>(action);
+            registry.InvokeWaitingActions(typeof(ServiceA), new ServiceA());
+
+            Assert.That(invocationCount, Is.Zero);
+        }
+
+        /// <summary> 引数なしcallbackが失敗してもpayload付きcallbackを1回実行する。 </summary>
+        [Test]
+        public void InvokeWaitingActions_ParameterlessActionThrows_InvokesPayloadActionOnce()
+        {
+            var registry = new ServiceLocateRegistry();
+            int payloadInvocationCount = 0;
+            registry.RegisterWaitingAction<ServiceA>(
+                () => throw new InvalidOperationException("Callback failed."));
+            registry.RegisterWaitingAction<ServiceA>(
+                _ => payloadInvocationCount++);
+
+            Assert.Throws<InvalidOperationException>(() =>
+                registry.InvokeWaitingActions(
+                    typeof(ServiceA),
+                    new ServiceA()));
+            registry.InvokeWaitingActions(typeof(ServiceA), new ServiceA());
+
+            Assert.That(payloadInvocationCount, Is.EqualTo(1));
+        }
+
         /// <summary> ClearはEntityと未実行callbackをすべて無効化する。 </summary>
         [Test]
         public void Clear_RegistrationsAndCallbacks_RemovesAll()

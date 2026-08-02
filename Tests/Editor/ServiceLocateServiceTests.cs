@@ -32,6 +32,27 @@ namespace SymphonyFrameWork.Tests
             Assert.That(host.DisposeCount, Is.Zero);
         }
 
+        /// <summary> nullのpayloadは登録せずRegistryとHostを変更しない。 </summary>
+        [Test]
+        public void Register_NullInstance_ReturnsFalseWithoutStateChanges()
+        {
+            var registry = new ServiceLocateRegistry();
+            var host = new FakeServiceHost();
+            var service = new ServiceLocateService(registry, host);
+
+            bool registered = service.Register(
+                typeof(ServiceA),
+                null,
+                LocateType.Singleton,
+                disposeOnFailure: true);
+
+            Assert.That(registered, Is.False);
+            Assert.That(registry.Contains(typeof(ServiceA)), Is.False);
+            Assert.That(host.AttachCount, Is.Zero);
+            Assert.That(host.DetachCount, Is.Zero);
+            Assert.That(host.DisposeCount, Is.Zero);
+        }
+
         /// <summary> 自動破棄登録の重複失敗では新しい候補を1回解放する。 </summary>
         [Test]
         public void Register_DuplicateWithAutoDispose_DisposesCandidateOnce()
@@ -139,6 +160,35 @@ namespace SymphonyFrameWork.Tests
             Assert.That(host.DisposeCount, Is.EqualTo(1));
             Assert.That(host.DetachCount, Is.EqualTo(1));
             Assert.That(registry.Contains(typeof(ServiceA)), Is.False);
+            Assert.That(
+                host.OperationLog,
+                Is.EqualTo("Attach,Detach,Dispose,"));
+        }
+
+        /// <summary> Service経由で2種類の待機callbackを個別に解除できる。 </summary>
+        [Test]
+        public void WaitingActions_UnregisteredThroughService_DoNotInvoke()
+        {
+            var registry = new ServiceLocateRegistry();
+            var host = new FakeServiceHost();
+            var service = new ServiceLocateService(registry, host);
+            int parameterlessCount = 0;
+            int payloadCount = 0;
+            Action parameterlessAction = () => parameterlessCount++;
+            Action<ServiceA> payloadAction = _ => payloadCount++;
+            service.RegisterWaitingAction<ServiceA>(parameterlessAction);
+            service.RegisterWaitingAction(payloadAction);
+
+            service.UnregisterWaitingAction<ServiceA>(parameterlessAction);
+            service.UnregisterWaitingAction(payloadAction);
+            service.Register(
+                typeof(ServiceA),
+                new ServiceA(),
+                LocateType.Locator,
+                disposeOnFailure: false);
+
+            Assert.That(parameterlessCount, Is.Zero);
+            Assert.That(payloadCount, Is.Zero);
         }
 
         /// <summary> 成功した状態変更だけを論理更新1回につき1回通知する。 </summary>
@@ -210,11 +260,13 @@ namespace SymphonyFrameWork.Tests
             internal int DisposeCount { get; private set; }
             internal object LastDisposedInstance { get; private set; }
             internal bool ThrowOnAttach { get; set; }
+            internal string OperationLog { get; private set; } = string.Empty;
 
             /// <inheritdoc />
             public void Attach(object instance)
             {
                 AttachCount++;
+                OperationLog += "Attach,";
                 if (ThrowOnAttach)
                 {
                     throw new InvalidOperationException("Attach failed.");
@@ -222,12 +274,17 @@ namespace SymphonyFrameWork.Tests
             }
 
             /// <inheritdoc />
-            public void Detach(object instance) => DetachCount++;
+            public void Detach(object instance)
+            {
+                DetachCount++;
+                OperationLog += "Detach,";
+            }
 
             /// <inheritdoc />
             public bool DisposeInstance(object instance)
             {
                 DisposeCount++;
+                OperationLog += "Dispose,";
                 LastDisposedInstance = instance;
                 return true;
             }

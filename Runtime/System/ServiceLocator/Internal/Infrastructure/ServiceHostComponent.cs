@@ -28,6 +28,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <inheritdoc />
         void IServiceHost.Attach(object instance)
         {
+            if (_isQuitting || _isDisposed)
+            {
+                return;
+            }
+
             if (instance is Component component && component != null)
             {
                 component.transform.SetParent(transform);
@@ -53,16 +58,21 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             bool disposed = false;
 
-            if (instance is IDisposable disposable)
+            try
             {
-                disposable.Dispose();
-                disposed = true;
+                if (instance is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                    disposed = true;
+                }
             }
-
-            if (instance is Component component && component != null)
+            finally
             {
-                Destroy(component.gameObject);
-                disposed = true;
+                if (instance is Component component && component != null)
+                {
+                    Destroy(component.gameObject);
+                    disposed = true;
+                }
             }
 
             return disposed;
