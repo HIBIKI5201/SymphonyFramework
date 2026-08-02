@@ -27,6 +27,7 @@
 ## Service Locator
 
 - 登録と解除を同じライフサイクルの対として書く。基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。
+- 通常の`RegisterInstance`がfalseの場合も候補の所有権は呼び出し側に残る。型重複時に候補を自動解放してよい場合だけ`RegisterInstanceWithAutoDispose`へ所有権を移す。
 - `LocateType.Locator`は参照だけを登録する。`LocateType.Singleton`はComponentを管理オブジェクト配下へ移動するため、シーンローカルなオブジェクトには使わない。
 - 任意依存は`TryGetInstance<T>`、nullを許容する既存コードは`GetInstance<T>`、必須依存は`GetRequiredInstance<T>`を使う。
 - `GetInstanceAsync<T>`の期限超過は`TimeoutException`、呼び出し側キャンセルは`OperationCanceledException`。`TryGetInstanceAsync<T>`がfalseへ変換するのは期限超過だけ。

@@ -49,13 +49,11 @@ namespace SymphonyFrameWork.Orchestrator
                 PauseManager.Initialize();
                 RecordInitializedSubsystem(PauseManager.ResetRuntimeState);
 
-                GameObject serviceLocatorObject =
-                    systemObjectFactory.CreateObject(nameof(ServiceLocateData));
-                ServiceLocator.Initialize(serviceLocatorObject);
-#if UNITY_EDITOR
-                ServiceLocateData.InitializeQuittingState();
-#endif
-                RecordInitializedSubsystem(ResetServiceLocator);
+                ServiceHostComponent serviceHost =
+                    systemObjectFactory.CreateComponent<ServiceHostComponent>(
+                        nameof(ServiceHostComponent));
+                ServiceLocator.Initialize(serviceHost);
+                RecordInitializedSubsystem(ServiceLocator.ResetRuntimeState);
 
                 SceneLoader.Initialize();
                 RecordInitializedSubsystem(SceneLoader.ResetRuntimeState);
@@ -152,21 +150,6 @@ namespace SymphonyFrameWork.Orchestrator
                 Debug.LogException(new AggregateException(
                     $"[{nameof(SymphonyOrchestrator)}] サブシステムの終了処理で例外が発生しました。",
                     exceptions));
-            }
-        }
-
-        /// <summary> Service Locatorの状態とEditor終了検知購読を解放する。 </summary>
-        private static void ResetServiceLocator()
-        {
-            try
-            {
-                ServiceLocator.ResetRuntimeState();
-            }
-            finally
-            {
-#if UNITY_EDITOR
-                ServiceLocateData.ResetQuittingState();
-#endif
             }
         }
 
