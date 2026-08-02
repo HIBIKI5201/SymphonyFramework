@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.14.0] - 2026-08-02
+### Add
+- 重複登録で失敗した候補の所有権を呼び出し側へ残す通常の`RegisterInstance`に加え、候補を明示的に自動解放する`RegisterInstanceWithAutoDispose`のgeneric／`Type` overloadを追加した。
+- `ServiceRegistrationEntity`の状態遷移、`ServiceLocateRegistry`の登録・検索・スナップショット・待機callback、`ServiceLocateService`の所有権と処理順を検証するEditModeテストを20件追加した。
+
+### Change
+- Service LocatorのRuntime内部をDomainの`ServiceRegistrationEntity`、Applicationの`ServiceLocateRegistry`／`ServiceLocateService`、Infrastructureの`ServiceHostComponent`へ分割した。登録状態、Command、Unity Componentの所有・解放をそれぞれ独立した責務にした。
+- 通常の`RegisterInstance`が型重複で失敗したとき、渡された候補を暗黙に`Dispose`／破棄しないよう変更した。既存登録は維持され、失敗した候補の所有権は呼び出し側に残る。
+- AdministratorのService Locator表示からprivate fieldへのリフレクションを除去し、変更不能な登録スナップショットを参照するようにした。Service Locator SampleはSingleton重複候補を自動破棄する新APIの利用例へ更新した。
+
 ## [2.13.0] - 2026-08-02
 ### Add
 - 追跡中Sceneの名前、状態、優先度、進捗、Active判定を取得時点の不変値として返す公開`SceneLoadInfo`を追加した。`SceneLoader.GetSceneInfos()`で既知のScene名なしに一覧を取得でき、`TryGetSceneInfo`で1件を安全に照会できる。既存の`IsExist`と`TryGetState`は互換性を維持する。

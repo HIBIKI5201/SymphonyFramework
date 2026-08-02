@@ -76,6 +76,7 @@ classDiagram
     class ServiceLocator {
         <<static>>
         RegisterInstance()
+        RegisterInstanceWithAutoDispose()
         UnregisterInstance()
         GetRequiredInstance()
     }
@@ -174,6 +175,21 @@ flowchart LR
 ```
 
 `SceneLoadQuery`だけがRegistry／Entityを読み取り、利用側には`SceneLoadInfo`、Viewには内部Dtoを返します。`SceneLoaderWindow`はViewModelを購読し、RuntimeのRegistryやEntityを直接参照しません。
+
+Service LocateのRuntime内部では、登録単位、処理順、Unity所有処理を分離しています。
+
+```mermaid
+flowchart LR
+    Locator["ServiceLocator"] --> Service["ServiceLocateService"]
+    Service --> Registry["ServiceLocateRegistry"]
+    Registry --> Entity["ServiceRegistrationEntity"]
+    Service --> HostContract["IServiceHost"]
+    Host["ServiceHostComponent"] --> HostContract
+    Host --> Unity["Component / Transform / Destroy"]
+    Orchestrator["SymphonyOrchestrator"] -->|生成・注入| Host
+```
+
+通常登録が型重複で失敗しても候補payloadを解放しません。`RegisterInstanceWithAutoDispose`を選んだ場合だけ、失敗した候補を`ServiceHostComponent`が`IDisposable`またはComponentとして解放します。RegistryとEntityはUnity APIを参照しません。
 
 ## シーンロード時の連携
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using SymphonyFrameWork.System.ServiceLocate;
@@ -15,8 +14,6 @@ namespace SymphonyFrameWork.Editor
     [UxmlElement]
     public sealed partial class ServiceLocatorWindow : SymphonyVisualElement
     {
-        private Dictionary<Type, object> _locateDict;
-        private FieldInfo _lazyDataField;
         private ListView _locateList;
 
         /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
@@ -29,10 +26,6 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 登録一覧とService Locatorのログ設定Toggleを構成する。 </summary>
         protected override ValueTask Initialize_S(VisualElement container)
         {
-            _lazyDataField = typeof(ServiceLocator).GetField("_data", BindingFlags.Static | BindingFlags.NonPublic);
-
-            UpdateLocateDict();
-
             _locateList = container.Q<ListView>("locate-list");
 
             _locateList.makeItem = () => new Label();
@@ -40,7 +33,8 @@ namespace SymphonyFrameWork.Editor
             // 項目のバインド（データを UI に反映）
             _locateList.bindItem = (element, index) =>
             {
-                var kvp = GetLocateList()[index];
+                var kvp =
+                    (KeyValuePair<Type, object>)_locateList.itemsSource[index];
                 if (kvp.Value is UnityEngine.Object unityObject && unityObject == null)
                 {
                     (element as Label).text = $"type : {kvp.Key.Name}\nobj : (Destroyed)";
@@ -79,44 +73,16 @@ namespace SymphonyFrameWork.Editor
             return default;
         }
 
-        /// <summary> ServiceLocator内部の最新登録辞書参照を取得する。 </summary>
-        private void UpdateLocateDict()
-        {
-            if (_lazyDataField == null)
-                return;
-
-            // static フィールドなので null を渡す
-            var serviceLocatorDataInstance = _lazyDataField.GetValue(null);
-
-            if (serviceLocatorDataInstance == null)
-            {
-                _locateDict = new Dictionary<Type, object>();
-                return;
-            }
-
-            var singletonObjectsField =
-                serviceLocatorDataInstance.GetType()
-                .GetField("_locateObjects",
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-
-            if (singletonObjectsField != null)
-            {
-                _locateDict =
-                    (Dictionary<Type, object>)
-                    singletonObjectsField.GetValue(serviceLocatorDataInstance);
-            }
-            else
-            {
-                _locateDict = new Dictionary<Type, object>();
-            }
-        }
-
-        /// <summary> 表示時の列挙変更を避けるため、登録辞書のスナップショットを生成する。 </summary>
+        /// <summary> 表示用に登録payloadの変更不能なスナップショットをListへ変換する。 </summary>
         private List<KeyValuePair<Type, object>> GetLocateList()
         {
-            UpdateLocateDict();
-            return _locateDict != null
-                ? new List<KeyValuePair<Type, object>>(_locateDict)
+            IReadOnlyDictionary<Type, object> registeredInstances =
+                ServiceLocator.IsInitialized
+                    ? ServiceLocator.RegisteredInstances
+                    : null;
+
+            return registeredInstances != null
+                ? new List<KeyValuePair<Type, object>>(registeredInstances)
                 : new List<KeyValuePair<Type, object>>();
         }
 
