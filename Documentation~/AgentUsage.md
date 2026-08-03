@@ -8,7 +8,7 @@
 
 - `Packages/manifest.json`またはパッケージの`package.json`で導入バージョンを確認し、移行情報が必要なら[CHANGELOG.md](../CHANGELOG.md)を読む。
 - asmdefを使う利用側コードは`SymphonyFrameWork`を参照する。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も参照する。
-- `ServiceLocator`、`SceneLoader`、`SaveDataRegistry`、`AudioManager`、`PauseManager`はstatic Facadeである。`new`や`.Instance`は使わない。
+- `ServiceLocator`、`SceneLoader`、`SaveStore`、`AudioManager`、`PauseManager`はstatic Facadeである。`new`や`.Instance`は使わない。
 - `SymphonyOrchestrator`が最初のシーンより前に自動初期化する。Bootstrap用GameObjectや専用シーンを作らない。
 - `SceneManagerConfig`、`AudioManagerConfig`、`SaveSystemConfig`は`internal`である。型として参照せず、InspectorまたはProject Settingsから設定する。
 - `SymphonyFrameWork.Editor`はEditor専用である。Runtime asmdefやPlayerビルド対象コードから参照しない。
@@ -20,7 +20,7 @@
 | --- | --- | --- | --- |
 | Service Locator | `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](../README.md#service-locator) |
 | Scene Loader | `SymphonyFrameWork.System.SceneLoad` | `SceneLoader` | [Scene Loader](../README.md#scene-loader) |
-| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveDataRegistry`, `SaveDataContent`, `SaveDataLoader` | [Save Data System](../README.md#save-data-system) |
+| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoader` | [Save Data System](../README.md#save-data-system) |
 | Audio Manager | `SymphonyFrameWork.System` | `AudioManager` | [Audio Manager](../README.md#audio-manager) |
 | Pause Manager | `SymphonyFrameWork.System` | `PauseManager` | [Pause Manager](../README.md#pause-manager) |
 
@@ -45,11 +45,12 @@
 ## Save Data System
 
 - 保存型は`SaveDataContent`を継承した、デフォルトコンストラクタを持つ具象classにする。
-- `SaveDataRegistry.Get<T>()`が返す型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
+- **旧`SaveDataRegistry`は非推奨である。** `SaveStore`へ置換する。動作は同じで、3.0.0で削除する。
+- `SaveStore.Get<T>()`が返す型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
 - 非同期I/Oを行う独自ローダーでは、先に`LoadAsync<T>()`をawaitしてから`Get<T>()`する。
 - 保存先の失敗は`SaveDataOperationException`の`Operation`、`DataType`、`LoaderType`、`InnerException`で診断する。キャンセルは`OperationCanceledException`のまま伝播する。
 - 独自`SaveDataLoader`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
-- キャッシュ済みの一覧は`SaveDataRegistry.GetEntries()`で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。
+- キャッシュ済みの一覧は`SaveStore.GetEntries()`で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。
 - **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは`SaveDataRegistryEntryInfo.IsLoaded`で判定する。
 
 ## Audio Manager

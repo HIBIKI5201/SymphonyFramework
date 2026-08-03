@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.19.0] - 2026-08-04
+### Add
+- `SaveStore` を追加した。`SaveDataRegistry` と同じ公開APIを持ち、シグネチャ・例外の種類と条件・シリアライズ形式のいずれも変わらない。
+  - Round I1／I2 で内部を分割した結果、**この型はレジストリではなくストアになっていた**。実際のレジストリは `SaveDataEntryRegistry`（内部）であり、名前が役割と食い違っていたため改名した。
+
+### Deprecated
+- `SaveDataRegistry` を非推奨にした。**移行方法**: `SaveDataRegistry` を `SaveStore` へ置換する。それ以外の変更は不要。**3.0.0 で削除する。**
+  - 旧型は `SaveStore` へ転送するだけのFacadeとして残るため、既存コードはコンパイルが通り、`CS0618` の警告で移行先が案内される。
+  - `SaveDataRegistryEntryInfo` と Editor の `SaveDataRegistryWindow` は本バージョンでは改名しない。`GetEntries()` の戻り値要素型を変えると `IReadOnlyList<T>` が変換できず破壊的になるため、3.0.0 でまとめて扱う。
+
 ## [2.18.1] - 2026-08-04
 ### Change
 - Audioの内部構造をレイヤーごとに分割した。Scene Load、Service Locate、Save Data、Pauseと同じ形へ揃えている。**公開APIのシグネチャ、例外の種類と条件はいずれも変更していない。**

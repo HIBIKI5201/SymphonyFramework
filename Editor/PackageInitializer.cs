@@ -26,7 +26,7 @@ namespace SymphonyFrameWork.Editor
             ApplyServiceLocateLogOptions();
             SymphonyVisualElement.EditorAssetLoader =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>;
-            SaveDataRegistry.ConfigureLoaderResolver(ResolveSaveDataLoader);
+            SaveStore.ConfigureLoaderResolver(ResolveSaveDataLoader);
             hasAssetChanges |= EnumInitialize();
 
             return hasAssetChanges;

@@ -44,7 +44,7 @@ namespace SymphonyFrameWork.Orchestrator
                 UnityEngine.Object.DontDestroyOnLoad(systemGameObject);
 
                 SaveSystem.Initialize(ResolveSaveDataLoader);
-                RecordInitializedSubsystem(SaveDataRegistry.ResetRuntimeState);
+                RecordInitializedSubsystem(SaveStore.ResetRuntimeState);
 
                 PauseManager.Initialize();
                 RecordInitializedSubsystem(PauseManager.ResetRuntimeState);

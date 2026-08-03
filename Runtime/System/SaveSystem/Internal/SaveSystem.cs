@@ -11,7 +11,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <param name="loaderResolver"> 現在のConfigに対応するローダーを返す処理。 </param>
         internal static void Initialize(Func<SaveDataLoader> loaderResolver)
         {
-            SaveDataRegistry.ConfigureLoaderResolver(loaderResolver);
+            SaveStore.ConfigureLoaderResolver(loaderResolver);
         }
     }
 }

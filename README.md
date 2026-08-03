@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.18.1**
+- 現在のバージョン: **2.19.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -220,12 +220,12 @@ public sealed class PlayerData : SaveDataContent
 Registryが保持するインスタンスを編集し、型を指定して保存します。
 
 ```csharp
-PlayerData data = SaveDataRegistry.Get<PlayerData>();
+PlayerData data = SaveStore.Get<PlayerData>();
 data.Gold += 100;
 
-await SaveDataRegistry.SaveAsync<PlayerData>();
-await SaveDataRegistry.LoadAsync<PlayerData>();
-await SaveDataRegistry.DeleteAsync<PlayerData>();
+await SaveStore.SaveAsync<PlayerData>();
+await SaveStore.LoadAsync<PlayerData>();
+await SaveStore.DeleteAsync<PlayerData>();
 ```
 
 既定ではJSONをPlayerPrefsへ保存します。別のシリアライザ、ファイル、クラウド等を使う場合は`SaveDataLoader`を継承し、Project Settingsから選択します。

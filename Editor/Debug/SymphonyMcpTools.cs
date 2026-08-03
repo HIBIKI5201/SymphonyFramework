@@ -123,7 +123,7 @@ namespace SymphonyFrameWork.Editor.Debugger
 
             try
             {
-                initialized = EditorApplication.isPlaying && SaveDataRegistry.IsInitialized;
+                initialized = EditorApplication.isPlaying && SaveStore.IsInitialized;
                 if (!initialized)
                 {
                     return Serialize(new
@@ -133,7 +133,7 @@ namespace SymphonyFrameWork.Editor.Debugger
                     });
                 }
 
-                var entries = SaveDataRegistry.GetEntries()
+                var entries = SaveStore.GetEntries()
                     .Select(entry => new
                     {
                         typeName = GetTypeName(entry.DataType),
