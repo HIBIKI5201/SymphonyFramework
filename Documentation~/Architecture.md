@@ -79,6 +79,14 @@ classDiagram
         RegisterInstanceWithAutoDispose()
         UnregisterInstance()
         GetRequiredInstance()
+        GetRegistrationInfos()
+        TryGetRegistrationInfo()
+    }
+    class ServiceRegistrationInfo {
+        <<readonly struct>>
+        ServiceType
+        Instance
+        LocateType
     }
     class ServiceInjector {
         <<static>>
@@ -148,6 +156,7 @@ classDiagram
     }
 
     ServiceInjector ..> ServiceLocator : 登録済み依存を取得
+    ServiceLocator --> ServiceRegistrationInfo : 登録状態のスナップショット
     ServiceInjector --> IInjectable : 注入
     SceneLoader --> SceneLoadRequest : ロード対象と優先度
     SceneLoader --> SceneLoadInfo : 追跡状態のスナップショット
@@ -176,18 +185,26 @@ flowchart LR
 
 `SceneLoadQuery`だけがRegistry／Entityを読み取り、利用側には`SceneLoadInfo`、Viewには内部Dtoを返します。`SceneLoaderWindow`はViewModelを購読し、RuntimeのRegistryやEntityを直接参照しません。
 
-Service LocateのRuntime内部では、登録単位、処理順、Unity所有処理を分離しています。
+Service LocateのRuntime内部では、登録Command、読み取り変換、表示状態、Unity所有処理を分離しています。
 
 ```mermaid
 flowchart LR
-    Locator["ServiceLocator"] --> Service["ServiceLocateService"]
+    Locator["ServiceLocator"] -->|Command| Service["ServiceLocateService"]
     Service --> Registry["ServiceLocateRegistry"]
     Registry --> Entity["ServiceRegistrationEntity"]
+    Locator -->|Query| Query["ServiceLocateQuery"]
+    Query --> Registry
+    Query --> Info["ServiceRegistrationInfo"]
+    Query --> Dto["ServiceLocateDto"]
+    Service -->|状態変更event| ViewModel["ServiceLocateViewModel"]
+    ViewModel -->|ReactiveProperty| Window["ServiceLocatorWindow"]
     Service --> HostContract["IServiceHost"]
     Host["ServiceHostComponent"] --> HostContract
     Host --> Unity["Component / Transform / Destroy"]
     Orchestrator["SymphonyOrchestrator"] -->|生成・注入| Host
 ```
+
+`ServiceLocateQuery`だけがRegistry／Entityを読み取り、利用側には`ServiceRegistrationInfo`、Viewには内部Dtoを返します。`ServiceLocatorWindow`はViewModelを購読し、登録状態が変わったときだけ再描画します。
 
 通常登録が型重複で失敗しても候補payloadを解放しません。`RegisterInstanceWithAutoDispose`を選んだ場合だけ、失敗した候補を`ServiceHostComponent`が`IDisposable`またはComponentとして解放します。RegistryとEntityはUnity APIを参照しません。
 

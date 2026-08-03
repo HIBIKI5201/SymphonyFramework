@@ -47,15 +47,13 @@ namespace SymphonyFrameWork.Utility
         {
             if (!_autoUnregister) { return; }
             if (_target == null) { return; }
+            if (!ServiceLocator.IsInitialized) { return; }
 
-            if (_target != null)
-            {
-                // 別の所有者が解除済みの場合に重複解除しない。
-                bool isExist = ServiceLocator.IsExistInstance(_targetType);
-                if (!isExist) { return; }
+            // 別の所有者が解除済みの場合に重複解除しない。
+            bool isExist = ServiceLocator.IsExistInstance(_targetType);
+            if (!isExist) { return; }
 
-                ServiceLocator.UnregisterInstance(_targetType);
-            }
+            ServiceLocator.UnregisterInstance(_targetType);
         }
 
         /// <summary> インスペクターで指定された対象の実行時型を同期する。 </summary>

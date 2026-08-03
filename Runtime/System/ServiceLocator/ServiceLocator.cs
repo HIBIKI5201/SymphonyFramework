@@ -91,10 +91,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             EnsureInitialized();
             if (instance == null) { return false; }
-            if (!_registry.TryGet(
+            if (!_query.TryGetInstance(
                 typeof(T),
-                out ServiceRegistrationEntity entity)
-                || !ReferenceEquals(instance, entity.Instance))
+                out object registeredInstance)
+                || !ReferenceEquals(instance, registeredInstance))
             {
                 return false;
             }
@@ -167,7 +167,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             EnsureInitialized();
             Type type = typeof(T);
 
-            if (!_registry.Contains(type))
+            if (!_query.Contains(type))
             {
                 Debug.LogWarning($"{type.Name}は登録されていません");
                 return false;
@@ -207,7 +207,33 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return _registry.Contains(type);
+            return _query.Contains(type);
+        }
+
+        /// <summary> 登録中Serviceの不変なスナップショット一覧を取得する。 </summary>
+        /// <returns> 型の完全名を基準にordinal昇順で並んだ登録情報一覧。 </returns>
+        public static IReadOnlyList<ServiceRegistrationInfo> GetRegistrationInfos()
+        {
+            EnsureInitialized();
+            return _query.GetInfos();
+        }
+
+        /// <summary> 指定した型の登録情報を不変なスナップショットとして取得する。 </summary>
+        /// <param name="serviceType"> 検索する登録キー。 </param>
+        /// <param name="registrationInfo"> 取得できた登録情報。 </param>
+        /// <returns> 登録情報を取得できた場合はtrue。 </returns>
+        public static bool TryGetRegistrationInfo(
+            Type serviceType,
+            out ServiceRegistrationInfo registrationInfo)
+        {
+            EnsureInitialized();
+
+            if (serviceType == null)
+            {
+                throw new ArgumentNullException(nameof(serviceType));
+            }
+
+            return _query.TryGetInfo(serviceType, out registrationInfo);
         }
 
         /// <summary>
@@ -225,10 +251,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 SymphonyDebugLogger.AddText($"ServiceLocator\n{typeof(T).Name}の取得がリクエストされました。");
             }
 #endif
-            T instance = _registry.TryGet(
+            T instance = _query.TryGetInstance(
                 typeof(T),
-                out ServiceRegistrationEntity entity)
-                ? (T)entity.Instance
+                out object registeredInstance)
+                ? (T)registeredInstance
                 : default;
             return IsAvailableInstance(instance) ? instance : default;
         }
@@ -243,10 +269,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
         {
             EnsureInitialized();
 
-            T instance = _registry.TryGet(
+            T instance = _query.TryGetInstance(
                 typeof(T),
-                out ServiceRegistrationEntity entity)
-                ? (T)entity.Instance
+                out object registeredInstance)
+                ? (T)registeredInstance
                 : default;
             if (!IsAvailableInstance(instance))
             {
@@ -265,10 +291,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static bool TryGetInstance<T>(out T result) where T : class
         {
             EnsureInitialized();
-            result = _registry.TryGet(
+            result = _query.TryGetInstance(
                 typeof(T),
-                out ServiceRegistrationEntity entity)
-                ? (T)entity.Instance
+                out object registeredInstance)
+                ? (T)registeredInstance
                 : default;
             if (IsAvailableInstance(result))
             {
@@ -367,7 +393,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
 
             // 既にインスタンスが登録済みであれば、即座にアクションを実行します。
-            if (_registry.Contains(typeof(T)))
+            if (_query.Contains(typeof(T)))
             {
                 action?.Invoke();
                 return;
@@ -393,11 +419,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
             }
 
             // 既にインスタンスが登録済みであれば、そのインスタンスを引数にして即座にアクションを実行します。
-            if (_registry.TryGet(
+            if (_query.TryGetInstance(
                 typeof(T),
-                out ServiceRegistrationEntity entity))
+                out object registeredInstance))
             {
-                T instance = (T)entity.Instance;
+                T instance = (T)registeredInstance;
                 action?.Invoke(instance);
                 return;
             }
@@ -409,14 +435,12 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal static bool IsInitialized =>
             _service != null
             && _registry != null
+            && _query != null
+            && _viewModel != null
             && _host != null;
 
-        /// <summary> 型をキーとする登録済みインスタンス一覧。 </summary>
-        internal static IReadOnlyDictionary<Type, object> RegisteredInstances =>
-            _registry?.GetInstancesSnapshot();
-
-        /// <summary> Singleton登録されたComponentの所有先Transform。 </summary>
-        internal static Transform SingletonRoot => _host != null ? _host.Root : null;
+        /// <summary> Compositionが生成した表示用ViewModel。 </summary>
+        internal static ServiceLocateViewModel CurrentViewModel => _viewModel;
 
         /// <summary> Compositionが生成した所有先を使用してLocator状態を初期化する。 </summary>
         /// <param name="host"> Singleton Componentの所有と解放を行うHost。 </param>
@@ -431,13 +455,18 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _host = host;
             _registry = new ServiceLocateRegistry();
             _service = new ServiceLocateService(_registry, host);
+            _query = new ServiceLocateQuery(_registry);
+            _viewModel = new ServiceLocateViewModel(_query, _service);
         }
 
         /// <summary> 登録状態を消去してLocatorを未初期化状態へ戻す。 </summary>
         internal static void ResetRuntimeState()
         {
+            _viewModel?.Dispose();
             _registry?.Clear();
             _host?.DisposeHost();
+            _viewModel = null;
+            _query = null;
             _service = null;
             _registry = null;
             _host = null;
@@ -525,5 +554,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         private static ServiceHostComponent _host;
         private static ServiceLocateRegistry _registry;
         private static ServiceLocateService _service;
+        private static ServiceLocateQuery _query;
+        private static ServiceLocateViewModel _viewModel;
     }
 }

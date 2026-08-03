@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -78,30 +77,6 @@ namespace SymphonyFrameWork.Tests
             Assert.That(removedEntity, Is.SameAs(entity));
             Assert.That(entity.IsRegistered, Is.False);
             Assert.That(registry.Contains(typeof(ServiceA)), Is.False);
-        }
-
-        /// <summary> payload一覧は取得後のRegistry変更から独立したスナップショットになる。 </summary>
-        [Test]
-        public void GetInstancesSnapshot_AfterRegistryChange_RemainsUnchanged()
-        {
-            var registry = new ServiceLocateRegistry();
-            registry.TryRegister(
-                typeof(ServiceA),
-                new ServiceA(),
-                LocateType.Locator,
-                out _);
-            IReadOnlyDictionary<Type, object> snapshot =
-                registry.GetInstancesSnapshot();
-
-            registry.TryRegister(
-                typeof(ServiceB),
-                new ServiceB(),
-                LocateType.Locator,
-                out _);
-
-            Assert.That(snapshot.Count, Is.EqualTo(1));
-            Assert.That(snapshot.ContainsKey(typeof(ServiceA)), Is.True);
-            Assert.That(snapshot.ContainsKey(typeof(ServiceB)), Is.False);
         }
 
         /// <summary> 2種類の登録待機callbackを登録成功時に1回だけ実行する。 </summary>
@@ -189,7 +164,7 @@ namespace SymphonyFrameWork.Tests
             registry.InvokeWaitingActions(typeof(ServiceB), new ServiceB());
 
             Assert.That(entity.IsRegistered, Is.False);
-            Assert.That(registry.GetInstancesSnapshot(), Is.Empty);
+            Assert.That(registry.Entities, Is.Empty);
             Assert.That(invocationCount, Is.Zero);
         }
 

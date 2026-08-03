@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.14.0**
+- 現在のバージョン: **2.15.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -136,6 +136,17 @@ GameSession awaited = await ServiceLocator.GetInstanceAsync<GameSession>(
 ServiceLocator.RegisterInstanceWithAutoDispose(
     newSession,
     LocateType.Singleton);
+```
+
+登録中の型、payload、登録方式を一覧で診断する場合は、取得時点の不変な`ServiceRegistrationInfo`を使います。既知の型だけを調べる場合は`TryGetRegistrationInfo`を使えます。
+
+```csharp
+foreach (ServiceRegistrationInfo registration
+         in ServiceLocator.GetRegistrationInfos())
+{
+    Debug.Log(
+        $"{registration.ServiceType.Name}: {registration.LocateType}");
+}
 ```
 
 シーンロード時の自動注入には`IInjectable<T...>`、実行時に生成したオブジェクトへの手動注入には`ServiceInjector.Inject(...)`を使います。

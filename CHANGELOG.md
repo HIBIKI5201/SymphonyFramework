@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.15.0] - 2026-08-03
+### Add
+- 登録キー、payload、登録方式を取得時点の不変値として返す公開`ServiceRegistrationInfo`を追加した。`ServiceLocator.GetRegistrationInfos()`で登録一覧を型名順に取得でき、`TryGetRegistrationInfo`で既知の型を点検索できる。
+- `ServiceLocateQuery`の点検索、一覧順、表示名、スナップショット性と、`ServiceLocateViewModel`の初期値、状態変更通知、通知抑制、購読解除を検証するEditModeテストを追加した。
+
+### Change
+- Service Locatorの読み取り経路を内部`ServiceLocateQuery`へ集約し、公開API向け`ServiceRegistrationInfo`とView向け`ServiceLocateDto`を分離した。`ServiceLocator`はRegistry／Entityを直接読まず、状態照会をQueryへ転送する。
+- `ServiceLocatorWindow`を`ServiceLocateViewModel`の読み取り専用ReactiveProperty購読へ変更した。Editor更新ごとの登録一覧pollingを廃止し、状態変更時だけ型名、payload名、登録方式を再描画する。Play Mode終了時に購読を解除するため、Domain Reload無効でも前回の表示状態を残さない。
+- `SymphonyMcpTools.GetServiceLocatorJson()`を公開`ServiceRegistrationInfo`から生成するようにした。既存JSONフィールドを維持し、Componentでは記録された登録方式、Component以外では従来どおりLocatorを実効値として返す。
+
+### Fix
+- Play Mode終了時にOrchestratorがService Locatorを解放した後で`SymphonyLocate.OnDisable()`が登録状態を照会し、`SymphonyNotInitializedException`を記録する問題を修正した。未初期化時は解除処理をスキップし、Domain Reload無効で2回往復して終了時エラーと登録残留がないことを確認した。
+
 ## [2.14.0] - 2026-08-02
 ### Add
 - 重複登録で失敗した候補の所有権を呼び出し側へ残す通常の`RegisterInstance`に加え、候補を明示的に自動解放する`RegisterInstanceWithAutoDispose`のgeneric／`Type` overloadを追加した。

@@ -25,7 +25,6 @@ namespace SymphonyFrameWork.Editor
         private void Update()
         {
             _pauseWindow?.Update();
-            _serviceLocatorWindow?.Update();
             _saveDataRegistryWindow?.Update();
         }
 
@@ -54,8 +53,10 @@ namespace SymphonyFrameWork.Editor
         private void OnDisable()
         {
             EditorApplication.update -= Update;
+            _serviceLocatorWindow?.Dispose();
             _sceneLoaderWindow?.Dispose();
             _saveDataRegistryWindow?.Dispose();
+            _serviceLocatorWindow = null;
             _sceneLoaderWindow = null;
             _saveDataRegistryWindow = null;
         }

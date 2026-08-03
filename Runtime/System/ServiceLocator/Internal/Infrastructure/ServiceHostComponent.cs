@@ -7,9 +7,6 @@ namespace SymphonyFrameWork.System.ServiceLocate
     /// <summary> Singleton Componentの所有とUnity Objectの解放を行う境界。 </summary>
     internal sealed class ServiceHostComponent : MonoBehaviour, IServiceHost
     {
-        /// <summary> MCP診断が既存の実効登録方式を判定するための所有先。 </summary>
-        internal Transform Root => this != null ? transform : null;
-
         /// <summary> 所有GameObjectを冪等に破棄する。 </summary>
         internal void DisposeHost()
         {
@@ -21,7 +18,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             _isDisposed = true;
             if (this != null && gameObject != null)
             {
-                Destroy(gameObject);
+                DestroyGameObject(gameObject);
             }
         }
 
@@ -70,7 +67,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             {
                 if (instance is Component component && component != null)
                 {
-                    Destroy(component.gameObject);
+                    DestroyGameObject(component.gameObject);
                     disposed = true;
                 }
             }
@@ -80,6 +77,19 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
         /// <summary> Unity終了中のTransform操作を防ぐ。 </summary>
         private void OnApplicationQuit() => _isQuitting = true;
+
+        /// <summary> 実行環境に適したUnity Object破棄処理を使用する。 </summary>
+        /// <param name="target"> 破棄するGameObject。 </param>
+        private static void DestroyGameObject(GameObject target)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(target);
+                return;
+            }
+
+            DestroyImmediate(target);
+        }
 
         private bool _isDisposed;
         private bool _isQuitting;
