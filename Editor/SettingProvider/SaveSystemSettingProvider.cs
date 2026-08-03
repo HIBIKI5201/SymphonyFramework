@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
 
             EditorGUILayout.LabelField("Project Save Loader", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "SaveStore が使用するローダーを設定します。独自ローダーは SaveDataLoader を継承してください。共通の検証やデータ復旧処理は基底クラスが担当します。",
+                "SaveStore が使用するローダーを設定します。独自ローダーは SaveDataLoaderStrategy を継承してください。共通の検証やデータ復旧処理は基底クラスが担当します。",
                 MessageType.Info);
 
             SerializedObject serializedObject = new(config);

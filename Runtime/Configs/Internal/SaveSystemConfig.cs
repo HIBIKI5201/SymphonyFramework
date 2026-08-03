@@ -10,9 +10,9 @@ namespace SymphonyFrameWork
     internal sealed class SaveSystemConfig : ScriptableObject
     {
         /// <summary> 現在選択されているセーブデータローダー。 </summary>
-        public SaveDataLoader Loader => _loader;
+        public SaveDataLoaderStrategy Loader => _loader;
 
         [SerializeReference, SubclassSelector, Tooltip("セーブデータの変換と永続化を担当するローダー。")]
-        private SaveDataLoader _loader = new JsonUtilitySaveDataLoader();
+        private SaveDataLoaderStrategy _loader = new JsonUtilitySaveDataLoaderStrategy();
     }
 }

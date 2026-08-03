@@ -7,11 +7,11 @@ namespace SymphonyFrameWork.System.SaveSystem
     ///     Json.NET を使ってデータをセーブする互換ラッパーです。
     /// </summary>
     /// <typeparam name="T"> 保存するセーブデータの型。 </typeparam>
-    [Obsolete("Use NewtonsoftSaveDataLoader instead.")]
+    [Obsolete("Use NewtonsoftSaveDataLoaderStrategy instead.")]
     public sealed class NugetDataLoader<T> : ISaveDataLoader<T>
         where T : SaveDataContent, new()
     {
-        private static readonly NewtonsoftSaveDataLoader s_Loader = new();
+        private static readonly NewtonsoftSaveDataLoaderStrategy s_Loader = new();
 
         /// <summary> Newtonsoft.Json互換ローダーでデータを保存する。 </summary>
         public ValueTask<T> Save(T data)

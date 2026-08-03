@@ -92,11 +92,11 @@ namespace SymphonyFrameWork.Orchestrator
         ///     現在のConfigからセーブデータローダーを解決する。
         /// </summary>
         /// <returns> Configで選択されたローダー。未設定の場合は既定のローダー。 </returns>
-        private static SaveDataLoader ResolveSaveDataLoader()
+        private static SaveDataLoaderStrategy ResolveSaveDataLoader()
         {
             SaveSystemConfig config =
                 SymphonyConfigLocator.GetConfig<SaveSystemConfig>();
-            return config?.Loader ?? new JsonUtilitySaveDataLoader();
+            return config?.Loader ?? new JsonUtilitySaveDataLoaderStrategy();
         }
 
         /// <summary> 初期化済みサブシステムの終了処理を構築順に記録する。 </summary>

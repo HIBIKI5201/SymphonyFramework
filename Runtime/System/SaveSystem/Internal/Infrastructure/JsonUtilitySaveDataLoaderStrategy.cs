@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
@@ -7,7 +8,10 @@ namespace SymphonyFrameWork.System.SaveSystem
     ///     JsonUtility と PlayerPrefs を利用するセーブデータローダーです。
     /// </summary>
     [Serializable]
-    internal sealed class JsonUtilitySaveDataLoader : PlayerPrefsSaveDataLoader
+    // 旧型名はSaveSystemConfigの[SerializeReference]へ焼かれている。
+    // これが無いと既存のConfigアセットでローダーが解決できなくなる。
+    [MovedFrom(true, null, null, "JsonUtilitySaveDataLoader")]
+    internal sealed class JsonUtilitySaveDataLoaderStrategy : PlayerPrefsSaveDataLoaderStrategy
     {
         /// <summary> Unity JsonUtilityでセーブデータをJSONへ変換する。 </summary>
         protected override string SerializeToJson(Type dataType, SaveDataContent data)
