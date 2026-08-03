@@ -208,6 +208,26 @@ flowchart LR
 
 通常登録が型重複で失敗しても候補payloadを解放しません。`RegisterInstanceWithAutoDispose`を選んだ場合だけ、失敗した候補を`ServiceHostComponent`が`IDisposable`またはComponentとして解放します。RegistryとEntityはUnity APIを参照しません。
 
+Save DataのRuntime内部も同じ形で、処理順、読み取り変換、表示状態を分離しています。
+
+```mermaid
+flowchart LR
+    Facade["SaveDataRegistry"] -->|Command| Service["SaveDataService"]
+    Service --> Registry["SaveDataEntryRegistry"]
+    Registry --> Entity["SaveDataEntryEntity"]
+    Facade -->|Query| Query["SaveDataQuery"]
+    Query --> Registry
+    Query --> Info["SaveDataRegistryEntryInfo"]
+    Query --> Dto["SaveDataDto"]
+    Service --> Loader["SaveDataLoader"]
+    Service -->|状態変更event| ViewModel["SaveDataViewModel"]
+    ViewModel -->|ReactiveProperty| Window["SaveDataRegistryWindow"]
+```
+
+`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataRegistryEntryInfo`、Viewには内部Dtoを返します。`SaveDataRegistryWindow`はViewModelを購読し、状態が変わったときだけ再描画します。
+
+永続化データが存在するかどうか（`Exists`）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。
+
 ## シーンロード時の連携
 
 ```mermaid

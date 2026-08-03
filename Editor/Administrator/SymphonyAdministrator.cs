@@ -25,7 +25,6 @@ namespace SymphonyFrameWork.Editor
         private void Update()
         {
             _pauseWindow?.Update();
-            _saveDataRegistryWindow?.Update();
         }
 
         /// <summary> UXMLから管理パネルを構築し、Editor更新処理を購読する。 </summary>

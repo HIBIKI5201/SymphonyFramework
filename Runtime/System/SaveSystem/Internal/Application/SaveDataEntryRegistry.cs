@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -30,7 +30,7 @@ namespace SymphonyFrameWork.System.SaveSystem
                     dataType,
                     (SaveDataContent)Activator.CreateInstance(dataType));
                 _entries[dataType] = created;
-                _entrySnapshotDirty = true;
+                _version++;
                 return created;
             }
         }
@@ -55,9 +55,15 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             lock (_lock)
             {
-                if (_entries.TryGetValue(dataType, out SaveDataEntryEntity entry))
+                if (!_entries.TryGetValue(dataType, out SaveDataEntryEntity entry)
+                    || entry.IsLoaded)
                 {
-                    entry.MarkLoadedIfCurrent(content);
+                    return;
+                }
+
+                if (entry.MarkLoadedIfCurrent(content))
+                {
+                    _version++;
                 }
             }
         }
@@ -68,10 +74,14 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             lock (_lock)
             {
-                if (_entries.TryGetValue(dataType, out SaveDataEntryEntity entry))
+                if (!_entries.TryGetValue(dataType, out SaveDataEntryEntity entry)
+                    || !entry.IsLoaded)
                 {
-                    entry.MarkUnloaded();
+                    return;
                 }
+
+                entry.MarkUnloaded();
+                _version++;
             }
         }
 
@@ -119,47 +129,31 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary>
-        ///     現在保持している全エントリの読み取り専用スナップショットを取得する。
-        ///     内容が変化していない間は同じインスタンスを返す。
+        ///     現在保持している全エントリの複製を取得する。
+        ///     ロード処理がバックグラウンドで進行しうるため、列挙用の複製をロック内で作る。
         /// </summary>
-        /// <returns> エントリのスナップショット。 </returns>
-        public IReadOnlyList<SaveDataRegistryEntryInfo> GetEntrySnapshot()
+        /// <returns> 保持順のEntity一覧。 </returns>
+        public IReadOnlyList<SaveDataEntryEntity> GetEntities()
         {
             lock (_lock)
             {
-                if (!_entrySnapshotDirty)
-                {
-                    return _entrySnapshot;
-                }
-
-                List<SaveDataRegistryEntryInfo> entries = new(_entries.Count);
-                foreach (SaveDataEntryEntity entry in _entries.Values)
-                {
-                    entries.Add(new SaveDataRegistryEntryInfo(entry.DataType, entry.Content));
-                }
-
-                _entrySnapshot = entries.AsReadOnly();
-                _entrySnapshotDirty = false;
-                return _entrySnapshot;
+                return new List<SaveDataEntryEntity>(_entries.Values);
             }
         }
 
-        /// <summary> 読み込み済みとして記録されている型のスナップショットを取得する。 </summary>
-        /// <returns> 読み込み済みの型一覧。 </returns>
-        public IReadOnlyCollection<Type> GetLoadedTypes()
+        /// <summary>
+        ///     保持している状態が実際に変化するたびに増える版番号。
+        ///     エントリの新規作成、読み込み済み状態の変化、全消去で増える。
+        ///     キャッシュ内容の書き換えでは増えないため、保存日時の変化は検出できない。
+        /// </summary>
+        public int Version
         {
-            lock (_lock)
+            get
             {
-                List<Type> loaded = new();
-                foreach (SaveDataEntryEntity entry in _entries.Values)
+                lock (_lock)
                 {
-                    if (entry.IsLoaded)
-                    {
-                        loaded.Add(entry.DataType);
-                    }
+                    return _version;
                 }
-
-                return loaded.AsReadOnly();
             }
         }
 
@@ -168,6 +162,11 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             lock (_lock)
             {
+                if (_entries.Count <= 0 && _loadingTasks.Count <= 0)
+                {
+                    return;
+                }
+
                 foreach (SaveDataEntryEntity entry in _entries.Values)
                 {
                     entry.ReleaseContent();
@@ -175,7 +174,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
                 _entries.Clear();
                 _loadingTasks.Clear();
-                _entrySnapshotDirty = true;
+                _version++;
             }
         }
 
@@ -183,9 +182,6 @@ namespace SymphonyFrameWork.System.SaveSystem
         private readonly Dictionary<Type, SaveDataEntryEntity> _entries = new();
         private readonly Dictionary<Type, Task> _loadingTasks = new();
 
-        private IReadOnlyList<SaveDataRegistryEntryInfo> _entrySnapshot =
-            Array.Empty<SaveDataRegistryEntryInfo>();
-
-        private bool _entrySnapshotDirty = true;
+        private int _version;
     }
 }

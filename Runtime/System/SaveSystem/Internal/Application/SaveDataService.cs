@@ -1,9 +1,10 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 using SymphonyFrameWork.Exceptions;
+
+using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
@@ -26,6 +27,12 @@ namespace SymphonyFrameWork.System.SaveSystem
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _loaderResolver = loaderResolver ?? throw new ArgumentNullException(nameof(loaderResolver));
         }
+
+        /// <summary>
+        ///     表示内容が変わりうる操作が完了したときに発行される。
+        ///     発行はその操作を完了させたスレッドで行う。
+        /// </summary>
+        internal event Action OnStateChanged;
 
         /// <summary> 指定型の永続化データが存在するか確認する。 </summary>
         /// <param name="dataType"> 対象のセーブデータ型。 </param>
@@ -108,6 +115,7 @@ namespace SymphonyFrameWork.System.SaveSystem
                 () => loader.SaveAsync(dataType, content, token));
 
             _registry.MarkLoaded(dataType, content);
+            RaiseStateChanged();
         }
 
         /// <summary> 指定型の永続化データを削除し、キャッシュを既定値へ戻す。 </summary>
@@ -135,15 +143,8 @@ namespace SymphonyFrameWork.System.SaveSystem
                 () => loader.LoadAsync(dataType, content, token));
 
             _registry.MarkLoaded(dataType, content);
+            RaiseStateChanged();
         }
-
-        /// <summary> 現在保持している全エントリのスナップショットを取得する。 </summary>
-        /// <returns> エントリのスナップショット。 </returns>
-        public IReadOnlyList<SaveDataRegistryEntryInfo> GetEntries() => _registry.GetEntrySnapshot();
-
-        /// <summary> 読み込み済みとして記録されている型のスナップショットを取得する。 </summary>
-        /// <returns> 読み込み済みの型一覧。 </returns>
-        public IReadOnlyCollection<Type> GetLoadedTypes() => _registry.GetLoadedTypes();
 
         /// <summary>
         ///     現在選択されているローダーを取得する。未解決の場合はresolverから取得する。
@@ -155,7 +156,14 @@ namespace SymphonyFrameWork.System.SaveSystem
         public void Reset()
         {
             _cachedLoader = null;
+
+            int version = _registry.Version;
             _registry.Clear();
+
+            if (_registry.Version != version)
+            {
+                RaiseStateChanged();
+            }
         }
 
         /// <summary> 重複ロード管理の後始末を保証しながら対象データを読み込む。 </summary>
@@ -181,6 +189,24 @@ namespace SymphonyFrameWork.System.SaveSystem
             finally
             {
                 _registry.RemoveLoadingTask(dataType);
+                RaiseStateChanged();
+            }
+        }
+
+        /// <summary>
+        ///     状態変更を通知する。購読側の例外はここで止める。
+        ///     購読しているのは表示専用のViewModelであり、その失敗を保存や読み込みの失敗にしない。
+        ///     メインスレッド外で完了した場合のReactivePropertyの例外もここで捕捉する。
+        /// </summary>
+        private void RaiseStateChanged()
+        {
+            try
+            {
+                OnStateChanged?.Invoke();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
             }
         }
 

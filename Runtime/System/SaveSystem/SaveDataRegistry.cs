@@ -98,20 +98,29 @@ namespace SymphonyFrameWork.System.SaveSystem
             return EnsureInitialized().DeleteAsync(dataType, token);
         }
 
-        /// <summary> 現在キャッシュされている全エントリの読み取り専用スナップショットを取得する。 </summary>
+        /// <summary>
+        ///     現在キャッシュされている全エントリの読み取り専用スナップショットを取得する。
+        ///     並び順は<see cref="Type.FullName" />のordinal昇順。
+        /// </summary>
         public static IReadOnlyList<SaveDataRegistryEntryInfo> GetEntries()
         {
-            return _service?.GetEntries() ?? Array.Empty<SaveDataRegistryEntryInfo>();
+            return _query?.GetInfos() ?? Array.Empty<SaveDataRegistryEntryInfo>();
         }
 
         /// <summary> Save Data Registryが初期化済みかどうか。 </summary>
         internal static bool IsInitialized => _service != null;
 
-        /// <summary> 読み込み済みとして記録されているセーブデータ型のスナップショット。 </summary>
-        internal static IReadOnlyCollection<Type> LoadedTypes
-        {
-            get => _service?.GetLoadedTypes() ?? Array.Empty<Type>();
-        }
+        /// <summary>
+        ///     状態表示に接続するためのViewModel。未初期化の場合はnull。
+        ///     <see cref="OnCurrentViewModelChanged" />で差し替えを検知して接続し直す。
+        /// </summary>
+        internal static SaveDataViewModel CurrentViewModel => _viewModel;
+
+        /// <summary>
+        ///     <see cref="CurrentViewModel" />が差し替わったときに発行される。
+        ///     Save DataはEdit Modeでも初期化されるため、Play Mode遷移だけでは接続し直せない。
+        /// </summary>
+        internal static event Action OnCurrentViewModelChanged;
 
         /// <summary>
         ///     ローダーとキャッシュを破棄し、次回アクセス時にConfigから再解決する。
@@ -134,8 +143,15 @@ namespace SymphonyFrameWork.System.SaveSystem
                 throw new ArgumentNullException(nameof(loaderResolver));
             }
 
+            _viewModel?.Dispose();
             _service?.Reset();
-            _service = new SaveDataService(new SaveDataEntryRegistry(), loaderResolver);
+
+            var registry = new SaveDataEntryRegistry();
+            _service = new SaveDataService(registry, loaderResolver);
+            _query = new SaveDataQuery(registry);
+            _viewModel = new SaveDataViewModel(_query, _service);
+
+            OnCurrentViewModelChanged?.Invoke();
         }
 
         /// <summary> Domain Reloadの有無に依存しないようランタイム状態を初期化する。 </summary>
@@ -182,5 +198,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         private static SaveDataService _service;
+        private static SaveDataQuery _query;
+        private static SaveDataViewModel _viewModel;
     }
 }

@@ -133,13 +133,12 @@ namespace SymphonyFrameWork.Editor.Debugger
                     });
                 }
 
-                HashSet<Type> loadedTypes = new(SaveDataRegistry.LoadedTypes);
                 var entries = SaveDataRegistry.GetEntries()
                     .Select(entry => new
                     {
                         typeName = GetTypeName(entry.DataType),
                         saveDate = entry.SaveDate,
-                        loaded = loadedTypes.Contains(entry.DataType)
+                        loaded = entry.IsLoaded
                     })
                     .ToArray();
 

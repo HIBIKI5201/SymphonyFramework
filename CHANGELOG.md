@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.17.0] - 2026-08-03
+### Add
+- `SaveDataRegistryEntryInfo.IsLoaded` を追加した。**`Data != null` は「読み込み済み」を意味しない。** キャッシュは初回アクセス時に既定値で作られるため、キャッシュの有無と永続化データを読み込んだかどうかは別の状態である。Editorの管理パネルは従来この2つを取り違えて表示していた。
+- Save Dataの読み取り経路をAdaptorへ集約した。Scene LoadおよびService Locateと同じ形へ揃えている。
+  - `SaveDataQuery`（Adaptor）— Entityを公開Infoと表示用Dtoへ変換する。永続化データの存在確認（`Exists`）は、状態が変わるたびに全型分のI/Oが走るため含めない
+  - `SaveDataDto`（Adaptor）— 表示に必要な値だけを持つ不変値
+  - `SaveDataViewModel`（View）— Serviceの状態変更を`ReactiveProperty`へ変換する
+- `SaveDataQuery` と `SaveDataViewModel` のEditModeテストを14件追加した。並び順、キャッシュの有無と読み込み済み状態の区別、通知の発生条件、購読解除を検証する。
+  - **保存では版番号が変わらない**ことを回帰テストにした。保存で変わるのは保存日時だけでレジストリの構造は変わらないため、版番号ベースの変更検出では取りこぼす。
+
+### Change
+- `SaveDataRegistry.GetEntries()` の並び順を型の完全名のordinal昇順として定めた。従来は`Dictionary`の列挙順であり、順序は未定義だった。
+- Editorの管理パネルがEditor更新ごとの走査をやめ、状態変更の通知を購読するようになった。表示内容は従来と同じで、`SymphonyAdministrator`がSave Dataをpollingしなくなる。
+- `SaveDataEntryRegistry` のスナップショットキャッシュを廃止した。読み込み済み状態の変化で無効化されず、保存日時の変化も検出できなかったため。
+
+### Fix
+- 管理パネルの State 表示が、キャッシュがあるだけの型を `Loaded` と表示していたのを修正した。
+
 ## [2.16.0] - 2026-08-03
 ### Change
 - Save Dataの内部構造をレイヤーごとに分割した。`SaveDataRegistry`（420行）が公開Facade・キャッシュ保持・処理順・例外変換・ローダー解決・スナップショット生成をすべて担っていたため、Scene LoadおよびService Locateと同じ形へ揃えた。**公開APIのシグネチャ、例外の種類と条件、シリアライズ形式はいずれも変更していない。**
