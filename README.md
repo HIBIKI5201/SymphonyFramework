@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **2.19.0**
+- 現在のバージョン: **2.20.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -228,7 +228,7 @@ await SaveStore.LoadAsync<PlayerData>();
 await SaveStore.DeleteAsync<PlayerData>();
 ```
 
-既定ではJSONをPlayerPrefsへ保存します。別のシリアライザ、ファイル、クラウド等を使う場合は`SaveDataLoader`を継承し、Project Settingsから選択します。
+既定ではJSONをPlayerPrefsへ保存します。別のシリアライザ、ファイル、クラウド等を使う場合は`SaveDataLoaderStrategy`を継承し、Project Settingsから選択します。
 
 ### Audio Manager
 

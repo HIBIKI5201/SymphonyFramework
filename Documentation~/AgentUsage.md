@@ -20,7 +20,7 @@
 | --- | --- | --- | --- |
 | Service Locator | `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](../README.md#service-locator) |
 | Scene Loader | `SymphonyFrameWork.System.SceneLoad` | `SceneLoader` | [Scene Loader](../README.md#scene-loader) |
-| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoader` | [Save Data System](../README.md#save-data-system) |
+| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](../README.md#save-data-system) |
 | Audio Manager | `SymphonyFrameWork.System` | `AudioManager` | [Audio Manager](../README.md#audio-manager) |
 | Pause Manager | `SymphonyFrameWork.System` | `PauseManager` | [Pause Manager](../README.md#pause-manager) |
 
@@ -49,7 +49,7 @@
 - `SaveStore.Get<T>()`が返す型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
 - 非同期I/Oを行う独自ローダーでは、先に`LoadAsync<T>()`をawaitしてから`Get<T>()`する。
 - 保存先の失敗は`SaveDataOperationException`の`Operation`、`DataType`、`LoaderType`、`InnerException`で診断する。キャンセルは`OperationCanceledException`のまま伝播する。
-- 独自`SaveDataLoader`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
+- 独自`SaveDataLoaderStrategy`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
 - キャッシュ済みの一覧は`SaveStore.GetEntries()`で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。
 - **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは`SaveDataRegistryEntryInfo.IsLoaded`で判定する。
 

@@ -11,7 +11,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     /// <summary>
     ///     セーブデータの存在確認、読み込み、保存、削除の処理順と失敗時の変換を担当する。
     ///     状態の保持は<see cref="SaveDataEntryRegistry"/>、保存先へのI/Oは
-    ///     <see cref="SaveDataLoader"/>へ委譲する。
+    ///     <see cref="SaveDataLoaderStrategy"/>へ委譲する。
     /// </summary>
     internal sealed class SaveDataService
     {
@@ -22,7 +22,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <param name="loaderResolver"> 現在のConfigに対応するローダーを返す処理。 </param>
         public SaveDataService(
             SaveDataEntryRegistry registry,
-            Func<SaveDataLoader> loaderResolver)
+            Func<SaveDataLoaderStrategy> loaderResolver)
         {
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _loaderResolver = loaderResolver ?? throw new ArgumentNullException(nameof(loaderResolver));
@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <returns> 永続化データが存在する場合はtrue。 </returns>
         public bool Exists(Type dataType)
         {
-            SaveDataLoader loader = GetLoader();
+            SaveDataLoaderStrategy loader = GetLoader();
 
             try
             {
@@ -106,7 +106,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
             SaveDataContent content = entry.Content;
-            SaveDataLoader loader = GetLoader();
+            SaveDataLoaderStrategy loader = GetLoader();
 
             await ExecuteLoaderOperationAsync(
                 SaveDataOperation.Save,
@@ -128,7 +128,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             SaveDataContent content = entry.Content;
             _registry.MarkUnloaded(dataType);
 
-            SaveDataLoader loader = GetLoader();
+            SaveDataLoaderStrategy loader = GetLoader();
 
             await ExecuteLoaderOperationAsync(
                 SaveDataOperation.Delete,
@@ -150,7 +150,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         ///     現在選択されているローダーを取得する。未解決の場合はresolverから取得する。
         /// </summary>
         /// <returns> 現在のローダー。 </returns>
-        public SaveDataLoader GetCurrentLoader() => GetLoader();
+        public SaveDataLoaderStrategy GetCurrentLoader() => GetLoader();
 
         /// <summary> ローダーとキャッシュを破棄し、次回アクセス時に再解決させる。 </summary>
         public void Reset()
@@ -178,7 +178,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         {
             try
             {
-                SaveDataLoader loader = GetLoader();
+                SaveDataLoaderStrategy loader = GetLoader();
                 await ExecuteLoaderOperationAsync(
                     SaveDataOperation.Load,
                     dataType,
@@ -219,7 +219,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         private static async ValueTask ExecuteLoaderOperationAsync(
             SaveDataOperation operation,
             Type dataType,
-            SaveDataLoader loader,
+            SaveDataLoaderStrategy loader,
             Func<ValueTask> execute)
         {
             try
@@ -246,7 +246,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         /// <summary> キャッシュ済みローダーを返し、未解決の場合はresolverから取得する。 </summary>
         /// <returns> 現在のローダー。 </returns>
-        private SaveDataLoader GetLoader()
+        private SaveDataLoaderStrategy GetLoader()
         {
             if (_cachedLoader != null)
             {
@@ -264,8 +264,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         private readonly SaveDataEntryRegistry _registry;
-        private readonly Func<SaveDataLoader> _loaderResolver;
+        private readonly Func<SaveDataLoaderStrategy> _loaderResolver;
 
-        private SaveDataLoader _cachedLoader;
+        private SaveDataLoaderStrategy _cachedLoader;
     }
 }

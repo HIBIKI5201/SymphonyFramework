@@ -136,7 +136,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// </summary>
         /// <param name="loaderResolver"> 現在のConfigに対応するローダーを返す処理。 </param>
         internal static void ConfigureLoaderResolver(
-            Func<SaveDataLoader> loaderResolver)
+            Func<SaveDataLoaderStrategy> loaderResolver)
         {
             if (loaderResolver == null)
             {
@@ -164,7 +164,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         ///     現在選択されているローダーを取得する。
         ///     Adaptorが選んだ実装は公開APIへ出さず、状態を表示するEditorウィンドウからのみ参照する。
         /// </summary>
-        internal static SaveDataLoader GetCurrentLoader() => EnsureInitialized().GetCurrentLoader();
+        internal static SaveDataLoaderStrategy GetCurrentLoader() => EnsureInitialized().GetCurrentLoader();
 
         /// <summary> Compositionからローダーが注入済みであることを確認する。 </summary>
         /// <returns> 処理を委譲するService。 </returns>

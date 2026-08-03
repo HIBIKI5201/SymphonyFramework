@@ -6,7 +6,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     /// <summary>
     ///     旧来の型ごとローダーAPIです。
     /// </summary>
-    [Obsolete("Use SaveDataLoader instead.")]
+    [Obsolete("Use SaveDataLoaderStrategy instead.")]
     public interface ISaveDataLoader<T>
         where T : SaveDataContent, new()
     {

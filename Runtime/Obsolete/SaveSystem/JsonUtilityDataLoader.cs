@@ -6,11 +6,11 @@ namespace SymphonyFrameWork.System.SaveSystem
     ///     JsonUtility を使ってデータをセーブする互換ラッパーです。
     /// </summary>
     /// <typeparam name="T"> 保存するセーブデータの型。 </typeparam>
-    [Obsolete("Use JsonUtilitySaveDataLoader instead.")]
+    [Obsolete("Use JsonUtilitySaveDataLoaderStrategy instead.")]
     public sealed class JsonUtilityDataLoader<T> : ISaveDataLoader<T>
         where T : SaveDataContent, new()
     {
-        private static readonly JsonUtilitySaveDataLoader s_Loader = new();
+        private static readonly JsonUtilitySaveDataLoaderStrategy s_Loader = new();
 
         /// <summary> JsonUtility互換ローダーでデータを保存する。 </summary>
         public ValueTask<T> Save(T data)

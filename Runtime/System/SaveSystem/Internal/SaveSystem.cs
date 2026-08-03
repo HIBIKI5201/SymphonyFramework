@@ -9,7 +9,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     {
         /// <summary> セーブデータレジストリへローダーの解決処理を設定する。 </summary>
         /// <param name="loaderResolver"> 現在のConfigに対応するローダーを返す処理。 </param>
-        internal static void Initialize(Func<SaveDataLoader> loaderResolver)
+        internal static void Initialize(Func<SaveDataLoaderStrategy> loaderResolver)
         {
             SaveStore.ConfigureLoaderResolver(loaderResolver);
         }

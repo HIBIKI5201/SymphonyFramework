@@ -27,7 +27,7 @@ namespace SymphonyFrameWork.Tests
         }
 
         /// <summary> 保存先をメモリ上のDictionaryに置き換えたローダー。 </summary>
-        private sealed class MemorySaveDataLoader : SaveDataLoader
+        private sealed class MemorySaveDataLoader : SaveDataLoaderStrategy
         {
             private readonly Dictionary<Type, string> _storage = new();
 

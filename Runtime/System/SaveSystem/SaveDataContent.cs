@@ -21,7 +21,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         /// <summary>
         ///     最終保存日時を指定値または現在日時で更新する。
-        ///     保存日時は<see cref="SaveDataLoader" />がライフサイクルとして管理するため、利用側からは更新できない。
+        ///     保存日時は<see cref="SaveDataLoaderStrategy" />がライフサイクルとして管理するため、利用側からは更新できない。
         /// </summary>
         /// <param name="saveDate"> 記録する日時。既定値の場合は現在日時。 </param>
         internal void UpdateSaveDate(DateTime saveDate = default)

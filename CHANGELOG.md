@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.20.0] - 2026-08-04
+### Add
+- セーブデータの保存先を差し替える拡張点を `SaveDataLoaderStrategy` と `PlayerPrefsSaveDataLoaderStrategy` へ改名した。DesignPhilosophy の「拡張点には役割を表すサフィックスを付ける」に従う。中身（`protected abstract` メンバー）は変更していない。
+
+### Deprecated
+- `SaveDataLoader` と `PlayerPrefsSaveDataLoader` を非推奨にした。**移行方法**: 継承元を `SaveDataLoaderStrategy` / `PlayerPrefsSaveDataLoaderStrategy` へ置換する。それ以外の変更は不要。**3.0.0 で削除する。**
+  - 旧型は新しい基底を継承した空の抽象クラスとして残る。**旧型を継承した既存のローダーはそのまま動作し、`SaveSystemConfig` のローダー選択にも引き続き現れる。**
+
+### Change
+- 内部ローダー `JsonUtilitySaveDataLoader` / `NewtonsoftSaveDataLoader` を `...Strategy` へ改名した。`internal` のため利用側のコードには影響しない。
+  - **`SaveSystemConfig.asset` は `[SerializeReference]` で型名を保存しているため、`[MovedFrom]` を付けて旧型名から解決できるようにしている。** 既存の設定アセットはそのまま読み込まれ、ローダーの選択は失われない。
+
 ## [2.19.0] - 2026-08-04
 ### Add
 - `SaveStore` を追加した。`SaveDataRegistry` と同じ公開APIを持ち、シグネチャ・例外の種類と条件・シリアライズ形式のいずれも変わらない。

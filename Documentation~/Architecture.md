@@ -131,7 +131,7 @@ classDiagram
     class SaveDataContent {
         <<abstract>>
     }
-    class SaveDataLoader {
+    class SaveDataLoaderStrategy {
         <<abstract>>
         LoadJsonAsync()
         SaveJsonAsync()
@@ -163,7 +163,7 @@ classDiagram
     SceneLoader ..> ServiceInjector : ルートへ自動注入
     SceneLoader --> IInitializeAsync : 完了を待機
     SaveStore --> SaveDataContent : 型単位でキャッシュ
-    SaveStore --> SaveDataLoader : 永続化を委譲
+    SaveStore --> SaveDataLoaderStrategy : 永続化を委譲
     PauseManager --> IPausable : 状態を通知
 ```
 
@@ -219,7 +219,7 @@ flowchart LR
     Query --> Registry
     Query --> Info["SaveDataRegistryEntryInfo"]
     Query --> Dto["SaveDataDto"]
-    Service --> Loader["SaveDataLoader"]
+    Service --> Loader["SaveDataLoaderStrategy"]
     Service -->|状態変更event| ViewModel["SaveDataViewModel"]
     ViewModel -->|ReactiveProperty| Window["SaveDataRegistryWindow"]
 ```
