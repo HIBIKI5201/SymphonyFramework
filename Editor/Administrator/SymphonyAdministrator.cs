@@ -21,13 +21,7 @@ namespace SymphonyFrameWork.Editor
         private AutoEnumGeneratorWindow _generatorWindow;
         private SaveDataRegistryWindow _saveDataRegistryWindow;
 
-        /// <summary> 各管理パネルの表示内容をEditor更新ごとに同期する。 </summary>
-        private void Update()
-        {
-            _pauseWindow?.Update();
-        }
-
-        /// <summary> UXMLから管理パネルを構築し、Editor更新処理を購読する。 </summary>
+        /// <summary> UXMLから管理パネルを構築する。 </summary>
         private void OnEnable()
         {
             var container = LoadWindow();
@@ -44,17 +38,19 @@ namespace SymphonyFrameWork.Editor
             {
                 Debug.LogWarning("ウィンドウがロードできませんでした");
             }
-
-            EditorApplication.update += Update;
         }
 
-        /// <summary> Editor更新処理と保持中の管理パネルリソースを解除する。 </summary>
+        /// <summary>
+        ///     保持中の管理パネルリソースを解放する。
+        ///     各パネルは状態変更eventを購読しており、Editor更新ごとのpollingは行わない。
+        /// </summary>
         private void OnDisable()
         {
-            EditorApplication.update -= Update;
+            _pauseWindow?.Dispose();
             _serviceLocatorWindow?.Dispose();
             _sceneLoaderWindow?.Dispose();
             _saveDataRegistryWindow?.Dispose();
+            _pauseWindow = null;
             _serviceLocatorWindow = null;
             _sceneLoaderWindow = null;
             _saveDataRegistryWindow = null;

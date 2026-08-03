@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,69 +12,69 @@ using Object = UnityEngine.Object;
 namespace SymphonyFrameWork.System
 {
     /// <summary>
-    ///     ポーズ状態を管理する型
+    ///     ポーズ状態を管理する型。
+    ///     引数の検証と<see cref="PauseService"/>への転送、およびポーズ中に進行しない
+    ///     待機ユーティリティを提供します。状態は保持しません。
     /// </summary>
     public static class PauseManager
     {
-        private static bool _pause;
-        private static bool _isInitialized;
-        private static Action<bool> _onPauseChanged;
-        private static readonly Dictionary<IPausable, Action<bool>> _pauseEventDictionary = new();
-
-        /// <summary> 現在のポーズ状態を取得または変更する。 </summary>
+        /// <summary>
+        ///     現在のポーズ状態を取得または変更する。
+        ///     現在と同じ値を設定した場合、<see cref="OnPauseChanged"/>は発行されません。
+        /// </summary>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
         public static bool Pause
         {
-            get
-            {
-                EnsureInitialized();
-                return _pause;
-            }
-            set
-            {
-                EnsureInitialized();
-                _pause = value;
-                _onPauseChanged?.Invoke(value);
-            }
+            get => EnsureInitialized().IsPaused;
+            set => EnsureInitialized().SetPaused(value);
         }
 
-        /// <summary> ポーズ状態が変更されたときに新しい状態を通知する。 </summary>
+        /// <summary>
+        ///     ポーズ状態が変更されたときに新しい状態を通知する。
+        ///     同じ値の再設定では発行されません。
+        /// </summary>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
         public static event Action<bool> OnPauseChanged
         {
-            add
-            {
-                EnsureInitialized();
-                _onPauseChanged += value;
-            }
-            remove
-            {
-                EnsureInitialized();
-                _onPauseChanged -= value;
-            }
+            add => EnsureInitialized().AddPauseChangedHandler(value);
+            remove => EnsureInitialized().RemovePauseChangedHandler(value);
+        }
+
+        /// <summary> ポーズ機構の管理状態を取得時点の不変値として取得する。 </summary>
+        /// <returns> 現在のポーズ状態と購読件数。 </returns>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        public static PauseInfo GetPauseInfo()
+        {
+            return EnsureQuery().GetInfo();
         }
 
         /// <summary> Pause Managerが初期化済みかどうか。 </summary>
-        internal static bool IsInitialized => _isInitialized;
+        internal static bool IsInitialized => _service != null;
 
-        /// <summary> 初期化チェックを行わずに読み取る現在のポーズ状態。 </summary>
-        internal static bool IsPaused => _pause;
+        /// <summary> 状態表示に接続するためのViewModel。未初期化の場合はnull。 </summary>
+        internal static PauseViewModel CurrentViewModel => _viewModel;
 
-        /// <summary> ポーズ通知を購読しているIPausableの件数。 </summary>
-        internal static int PausableSubscriberCount => _pauseEventDictionary.Count;
-
-        /// <summary> ポーズ状態とイベント購読を初期状態へ戻す。 </summary>
+        /// <summary> ポーズ状態とイベント購読を初期状態へ戻し、内部レイヤーを結合する。 </summary>
         internal static void Initialize()
         {
             ResetRuntimeState();
-            _isInitialized = true;
+
+            var state = new PauseStateEntity();
+            var registry = new PausableRegistry();
+            _service = new PauseService(state, registry);
+            _query = new PauseQuery(state, registry);
+            _viewModel = new PauseViewModel(_query, _service);
         }
 
         /// <summary> ポーズ状態とイベント購読を消去して未初期化状態へ戻す。 </summary>
         internal static void ResetRuntimeState()
         {
-            _pause = false;
-            _isInitialized = false;
-            _onPauseChanged = null;
-            _pauseEventDictionary.Clear();
+            _viewModel?.Dispose();
+            _service?.Reset();
+
+            _viewModel = null;
+            _query = null;
+            _service = null;
         }
 
         /// <summary>
@@ -84,11 +83,11 @@ namespace SymphonyFrameWork.System
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         public static async Task PausableNextFrameAsync(CancellationToken token = default)
         {
-            EnsureInitialized();
+            PauseQuery query = EnsureQuery();
 
             //ポーズ中は終わるまで待機し続ける
-            if (_pause) await Awaitable.NextFrameAsync(token);
-            
+            if (query.IsPaused) await Awaitable.NextFrameAsync(token);
+
             await Awaitable.NextFrameAsync(token);
         }
 
@@ -99,12 +98,12 @@ namespace SymphonyFrameWork.System
         /// <returns> Unity Coroutineで実行するEnumerator。 </returns>
         public static IEnumerator PausableWaitForSecond(float time)
         {
-            EnsureInitialized();
+            PauseQuery query = EnsureQuery();
             ValidateDuration(time, nameof(time));
 
             while (time > 0)
             {
-                if (!_pause) time -= Time.deltaTime;
+                if (!query.IsPaused) time -= Time.deltaTime;
                 yield return null;
             }
         }
@@ -117,12 +116,12 @@ namespace SymphonyFrameWork.System
         /// <returns> 待機処理を表すTask。 </returns>
         public static async Task PausableWaitForSecondAsync(float time, CancellationToken token = default)
         {
-            EnsureInitialized();
+            PauseQuery query = EnsureQuery();
             ValidateDuration(time, nameof(time));
 
             while (time > 0)
             {
-                if (!_pause) time -= Time.deltaTime;
+                if (!query.IsPaused) time -= Time.deltaTime;
                 await Awaitable.NextFrameAsync(token);
             }
         }
@@ -135,7 +134,7 @@ namespace SymphonyFrameWork.System
         /// <returns> 条件成立までの待機処理を表すTask。 </returns>
         public static async Task PausableWaitUntil(Func<bool> action, CancellationToken token = default)
         {
-            EnsureInitialized();
+            PauseQuery query = EnsureQuery();
 
             if (action == null)
             {
@@ -144,7 +143,7 @@ namespace SymphonyFrameWork.System
 
             await SymphonyAwaitable.WaitWhile(() => !action.Invoke(), token);
 
-            if (_pause) await Awaitable.NextFrameAsync(token);
+            if (query.IsPaused) await Awaitable.NextFrameAsync(token);
         }
 
         /// <summary>
@@ -210,28 +209,7 @@ namespace SymphonyFrameWork.System
             /// <param name="pausable"> ポーズ通知を受け取る対象。 </param>
             static void RegisterPauseManager(IPausable pausable)
             {
-                EnsureInitialized();
-
-                if (pausable == null)
-                {
-                    throw new ArgumentNullException(nameof(pausable));
-                }
-
-                if (_pauseEventDictionary.ContainsKey(pausable)) return;
-
-                Action<bool> pauseEvent = OnPauseEvent;
-
-                _pauseEventDictionary.Add(pausable, pauseEvent);
-
-                OnPauseChanged += pauseEvent;
-
-                void OnPauseEvent(bool paused)
-                {
-                    if (paused)
-                        pausable.Pause();
-                    else
-                        pausable.Resume();
-                }
+                EnsureInitialized().Register(pausable);
             }
 
             /// <summary>
@@ -240,28 +218,22 @@ namespace SymphonyFrameWork.System
             /// <param name="pausable"> ポーズ通知を解除する対象。 </param>
             static void UnregisterPauseManager(IPausable pausable)
             {
-                EnsureInitialized();
-
-                if (pausable == null)
-                {
-                    throw new ArgumentNullException(nameof(pausable));
-                }
-
-                if (_pauseEventDictionary.TryGetValue(pausable, out var pauseEvent))
-                {
-                    OnPauseChanged -= pauseEvent;
-                    _pauseEventDictionary.Remove(pausable);
-                }
+                EnsureInitialized().Unregister(pausable);
             }
         }
 
-        /// <summary> Pause Managerが利用可能な状態か検証する。 </summary>
-        private static void EnsureInitialized()
+        /// <summary> Compositionから内部レイヤーが結合済みであることを確認する。 </summary>
+        /// <returns> 処理を委譲するService。 </returns>
+        private static PauseService EnsureInitialized()
         {
-            if (!_isInitialized)
-            {
-                throw new SymphonyNotInitializedException(typeof(PauseManager));
-            }
+            return _service ?? throw new SymphonyNotInitializedException(typeof(PauseManager));
+        }
+
+        /// <summary> Compositionから内部レイヤーが結合済みであることを確認する。 </summary>
+        /// <returns> 状態を読み取るQuery。 </returns>
+        private static PauseQuery EnsureQuery()
+        {
+            return _query ?? throw new SymphonyNotInitializedException(typeof(PauseManager));
         }
 
         /// <summary> 待機時間が0以上か検証する。 </summary>
@@ -277,5 +249,9 @@ namespace SymphonyFrameWork.System
                     "待機時間は0秒以上で指定してください。");
             }
         }
+
+        private static PauseService _service;
+        private static PauseQuery _query;
+        private static PauseViewModel _viewModel;
     }
 }

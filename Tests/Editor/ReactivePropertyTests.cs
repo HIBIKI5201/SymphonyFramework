@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
 
 using SymphonyFrameWork.Core;
 
+using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace SymphonyFrameWork.Tests
@@ -215,7 +217,10 @@ namespace SymphonyFrameWork.Tests
         [Test]
         public void SetValue_ObserverThrows_ContinuesNotifyingOthers()
         {
-            LogAssert.ignoreFailingMessages = true;
+            // ignoreFailingMessages はログを「無視」するだけで消費しないため、
+            // 遅れて届いたログが後続テストの未処理ログとして計上されうる。
+            // Expect は該当ログを消費するので、テスト間へ漏れない。
+            LogAssert.Expect(LogType.Exception, new Regex("観測用"));
 
             var property = new ReactiveProperty<int>(0);
             var received = new List<int>();
