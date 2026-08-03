@@ -60,7 +60,10 @@
 ## Pause Manager
 
 - ポーズ中も止める待機には`PausableWaitForSecondAsync`、`PausableWaitForSecond`、`PausableNextFrameAsync`を使う。`Task.Delay`や通常の`WaitForSeconds`では代用しない。
-- `PauseManager.IPausable`は有効化時に登録し、無効化時に解除する。
+- `PauseManager.IPausable`は有効化時に登録し、無効化時に解除する。同じ対象を重複登録しても通知は1回だけ届く。
+- **`OnPauseChanged`は値が変わったときだけ発行される。** `Pause = true`を2回続けても`IPausable.Pause()`は1回しか呼ばれない。同じ値の再設定を通知の起点にしない。
+- ポーズ状態と`IPausable`の購読件数をまとめて調べる場合は`PauseManager.GetPauseInfo()`を使い、戻る`PauseInfo`を取得時点のスナップショットとして扱う。購読件数は解除し忘れの検出に使える。
+- `OnPauseChanged`の購読者が投げた例外は握り潰されず、`Pause`を設定した側へ伝播する。購読側で処理する。
 
 ## 非推奨APIと移行
 

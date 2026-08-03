@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.18.0] - 2026-08-03
+### Add
+- ポーズ機構の管理状態を取得時点の不変値として返す公開 `PauseInfo` を追加した。`PauseManager.GetPauseInfo()` でポーズ状態と `IPausable` の購読件数を取得できる。購読件数は解除し忘れが積み上がっていないかの確認に使う。
+- Pauseの内部構造をレイヤーごとに分割した。Scene Load、Service Locate、Save Dataと同じ形へ揃えている。
+  - `PauseStateEntity`（Domain）— ポーズ状態と、状態が実際に変化したかどうかの判定を保持する
+  - `PausableRegistry`（Application）— `IPausable` と通知処理の対応表を所有する
+  - `PauseService`（Application）— 状態変更と通知を担当する
+  - `PauseQuery` / `PauseDto`（Adaptor）、`PauseViewModel`（View）
+- 管理パネルのPauseに `IPausable` の購読件数を表示するようにした。
+- Pauseの EditModeテストを34件追加した。同値の再通知抑止、重複登録の排除、購読者例外の扱い、Resetの後始末を検証する。
+
+### Fix
+- **`PauseManager.Pause` に現在と同じ値を代入したとき、`OnPauseChanged` を発行しないようにした。** 従来は `Pause = true` を2回続けると `IPausable.Pause()` が2回呼ばれていた。**利用側への影響**: 同じ値での再通知に依存した実装は動作が変わる。状態変更の通知としては値が変わったときだけ発行するのが正しいため、修正として扱う。
+- 管理パネルのPauseが、Play Mode外でも操作ボタンを受け付けて `SymphonyNotInitializedException` を出していたのを修正した。未初期化時はボタンを無効化する。
+
+### Change
+- **管理パネルからEditor更新ごとのpollingを完全に除去した。** Pauseが最後の1件で、`EditorApplication.update` の購読自体が無くなっている。各パネルは状態変更eventを購読する。
+- 管理パネルのPauseがリフレクション（`typeof(PauseManager).GetField("_pause", ...)`）で内部状態を読むのをやめた。パッケージ内でinternal状態をリフレクションで読む箇所は無くなった。
+- `PauseManager.cs` を `Runtime/System/Pause/` へ移した。名前空間は変更していないため、利用側の `using` に影響しない。
+- internalアクセサ `PauseManager.IsPaused` と `PausableSubscriberCount` を削除した。MCP診断は公開Infoを使う。
+
 ## [2.17.1] - 2026-08-03
 ### Change
 - ソースファイルの文字コードを規約へ揃えた。BOM が無かった17件の `.cs` へ UTF-8 BOM を付与している。**コードの挙動、公開API、シリアライズ形式はいずれも変更していない。** 各ファイルの差分は先頭行のみ。

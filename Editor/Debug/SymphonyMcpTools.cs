@@ -175,11 +175,13 @@ namespace SymphonyFrameWork.Editor.Debugger
                     });
                 }
 
+                PauseInfo pauseInfo = PauseManager.GetPauseInfo();
+
                 return Serialize(new
                 {
                     initialized = true,
-                    paused = PauseManager.IsPaused,
-                    pausableSubscriberCount = PauseManager.PausableSubscriberCount
+                    paused = pauseInfo.IsPaused,
+                    pausableSubscriberCount = pauseInfo.PausableSubscriberCount
                 });
             }
             catch (Exception exception)

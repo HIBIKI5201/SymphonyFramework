@@ -228,6 +228,26 @@ flowchart LR
 
 永続化データが存在するかどうか（`Exists`）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。
 
+Pauseも同じ形で、状態の保持、購読の管理、表示状態を分離しています。
+
+```mermaid
+flowchart LR
+    Facade["PauseManager"] -->|Command| Service["PauseService"]
+    Service --> State["PauseStateEntity"]
+    Service --> Registry["PausableRegistry"]
+    Facade -->|Query| Query["PauseQuery"]
+    Query --> State
+    Query --> Registry
+    Query --> Info["PauseInfo"]
+    Query --> Dto["PauseDto"]
+    Service -->|状態変更event| ViewModel["PauseViewModel"]
+    ViewModel -->|ReactiveProperty| Window["PauseWindow"]
+```
+
+`PauseStateEntity`が「状態が実際に変化したか」を判定するため、同じ値の再設定では`OnPauseChanged`を発行しません。
+
+`OnPauseChanged`（利用側が購読する公開event）の購読者例外は握りません。`OnStateChanged`（表示専用）だけは発行側で捕捉してログへ出し、ViewModelの失敗をゲーム側のポーズ処理へ波及させません。
+
 ## シーンロード時の連携
 
 ```mermaid
