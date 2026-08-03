@@ -146,13 +146,18 @@ namespace SymphonyFrameWork.System
         }
 
         /// <summary>
-        ///     ポーズ中に停止するGameObjectのDestroy
+        ///     ポーズ中に停止するGameObjectのDestroy。
+        ///     待機せず呼び出しても破棄は実行される。
         /// </summary>
         /// <param name="obj"> 待機後に破棄するGameObject。 </param>
         /// <param name="t"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        public static async void PausableDestroy(GameObject obj, float t, CancellationToken token = default)
+        /// <returns> 破棄までの待機を表すAwaitable。 </returns>
+        /// <exception cref="ArgumentNullException"> objがnullの場合。 </exception>
+        /// <exception cref="ArgumentOutOfRangeException"> tが負の場合。 </exception>
+        public static Awaitable PausableDestroy(GameObject obj, float t, CancellationToken token = default)
         {
+            // 検証は同期部分で行い、呼び出し元のtry/catchへ届くようにする。
             EnsureInitialized();
 
             if (obj == null)
@@ -161,19 +166,38 @@ namespace SymphonyFrameWork.System
             }
 
             ValidateDuration(t, nameof(t));
-            await PausableWaitForSecondAsync(t, token);
+
+            return DestroyAfterDelayAsync(obj, t, token);
+        }
+
+        /// <summary> 待機後にGameObjectを破棄する。 </summary>
+        /// <param name="obj"> 破棄するGameObject。 </param>
+        /// <param name="durationSeconds"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 破棄までの待機を表すAwaitable。 </returns>
+        private static async Awaitable DestroyAfterDelayAsync(
+            GameObject obj,
+            float durationSeconds,
+            CancellationToken token)
+        {
+            await PausableWaitForSecondAsync(durationSeconds, token);
 
             Object.Destroy(obj);
         }
 
         /// <summary>
-        ///     ポーズ中に停止するInvoke
+        ///     ポーズ中に停止するInvoke。
+        ///     待機せず呼び出しても処理は実行される。
         /// </summary>
         /// <param name="action"> 待機後に実行する処理。 </param>
         /// <param name="t"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        public static async void PausableInvoke(Action action, float t, CancellationToken token = default)
+        /// <returns> 実行までの待機を表すAwaitable。 </returns>
+        /// <exception cref="ArgumentNullException"> actionがnullの場合。 </exception>
+        /// <exception cref="ArgumentOutOfRangeException"> tが負の場合。 </exception>
+        public static Awaitable PausableInvoke(Action action, float t, CancellationToken token = default)
         {
+            // 検証は同期部分で行い、呼び出し元のtry/catchへ届くようにする。
             EnsureInitialized();
 
             if (action == null)
@@ -182,9 +206,23 @@ namespace SymphonyFrameWork.System
             }
 
             ValidateDuration(t, nameof(t));
-            await PausableWaitForSecondAsync(t, token);
 
-            action?.Invoke();
+            return InvokeAfterDelayAsync(action, t, token);
+        }
+
+        /// <summary> 待機後に処理を実行する。 </summary>
+        /// <param name="action"> 実行する処理。 </param>
+        /// <param name="durationSeconds"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 実行までの待機を表すAwaitable。 </returns>
+        private static async Awaitable InvokeAfterDelayAsync(
+            Action action,
+            float durationSeconds,
+            CancellationToken token)
+        {
+            await PausableWaitForSecondAsync(durationSeconds, token);
+
+            action.Invoke();
         }
 
         /// <summary>

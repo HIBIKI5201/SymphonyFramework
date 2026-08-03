@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.0.0-preview.2] - 2026-08-04
+### Breaking
+- **`PauseManager.PausableDestroy` と `PausableInvoke` が `void` ではなく `Awaitable` を返すようになりました。**
+
+  **移行方法**: 文として呼んでいる場合、**ソースの変更は不要です。**
+
+  ```csharp
+  // 2.x でも 3.0.0 でもそのまま動く
+  PauseManager.PausableDestroy(gameObject, 1.0f);
+
+  // 3.0.0 では完了を待機できる
+  await PauseManager.PausableDestroy(gameObject, 1.0f);
+  ```
+
+  待機せずに呼んでも、破棄と処理の実行は従来どおり行われます。
+
+### Fix
+- **`PausableDestroy` と `PausableInvoke` の引数エラーが、呼び出し元へ同期的に伝わるようになりました。** 従来は `async void` だったため、`ArgumentNullException` や `ArgumentOutOfRangeException` が非同期メソッドの中で投げられ、呼び出し側の `try/catch` では捕まえられずUnityの未処理例外ハンドラへ流れていました。検証を同期部分へ移しています。
+
+### Add
+- `PausableInvoke` と `PausableDestroy` のPlayModeテストを5件追加した。待機した場合の実行、**待機せずに呼んでも実行されること**、引数エラーが同期的に投げられること、GameObjectの破棄を検証する。
+
+### 既知の代償
+- `Awaitable` は完了を観測した時点でプールへ返却されます。**待機せずに呼んだ場合はプールへ戻らず、通常のGC対象になります。** 無制限に溜まるものではなく、プールの効果が失われるだけです。fire-and-forgetとして使うAPIであるため、この代償を受け入れています。
+
 ## [3.0.0-preview.1] - 2026-08-04
 
 **3.0.0 系の最初のプレビューです。** 破壊的変更を段階的に積み上げ、Phase 5（Awaitable移行）とPhase 6（改名とシム削除）を終えた時点で `3.0.0` として確定します。プレビュー版は「壊れることを承知で先行して試す」ためのものです。
