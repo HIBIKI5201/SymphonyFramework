@@ -8,7 +8,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     /// <summary>
     ///     セーブデータのライフサイクルを保証し、派生クラスをJSONの変換と永続化処理に限定します。
     ///     利用側は本クラスを継承して保存先を差し替えますが、呼び出しは
-    ///     <see cref="SaveDataRegistry" />が行うため、ここで宣言する操作は`internal`です。
+    ///     <see cref="SaveStore" />が行うため、ここで宣言する操作は`internal`です。
     /// </summary>
     [Serializable]
     public abstract class SaveDataLoader

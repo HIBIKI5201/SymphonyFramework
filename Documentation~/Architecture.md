@@ -121,7 +121,7 @@ classDiagram
         <<interface>>
         InitializeAsync()
     }
-    class SaveDataRegistry {
+    class SaveStore {
         <<static>>
         Get()
         LoadAsync()
@@ -162,8 +162,8 @@ classDiagram
     SceneLoader --> SceneLoadInfo : 追跡状態のスナップショット
     SceneLoader ..> ServiceInjector : ルートへ自動注入
     SceneLoader --> IInitializeAsync : 完了を待機
-    SaveDataRegistry --> SaveDataContent : 型単位でキャッシュ
-    SaveDataRegistry --> SaveDataLoader : 永続化を委譲
+    SaveStore --> SaveDataContent : 型単位でキャッシュ
+    SaveStore --> SaveDataLoader : 永続化を委譲
     PauseManager --> IPausable : 状態を通知
 ```
 
@@ -212,7 +212,7 @@ Save DataのRuntime内部も同じ形で、処理順、読み取り変換、表�
 
 ```mermaid
 flowchart LR
-    Facade["SaveDataRegistry"] -->|Command| Service["SaveDataService"]
+    Facade["SaveStore"] -->|Command| Service["SaveDataService"]
     Service --> Registry["SaveDataEntryRegistry"]
     Registry --> Entity["SaveDataEntryEntity"]
     Facade -->|Query| Query["SaveDataQuery"]

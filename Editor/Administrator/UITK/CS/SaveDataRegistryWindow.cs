@@ -98,7 +98,7 @@ namespace SymphonyFrameWork.Editor
             ConfigureCacheList();
             EnsureTypeListCurrent();
 
-            SaveDataRegistry.OnCurrentViewModelChanged += ViewModelChangedHandler;
+            SaveStore.OnCurrentViewModelChanged += ViewModelChangedHandler;
             BindViewModel();
 
             return default;
@@ -114,7 +114,7 @@ namespace SymphonyFrameWork.Editor
 
             _disposed = true;
 
-            SaveDataRegistry.OnCurrentViewModelChanged -= ViewModelChangedHandler;
+            SaveStore.OnCurrentViewModelChanged -= ViewModelChangedHandler;
             UnbindViewModel();
 
             if (_editorContainer != null)
@@ -150,7 +150,7 @@ namespace SymphonyFrameWork.Editor
         {
             UnbindViewModel();
 
-            SaveDataViewModel viewModel = _disposed ? null : SaveDataRegistry.CurrentViewModel;
+            SaveDataViewModel viewModel = _disposed ? null : SaveStore.CurrentViewModel;
             if (viewModel == null)
             {
                 ApplyEntries(Array.Empty<SaveDataDto>());
@@ -350,7 +350,7 @@ namespace SymphonyFrameWork.Editor
                 SerializedProperty dataProperty = _debugSerializedObject.FindProperty("_data");
                 if (dataProperty.managedReferenceValue == null)
                 {
-                    // SaveDataRegistry.Get() は必ず何らかのインスタンスを返すため、型が選択されていれば
+                    // SaveStore.Get() は必ず何らかのインスタンスを返すため、型が選択されていれば
                     // ここには到達しない。到達するのは (a) プロジェクトに SaveDataContent を継承した型が
                     // 一つも無い、または (b) まだ何もインスタンス化されておらず自動選択もしていない場合のみ。
                     // どちらの理由かは _statusMessage 側で出し分けているので、そのままここに表示する。
@@ -379,7 +379,7 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            SaveDataContent data = SaveDataRegistry.Get(_selectedType);
+            SaveDataContent data = SaveStore.Get(_selectedType);
             RebindDebugState(data);
             _statusMessage = $"{_selectedType.FullName} の現在インスタンスを表示しています。";
         }
@@ -387,8 +387,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 選択中の型を保存先から再ロードして編集状態へ反映する。 </summary>
         private void LoadSelected()
         {
-            SaveDataRegistry.LoadAsync(_selectedType).GetAwaiter().GetResult();
-            SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
+            SaveStore.LoadAsync(_selectedType).GetAwaiter().GetResult();
+            SaveDataContent saveData = SaveStore.Get(_selectedType);
 
             RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} をロードしました。";
@@ -408,14 +408,14 @@ namespace SymphonyFrameWork.Editor
             // インスペクタで編集中のインスタンスが [SerializeReference] の再構築などで
             // Registry のキャッシュ本体と別インスタンスになっている可能性があるため、
             // 保存前に編集内容を Registry 側の正本へ同期する（食い違ったまま Save してしまう事故を防ぐ）。
-            SaveDataContent canonical = SaveDataRegistry.Get(_selectedType);
+            SaveDataContent canonical = SaveStore.Get(_selectedType);
             if (!ReferenceEquals(canonical, editingData))
             {
                 JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(editingData), canonical);
             }
 
-            SaveDataRegistry.SaveAsync(_selectedType).GetAwaiter().GetResult();
-            SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
+            SaveStore.SaveAsync(_selectedType).GetAwaiter().GetResult();
+            SaveDataContent saveData = SaveStore.Get(_selectedType);
             RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
             RefreshView();
@@ -433,8 +433,8 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            SaveDataRegistry.DeleteAsync(_selectedType).GetAwaiter().GetResult();
-            SaveDataContent regenerated = SaveDataRegistry.Get(_selectedType);
+            SaveStore.DeleteAsync(_selectedType).GetAwaiter().GetResult();
+            SaveDataContent regenerated = SaveStore.Get(_selectedType);
             RebindDebugState(regenerated);
             _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
             RefreshView();
@@ -504,8 +504,8 @@ namespace SymphonyFrameWork.Editor
         /// <returns> ローダーの型名。未初期化の場合は代替表示。 </returns>
         private static string GetCurrentLoaderName()
         {
-            return SaveDataRegistry.IsInitialized
-                ? SaveDataRegistry.GetCurrentLoader().GetType().Name
+            return SaveStore.IsInitialized
+                ? SaveStore.GetCurrentLoader().GetType().Name
                 : "(uninitialized)";
         }
 
@@ -545,8 +545,8 @@ namespace SymphonyFrameWork.Editor
             List<SaveDataEntryRow> rows = new(_saveDataTypes.Count);
             foreach (Type saveDataType in _saveDataTypes)
             {
-                bool isSaved = SaveDataRegistry.IsInitialized
-                    && SaveDataRegistry.Exists(saveDataType);
+                bool isSaved = SaveStore.IsInitialized
+                    && SaveStore.Exists(saveDataType);
 
                 if (cachedEntries.TryGetValue(saveDataType, out SaveDataDto cachedEntry))
                 {

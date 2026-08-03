@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
 
             EditorGUILayout.LabelField("Project Save Loader", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "SaveDataRegistry が使用するローダーを設定します。独自ローダーは SaveDataLoader を継承してください。共通の検証やデータ復旧処理は基底クラスが担当します。",
+                "SaveStore が使用するローダーを設定します。独自ローダーは SaveDataLoader を継承してください。共通の検証やデータ復旧処理は基底クラスが担当します。",
                 MessageType.Info);
 
             SerializedObject serializedObject = new(config);
@@ -53,7 +53,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(config);
                 AssetDatabase.SaveAssets();
-                SaveDataRegistry.RefreshLoader();
+                SaveStore.RefreshLoader();
             }
             else
             {
@@ -62,7 +62,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
 
             if (config.Loader == null)
             {
-                EditorGUILayout.HelpBox("ローダーが未設定です。SaveDataRegistry は既定の JsonUtility ローダーへフォールバックします。", MessageType.Warning);
+                EditorGUILayout.HelpBox("ローダーが未設定です。SaveStore は既定の JsonUtility ローダーへフォールバックします。", MessageType.Warning);
             }
             else
             {

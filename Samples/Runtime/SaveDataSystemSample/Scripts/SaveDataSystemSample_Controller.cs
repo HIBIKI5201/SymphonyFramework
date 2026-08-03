@@ -20,8 +20,8 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         private void Start()
         {
             AddCommentary("サンプルを開始しました。永続化済みデータを Registry にロードします。");
-            _PlayerDataA = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
-            _PlayerDataB = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            _PlayerDataA = SaveStore.Get<SaveDataSystemSample_PlayerDataA>();
+            _PlayerDataB = SaveStore.Get<SaveDataSystemSample_PlayerDataB>();
             ReportLoadedDataA();
             ReportLoadedDataB();
         }
@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             AddCommentary("Registry が保持している現在インスタンスを永続化します。");
 
             SaveDataSystemSample_PlayerDataA data = _PlayerDataA;
-            await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerDataA>();
+            await SaveStore.SaveAsync<SaveDataSystemSample_PlayerDataA>();
             AddCommentary($"保存完了: {data.PlayerName} / Level {data.Level} / Gold {data.Gold}");
             Debug.Log($"Saved: {data.PlayerName} Lv.{data.Level} Gold:{data.Gold}");
             _isBusy = false;
@@ -71,7 +71,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
             _isBusy = true;
             AddCommentary("永続化データと Registry 上の現在インスタンスを削除します。次回アクセス時は初期データが自動生成されます。");
-            await SaveDataRegistry.DeleteAsync<SaveDataSystemSample_PlayerDataA>();
+            await SaveStore.DeleteAsync<SaveDataSystemSample_PlayerDataA>();
             AddCommentary("削除完了。次のアクセスで Registry が新しい初期インスタンスを生成します。");
             Debug.Log("Deleted SaveDataSystemSample_PlayerData");
             _isBusy = false;
@@ -80,8 +80,8 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataAを再読込し、画面が参照するインスタンスとログを更新する。 </summary>
         private async Awaitable LoadInternalAsync()
         {
-            await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataA>();
-            _PlayerDataA = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            await SaveStore.LoadAsync<SaveDataSystemSample_PlayerDataA>();
+            _PlayerDataA = SaveStore.Get<SaveDataSystemSample_PlayerDataA>();
             ReportLoadedDataA();
         }
 
@@ -106,7 +106,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             AddCommentary("Registry が保持している DataB の現在インスタンスを永続化します。");
 
             SaveDataSystemSample_PlayerDataB data = _PlayerDataB;
-            await SaveDataRegistry.SaveAsync<SaveDataSystemSample_PlayerDataB>();
+            await SaveStore.SaveAsync<SaveDataSystemSample_PlayerDataB>();
             AddCommentary($"保存完了(B): ItemIDs [{FormatItemIDs(data)}]");
             Debug.Log($"Saved(B): [{FormatItemIDs(data)}]");
             _isBusy = false;
@@ -138,7 +138,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
 
             _isBusy = true;
             AddCommentary("DataB の永続化データと Registry 上の現在インスタンスを削除します。");
-            await SaveDataRegistry.DeleteAsync<SaveDataSystemSample_PlayerDataB>();
+            await SaveStore.DeleteAsync<SaveDataSystemSample_PlayerDataB>();
             AddCommentary("削除完了(B)。次のアクセスで Registry が新しい初期インスタンスを生成します。");
             Debug.Log("Deleted SaveDataSystemSample_PlayerDataB");
             _isBusy = false;
@@ -147,8 +147,8 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataBを再読込し、画面が参照するインスタンスとログを更新する。 </summary>
         private async Awaitable LoadInternalAsyncB()
         {
-            await SaveDataRegistry.LoadAsync<SaveDataSystemSample_PlayerDataB>();
-            _PlayerDataB = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            await SaveStore.LoadAsync<SaveDataSystemSample_PlayerDataB>();
+            _PlayerDataB = SaveStore.Get<SaveDataSystemSample_PlayerDataB>();
             ReportLoadedDataB();
         }
 
@@ -188,7 +188,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label($"Editing Level: {dataA.Level}");
             GUILayout.Label($"Editing Gold : {dataA.Gold}");
             GUILayout.Label($"Save Date    : {dataA.SaveDate ?? "(unsaved)"}");
-            GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerDataA>()}");
+            GUILayout.Label($"Saved Exists : {SaveStore.Exists<SaveDataSystemSample_PlayerDataA>()}");
             GUILayout.Label($"Cache Loaded : {IsCacheLoaded<SaveDataSystemSample_PlayerDataA>()}");
             GUILayout.Label($"Busy         : {_isBusy}");
             GUILayout.Space(8f);
@@ -214,7 +214,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
             GUILayout.Label("---- DataB (Items) ----");
             GUILayout.Label($"Item IDs     : [{FormatItemIDs(dataB)}]");
             GUILayout.Label($"Save Date(B) : {dataB.SaveDate ?? "(unsaved)"}");
-            GUILayout.Label($"Saved Exists : {SaveDataRegistry.Exists<SaveDataSystemSample_PlayerDataB>()}");
+            GUILayout.Label($"Saved Exists : {SaveStore.Exists<SaveDataSystemSample_PlayerDataB>()}");
             GUILayout.Label($"Cache Loaded : {IsCacheLoaded<SaveDataSystemSample_PlayerDataB>()}");
             GUILayout.Space(8f);
 
@@ -241,7 +241,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataAのプレイヤー名を定義済み候補の次の値へ変更する。 </summary>
         private void RenameHero()
         {
-            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            SaveDataSystemSample_PlayerDataA data = SaveStore.Get<SaveDataSystemSample_PlayerDataA>();
             string playerName = data.PlayerName;
             playerName = playerName == NAME_OPTION_1
                 ? NAME_OPTION_2
@@ -260,7 +260,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataAの編集中の値をサンプル既定値へ戻す。 </summary>
         private void ResetDraft()
         {
-            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            SaveDataSystemSample_PlayerDataA data = SaveStore.Get<SaveDataSystemSample_PlayerDataA>();
             data.PlayerName = NAME_OPTION_1;
             data.Level = 1;
             data.Gold = 100;
@@ -270,7 +270,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataAのレベルを1増加させる。 </summary>
         private void IncreaseLevel()
         {
-            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            SaveDataSystemSample_PlayerDataA data = SaveStore.Get<SaveDataSystemSample_PlayerDataA>();
             data.Level++;
             AddCommentary("Level を 1 増やしました。まだ保存はされていません。");
         }
@@ -278,7 +278,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataAの所持金を100増加させる。 </summary>
         private void IncreaseGold()
         {
-            SaveDataSystemSample_PlayerDataA data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataA>();
+            SaveDataSystemSample_PlayerDataA data = SaveStore.Get<SaveDataSystemSample_PlayerDataA>();
             data.Gold += 100;
             AddCommentary("Gold を 100 増やしました。まだ保存はされていません。");
         }
@@ -286,7 +286,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataBへ既存最大値の次のアイテムIDを追加する。 </summary>
         private void AddItem()
         {
-            SaveDataSystemSample_PlayerDataB data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            SaveDataSystemSample_PlayerDataB data = SaveStore.Get<SaveDataSystemSample_PlayerDataB>();
             int nextId = data.ItemIDs.Length == 0 ? 1 : data.ItemIDs.Max() + 1;
             data.ItemIDs = data.ItemIDs.Append(nextId).ToArray();
             AddCommentary($"Item {nextId} を追加しました。まだ保存はされていません。");
@@ -295,7 +295,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> DataBのアイテムID一覧を空にする。 </summary>
         private void ClearItems()
         {
-            SaveDataSystemSample_PlayerDataB data = SaveDataRegistry.Get<SaveDataSystemSample_PlayerDataB>();
+            SaveDataSystemSample_PlayerDataB data = SaveStore.Get<SaveDataSystemSample_PlayerDataB>();
             data.ItemIDs = Array.Empty<int>();
             AddCommentary("Item をすべて削除しました。まだ保存はされていません。");
         }
@@ -309,7 +309,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> 指定型のデータがRegistryへキャッシュ済みか確認する。 </summary>
         private static bool IsCacheLoaded<T>() where T : SaveDataContent, new()
         {
-            foreach (SaveDataRegistryEntryInfo entry in SaveDataRegistry.GetEntries())
+            foreach (SaveDataRegistryEntryInfo entry in SaveStore.GetEntries())
             {
                 if (entry.DataType == typeof(T))
                 {

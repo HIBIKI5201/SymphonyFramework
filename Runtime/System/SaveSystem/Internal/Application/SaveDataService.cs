@@ -257,7 +257,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             if (_cachedLoader == null)
             {
                 throw new InvalidOperationException(
-                    $"[{nameof(SaveDataRegistry)}] ローダーの解決結果がnullです。");
+                    $"[{nameof(SaveStore)}] ローダーの解決結果がnullです。");
             }
 
             return _cachedLoader;

@@ -16,7 +16,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             Type loaderType,
             Exception innerException)
             : base(
-                $"[{nameof(SaveDataRegistry)}] {dataType?.FullName ?? "(null)"} の{GetOperationName(operation)}に失敗しました。"
+                $"[{nameof(SaveStore)}] {dataType?.FullName ?? "(null)"} の{GetOperationName(operation)}に失敗しました。"
                 + $" Loader: {loaderType?.FullName ?? "(null)"}",
                 innerException)
         {
