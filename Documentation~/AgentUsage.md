@@ -49,6 +49,8 @@
 - 非同期I/Oを行う独自ローダーでは、先に`LoadAsync<T>()`をawaitしてから`Get<T>()`する。
 - 保存先の失敗は`SaveDataOperationException`の`Operation`、`DataType`、`LoaderType`、`InnerException`で診断する。キャンセルは`OperationCanceledException`のまま伝播する。
 - 独自`SaveDataLoader`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
+- キャッシュ済みの一覧は`SaveDataRegistry.GetEntries()`で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。
+- **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは`SaveDataRegistryEntryInfo.IsLoaded`で判定する。
 
 ## Audio Manager
 

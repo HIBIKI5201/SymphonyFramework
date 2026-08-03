@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -31,10 +29,43 @@ namespace SymphonyFrameWork.Editor
         private Label _statusLabel;
         private IMGUIContainer _editorContainer;
         private ListView _cacheListView;
-        private string _lastViewSignature;
-        private IReadOnlyList<SaveDataRegistryEntryInfo> _registryEntriesSnapshot;
-        private List<SaveDataRegistryEntryInfo> _sortedEntries = new();
+        private IDisposable _entriesSubscription;
+        private IReadOnlyList<SaveDataDto> _cachedEntries = Array.Empty<SaveDataDto>();
+        private List<SaveDataEntryRow> _rows = new();
         private bool _disposed;
+
+        /// <summary>
+        ///     一覧の1行分の表示値。
+        ///     キャッシュ済みエントリ（<see cref="SaveDataDto" />）と、
+        ///     永続化データはあるがキャッシュされていない型の両方を同じ形で扱う。
+        /// </summary>
+        private readonly struct SaveDataEntryRow
+        {
+            /// <summary> 行の表示値を指定して生成する。 </summary>
+            /// <param name="dataType"> 対象のセーブデータ型。 </param>
+            /// <param name="saveDate"> 最終保存日時。 </param>
+            /// <param name="isLoaded"> 永続化データを読み込み済みかどうか。 </param>
+            /// <param name="isSaved"> 永続化データが存在するかどうか。 </param>
+            internal SaveDataEntryRow(Type dataType, string saveDate, bool isLoaded, bool isSaved)
+            {
+                DataType = dataType;
+                SaveDate = saveDate;
+                IsLoaded = isLoaded;
+                IsSaved = isSaved;
+            }
+
+            /// <summary> 対象のセーブデータ型。 </summary>
+            internal Type DataType { get; }
+
+            /// <summary> 最終保存日時。 </summary>
+            internal string SaveDate { get; }
+
+            /// <summary> 永続化データを読み込み済みかどうか。 </summary>
+            internal bool IsLoaded { get; }
+
+            /// <summary> 永続化データが存在するかどうか。 </summary>
+            internal bool IsSaved { get; }
+        }
 
         /// <summary> 管理パネル用UXMLと一時編集状態の初期化を開始する。 </summary>
         public SaveDataRegistryWindow() : base(
@@ -65,25 +96,12 @@ namespace SymphonyFrameWork.Editor
             _editorContainer.onGUIHandler = DrawEditorInspector;
 
             ConfigureCacheList();
-            RefreshTypeList();
-            RefreshView(true);
+            EnsureTypeListCurrent();
+
+            SaveDataRegistry.OnCurrentViewModelChanged += ViewModelChangedHandler;
+            BindViewModel();
 
             return default;
-        }
-
-        /// <summary>
-        ///     SymphonyAdministrator.Update() から毎フレーム呼び出され、Registry の最新状態を表示に反映します。
-        ///     PauseWindow / ServiceLocatorWindow と同じ「親から駆動される」方式に合わせています。
-        /// </summary>
-        public void Update()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            TryAutoSelectFromRegistry();
-            RefreshView(false);
         }
 
         /// <summary> UIコールバックと一時編集用Unityオブジェクトを破棄する。 </summary>
@@ -95,6 +113,9 @@ namespace SymphonyFrameWork.Editor
             }
 
             _disposed = true;
+
+            SaveDataRegistry.OnCurrentViewModelChanged -= ViewModelChangedHandler;
+            UnbindViewModel();
 
             if (_editorContainer != null)
             {
@@ -111,23 +132,67 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     未選択のまま Registry に新たにデータが乗った場合（他のコードが Get/Load/Save した場合など）、
-        ///     ここで初めて自動選択します。Get() を呼んで新規インスタンス化することはしません。
+        ///     ViewModelが差し替わったときに接続し直す。
+        ///     Save DataはEdit Modeでも初期化されるため、Play Mode遷移では検知できない。
         /// </summary>
-        private void TryAutoSelectFromRegistry()
+        private void ViewModelChangedHandler()
         {
-            if (_selectedType != null)
+            if (_disposed)
             {
                 return;
             }
 
-            Type typeToSelect = ResolveAutoSelectType();
-            if (typeToSelect == null)
+            BindViewModel();
+        }
+
+        /// <summary> 現在のSave Data ViewModelへ接続する。 </summary>
+        private void BindViewModel()
+        {
+            UnbindViewModel();
+
+            SaveDataViewModel viewModel = _disposed ? null : SaveDataRegistry.CurrentViewModel;
+            if (viewModel == null)
+            {
+                ApplyEntries(Array.Empty<SaveDataDto>());
+                return;
+            }
+
+            _entriesSubscription = viewModel.Entries.Subscribe(ApplyEntries);
+        }
+
+        /// <summary> 現在のViewModel購読を解除する。 </summary>
+        private void UnbindViewModel()
+        {
+            _entriesSubscription?.Dispose();
+            _entriesSubscription = null;
+        }
+
+        /// <summary>
+        ///     ViewModelが公開した最新のキャッシュ一覧を表示へ反映する。
+        ///     未選択のまま新しいデータが乗った場合（他のコードがGet/Load/Saveした場合など）は、
+        ///     ここで初めて自動選択する。Get()を呼んで新規インスタンス化することはしない。
+        /// </summary>
+        /// <param name="saveDataDtos"> ViewModelが公開した変更不能なDto一覧。 </param>
+        private void ApplyEntries(IReadOnlyList<SaveDataDto> saveDataDtos)
+        {
+            if (_disposed)
             {
                 return;
             }
 
-            ApplyAutoSelection(typeToSelect);
+            _cachedEntries = saveDataDtos ?? Array.Empty<SaveDataDto>();
+            _rows = BuildRows();
+
+            if (_selectedType == null)
+            {
+                Type typeToSelect = ResolveAutoSelectType();
+                if (typeToSelect != null)
+                {
+                    ApplyAutoSelection(typeToSelect);
+                }
+            }
+
+            RefreshView();
         }
 
         /// <summary> AppDomain内の対応セーブデータ型一覧を最新状態へ同期する。 </summary>
@@ -148,14 +213,12 @@ namespace SymphonyFrameWork.Editor
             }
 
             _saveDataTypes = latestTypes;
-            _registryEntriesSnapshot = null;
 
             if (_saveDataTypes.Count <= 0)
             {
                 _selectedType = null;
                 RebindDebugState(null);
                 _statusMessage = "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
-                _lastViewSignature = null;
                 return;
             }
 
@@ -179,7 +242,6 @@ namespace SymphonyFrameWork.Editor
                 _selectedType = null;
                 RebindDebugState(null);
                 _statusMessage = "Registry Cache からセーブデータを選択してください。";
-                _lastViewSignature = null;
                 return;
             }
 
@@ -192,24 +254,21 @@ namespace SymphonyFrameWork.Editor
         ///     （SessionState に前回選択が残っていればそれを優先しつつ）それを使い、
         ///     何もインスタンス化されていなければ null（自動選択しない）を返します。
         /// </summary>
-        private static Type ResolveAutoSelectType()
+        private Type ResolveAutoSelectType()
         {
-            IReadOnlyList<SaveDataRegistryEntryInfo> cachedEntries = SaveDataRegistry.GetEntries();
-            if (cachedEntries.Count <= 0)
+            if (_cachedEntries.Count <= 0)
             {
                 return null;
             }
 
             Type sessionType = RestoreSelectedTypeFromSession();
-            if (sessionType != null && cachedEntries.Any(entry => entry.DataType == sessionType))
+            if (sessionType != null && _cachedEntries.Any(entry => entry.DataType == sessionType))
             {
                 return sessionType;
             }
 
-            return cachedEntries
-                .Select(entry => entry.DataType)
-                .OrderBy(type => type.FullName, StringComparer.Ordinal)
-                .First();
+            // ViewModel が公開する一覧は型名の昇順で並んでいる。
+            return _cachedEntries[0].DataType;
         }
 
         /// <summary> 選択型を更新し、ドメインリロード後に復元できるようSessionStateへ保存する。 </summary>
@@ -237,16 +296,14 @@ namespace SymphonyFrameWork.Editor
             _cacheListView.makeItem = () => new Label();
             _cacheListView.bindItem = (element, index) =>
             {
-                SaveDataRegistryEntryInfo entry = (SaveDataRegistryEntryInfo)_cacheListView.itemsSource[index];
-                bool isLoaded = entry.Data != null;
-                bool isSaved = SaveDataRegistry.Exists(entry.DataType);
-                string state = isLoaded
+                SaveDataEntryRow row = _rows[index];
+                string state = row.IsLoaded
                     ? "Loaded"
-                    : isSaved
+                    : row.IsSaved
                         ? "Saved"
                         : "Empty";
 
-                ((Label)element).text = $"{entry.DataType.FullName}\nState: {state} / Date: {entry.SaveDate ?? "(unknown)"}";
+                ((Label)element).text = $"{row.DataType.FullName}\nState: {state} / Date: {row.SaveDate ?? "(unknown)"}";
             };
             _cacheListView.selectionType = SelectionType.Single;
             _cacheListView.selectionChanged += OnCacheSelectionChanged;
@@ -257,9 +314,9 @@ namespace SymphonyFrameWork.Editor
         {
             foreach (object selectedItem in selectedItems)
             {
-                if (selectedItem is SaveDataRegistryEntryInfo entry)
+                if (selectedItem is SaveDataEntryRow row)
                 {
-                    SelectType(entry.DataType);
+                    SelectType(row.DataType);
                 }
 
                 return;
@@ -276,7 +333,7 @@ namespace SymphonyFrameWork.Editor
 
             SetSelectedType(type);
             BindCurrentSelection();
-            RefreshView(true);
+            RefreshView();
         }
 
         /// <summary> 選択中セーブデータをスクロール可能なInspectorとして描画する。 </summary>
@@ -314,13 +371,6 @@ namespace SymphonyFrameWork.Editor
             _debugSerializedObject.ApplyModifiedProperties();
         }
 
-        /// <summary> 対応型一覧と管理パネル表示を強制更新する。 </summary>
-        private void RefreshTypeList()
-        {
-            EnsureTypeListCurrent();
-            RefreshView(true);
-        }
-
         /// <summary> 選択型のレジストリ正本を一時編集状態へバインドする。 </summary>
         private void BindCurrentSelection()
         {
@@ -332,7 +382,6 @@ namespace SymphonyFrameWork.Editor
             SaveDataContent data = SaveDataRegistry.Get(_selectedType);
             RebindDebugState(data);
             _statusMessage = $"{_selectedType.FullName} の現在インスタンスを表示しています。";
-            _lastViewSignature = null;
         }
 
         /// <summary> 選択中の型を保存先から再ロードして編集状態へ反映する。 </summary>
@@ -343,7 +392,7 @@ namespace SymphonyFrameWork.Editor
 
             RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} をロードしました。";
-            RefreshView(true);
+            RefreshView();
         }
 
         /// <summary> Inspectorの編集内容をレジストリ正本へ同期して保存する。 </summary>
@@ -369,7 +418,7 @@ namespace SymphonyFrameWork.Editor
             SaveDataContent saveData = SaveDataRegistry.Get(_selectedType);
             RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
-            RefreshView(true);
+            RefreshView();
         }
 
         /// <summary> 確認後に選択型の保存データを削除し、現在インスタンスを初期化する。 </summary>
@@ -388,7 +437,7 @@ namespace SymphonyFrameWork.Editor
             SaveDataContent regenerated = SaveDataRegistry.Get(_selectedType);
             RebindDebugState(regenerated);
             _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
-            RefreshView(true);
+            RefreshView();
         }
 
         /// <summary>
@@ -414,7 +463,7 @@ namespace SymphonyFrameWork.Editor
             if (_selectedType == null)
             {
                 _statusMessage = "Registry Cache からセーブデータを選択してください。";
-                RefreshView(false);
+                RefreshView();
                 return;
             }
 
@@ -426,44 +475,47 @@ namespace SymphonyFrameWork.Editor
             {
                 Debug.LogException(ex);
                 _statusMessage = ex.Message;
-                RefreshView(true);
+                RefreshView();
             }
         }
 
-        /// <summary> 表示署名が変わった場合、または強制指定時に管理パネルを更新する。 </summary>
-        private void RefreshView(bool forceEditorRepaint)
+        /// <summary>
+        ///     管理パネルの表示を最新の行一覧へ更新する。
+        ///     呼び出しはViewModelからの通知と、パネル上の操作の直後だけに限られる。
+        /// </summary>
+        private void RefreshView()
         {
-            List<SaveDataRegistryEntryInfo> entries = GetSortedEntries();
-            string currentLoaderText = $"Current Loader: {SaveDataRegistry.GetCurrentLoader().GetType().Name}";
-            string loadedEntriesText = $"Visible Entries: {entries.Count}";
-            string signature = BuildViewSignature(entries, currentLoaderText, loadedEntriesText, _statusMessage);
-
-            if (!forceEditorRepaint && signature == _lastViewSignature)
+            if (_disposed || _cacheListView == null)
             {
                 return;
             }
 
-            _lastViewSignature = signature;
-            _currentLoaderLabel.text = currentLoaderText;
-            _loadedEntriesCountLabel.text = loadedEntriesText;
+            _currentLoaderLabel.text = $"Current Loader: {GetCurrentLoaderName()}";
+            _loadedEntriesCountLabel.text = $"Visible Entries: {_rows.Count}";
             _statusLabel.text = _statusMessage;
-            _cacheListView.itemsSource = entries;
+            _cacheListView.itemsSource = _rows;
             _cacheListView.Rebuild();
-            SyncCacheSelection(entries);
+            SyncCacheSelection();
 
-            if (forceEditorRepaint)
-            {
-                _editorContainer.MarkDirtyRepaint();
-            }
+            _editorContainer.MarkDirtyRepaint();
+        }
+
+        /// <summary> 現在選択されているローダーの型名を取得する。 </summary>
+        /// <returns> ローダーの型名。未初期化の場合は代替表示。 </returns>
+        private static string GetCurrentLoaderName()
+        {
+            return SaveDataRegistry.IsInitialized
+                ? SaveDataRegistry.GetCurrentLoader().GetType().Name
+                : "(uninitialized)";
         }
 
         /// <summary> 現在の選択型に対応する一覧行を通知なしで選択状態へ同期する。 </summary>
-        private void SyncCacheSelection(IReadOnlyList<SaveDataRegistryEntryInfo> entries)
+        private void SyncCacheSelection()
         {
             int selectedEntryIndex = -1;
-            for (int index = 0; index < entries.Count; index++)
+            for (int index = 0; index < _rows.Count; index++)
             {
-                if (entries[index].DataType == _selectedType)
+                if (_rows[index].DataType == _selectedType)
                 {
                     selectedEntryIndex = index;
                     break;
@@ -479,64 +531,40 @@ namespace SymphonyFrameWork.Editor
             _cacheListView.SetSelectionWithoutNotify(new[] { selectedEntryIndex });
         }
 
-        /// <summary> 不要なUI再構築を避けるため、現在の表示内容を表す署名を生成する。 </summary>
-        private static string BuildViewSignature(
-            IReadOnlyList<SaveDataRegistryEntryInfo> entries,
-            string currentLoaderText,
-            string loadedEntriesText,
-            string statusMessage)
+        /// <summary>
+        ///     対応型の順序に揃えた一覧行を組み立てる。
+        ///     キャッシュ済みの型はViewModelのDtoから、そうでない型は永続化データが
+        ///     存在する場合だけ行にする。
+        /// </summary>
+        /// <returns> 表示順に並んだ行一覧。 </returns>
+        private List<SaveDataEntryRow> BuildRows()
         {
-            StringBuilder builder = new();
-            builder.Append(currentLoaderText)
-                .Append('|')
-                .Append(loadedEntriesText)
-                .Append('|')
-                .Append(statusMessage);
-
-            foreach (SaveDataRegistryEntryInfo entry in entries)
-            {
-                builder.Append('|')
-                    .Append(entry.DataType.AssemblyQualifiedName)
-                    .Append(':')
-                    .Append(entry.SaveDate)
-                    .Append(':')
-                    .Append(entry.Data == null ? 0 : RuntimeHelpers.GetHashCode(entry.Data));
-            }
-
-            return builder.ToString();
-        }
-
-        /// <summary> 対応型の順序に揃えた保存済みまたはキャッシュ済みエントリ一覧を取得する。 </summary>
-        private List<SaveDataRegistryEntryInfo> GetSortedEntries()
-        {
-            IReadOnlyList<SaveDataRegistryEntryInfo> registryEntries = SaveDataRegistry.GetEntries();
-            if (ReferenceEquals(registryEntries, _registryEntriesSnapshot))
-            {
-                return _sortedEntries;
-            }
-
-            _registryEntriesSnapshot = registryEntries;
-            Dictionary<Type, SaveDataRegistryEntryInfo> loadedEntries = registryEntries
+            Dictionary<Type, SaveDataDto> cachedEntries = _cachedEntries
                 .ToDictionary(entry => entry.DataType);
 
-            List<SaveDataRegistryEntryInfo> entries = new(_saveDataTypes.Count);
+            List<SaveDataEntryRow> rows = new(_saveDataTypes.Count);
             foreach (Type saveDataType in _saveDataTypes)
             {
-                if (loadedEntries.TryGetValue(saveDataType, out SaveDataRegistryEntryInfo loadedEntry))
+                bool isSaved = SaveDataRegistry.IsInitialized
+                    && SaveDataRegistry.Exists(saveDataType);
+
+                if (cachedEntries.TryGetValue(saveDataType, out SaveDataDto cachedEntry))
                 {
-                    entries.Add(loadedEntry);
+                    rows.Add(new SaveDataEntryRow(
+                        saveDataType,
+                        cachedEntry.SaveDate,
+                        cachedEntry.IsLoaded,
+                        isSaved));
                     continue;
                 }
 
-                if (SaveDataRegistry.Exists(saveDataType))
+                if (isSaved)
                 {
-                    entries.Add(new SaveDataRegistryEntryInfo(saveDataType, null));
-                    continue;
+                    rows.Add(new SaveDataEntryRow(saveDataType, null, false, true));
                 }
             }
 
-            _sortedEntries = entries;
-            return _sortedEntries;
+            return rows;
         }
 
         /// <summary> 一部の型をロードできないAssemblyからも取得可能な型だけを列挙する。 </summary>

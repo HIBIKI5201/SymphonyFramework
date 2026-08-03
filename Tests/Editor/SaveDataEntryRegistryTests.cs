@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using NUnit.Framework;
@@ -136,7 +136,7 @@ namespace SymphonyFrameWork.Tests
             SaveDataEntryEntity second = registry.GetOrCreate(typeof(OtherSaveData));
 
             Assert.That(second, Is.Not.SameAs(first));
-            Assert.That(registry.GetEntrySnapshot().Count, Is.EqualTo(2));
+            Assert.That(registry.GetEntities().Count, Is.EqualTo(2));
         }
 
         /// <summary> 未登録の型は未読み込みとして扱う。 </summary>
@@ -158,7 +158,6 @@ namespace SymphonyFrameWork.Tests
             registry.MarkLoaded(typeof(TestSaveData), entry.Content);
 
             Assert.That(registry.IsLoaded(typeof(TestSaveData)), Is.True);
-            Assert.That(registry.GetLoadedTypes(), Is.EqualTo(new[] { typeof(TestSaveData) }));
         }
 
         /// <summary> 別インスタンスでは読み込み済みにしない。 </summary>
@@ -184,24 +183,20 @@ namespace SymphonyFrameWork.Tests
             registry.MarkUnloaded(typeof(TestSaveData));
 
             Assert.That(registry.IsLoaded(typeof(TestSaveData)), Is.False);
-            Assert.That(registry.GetLoadedTypes(), Is.Empty);
         }
 
-        /// <summary> 内容が変わらない間はスナップショットを再利用する。 </summary>
+        /// <summary> 列挙用に返すのは複製であり、変更してもレジストリへ影響しない。 </summary>
         [Test]
-        public void Registry_GetEntrySnapshot_IsCachedUntilChanged()
+        public void Registry_GetEntities_ReturnsCopy()
         {
             var registry = new SaveDataEntryRegistry();
             registry.GetOrCreate(typeof(TestSaveData));
 
-            IReadOnlyList<SaveDataRegistryEntryInfo> first = registry.GetEntrySnapshot();
-            IReadOnlyList<SaveDataRegistryEntryInfo> second = registry.GetEntrySnapshot();
-
-            Assert.That(second, Is.SameAs(first));
-
+            IReadOnlyList<SaveDataEntryEntity> first = registry.GetEntities();
             registry.GetOrCreate(typeof(OtherSaveData));
 
-            Assert.That(registry.GetEntrySnapshot(), Is.Not.SameAs(first));
+            Assert.That(first.Count, Is.EqualTo(1), "取得済みの一覧は後から追加されたエントリを含まない。");
+            Assert.That(registry.GetEntities().Count, Is.EqualTo(2));
         }
 
         /// <summary> 全消去でエントリと読み込み済み状態が空になる。 </summary>
@@ -214,9 +209,51 @@ namespace SymphonyFrameWork.Tests
 
             registry.Clear();
 
-            Assert.That(registry.GetEntrySnapshot(), Is.Empty);
-            Assert.That(registry.GetLoadedTypes(), Is.Empty);
+            Assert.That(registry.GetEntities(), Is.Empty);
             Assert.That(registry.IsLoaded(typeof(TestSaveData)), Is.False);
+        }
+
+        #endregion
+
+        #region 版番号
+
+        /// <summary>
+        ///     版番号は状態が実際に変わったときだけ増える。
+        ///     Serviceが「通知すべき変化があったか」を判定するために使う。
+        /// </summary>
+        [Test]
+        public void Registry_Version_IncrementsOnlyOnActualChange()
+        {
+            var registry = new SaveDataEntryRegistry();
+            int initial = registry.Version;
+
+            SaveDataEntryEntity entry = registry.GetOrCreate(typeof(TestSaveData));
+            int afterCreate = registry.Version;
+            Assert.That(afterCreate, Is.GreaterThan(initial), "新規作成で増える。");
+
+            registry.GetOrCreate(typeof(TestSaveData));
+            Assert.That(registry.Version, Is.EqualTo(afterCreate), "既存エントリの取得では増えない。");
+
+            registry.MarkLoaded(typeof(TestSaveData), entry.Content);
+            int afterLoad = registry.Version;
+            Assert.That(afterLoad, Is.GreaterThan(afterCreate), "読み込み済みへの遷移で増える。");
+
+            registry.MarkLoaded(typeof(TestSaveData), entry.Content);
+            Assert.That(registry.Version, Is.EqualTo(afterLoad), "同じ状態の再設定では増えない。");
+
+            registry.MarkUnloaded(typeof(TestSaveData));
+            int afterUnload = registry.Version;
+            Assert.That(afterUnload, Is.GreaterThan(afterLoad), "読み込み済みの解除で増える。");
+
+            registry.MarkUnloaded(typeof(TestSaveData));
+            Assert.That(registry.Version, Is.EqualTo(afterUnload), "未読み込みの再解除では増えない。");
+
+            registry.Clear();
+            int afterClear = registry.Version;
+            Assert.That(afterClear, Is.GreaterThan(afterUnload), "全消去で増える。");
+
+            registry.Clear();
+            Assert.That(registry.Version, Is.EqualTo(afterClear), "空の状態の再消去では増えない。");
         }
 
         #endregion
