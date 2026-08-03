@@ -1,4 +1,4 @@
-using SymphonyFrameWork.Config;
+﻿using SymphonyFrameWork.Config;
 using SymphonyFrameWork.System.SaveSystem;
 using System.Collections.Generic;
 using UnityEditor;
