@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.18.1] - 2026-08-04
+### Change
+- Audioの内部構造をレイヤーごとに分割した。Scene Load、Service Locate、Save Data、Pauseと同じ形へ揃えている。**公開APIのシグネチャ、例外の種類と条件はいずれも変更していない。**
+  - `AudioGroupEntity`（Domain）— グループ名を同一性とし、音量割合からデシベル値への変換規則を持つ
+  - `AudioGroupRegistry`（Application）— グループの保持と、構築処理を実行済みかどうかの記録
+  - `AudioService`（Application）— Configの解釈、AudioSourceの遅延構築、AudioMixerへの反映
+  - `IAudioSourceHost` / `AudioSourceHost`（Infrastructure）— AudioSourceを載せるGameObjectの所有
+  - `AudioManager` は引数検証と転送だけを行い、状態を持たなくなった
+- `AudioManager.cs` を `Runtime/System/Audio/` へ移した。名前空間は変更していないため、利用側の `using` に影響しない。
+- 音量変換に使う最小音量 `-80` dB を `AudioGroupEntity.MINIMUM_VOLUME_DECIBEL` として名前付き定数にした。変換式は従来と恒等。
+
+### Fix
+- **AudioMixerが未割り当ての場合に、空の `AudioManager` GameObject が `DontDestroyOnLoad` へ生成されていたのを修正した。** GameObjectの生成を最初のAudioSource生成まで遅らせたため、1つも作らない場合は生成されない。
+- **公開パラメーターが見つからないオーディオグループで、音量変更時の警告が出ていなかったのを修正した。** 初期音量へ0を代入していたため判定が常に成立せず、存在しないパラメーター名で `SetFloat` が呼ばれていた（Unity側で黙って失敗する）。従来も音量は変わっておらず、観測される差は警告が出るようになる点のみ。
+
+### Add
+- `AudioGroupEntity` と `AudioGroupRegistry` のEditModeテストを14件追加した。音量変換の境界値と線形補間、初期音量が取得できない場合の扱い、構築済み記録が全消去で戻ることを検証する。
+  - **全消去で構築済み記録が戻ること**を回帰テストにした。ここが戻らないとPlay Modeの2回目でAudioSourceが作られなくなる。
+
 ## [2.18.0] - 2026-08-03
 ### Add
 - ポーズ機構の管理状態を取得時点の不変値として返す公開 `PauseInfo` を追加した。`PauseManager.GetPauseInfo()` でポーズ状態と `IPausable` の購読件数を取得できる。購読件数は解除し忘れが積み上がっていないかの確認に使う。
