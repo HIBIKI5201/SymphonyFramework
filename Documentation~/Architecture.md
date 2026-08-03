@@ -246,6 +246,21 @@ flowchart LR
 
 `PauseStateEntity`が「状態が実際に変化したか」を判定するため、同じ値の再設定では`OnPauseChanged`を発行しません。
 
+Audioは読み取り経路の利用者（Editor WindowとMCP診断）が無いため、QueryとViewModelを持ちません。
+
+```mermaid
+flowchart LR
+    Facade["AudioManager"] -->|Command| Service["AudioService"]
+    Service --> Registry["AudioGroupRegistry"]
+    Registry --> Entity["AudioGroupEntity"]
+    Service --> HostContract["IAudioSourceHost"]
+    Host["AudioSourceHost"] --> HostContract
+    Host --> Factory["ISystemObjectFactory"]
+    Service --> Config["AudioManagerConfig / AudioMixer"]
+```
+
+`AudioSourceHost`は**最初にAudioSourceを求められた時点で初めてGameObjectを生成します。** AudioMixerが未割り当てなどでAudioSourceを1つも作らない場合、GameObjectも作られません。
+
 `OnPauseChanged`（利用側が購読する公開event）の購読者例外は握りません。`OnStateChanged`（表示専用）だけは発行側で捕捉してログへ出し、ViewModelの失敗をゲーム側のポーズ処理へ波及させません。
 
 ## シーンロード時の連携
