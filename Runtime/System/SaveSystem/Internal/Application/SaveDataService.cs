@@ -83,26 +83,26 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定型の永続化データをキャッシュへ非同期に読み込む。 </summary>
         /// <param name="dataType"> 対象のセーブデータ型。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        /// <returns> 読み込みの完了を表すValueTask。 </returns>
-        public ValueTask LoadAsync(Type dataType, CancellationToken token = default)
+        /// <returns> 読み込みの完了を表すTask。 </returns>
+        public Task LoadAsync(Type dataType, CancellationToken token = default)
         {
             SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
 
             if (_registry.TryGetLoadingTask(dataType, out Task loadingTask))
             {
-                return new ValueTask(loadingTask);
+                return loadingTask;
             }
 
             Task loadTask = LoadInternalAsync(dataType, entry.Content, token);
             _registry.RegisterLoadingTaskIfPending(dataType, loadTask);
-            return new ValueTask(loadTask);
+            return loadTask;
         }
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
         /// <param name="dataType"> 対象のセーブデータ型。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        /// <returns> 保存の完了を表すValueTask。 </returns>
-        public async ValueTask SaveAsync(Type dataType, CancellationToken token = default)
+        /// <returns> 保存の完了を表すTask。 </returns>
+        public async Task SaveAsync(Type dataType, CancellationToken token = default)
         {
             SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
             SaveDataContent content = entry.Content;
@@ -121,8 +121,8 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定型の永続化データを削除し、キャッシュを既定値へ戻す。 </summary>
         /// <param name="dataType"> 対象のセーブデータ型。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        /// <returns> 削除の完了を表すValueTask。 </returns>
-        public async ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
+        /// <returns> 削除の完了を表すTask。 </returns>
+        public async Task DeleteAsync(Type dataType, CancellationToken token = default)
         {
             SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
             SaveDataContent content = entry.Content;

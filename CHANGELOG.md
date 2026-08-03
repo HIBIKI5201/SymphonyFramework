@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.0.0-preview.3] - 2026-08-04
+### Breaking
+- **`SaveStore` の非同期API6件が `ValueTask` ではなく `Awaitable` を返すようになりました。** 対象は `LoadAsync<T>` / `LoadAsync(Type)` / `SaveAsync<T>` / `SaveAsync(Type)` / `DeleteAsync<T>` / `DeleteAsync(Type)` です。
+
+  **移行方法**: `await` して使っている場合、**ソースの変更は不要です。**
+
+  ```csharp
+  // 2.x でも 3.0.0 でもそのまま動く
+  await SaveStore.SaveAsync<PlayerData>();
+  PlayerData data = await SaveStore.LoadAsync<PlayerData>();
+  ```
+
+  `Task` や `ValueTask` として受けている場合は `SymphonyAwaitable.AsTask` で変換します。**`Awaitable` は1回しか `await` できず、保存も共有もできません。**
+
+  非推奨の `SaveDataRegistry` も同じ戻り値型になります。
+
+- **`SaveStore` の同期取得 `Get<T>()` の挙動は変わりません。** 内部の読み込み経路は `Task` のままです。
+
+### Change
+- **Symphony Administrator の Save Data パネルが Load / Save / Delete を非同期で実行するようになりました。** 従来は完了まで Editor のメインスレッドを止めていました。`Awaitable` を同期待機すると完了の伝播にメインスレッドが必要なためデッドロックするため、この変更は `Awaitable` 化と不可分です。
+
+### Add
+- `SaveStore` の非同期APIのPlayModeテストを6件追加した。保存と読み込みの往復、削除で既定値へ戻ること、キャンセル時の例外型、不正な型の同期例外を検証する。
+  - **同じ型へ続けて `LoadAsync` を呼んでも両方が完了すること**を回帰テストにした。内部は重複排除で1つの `Task` を共有するが、`Awaitable` は共有できないため呼び出しごとに別の `Awaitable` を作っている。この両立が壊れると、2回目の読み込みが返ってこなくなる。
+
 ## [3.0.0-preview.2] - 2026-08-04
 ### Breaking
 - **`PauseManager.PausableDestroy` と `PausableInvoke` が `void` ではなく `Awaitable` を返すようになりました。**
