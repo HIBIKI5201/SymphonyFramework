@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.16.0] - 2026-08-03
+### Change
+- Save Dataの内部構造をレイヤーごとに分割した。`SaveDataRegistry`（420行）が公開Facade・キャッシュ保持・処理順・例外変換・ローダー解決・スナップショット生成をすべて担っていたため、Scene LoadおよびService Locateと同じ形へ揃えた。**公開APIのシグネチャ、例外の種類と条件、シリアライズ形式はいずれも変更していない。**
+  - `SaveDataEntryEntity`（Domain）— セーブデータ型を同一性とし、キャッシュ内容と読み込み済み状態を保持する。状態変更は状態遷移メソッドからのみ行う
+  - `SaveDataEntryRegistry`（Application）— 型をキーにEntityを所有・検索する。排他制御をこの型へ集約し、Service側はロックを意識しない
+  - `SaveDataService`（Application）— 処理順、重複ロードの排除、`SaveDataOperationException` への変換、ローダー解決を担当する
+  - `SaveDataRegistry` は引数検証と転送だけを行い、状態を持たなくなった
+- `JsonUtilitySaveDataLoader` と `NewtonsoftSaveDataLoader` を `Internal/Infrastructure/` へ移した。GUIDは維持しているため、既存の参照は切れない。
+
+### Add
+- `SaveDataEntryEntity` と `SaveDataEntryRegistry` のEditModeテストを17件追加した。同一性、読み込み済み状態の遷移、型ごとの独立性、スナップショットのキャッシュ、全消去を検証する。
+  - **同期的に完了するローダーで進行中タスクを登録しないこと**を回帰テストにした。従来はコード上のコメントでのみ説明されていたが、ここが壊れると「Loadしても保存済みデータが読み込まれない」という発見しにくい不具合になるため、テストで固定した。
+
 ## [2.15.0] - 2026-08-03
 ### Add
 - 登録キー、payload、登録方式を取得時点の不変値として返す公開`ServiceRegistrationInfo`を追加した。`ServiceLocator.GetRegistrationInfos()`で登録一覧を型名順に取得でき、`TryGetRegistrationInfo`で既知の型を点検索できる。

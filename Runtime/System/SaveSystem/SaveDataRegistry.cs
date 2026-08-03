@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +9,7 @@ namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
     ///     プロジェクト設定に従ってセーブデータを一括管理するレジストリです。
+    ///     引数の検証と<see cref="SaveDataService"/>への転送だけを行い、状態は保持しません。
     /// </summary>
     public static class SaveDataRegistry
     {
@@ -24,28 +25,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         public static bool Exists(Type dataType)
         {
             ValidateDataType(dataType);
-            SaveDataLoader loader = GetLoader();
-
-            try
-            {
-                return loader.Exists(dataType);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (SaveDataOperationException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new SaveDataOperationException(
-                    SaveDataOperation.Exists,
-                    dataType,
-                    loader.GetType(),
-                    ex);
-            }
+            return EnsureInitialized().Exists(dataType);
         }
 
         /// <summary> 指定型のキャッシュまたは保存済みデータを同期的に取得する。 </summary>
@@ -63,15 +43,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         public static SaveDataContent Get(Type dataType)
         {
             ValidateDataType(dataType);
-
-            SaveDataContent data = GetOrCreateCache(dataType);
-
-            if (!IsLoaded(dataType))
-            {
-                LoadAsync(dataType).GetAwaiter().GetResult();
-            }
-
-            return data;
+            return EnsureInitialized().Get(dataType);
         }
 
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
@@ -89,31 +61,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         public static ValueTask LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            SaveDataContent current = GetOrCreateCache(dataType);
-
-            lock (_lock)
-            {
-                if (_loadingTasks.TryGetValue(dataType, out Task loadingTask))
-                {
-                    return new ValueTask(loadingTask);
-                }
-
-                Task loadTask = LoadInternalAsync(dataType, current, token);
-
-                // 既定のローダー（PlayerPrefs ベース）は同期的に完了するため、この時点で
-                // loadTask は既に完了しており、LoadInternalAsync の finally による
-                // 自己解除もすでに実行済みである。ここで無条件に登録すると、完了済みの
-                // 古いタスクが _loadingTasks に残り続け、以降の LoadAsync 呼び出しが
-                // すべて「重複リクエスト」とみなされて実際のロードが二度と走らなくなる
-                // （＝ Load しても保存済みデータが読み込まれない）バグになる。
-                // 未完了（本当に非同期I/Oを行うローダー）の場合のみ重複排除用に登録する。
-                if (!loadTask.IsCompleted)
-                {
-                    _loadingTasks[dataType] = loadTask;
-                }
-
-                return new ValueTask(loadTask);
-            }
+            return EnsureInitialized().LoadAsync(dataType, token);
         }
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
@@ -127,17 +75,10 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static async ValueTask SaveAsync(Type dataType, CancellationToken token = default)
+        public static ValueTask SaveAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            SaveDataContent data = GetOrCreateCache(dataType);
-            SaveDataLoader loader = GetLoader();
-            await ExecuteLoaderOperationAsync(
-                SaveDataOperation.Save,
-                dataType,
-                loader,
-                () => loader.SaveAsync(dataType, data, token));
-            MarkLoaded(dataType, data);
+            return EnsureInitialized().SaveAsync(dataType, token);
         }
 
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
@@ -151,65 +92,25 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static async ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
+        public static ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            SaveDataContent current = GetOrCreateCache(dataType);
-
-            lock (_lock)
-            {
-                _loadedTypes.Remove(dataType);
-            }
-
-            SaveDataLoader loader = GetLoader();
-            await ExecuteLoaderOperationAsync(
-                SaveDataOperation.Delete,
-                dataType,
-                loader,
-                () => loader.DeleteAsync(dataType, token));
-            await ExecuteLoaderOperationAsync(
-                SaveDataOperation.Load,
-                dataType,
-                loader,
-                () => loader.LoadAsync(dataType, current, token));
-            MarkLoaded(dataType, current);
+            return EnsureInitialized().DeleteAsync(dataType, token);
         }
 
         /// <summary> 現在キャッシュされている全エントリの読み取り専用スナップショットを取得する。 </summary>
         public static IReadOnlyList<SaveDataRegistryEntryInfo> GetEntries()
         {
-            lock (_lock)
-            {
-                if (!_entrySnapshotDirty)
-                {
-                    return _entrySnapshot;
-                }
-
-                List<SaveDataRegistryEntryInfo> entries = new(_cache.Count);
-                foreach ((Type type, SaveDataContent saveData) in _cache)
-                {
-                    entries.Add(new SaveDataRegistryEntryInfo(type, saveData));
-                }
-
-                _entrySnapshot = entries.AsReadOnly();
-                _entrySnapshotDirty = false;
-                return _entrySnapshot;
-            }
+            return _service?.GetEntries() ?? Array.Empty<SaveDataRegistryEntryInfo>();
         }
 
         /// <summary> Save Data Registryが初期化済みかどうか。 </summary>
-        internal static bool IsInitialized => _loaderResolver != null;
+        internal static bool IsInitialized => _service != null;
 
         /// <summary> 読み込み済みとして記録されているセーブデータ型のスナップショット。 </summary>
         internal static IReadOnlyCollection<Type> LoadedTypes
         {
-            get
-            {
-                lock (_lock)
-                {
-                    return new List<Type>(_loadedTypes).AsReadOnly();
-                }
-            }
+            get => _service?.GetLoadedTypes() ?? Array.Empty<Type>();
         }
 
         /// <summary>
@@ -228,141 +129,32 @@ namespace SymphonyFrameWork.System.SaveSystem
         internal static void ConfigureLoaderResolver(
             Func<SaveDataLoader> loaderResolver)
         {
-            _loaderResolver = loaderResolver
-                ?? throw new ArgumentNullException(nameof(loaderResolver));
-            ResetRuntimeState();
+            if (loaderResolver == null)
+            {
+                throw new ArgumentNullException(nameof(loaderResolver));
+            }
+
+            _service?.Reset();
+            _service = new SaveDataService(new SaveDataEntryRegistry(), loaderResolver);
         }
 
         /// <summary> Domain Reloadの有無に依存しないようランタイム状態を初期化する。 </summary>
         internal static void ResetRuntimeState()
         {
-            _cachedLoader = null;
-            ClearCache();
+            _service?.Reset();
         }
 
         /// <summary>
         ///     現在選択されているローダーを取得する。
         ///     Adaptorが選んだ実装は公開APIへ出さず、状態を表示するEditorウィンドウからのみ参照する。
         /// </summary>
-        internal static SaveDataLoader GetCurrentLoader() => GetLoader();
+        internal static SaveDataLoader GetCurrentLoader() => EnsureInitialized().GetCurrentLoader();
 
-        /// <summary>
-        ///     ロードを発生させずにキャッシュ済みインスタンスを取得します。無ければ既定値で作成します。
-        /// </summary>
-        private static SaveDataContent GetOrCreateCache(Type dataType)
+        /// <summary> Compositionからローダーが注入済みであることを確認する。 </summary>
+        /// <returns> 処理を委譲するService。 </returns>
+        private static SaveDataService EnsureInitialized()
         {
-            lock (_lock)
-            {
-                if (_cache.TryGetValue(dataType, out SaveDataContent cached) && cached != null)
-                {
-                    return cached;
-                }
-
-                SaveDataContent created = (SaveDataContent)Activator.CreateInstance(dataType);
-                _cache[dataType] = created;
-                _entrySnapshotDirty = true;
-                return created;
-            }
-        }
-
-        /// <summary> 指定型がキャッシュへ読み込み済みか確認する。 </summary>
-        private static bool IsLoaded(Type dataType)
-        {
-            lock (_lock)
-            {
-                return _loadedTypes.Contains(dataType);
-            }
-        }
-
-        /// <summary> キャッシュが同一インスタンスの場合だけ指定型を読み込み済みとして記録する。 </summary>
-        private static void MarkLoaded(Type dataType, SaveDataContent data)
-        {
-            lock (_lock)
-            {
-                if (_cache.TryGetValue(dataType, out SaveDataContent cached)
-                    && ReferenceEquals(cached, data))
-                {
-                    _loadedTypes.Add(dataType);
-                }
-            }
-        }
-
-        /// <summary> 重複ロード管理の後始末を保証しながら対象データを読み込む。 </summary>
-        private static async Task LoadInternalAsync(Type dataType, SaveDataContent current, CancellationToken token)
-        {
-            try
-            {
-                SaveDataLoader loader = GetLoader();
-                await ExecuteLoaderOperationAsync(
-                    SaveDataOperation.Load,
-                    dataType,
-                    loader,
-                    () => loader.LoadAsync(dataType, current, token));
-                MarkLoaded(dataType, current);
-            }
-            finally
-            {
-                lock (_lock)
-                {
-                    _loadingTasks.Remove(dataType);
-                }
-            }
-        }
-
-        /// <summary> ローダー操作へセーブデータ型とローダー型の文脈を付けて実行する。 </summary>
-        /// <param name="operation"> 実行する操作。 </param>
-        /// <param name="dataType"> 操作対象のセーブデータ型。 </param>
-        /// <param name="loader"> 操作に使用するローダー。 </param>
-        /// <param name="execute"> 実行するローダー処理。 </param>
-        private static async ValueTask ExecuteLoaderOperationAsync(
-            SaveDataOperation operation,
-            Type dataType,
-            SaveDataLoader loader,
-            Func<ValueTask> execute)
-        {
-            try
-            {
-                await execute();
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (SaveDataOperationException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new SaveDataOperationException(
-                    operation,
-                    dataType,
-                    loader.GetType(),
-                    ex);
-            }
-        }
-
-        /// <summary> キャッシュ済みローダーを返し、未解決の場合はCompositionのresolverから取得する。 </summary>
-        private static SaveDataLoader GetLoader()
-        {
-            if (_cachedLoader != null)
-            {
-                return _cachedLoader;
-            }
-
-            if (_loaderResolver == null)
-            {
-                throw new SymphonyNotInitializedException(typeof(SaveDataRegistry));
-            }
-
-            _cachedLoader = _loaderResolver();
-            if (_cachedLoader == null)
-            {
-                throw new InvalidOperationException(
-                    $"[{nameof(SaveDataRegistry)}] ローダーの解決結果がnullです。");
-            }
-
-            return _cachedLoader;
+            return _service ?? throw new SymphonyNotInitializedException(typeof(SaveDataRegistry));
         }
 
         /// <summary> レジストリで扱えるデフォルトコンストラクタ付き具象型か検証する。 </summary>
@@ -389,32 +181,6 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
-        /// <summary> キャッシュされたデータを破棄し、ロード管理状態を消去する。 </summary>
-        private static void ClearCache()
-        {
-            lock (_lock)
-            {
-                foreach (SaveDataContent saveData in _cache.Values)
-                {
-                    saveData?.Dispose();
-                }
-
-                _cache.Clear();
-                _loadedTypes.Clear();
-                _loadingTasks.Clear();
-                _entrySnapshotDirty = true;
-            }
-        }
-
-        private static readonly object _lock = new();
-        private static readonly Dictionary<Type, SaveDataContent> _cache = new();
-        private static readonly HashSet<Type> _loadedTypes = new();
-        private static readonly Dictionary<Type, Task> _loadingTasks = new();
-
-        private static IReadOnlyList<SaveDataRegistryEntryInfo> _entrySnapshot = Array.Empty<SaveDataRegistryEntryInfo>();
-        private static bool _entrySnapshotDirty = true;
-
-        private static Func<SaveDataLoader> _loaderResolver;
-        private static SaveDataLoader _cachedLoader;
+        private static SaveDataService _service;
     }
 }
