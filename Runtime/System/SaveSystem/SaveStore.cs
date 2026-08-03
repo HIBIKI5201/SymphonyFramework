@@ -4,6 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Utility;
+
+using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
@@ -49,53 +52,69 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static async ValueTask<T> LoadAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
+        public static Awaitable<T> LoadAsync<T>(CancellationToken token = default)
+            where T : SaveDataContent, new()
         {
-            await LoadAsync(typeof(T), token);
-            return Get<T>();
+            ValidateDataType(typeof(T));
+            SaveDataService service = EnsureInitialized();
+
+            return SymphonyAwaitable.FromTask(LoadAndGetAsync<T>(service, token));
         }
 
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask LoadAsync(Type dataType, CancellationToken token = default)
+        public static Awaitable LoadAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            return EnsureInitialized().LoadAsync(dataType, token);
+
+            // 重複ロード中は同じTaskが返るが、FromTaskが呼び出しごとに新しい
+            // Awaitableを作るため、Awaitableを共有できないという制約と両立する。
+            return SymphonyAwaitable.FromTask(EnsureInitialized().LoadAsync(dataType, token));
         }
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask SaveAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
-        {
-            return SaveAsync(typeof(T), token);
-        }
+        public static Awaitable SaveAsync<T>(CancellationToken token = default)
+            where T : SaveDataContent, new() => SaveAsync(typeof(T), token);
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask SaveAsync(Type dataType, CancellationToken token = default)
+        public static Awaitable SaveAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            return EnsureInitialized().SaveAsync(dataType, token);
+            return SymphonyAwaitable.FromTask(EnsureInitialized().SaveAsync(dataType, token));
         }
 
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static async ValueTask DeleteAsync<T>(CancellationToken token = default) where T : SaveDataContent, new()
-        {
-            await DeleteAsync(typeof(T), token);
-        }
+        public static Awaitable DeleteAsync<T>(CancellationToken token = default)
+            where T : SaveDataContent, new() => DeleteAsync(typeof(T), token);
 
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
+        public static Awaitable DeleteAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
-            return EnsureInitialized().DeleteAsync(dataType, token);
+            return SymphonyAwaitable.FromTask(EnsureInitialized().DeleteAsync(dataType, token));
+        }
+
+        /// <summary> 読み込み完了後のインスタンスを返す。 </summary>
+        /// <typeparam name="T"> 対象のセーブデータ型。 </typeparam>
+        /// <param name="service"> 処理を委譲するService。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 読み込み後のインスタンス。 </returns>
+        private static async Task<T> LoadAndGetAsync<T>(
+            SaveDataService service,
+            CancellationToken token)
+            where T : SaveDataContent, new()
+        {
+            await service.LoadAsync(typeof(T), token);
+            return (T)service.Get(typeof(T));
         }
 
         /// <summary>

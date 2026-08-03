@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using UnityEngine;
+
 namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary>
@@ -35,37 +37,37 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask<T> LoadAsync<T>(CancellationToken token = default)
+        public static Awaitable<T> LoadAsync<T>(CancellationToken token = default)
             where T : SaveDataContent, new() => SaveStore.LoadAsync<T>(token);
 
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask LoadAsync(Type dataType, CancellationToken token = default) =>
+        public static Awaitable LoadAsync(Type dataType, CancellationToken token = default) =>
             SaveStore.LoadAsync(dataType, token);
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask SaveAsync<T>(CancellationToken token = default)
+        public static Awaitable SaveAsync<T>(CancellationToken token = default)
             where T : SaveDataContent, new() => SaveStore.SaveAsync<T>(token);
 
         /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask SaveAsync(Type dataType, CancellationToken token = default) =>
+        public static Awaitable SaveAsync(Type dataType, CancellationToken token = default) =>
             SaveStore.SaveAsync(dataType, token);
 
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask DeleteAsync<T>(CancellationToken token = default)
+        public static Awaitable DeleteAsync<T>(CancellationToken token = default)
             where T : SaveDataContent, new() => SaveStore.DeleteAsync<T>(token);
 
         /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
         /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static ValueTask DeleteAsync(Type dataType, CancellationToken token = default) =>
+        public static Awaitable DeleteAsync(Type dataType, CancellationToken token = default) =>
             SaveStore.DeleteAsync(dataType, token);
 
         /// <summary>

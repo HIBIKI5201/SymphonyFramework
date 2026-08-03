@@ -89,9 +89,9 @@ namespace SymphonyFrameWork.Editor
             _editorContainer = root.Q<IMGUIContainer>("save-editor");
             _cacheListView = root.Q<ListView>("save-cache-list");
 
-            root.Q<Button>("save-load").clicked += () => ExecuteAction(LoadSelected);
-            root.Q<Button>("save-save").clicked += () => ExecuteAction(SaveSelected);
-            root.Q<Button>("save-delete").clicked += () => ExecuteAction(DeleteSelected);
+            root.Q<Button>("save-load").clicked += () => ExecuteActionAsync(LoadSelectedAsync);
+            root.Q<Button>("save-save").clicked += () => ExecuteActionAsync(SaveSelectedAsync);
+            root.Q<Button>("save-delete").clicked += () => ExecuteActionAsync(DeleteSelectedAsync);
 
             _editorContainer.onGUIHandler = DrawEditorInspector;
 
@@ -385,9 +385,10 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 選択中の型を保存先から再ロードして編集状態へ反映する。 </summary>
-        private void LoadSelected()
+        /// <returns> ロード完了までの待機を表すAwaitable。 </returns>
+        private async Awaitable LoadSelectedAsync()
         {
-            SaveStore.LoadAsync(_selectedType).GetAwaiter().GetResult();
+            await SaveStore.LoadAsync(_selectedType);
             SaveDataContent saveData = SaveStore.Get(_selectedType);
 
             RebindDebugState(saveData);
@@ -396,7 +397,8 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> Inspectorの編集内容をレジストリ正本へ同期して保存する。 </summary>
-        private void SaveSelected()
+        /// <returns> 保存完了までの待機を表すAwaitable。 </returns>
+        private async Awaitable SaveSelectedAsync()
         {
             SaveDataContent editingData = _debugState.GetData();
             if (editingData == null)
@@ -414,7 +416,7 @@ namespace SymphonyFrameWork.Editor
                 JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(editingData), canonical);
             }
 
-            SaveStore.SaveAsync(_selectedType).GetAwaiter().GetResult();
+            await SaveStore.SaveAsync(_selectedType);
             SaveDataContent saveData = SaveStore.Get(_selectedType);
             RebindDebugState(saveData);
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
@@ -422,8 +424,10 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 確認後に選択型の保存データを削除し、現在インスタンスを初期化する。 </summary>
-        private void DeleteSelected()
+        /// <returns> 削除完了までの待機を表すAwaitable。 </returns>
+        private async Awaitable DeleteSelectedAsync()
         {
+            // 確認ダイアログは同期のまま先に出し、承諾後だけ待機へ入る。
             if (!EditorUtility.DisplayDialog(
                     "Delete Save Data",
                     $"{_selectedType.FullName} の保存データを削除しますか？",
@@ -433,7 +437,7 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            SaveStore.DeleteAsync(_selectedType).GetAwaiter().GetResult();
+            await SaveStore.DeleteAsync(_selectedType);
             SaveDataContent regenerated = SaveStore.Get(_selectedType);
             RebindDebugState(regenerated);
             _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
@@ -457,8 +461,13 @@ namespace SymphonyFrameWork.Editor
             _debugSerializedObject = new SerializedObject(_debugState);
         }
 
-        /// <summary> 選択状態を検証し、管理パネル操作中の例外をステータス表示へ変換する。 </summary>
-        private void ExecuteAction(Action action)
+        /// <summary>
+        ///     選択状態を検証し、管理パネル操作中の例外をステータス表示へ変換する。
+        ///     **Awaitableを同期待機するとEditorのメインスレッドが止まるため、非同期で実行する。**
+        ///     UIイベントからの呼び出しであり例外はここで捕捉するため、async voidでよい。
+        /// </summary>
+        /// <param name="operation"> 実行する非同期操作。 </param>
+        private async void ExecuteActionAsync(Func<Awaitable> operation)
         {
             if (_selectedType == null)
             {
@@ -469,10 +478,15 @@ namespace SymphonyFrameWork.Editor
 
             try
             {
-                action();
+                await operation();
             }
             catch (Exception ex)
             {
+                if (_disposed)
+                {
+                    return;
+                }
+
                 Debug.LogException(ex);
                 _statusMessage = ex.Message;
                 RefreshView();
