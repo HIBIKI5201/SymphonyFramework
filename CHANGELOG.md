@@ -1,5 +1,42 @@
 # Changelog
 
+## [3.0.0-preview.1] - 2026-08-04
+
+**3.0.0 系の最初のプレビューです。** 破壊的変更を段階的に積み上げ、Phase 5（Awaitable移行）とPhase 6（改名とシム削除）を終えた時点で `3.0.0` として確定します。プレビュー版は「壊れることを承知で先行して試す」ためのものです。
+
+### Breaking
+- **`PauseManager` の非同期APIが `Task` ではなく `Awaitable` を返すようになりました。** 対象は `PausableNextFrameAsync`、`PausableWaitForSecondAsync`、`PausableWaitUntil` の3つです。
+
+  **移行方法**: `await` して使っている場合、**ソースの変更は不要です。**
+
+  ```csharp
+  // 2.x でも 3.0.0 でもそのまま動く
+  await PauseManager.PausableWaitForSecondAsync(1.0f, destroyCancellationToken);
+  ```
+
+  変更が必要なのは、戻り値を `Task` として受けている場合だけです。
+
+  ```csharp
+  // 2.x
+  Task task = PauseManager.PausableWaitForSecondAsync(1.0f);
+  await Task.WhenAll(task, other);
+
+  // 3.0.0
+  await SymphonyAwaitable.WhenAll(
+      PauseManager.PausableWaitForSecondAsync(1.0f),
+      other);
+  ```
+
+  **`Awaitable` は1回しか `await` できず、保存や共有ができません。** フィールドへ持たず、その場で待機してください。`Task` と混ぜる必要がある場合は `SymphonyAwaitable.AsTask` で変換します。
+
+  引数、例外の種類と条件、キャンセルの扱いは変更していません。キャンセル時は従来どおり `OperationCanceledException` です。
+
+  `PausableWaitForSecond`（Coroutine用の `IEnumerator` 版）、`PausableDestroy`、`PausableInvoke` は変更していません。`async void` の2つは、戻り値を持たせると await されなかった例外が観測できなくなるため据え置きます。
+
+### Add
+- Pauseの非同期APIのPlayModeテストを5件追加した。フレーム進行、指定秒の経過、**ポーズ中に待機が進まないこと**、キャンセル時の例外型、条件待機を検証する。
+  - キャンセルの検証は `Awaitable` を直接 `await` して行う。`AsTask` で包むと `TaskCanceledException` に化け、利用側が実際に受け取る型を測れないため。
+
 ## [2.20.0] - 2026-08-04
 ### Add
 - セーブデータの保存先を差し替える拡張点を `SaveDataLoaderStrategy` と `PlayerPrefsSaveDataLoaderStrategy` へ改名した。DesignPhilosophy の「拡張点には役割を表すサフィックスを付ける」に従う。中身（`protected abstract` メンバー）は変更していない。

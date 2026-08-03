@@ -61,6 +61,7 @@
 ## Pause Manager
 
 - ポーズ中も止める待機には`PausableWaitForSecondAsync`、`PausableWaitForSecond`、`PausableNextFrameAsync`を使う。`Task.Delay`や通常の`WaitForSeconds`では代用しない。
+- **非同期の待機APIは`Awaitable`を返す。** `Awaitable`は1回しか`await`できず、保存も共有もできない。フィールドへ持たず、その場で待機する。複数待機は`SymphonyAwaitable.WhenAll`、`Task`と混ぜる場合は`SymphonyAwaitable.AsTask`を使う。
 - `PauseManager.IPausable`は有効化時に登録し、無効化時に解除する。同じ対象を重複登録しても通知は1回だけ届く。
 - **`OnPauseChanged`は値が変わったときだけ発行される。** `Pause = true`を2回続けても`IPausable.Pause()`は1回しか呼ばれない。同じ値の再設定を通知の起点にしない。
 - ポーズ状態と`IPausable`の購読件数をまとめて調べる場合は`PauseManager.GetPauseInfo()`を使い、戻る`PauseInfo`を取得時点のスナップショットとして扱う。購読件数は解除し忘れの検出に使える。
