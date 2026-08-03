@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Threading;
-using System.Threading.Tasks;
 
 using SymphonyFrameWork.Exceptions;
 using SymphonyFrameWork.Utility;
@@ -81,7 +80,7 @@ namespace SymphonyFrameWork.System
         ///     ポーズ時に停止するNextFrameAsync
         /// </summary>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        public static async Task PausableNextFrameAsync(CancellationToken token = default)
+        public static async Awaitable PausableNextFrameAsync(CancellationToken token = default)
         {
             PauseQuery query = EnsureQuery();
 
@@ -113,8 +112,8 @@ namespace SymphonyFrameWork.System
         /// </summary>
         /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        /// <returns> 待機処理を表すTask。 </returns>
-        public static async Task PausableWaitForSecondAsync(float time, CancellationToken token = default)
+        /// <returns> 待機処理を表すAwaitable。 </returns>
+        public static async Awaitable PausableWaitForSecondAsync(float time, CancellationToken token = default)
         {
             PauseQuery query = EnsureQuery();
             ValidateDuration(time, nameof(time));
@@ -131,8 +130,8 @@ namespace SymphonyFrameWork.System
         /// </summary>
         /// <param name="action"> 待機終了条件を返す処理。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        /// <returns> 条件成立までの待機処理を表すTask。 </returns>
-        public static async Task PausableWaitUntil(Func<bool> action, CancellationToken token = default)
+        /// <returns> 条件成立までの待機処理を表すAwaitable。 </returns>
+        public static async Awaitable PausableWaitUntil(Func<bool> action, CancellationToken token = default)
         {
             PauseQuery query = EnsureQuery();
 
