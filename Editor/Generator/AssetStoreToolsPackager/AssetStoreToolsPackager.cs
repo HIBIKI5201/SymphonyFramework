@@ -93,23 +93,84 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 指定ディレクトリを選択された形式で出力し、必要に応じてZIP化する。 </summary>
         public static void Export(string[] directories, PackageModeEnum mode, bool createZip = false, bool usedDependencies = false)
         {
-            if (directories.Length == 0)
+            AssetStoreToolsPackagePlan plan = CreatePlan(directories, mode, createZip, usedDependencies);
+            if (plan == null)
+            {
+                return;
+            }
+
+            Export(plan);
+        }
+
+        /// <summary>
+        ///     出力内容を確定した計画を組み立てる。この時点ではファイルを出力しない。
+        /// </summary>
+        /// <param name="directories"> 出力対象のディレクトリ。 </param>
+        /// <param name="mode"> 個別出力と統合出力の指定。 </param>
+        /// <param name="createZip"> 出力後にZIP化するか。 </param>
+        /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
+        /// <returns> 出力計画。対象が無い場合や設定を読み込めない場合はnull。 </returns>
+        internal static AssetStoreToolsPackagePlan CreatePlan(
+            string[] directories,
+            PackageModeEnum mode,
+            bool createZip,
+            bool usedDependencies)
+        {
+            if (directories == null || directories.Length == 0)
             {
                 Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
-                return;
+                return null;
             }
 
             AssetStoreToolsPackagerConfig config = AssetStoreToolsPackagerConfigStore.Load();
             if (config == null)
             {
                 Debug.LogError($"[{nameof(AssetStoreToolsPackager)}]\n設定を読み込めなかったためパッケージを出力しませんでした。");
+                return null;
+            }
+
+            HashSet<string> usedAssetPaths = usedDependencies
+                ? GetProjectUsedDependencies(AssetStoreToolsPackagerData.AssetStoreToolsPath)
+                : null;
+
+            List<AssetStoreToolsPackagePlanEntry> entries = new();
+            foreach (string dir in directories)
+            {
+                entries.Add(new AssetStoreToolsPackagePlanEntry
+                {
+                    DirectoryPath = dir,
+                    Name = Path.GetFileName(dir),
+                    AssetPaths = usedAssetPaths != null
+                        ? CollectExportAssets(dir, usedAssetPaths, config.ForceIncludeExtensions)
+                        : CollectAllAssets(dir),
+                });
+            }
+
+            return new AssetStoreToolsPackagePlan
+            {
+                Mode = mode,
+                CreateZip = createZip,
+                UsedDependencies = usedDependencies,
+                Entries = entries,
+            };
+        }
+
+        /// <summary>
+        ///     確定済みの計画に従ってパッケージを出力し、必要に応じてZIP化する。
+        /// </summary>
+        /// <param name="plan"> 出力する計画。 </param>
+        internal static void Export(AssetStoreToolsPackagePlan plan)
+        {
+            if (plan == null || plan.Entries.Count == 0)
+            {
+                Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
                 return;
             }
 
             var context = new AssetStoreToolsPackageContext(
                 PACKAGE_NAME,
                 AssetStoreToolsPackagerData.ExportedPackagesPath,
-                directories
+                plan.Entries.Select(entry => entry.DirectoryPath).ToArray()
             );
 
             // 出力フォルダ作成
@@ -118,25 +179,17 @@ namespace SymphonyFrameWork.Editor
                 Directory.CreateDirectory(context.ExportFullPath);
             }
 
-
-            HashSet<string> usedAssetPaths = null;
-            if (usedDependencies)
+            if ((plan.Mode & PackageModeEnum.Singles) != 0)
             {
-                string astPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
-                usedAssetPaths = GetProjectUsedDependencies(astPath);
+                ExportPackage(context, plan);
             }
 
-            if ((mode & PackageModeEnum.Singles) != 0)
+            if ((plan.Mode & PackageModeEnum.Combine) != 0)
             {
-                ExportPackage(context, config.ForceIncludeExtensions, usedAssetPaths);
+                CreateCombinedPackage(context, plan);
             }
 
-            if ((mode & PackageModeEnum.Combine) != 0)
-            {
-                CreateCombinedPackage(context, config.ForceIncludeExtensions, usedAssetPaths);
-            }
-
-            if (createZip)
+            if (plan.CreateZip)
             {
                 CreateZip(context);
             }
@@ -151,34 +204,33 @@ namespace SymphonyFrameWork.Editor
         ///     個別のパッケージ生成。
         /// </summary>
         /// <param name="context"> 出力対象と出力先を保持するパッケージコンテキスト。 </param>
-        /// <param name="forceIncludeExtensions"> 依存関係に関わらず含める拡張子の一覧。 </param>
-        /// <param name="usedAssetPaths"> 使用中アセットだけを出力する場合のパス集合。 </param>
+        /// <param name="plan"> 出力内容を確定した計画。 </param>
         private static void ExportPackage(
             AssetStoreToolsPackageContext context,
-            IReadOnlyList<string> forceIncludeExtensions,
-            HashSet<string> usedAssetPaths = null)
+            AssetStoreToolsPackagePlan plan)
         {
-            foreach (string dir in context.ExportDirectories)
+            foreach (AssetStoreToolsPackagePlanEntry entry in plan.Entries)
             {
                 try
                 {
                     string[] exportFiles;
                     ExportPackageOptions options;
 
-                    if (usedAssetPaths != null)
+                    if (plan.UsedDependencies)
                     {
-                        exportFiles = CollectExportAssets(dir, usedAssetPaths, forceIncludeExtensions);
-                        options = ExportPackageOptions.Default;
-
-                        if (exportFiles.Length == 0)
+                        if (entry.AssetPaths.Count == 0)
                         {
-                            Debug.LogWarning($"使用中アセットなし: {dir}");
+                            Debug.LogWarning($"使用中アセットなし: {entry.DirectoryPath}");
                             continue;
                         }
+
+                        exportFiles = entry.AssetPaths.ToArray();
+                        options = ExportPackageOptions.Default;
                     }
                     else
                     {
-                        exportFiles = new[] { dir };
+                        // 丸ごと出力する経路。計画のAssetPathsは提示用で、出力はディレクトリ単位で行う。
+                        exportFiles = new[] { entry.DirectoryPath };
                         options = ExportPackageOptions.Recurse;
                     }
 
@@ -186,13 +238,13 @@ namespace SymphonyFrameWork.Editor
                         exportFiles,
                         Path.Combine(
                             context.ExportLocalPath,
-                            $"{Path.GetFileName(dir)}.unitypackage"),
+                            $"{entry.Name}.unitypackage"),
                         options
                     );
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"パッケージの出力に失敗しました: {dir}\n{e}");
+                    Debug.LogError($"パッケージの出力に失敗しました: {entry.DirectoryPath}\n{e}");
                 }
             }
         }
@@ -201,12 +253,10 @@ namespace SymphonyFrameWork.Editor
         ///     連結されたパッケージ生成。
         /// </summary>
         /// <param name="context"> 出力対象と出力先を保持するパッケージコンテキスト。 </param>
-        /// <param name="forceIncludeExtensions"> 依存関係に関わらず含める拡張子の一覧。 </param>
-        /// <param name="usedAssetPaths"> 使用中アセットだけを出力する場合のパス集合。 </param>
+        /// <param name="plan"> 出力内容を確定した計画。 </param>
         private static void CreateCombinedPackage(
             in AssetStoreToolsPackageContext context,
-            IReadOnlyList<string> forceIncludeExtensions,
-            HashSet<string> usedAssetPaths = null)
+            AssetStoreToolsPackagePlan plan)
         {
             try
             {
@@ -216,10 +266,10 @@ namespace SymphonyFrameWork.Editor
                 string[] exportFiles;
                 ExportPackageOptions options;
 
-                if (usedAssetPaths != null)
+                if (plan.UsedDependencies)
                 {
-                    exportFiles = context.ExportDirectories
-                        .SelectMany(dir => CollectExportAssets(dir, usedAssetPaths, forceIncludeExtensions))
+                    exportFiles = plan.Entries
+                        .SelectMany(entry => entry.AssetPaths)
                         .Distinct()
                         .ToArray();
                     options = ExportPackageOptions.Default;
@@ -346,6 +396,24 @@ namespace SymphonyFrameWork.Editor
                 .Where(path => !string.IsNullOrEmpty(path))
                 .Distinct()
                 .Where(path => IsExportTarget(path, usedAssetPaths, forceIncludeExtensions))
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        /// <summary>
+        ///     指定ディレクトリ配下の全アセットを収集する。
+        /// </summary>
+        /// <remarks>
+        ///     丸ごと出力する経路で、何が含まれるかを提示するために使う。
+        /// </remarks>
+        /// <param name="dir"> 収集対象のディレクトリ。 </param>
+        /// <returns> パスの昇順で並んだアセットのパス。フォルダ自体は含まない。 </returns>
+        private static string[] CollectAllAssets(string dir)
+        {
+            return AssetDatabase.FindAssets(string.Empty, new[] { dir })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Where(path => !string.IsNullOrEmpty(path) && !AssetDatabase.IsValidFolder(path))
+                .Distinct()
                 .OrderBy(path => path, StringComparer.Ordinal)
                 .ToArray();
         }
