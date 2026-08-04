@@ -149,7 +149,7 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
    | 項目 | 内容 |
    | --- | --- |
    | Export Mode `Singles` | 選んだフォルダを個別の `.unitypackage` として出力する |
-   | Export Mode `Combine` | 選んだフォルダを1つの `.unitypackage` にまとめて出力する |
+   | Export Mode `Combine` | **廃止予定。** 選んだフォルダを1つの `.unitypackage` にまとめて出力する。差分インポートの対象にならない（→[非推奨APIと削除予定](./Deprecations.md)） |
    | Create ZIP File | 出力フォルダ全体をZIP化する |
    | Used Dependencies | プロジェクト内で実際に使用しているアセットと、強制包含拡張子だけに絞る |
 
@@ -176,7 +176,7 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 
 - **`PackageVersions.json` と `ExportedVersion.json` は版管理へ含めてください。** インポート先での比較に使います。
 - リビジョンは「実際には変わっていないのに増える」ことがあります。Unityが再インポートしただけでも加算されるためです。これは**不要なインポートが1回余分に起きる方向**の誤りで、「変わったのに増えない」逆方向の誤りは起きません。
-- **統合パッケージ（`Export Mode = Combine`）は差分インポートの対象になりません。** ディレクトリ単位で取り出せないためです。`Combine` だけで出力すると `PackageManifest.json` は作られず、Consoleへ警告が出ます。
+- **統合パッケージ（`Export Mode = Combine`）は差分インポートの対象になりません。** ディレクトリ単位で取り出せないためです。`Combine` だけで出力すると `PackageManifest.json` は作られず、Consoleへ警告が出ます。**`Combine` は廃止予定です**（3.4.0で非推奨、次のメジャー更新で削除）。`Singles` を使用してください。
 - リビジョンを手で編集する場合、負の値は0として扱われます。
 
 ### 出力全般の注意点

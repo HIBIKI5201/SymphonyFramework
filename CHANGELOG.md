@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.4.0] - 2026-08-05
+Asset Store Tools Packager の統合パッケージ出力（`Combine`）を非推奨にしました。**削除はしていません。** 既存の指定はこれまでどおり動作します。
+
+### Deprecated
+
+- **`AssetStoreToolsPackager.PackageModeEnum.Combine` を非推奨にしました。** 統合パッケージは全ディレクトリを1つの `.unitypackage` へまとめるため、**ディレクトリ単位で取り出せず、差分インポートの単位になりません。**
+
+  3.3.0 で追加したバージョンログは、パッケージ単位のリビジョンを比較して「更新されたものだけを取り込む」ためのものです。`Combine` で出力したパッケージはこの比較に載せられないため、3.3.0 の時点で `Combine` だけの出力では `PackageManifest.json` を作っていません。実態として差分インポートの対象外である状態を、型の上でも明示しました。
+
+  **移行方法**: `Export Mode` を `Singles` にしてください。個別出力したパッケージは `PackageManifest.json` へ記録され、差分インポートの対象になります。コードから `AssetStoreToolsPackager.Export` を呼んでいる場合は、第2引数を `PackageModeEnum.Singles` にしてください。
+
+  **次のメジャー更新で `PackageModeEnum` ごと削除します。** `Combine` を除くと `Singles` しか残らず、enum と `Export` の `mode` 引数が意味を失うためです。旧シグネチャは型として成立しなくなるため `[Obsolete]` のシムを残せません。削除時に一緒に変わる箇所は [Deprecations.md](./Documentation~/Deprecations.md) に記録しています。
+
+### Change
+
+- **Packager ウィンドウで `Combine` を選ぶと、廃止予定である旨を表示するようにしました。** 選択自体は禁止していません。既存の運用を突然壊さず、移行期間を設けるためです。
+
+- `Combine` だけで出力したときのConsole警告に、廃止予定である旨と移行先を追記しました。
+
 ## [3.3.0] - 2026-08-05
 Asset Store Tools Packager に、パッケージ単位のリビジョン記録を追加しました。**Runtime の公開APIとセーブデータ形式は変更していません。** 変更は Editor 専用ツールに閉じています。
 

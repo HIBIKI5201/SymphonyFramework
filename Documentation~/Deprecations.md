@@ -24,6 +24,24 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 | `SymphonyTween.TweeningLerp<T>(...)` | `Runtime/Utility/SymphonyTween.cs` | `SymphonyTween.Tweening` | 記録なし | **未定** | `Task` を返す旧型式。移行先は `Awaitable` を返す |
 | `SymphonyTween.TweeningCurve<T>(...)` | `Runtime/Utility/SymphonyTween.cs` | `SymphonyTween.Tweening` | 記録なし | **未定** | 同上 |
 | `EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE` | `Core/Editor/EditorSymphonyConstant.cs` | `EditorSymphonyConstant.ASSET_STORE_TOOLS_CONFIG_FILE_NAME` | 3.1.0 | 次のメジャー更新 | 削除時は `AssetStoreToolsPackagerConfigStore` の `ignore.txt` 移行処理（`IGNORE_FILE_NAME`、`ReadIgnoreFile`、`CreateConfigFile` の移行分岐）も一緒に削除する |
+| `AssetStoreToolsPackager.PackageModeEnum.Combine` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `PackageModeEnum.Singles` | 3.4.0 | 次のメジャー更新 | **削除時は `PackageModeEnum` ごと削除する。** 下記「Combineの削除手順」を参照 |
+
+### Combineの削除手順
+
+`Combine` を削除すると `PackageModeEnum` に `Singles` と `Nothing` しか残らず、enum 自体が意味を失います。**次のメジャー更新で enum ごと削除します。** そのとき一緒に直す箇所を記録しておきます。
+
+| 対象 | 変更内容 |
+| --- | --- |
+| `AssetStoreToolsPackager.PackageModeEnum` | 削除する |
+| `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` | `Export(string[], bool, bool)` へ変更する |
+| `AssetStoreToolsPackager.CreateCombinedPackage` | 削除する |
+| `AssetStoreToolsPackager.Export(plan)` 内の `#pragma warning disable CS0618` | 抑止ごと削除する |
+| `AssetStoreToolsPackagePlan.Mode` | 削除する |
+| `AssetStoreToolsPackageWindow` | `Export Mode` の `EnumFlagsField` と `DrawCombineDeprecationHelp` を削除する |
+| `AssetStoreToolsPackageConfirmWindow` | `Export Mode` の表示行を削除する |
+| ワークスペースの `Documentation/DesignPhilosophy.md` | enum 命名の実例から `PackageModeEnum` を外す |
+
+**旧シグネチャを `[Obsolete]` のシムとして残せません。** `PackageModeEnum` 自体が消えるため、旧シグネチャは型として成立しないためです。メジャー更新で直接削除し、CHANGELOG の `### Breaking` へ移行方法を明記します。
 
 ### 「未定」について
 

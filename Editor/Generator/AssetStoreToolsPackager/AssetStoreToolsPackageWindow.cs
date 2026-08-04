@@ -99,6 +99,7 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
             _packageMode = (PackageModeEnum)EditorGUILayout.EnumFlagsField("Export Mode", _packageMode);
+            DrawCombineDeprecationHelp();
             _createZip = EditorGUILayout.ToggleLeft("Create ZIP File", _createZip);
             _usedDependencies = EditorGUILayout.ToggleLeft("Used Dependencies", _usedDependencies);
 
@@ -131,6 +132,28 @@ namespace SymphonyFrameWork.Editor
                     }
                 }
             }
+        }
+
+        /// <summary>
+        ///     Combineが選択されている場合に、廃止予定であることを表示する。
+        /// </summary>
+        /// <remarks>
+        ///     選択自体は禁止しない。既存の運用を突然壊さず、移行期間を設けるため。
+        /// </remarks>
+        private void DrawCombineDeprecationHelp()
+        {
+#pragma warning disable CS0618
+            if ((_packageMode & PackageModeEnum.Combine) == 0)
+            {
+                return;
+            }
+#pragma warning restore CS0618
+
+            EditorGUILayout.HelpBox(
+                "Combine は廃止予定です。Singles を使用してください。\n"
+                + "統合パッケージはディレクトリ単位で取り出せないため、差分インポートの対象になりません。"
+                + "Combine だけを指定した場合、PackageManifest.json は作られません。",
+                MessageType.Warning);
         }
 
         /// <summary>
