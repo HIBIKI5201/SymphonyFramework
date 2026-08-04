@@ -24,6 +24,28 @@
 
 - **`SymphonyLocateObject<T>.GetInstanceAsync()`、`SymphonyDebugHUD.AddText()`、`SymphonyTween.Tweening()` / `PausableTweening()` が `Awaitable` を返すようになりました。**
 
+- **`SaveStore.Get<T>()` の暗黙の同期読み込みを廃止しました。** 読み込み済みの値だけを返し、未読み込みの型を渡すと `InvalidOperationException` を送出します。
+
+  2.xは未読み込み時に `LoadAsync(...).GetAwaiter().GetResult()` で同期ブロックしていました。**非同期I/Oを行うローダーではこの同期ブロックが完了不能になります。** PlayerLoopで進む待機を含む処理を、そのPlayerLoopを止めたまま待つためです。
+
+  **移行方法**: 初回取得を `await SaveStore.LoadAsync<T>()` に変え、戻り値でインスタンスを受け取ります。読み込み済みか判定する `SaveStore.IsLoaded<T>()` を追加しました。
+
+  ```csharp
+  // 2.x（初回アクセスで暗黙にロードしていた）
+  PlayerData data = SaveStore.Get<PlayerData>();
+
+  // 3.0.0
+  PlayerData data = await SaveStore.LoadAsync<PlayerData>();
+
+  // 読み込み済みなら同期取得できる
+  if (SaveStore.IsLoaded<PlayerData>())
+  {
+      PlayerData cached = SaveStore.Get<PlayerData>();
+  }
+  ```
+
+  同期I/Oが必要なローダー向けの明示的な同期契約は、3.0.0の既定APIには追加していません。
+
 - **`SaveDataLoaderStrategy` の派生実装が `Awaitable` を返すようになりました。** 対象は `LoadJsonAsync` / `SaveJsonAsync` / `DeleteCoreAsync` の3つです。
 
   **移行方法**: 戻り値型を置換し、同期的に完了する実装は `default` ではなく `SymphonyAwaitable.Completed()`（値を返す場合は `SymphonyAwaitable.FromResult(json)`）を返します。**`Awaitable` は参照型のため、`default` は `null` になり await で例外になります。** `ExistsCore` / `SerializeToJson` / `OverwriteFromJson` は変更ありません。
@@ -97,9 +119,15 @@
 - `SceneLoadService.LoadScenes` / `UnloadScenes` が、各シーンの結果を `Task.Result` ではなく `await` で取り出すようにしました。`Result` は例外を `AggregateException` へ包むため、2.x の `ValueTask` と例外の伝播が変わってしまいます。**利用側から見える例外の型は2.xと同じです。**
 - `IInitializeAsync` は `Task` を維持します。`InitializeTask` は完了状態を保持して `IsDone` から参照するため、保存も共有もできない `Awaitable` へ移行できません。
 
+### Add
+
+- `SaveStore.IsLoaded<T>()` / `IsLoaded(Type)` を追加しました。`Get<T>()` が使用できる状態か、例外を発生させずに判定できます。
+- `Get<T>()` の新しい契約に対するPlayModeテストを2件追加しました。未読み込み時に `InvalidOperationException` になること、読み込み後は `LoadAsync<T>()` の戻り値と同一インスタンスを返すことを検証します。
+
 ### Fix
 
 - `SaveDataContent` の保存日時が `SaveDataLoaderStrategy` の管理下から外れていた経路を塞ぎました（`UpdateSaveDate()` / `ClearSaveDate()` は `internal`）。
+- Symphony Administrator の Save Data パネルが、未読み込みの型を選択しただけで保存先へI/Oを発生させないようにしました。未読み込みの場合はLoadの実行を促す表示に変わります。保存時は正本を確定させるため先にロードします。
 
 ## [3.0.0-preview.3] - 2026-08-04
 ### Breaking

@@ -16,12 +16,18 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         private SaveDataSystemSample_PlayerDataA _PlayerDataA;
         private SaveDataSystemSample_PlayerDataB _PlayerDataB;
 
-        /// <summary> Registryから両方のサンプルデータを取得し、初期状態を表示する。 </summary>
-        private void Start()
+        /// <summary> 両方のサンプルデータをロードし、初期状態を表示する。 </summary>
+        /// <remarks>
+        ///     3.0.0から<c>Get&lt;T&gt;()</c>は読み込み済みの値だけを返す。
+        ///     初回取得は<c>LoadAsync&lt;T&gt;()</c>をawaitし、戻り値で受け取る。
+        /// </remarks>
+        private async void Start()
         {
-            AddCommentary("サンプルを開始しました。永続化済みデータを Registry にロードします。");
-            _PlayerDataA = SaveStore.Get<SaveDataSystemSample_PlayerDataA>();
-            _PlayerDataB = SaveStore.Get<SaveDataSystemSample_PlayerDataB>();
+            AddCommentary("サンプルを開始しました。永続化済みデータを Store にロードします。");
+            _PlayerDataA = await SaveStore.LoadAsync<SaveDataSystemSample_PlayerDataA>(
+                destroyCancellationToken);
+            _PlayerDataB = await SaveStore.LoadAsync<SaveDataSystemSample_PlayerDataB>(
+                destroyCancellationToken);
             ReportLoadedDataA();
             ReportLoadedDataB();
         }

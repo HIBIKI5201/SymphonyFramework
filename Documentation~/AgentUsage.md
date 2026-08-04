@@ -46,8 +46,9 @@
 
 - 保存型は`SaveDataContent`を継承した、デフォルトコンストラクタを持つ具象classにする。
 - **旧`SaveDataRegistry`は3.0.0で削除済みである。** `SaveStore`を使う。
-- `SaveStore.Get<T>()`が返す型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
-- 非同期I/Oを行う独自ローダーでは、先に`LoadAsync<T>()`をawaitしてから`Get<T>()`する。
+- **初回取得は`await SaveStore.LoadAsync<T>()`を使い、戻り値でインスタンスを受け取る。** `Get<T>()`は読み込み済みの値だけを返し、未読み込みなら`InvalidOperationException`を投げる。暗黙の同期読み込みは3.0.0で廃止した。
+- `Get<T>()`を使う前に読み込み済みか分からない場合は`SaveStore.IsLoaded<T>()`で確認する。
+- `SaveStore`が保持する型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
 - 保存先の失敗は`SaveDataOperationException`の`Operation`、`DataType`、`LoaderType`、`InnerException`で診断する。キャンセルは`OperationCanceledException`のまま伝播する。
 - 独自`SaveDataLoaderStrategy`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
 - 独自ローダーが実装する`LoadJsonAsync`／`SaveJsonAsync`／`DeleteCoreAsync`は`Awaitable`を返す。同期的に完了する場合は`SymphonyAwaitable.Completed()`と`SymphonyAwaitable.FromResult(json)`を使い、`null`を返さない。

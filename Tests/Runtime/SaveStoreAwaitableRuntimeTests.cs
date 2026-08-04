@@ -26,6 +26,17 @@ namespace SymphonyFrameWork.Tests
             public int Value;
         }
 
+        /// <summary>
+        ///     未読み込み状態の検証専用型。
+        ///     Storeのキャッシュはstaticで他テストへ持ち越されるため、
+        ///     この型はどのテストからもロードしない。
+        /// </summary>
+        [Serializable]
+        public sealed class NeverLoadedTestSaveData : SaveDataContent
+        {
+            public int Value;
+        }
+
         /// <summary> 検証で書き込んだ保存データを消し、次のテストへ持ち越さない。 </summary>
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -43,7 +54,11 @@ namespace SymphonyFrameWork.Tests
         [UnityTest]
         public IEnumerator SaveAsync_ThenLoadAsync_RoundTripsValue()
         {
-            SaveStore.Get<AwaitableTestSaveData>().Value = 42;
+            // 3.0.0からGetは暗黙のロードを行わないため、先にロードして正本を確定させる。
+            Task<AwaitableTestSaveData> initialTask = SymphonyAwaitable.AsTask(
+                SaveStore.LoadAsync<AwaitableTestSaveData>());
+            yield return new WaitUntil(() => initialTask.IsCompleted);
+            initialTask.GetAwaiter().GetResult().Value = 42;
 
             Task saveTask = SymphonyAwaitable.AsTask(
                 SaveStore.SaveAsync<AwaitableTestSaveData>());
@@ -64,7 +79,10 @@ namespace SymphonyFrameWork.Tests
         [UnityTest]
         public IEnumerator DeleteAsync_ResetsToDefault()
         {
-            SaveStore.Get<AwaitableTestSaveData>().Value = 7;
+            Task<AwaitableTestSaveData> initialTask = SymphonyAwaitable.AsTask(
+                SaveStore.LoadAsync<AwaitableTestSaveData>());
+            yield return new WaitUntil(() => initialTask.IsCompleted);
+            initialTask.GetAwaiter().GetResult().Value = 7;
 
             Task saveTask = SymphonyAwaitable.AsTask(
                 SaveStore.SaveAsync<AwaitableTestSaveData>());
@@ -77,6 +95,33 @@ namespace SymphonyFrameWork.Tests
             deleteTask.GetAwaiter().GetResult();
 
             Assert.That(SaveStore.Get<AwaitableTestSaveData>().Value, Is.Zero);
+        }
+
+        /// <summary>
+        ///     **未読み込みの型に対するGetは暗黙のロードを行わず例外にする。**
+        ///     暗黙の同期ロードを残すと、非同期I/Oを行うLoaderで待機を同期ブロックし、
+        ///     PlayerLoopで進む処理が完了不能になる。3.0.0で廃止した契約の回帰テスト。
+        /// </summary>
+        [Test]
+        public void Get_NotLoaded_ThrowsInvalidOperation()
+        {
+            Assert.That(SaveStore.IsLoaded<NeverLoadedTestSaveData>(), Is.False);
+            Assert.Throws<InvalidOperationException>(
+                () => SaveStore.Get<NeverLoadedTestSaveData>());
+        }
+
+        /// <summary> ロード後はIsLoadedがtrueになり、Getが同じインスタンスを返す。 </summary>
+        [UnityTest]
+        public IEnumerator Get_AfterLoad_ReturnsLoadedInstance()
+        {
+            Task<AwaitableTestSaveData> loadTask = SymphonyAwaitable.AsTask(
+                SaveStore.LoadAsync<AwaitableTestSaveData>());
+            yield return new WaitUntil(() => loadTask.IsCompleted);
+
+            AwaitableTestSaveData loaded = loadTask.GetAwaiter().GetResult();
+
+            Assert.That(SaveStore.IsLoaded<AwaitableTestSaveData>(), Is.True);
+            Assert.That(SaveStore.Get<AwaitableTestSaveData>(), Is.SameAs(loaded));
         }
 
         /// <summary>

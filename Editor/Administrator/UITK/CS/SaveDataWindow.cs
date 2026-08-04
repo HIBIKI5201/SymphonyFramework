@@ -379,6 +379,16 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
+            // Get は読み込み済みの型だけを返す。未読み込みの場合は暗黙にロードせず、
+            // Loadボタンの操作を促す。ここで自動ロードするとパネルを開いただけで
+            // 保存先へのI/Oが走り、利用側の意図しない読み込みになる。
+            if (!SaveStore.IsLoaded(_selectedType))
+            {
+                RebindDebugState(null);
+                _statusMessage = $"{_selectedType.FullName} は未ロードです。Loadを実行すると内容を表示します。";
+                return;
+            }
+
             SaveDataContent data = SaveStore.Get(_selectedType);
             RebindDebugState(data);
             _statusMessage = $"{_selectedType.FullName} の現在インスタンスを表示しています。";
@@ -400,6 +410,13 @@ namespace SymphonyFrameWork.Editor
         /// <returns> 保存完了までの待機を表すAwaitable。 </returns>
         private async Awaitable SaveSelectedAsync()
         {
+            // 保存対象はRegistryの正本であり、未読み込みのまま保存すると
+            // 既定値で保存先を上書きしてしまう。先にロードして正本を確定させる。
+            if (!SaveStore.IsLoaded(_selectedType))
+            {
+                await SaveStore.LoadAsync(_selectedType);
+            }
+
             SaveDataContent editingData = _debugState.GetData();
             if (editingData == null)
             {

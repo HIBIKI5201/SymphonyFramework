@@ -31,22 +31,38 @@ namespace SymphonyFrameWork.System.SaveSystem
             return EnsureInitialized().Exists(dataType);
         }
 
-        /// <summary> 指定型のキャッシュまたは保存済みデータを同期的に取得する。 </summary>
-        /// <exception cref="SaveDataOperationException"> 初回の同期読み込みに失敗した場合。 </exception>
+        /// <summary>
+        ///     読み込み済みのインスタンスを取得します。暗黙の読み込みは行いません。
+        ///     初回取得は<see cref="LoadAsync{T}" />をawaitし、戻り値で受け取ってください。
+        /// </summary>
+        /// <exception cref="InvalidOperationException"> 対象型がまだ読み込まれていない場合。 </exception>
         public static T Get<T>() where T : SaveDataContent, new()
         {
             return (T)Get(typeof(T));
         }
 
         /// <summary>
-        ///     ストアが保持している現在のインスタンスを取得します。
-        ///     キャッシュが無い初回アクセス時は、自動的に永続化データをロードします。
+        ///     読み込み済みのインスタンスを取得します。暗黙の読み込みは行いません。
+        ///     初回取得は<see cref="LoadAsync(Type, CancellationToken)" />をawaitしてください。
         /// </summary>
-        /// <exception cref="SaveDataOperationException"> 初回の同期読み込みに失敗した場合。 </exception>
+        /// <exception cref="InvalidOperationException"> 対象型がまだ読み込まれていない場合。 </exception>
         public static SaveDataContent Get(Type dataType)
         {
             ValidateDataType(dataType);
             return EnsureInitialized().Get(dataType);
+        }
+
+        /// <summary> 指定型が読み込み済みで、<see cref="Get{T}" />が使用できるか確認する。 </summary>
+        public static bool IsLoaded<T>() where T : SaveDataContent, new()
+        {
+            return IsLoaded(typeof(T));
+        }
+
+        /// <summary> 指定型が読み込み済みで、<see cref="Get(Type)" />が使用できるか確認する。 </summary>
+        public static bool IsLoaded(Type dataType)
+        {
+            ValidateDataType(dataType);
+            return EnsureInitialized().IsLoaded(dataType);
         }
 
         /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>

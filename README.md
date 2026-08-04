@@ -217,15 +217,23 @@ public sealed class PlayerData : SaveDataContent
 }
 ```
 
-Registryが保持するインスタンスを編集し、型を指定して保存します。
+初回は`LoadAsync<T>()`で読み込み、戻り値のインスタンスを編集して保存します。
 
 ```csharp
-PlayerData data = SaveStore.Get<PlayerData>();
+PlayerData data = await SaveStore.LoadAsync<PlayerData>();
 data.Gold += 100;
 
 await SaveStore.SaveAsync<PlayerData>();
-await SaveStore.LoadAsync<PlayerData>();
 await SaveStore.DeleteAsync<PlayerData>();
+```
+
+読み込み済みであれば、同じインスタンスを`Get<T>()`で同期的に取り出せます。**`Get<T>()`は暗黙の読み込みを行いません。** 未読み込みの型を渡すと`InvalidOperationException`になります。非同期I/Oを行うローダーで暗黙の同期読み込みを許すと、待機を同期ブロックして完了不能になるためです。
+
+```csharp
+if (SaveStore.IsLoaded<PlayerData>())
+{
+    PlayerData cached = SaveStore.Get<PlayerData>();
+}
 ```
 
 既定ではJSONをPlayerPrefsへ保存します。別のシリアライザ、ファイル、クラウド等を使う場合は`SaveDataLoaderStrategy`を継承し、Project Settingsから選択します。

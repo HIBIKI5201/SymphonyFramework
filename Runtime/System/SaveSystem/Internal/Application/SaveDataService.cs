@@ -64,21 +64,29 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary>
-        ///     キャッシュ済みインスタンスを取得する。未読み込みの場合は同期的に読み込む。
+        ///     読み込み済みのインスタンスを取得する。
+        ///     暗黙の同期読み込みは行わない。非同期処理を同期ブロックすると、
+        ///     PlayerLoopで進む待機を含むLoaderで完了不能になるため。
         /// </summary>
         /// <param name="dataType"> 対象のセーブデータ型。 </param>
-        /// <returns> キャッシュしているインスタンス。 </returns>
+        /// <returns> 読み込み済みのインスタンス。 </returns>
+        /// <exception cref="InvalidOperationException"> 対象型がまだ読み込まれていない場合。 </exception>
         public SaveDataContent Get(Type dataType)
         {
-            SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
-
             if (!_registry.IsLoaded(dataType))
             {
-                LoadAsync(dataType).GetAwaiter().GetResult();
+                throw new InvalidOperationException(
+                    $"[{nameof(SaveStore)}] {dataType.Name} はまだ読み込まれていません。"
+                    + $" 先に await {nameof(SaveStore)}.{nameof(SaveStore.LoadAsync)}<{dataType.Name}>() を呼んでください。");
             }
 
-            return entry.Content;
+            return _registry.GetOrCreate(dataType).Content;
         }
+
+        /// <summary> 指定型が読み込み済みか確認する。 </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <returns> 読み込み済みの場合はtrue。 </returns>
+        public bool IsLoaded(Type dataType) => _registry.IsLoaded(dataType);
 
         /// <summary> 指定型の永続化データをキャッシュへ非同期に読み込む。 </summary>
         /// <param name="dataType"> 対象のセーブデータ型。 </param>
