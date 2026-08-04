@@ -8,24 +8,20 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     SymphonyFrameWorkの管理パネルを表示するクラス
     /// </summary>
-    public class SymphonyAdministrator : EditorWindow
+    public sealed class SymphonyAdministrator : EditorWindow
     {
         private const string WINDOW_NAME = "Symphony Administrator";
 
+        /// <summary> 管理パネルを構成するUXMLファイルの基準パス。 </summary>
         public static string UITK_UXML_PATH = EditorSymphonyConstant.UITK_PATH + "UXML/";
 
         private PauseWindow _pauseWindow;
-        private ServiceLocatorWindow _serviceLocatorWindow;
-        private SceneLoaderWindow _sceneLoaderWindow;
+        private ServiceLocateWindow _serviceLocatorWindow;
+        private SceneLoadWindow _sceneLoaderWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
+        private SaveDataWindow _saveDataRegistryWindow;
 
-        private void Update()
-        {
-            _pauseWindow?.Update();
-            _serviceLocatorWindow?.Update();
-            _sceneLoaderWindow?.Update();
-        }
-
+        /// <summary> UXMLから管理パネルを構築する。 </summary>
         private void OnEnable()
         {
             var container = LoadWindow();
@@ -33,21 +29,31 @@ namespace SymphonyFrameWork.Editor
             if (container != null)
             {
                 _pauseWindow = container.Q<PauseWindow>();
-                _serviceLocatorWindow = container.Q<ServiceLocatorWindow>();
-                _sceneLoaderWindow = container.Q<SceneLoaderWindow>();
+                _serviceLocatorWindow = container.Q<ServiceLocateWindow>();
+                _sceneLoaderWindow = container.Q<SceneLoadWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
+                _saveDataRegistryWindow = container.Q<SaveDataWindow>();
             }
             else
             {
                 Debug.LogWarning("ウィンドウがロードできませんでした");
             }
-
-            EditorApplication.update += Update;
         }
 
+        /// <summary>
+        ///     保持中の管理パネルリソースを解放する。
+        ///     各パネルは状態変更eventを購読しており、Editor更新ごとのpollingは行わない。
+        /// </summary>
         private void OnDisable()
         {
-            EditorApplication.update -= Update;
+            _pauseWindow?.Dispose();
+            _serviceLocatorWindow?.Dispose();
+            _sceneLoaderWindow?.Dispose();
+            _saveDataRegistryWindow?.Dispose();
+            _pauseWindow = null;
+            _serviceLocatorWindow = null;
+            _sceneLoaderWindow = null;
+            _saveDataRegistryWindow = null;
         }
 
 
@@ -64,7 +70,7 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     UXMLを追加
         /// </summary>
-        /// <returns></returns>
+        /// <returns> インスタンス化した管理ウィンドウのルート要素。 </returns>
         private TemplateContainer LoadWindow()
         {
             rootVisualElement.Clear();

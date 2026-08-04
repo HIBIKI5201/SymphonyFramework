@@ -15,18 +15,30 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     public static class AssetStoreToolsPackager
     {
-        public class PackageDirectoryInfo
+        /// <summary> パッケージ候補ディレクトリの表示名、パス、除外状態を保持する。 </summary>
+        public sealed class PackageDirectoryInfo
         {
+            /// <summary> パッケージ対象ディレクトリのパス。 </summary>
             public string Path;
+
+            /// <summary> UIへ表示するディレクトリ名。 </summary>
             public string Name;
+
+            /// <summary> 除外設定に含まれているかを示す。 </summary>
             public bool IsIgnored;
         }
 
+        /// <summary> 個別または統合パッケージの出力形式を表すフラグ。 </summary>
         [Flags]
-        public enum PackageMode : byte
+        public enum PackageModeEnum : byte
         {
+            /// <summary> パッケージを出力しない無効な状態。 </summary>
             Nothing = 0,
+
+            /// <summary> 選択ディレクトリを個別のパッケージとして出力する。 </summary>
             Singles = 1 << 0,
+
+            /// <summary> 選択ディレクトリを1つの統合パッケージとして出力する。 </summary>
             Combine = 1 << 1,
         }
 
@@ -72,7 +84,8 @@ namespace SymphonyFrameWork.Editor
             return results;
         }
 
-        public static void Export(string[] directories, PackageMode mode, bool createZip = false, bool usedDependencies = false)
+        /// <summary> 指定ディレクトリを選択された形式で出力し、必要に応じてZIP化する。 </summary>
+        public static void Export(string[] directories, PackageModeEnum mode, bool createZip = false, bool usedDependencies = false)
         {
             if (directories.Length == 0)
             {
@@ -100,12 +113,12 @@ namespace SymphonyFrameWork.Editor
                 usedAssetPaths = GetProjectUsedDependencies(astPath);
             }
 
-            if ((mode & PackageMode.Singles) != 0)
+            if ((mode & PackageModeEnum.Singles) != 0)
             {
                 ExportPackage(context, usedAssetPaths);
             }
 
-            if ((mode & PackageMode.Combine) != 0)
+            if ((mode & PackageModeEnum.Combine) != 0)
             {
                 CreateCombinedPackage(context, usedAssetPaths);
             }
@@ -124,7 +137,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     個別のパッケージ生成。
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context"> 出力対象と出力先を保持するパッケージコンテキスト。 </param>
+        /// <param name="usedAssetPaths"> 使用中アセットだけを出力する場合のパス集合。 </param>
         private static void ExportPackage(
             AssetStoreToolsPackageContext context,
             HashSet<string> usedAssetPaths = null)
@@ -171,7 +185,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     連結されたパッケージ生成。
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context"> 出力対象と出力先を保持するパッケージコンテキスト。 </param>
+        /// <param name="usedAssetPaths"> 使用中アセットだけを出力する場合のパス集合。 </param>
         private static void CreateCombinedPackage(
             in AssetStoreToolsPackageContext context,
             HashSet<string> usedAssetPaths = null)
@@ -221,8 +236,7 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     指定フォルダをZIP化する
         /// </summary>
-        /// <param name="sourceDirectory">圧縮対象フォルダ（相対 or 絶対）</param>
-        /// <param name="zipFilePath">出力ZIPパス（.zip含む）</param>
+        /// <param name="context"> 圧縮対象と出力先を保持するパッケージコンテキスト。 </param>
         private static void CreateZip(in AssetStoreToolsPackageContext context)
         {
             try
@@ -255,6 +269,7 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> 除外設定ファイルを保証し、コメントと空行を除いたフォルダ名を取得する。 </summary>
         private static HashSet<string> GetIgnoredNames()
         {
             HashSet<string> ignoredNames = new HashSet<string>();
@@ -299,7 +314,7 @@ namespace SymphonyFrameWork.Editor
                 // AssetStoreToolsは除外して依存関係を追う
                 if (!string.IsNullOrEmpty(normalizedExcludedRootPath)
                     && (path.Equals(normalizedExcludedRootPath, StringComparison.Ordinal)
-                       || path.StartsWith(normalizedExcludedRootPath + "/", StringComparison.Ordinal)))
+                        || path.StartsWith(normalizedExcludedRootPath + "/", StringComparison.Ordinal)))
                 {
                     continue;
                 }

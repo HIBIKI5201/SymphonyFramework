@@ -26,6 +26,7 @@ namespace SymphonyFrameWork.Editor
             CheckAndInstallPackagesAsync(false);
         }
 
+        /// <summary> 必須パッケージ一覧とインストール済み一覧を比較し、不足分の導入を確認する。 </summary>
         private static async void CheckAndInstallPackagesAsync(bool isEnterEditor)
         {
             //パッケージマネージャーの初期化が終わっているか。
@@ -68,7 +69,7 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     インストールされているパッケージを返す
         /// </summary>
-        /// <returns></returns>
+        /// <returns> Package Managerから取得したインストール済みパッケージ一覧。 </returns>
         private static async Task<PackageCollection> GetInstalledPackagesAsync()
         {
             EditorUtility.DisplayProgressBar(nameof(SymphonyPackageLoader), "パッケージを確認中", 0);
@@ -77,7 +78,8 @@ namespace SymphonyFrameWork.Editor
 
             var timer = Time.time;
             // IAsyncOperation を非同期タスクで待機
-            await SymphonyTask.WaitUntil(() => listRequest.IsCompleted || timer + 60 < Time.time);
+            await SymphonyAwaitable.WaitWhile(
+                () => !listRequest.IsCompleted && Time.time <= timer + 60);
 
             EditorUtility.ClearProgressBar();
 
@@ -113,8 +115,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     パッケージをロードする
         /// </summary>
-        /// <param name="packageNames"></param>
-        /// <returns></returns>
+        /// <param name="packageNames"> Package Managerへ追加する完全パッケージ名一覧。 </param>
+        /// <returns> 全パッケージ追加処理を表すTask。 </returns>
         private static async Task InstallPackageAsync(string[] packageNames)
         {
             //ロードのタスクを一括で生成

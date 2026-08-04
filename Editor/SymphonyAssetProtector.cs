@@ -1,100 +1,131 @@
-﻿using SymphonyFrameWork.Core;
+﻿using System;
+
+using SymphonyFrameWork.Core;
+
 using UnityEditor;
+using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
     /// <summary>
-    ///     SymphonyFrameWorkのディレクトリを保護するクラス
+    ///     SymphonyFrameWorkのディレクトリを保護するクラス。
     /// </summary>
-    public class SymphonyAssetProtector : AssetPostprocessor
+    public sealed class SymphonyAssetProtector : AssetPostprocessor
     {
-        private const string LOCK_PATH = SymphonyConstant.TOOL_MENU_SETTING_PATH + "Symphony Asset Lock";
+        /// <summary> host callbackによる状態リセットが処理待ちになったときに通知する。 </summary>
+        internal static event Action OnHostChangesPending;
 
-        static SymphonyAssetProtector()
-        {
-            // Unityエディタが再起動された後でも状態が反映されるようにする
-            EditorApplication.delayCall += () => ValidateLock();
-        }
+        private static bool _hasDisplayedEnabledDialog;
+        private static bool _hasPendingOperationReset;
+        private static AssetMoveResult? _warningMoveResult;
 
+        /// <summary> 1回のアセット操作で保持したダイアログ状態を破棄する。 </summary>
         private static void OnPostprocessAllAssets(
             string[] importedAssets,
             string[] deletedAssets,
             string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            SymphonyFileDontMove(movedAssets, movedFromAssetPaths);
+            _hasPendingOperationReset = true;
+            OnHostChangesPending?.Invoke();
         }
 
         /// <summary>
-        ///     メニューがクリックされたときにチェック状態を反転する
+        ///     Framework配下のアセット移動に現在の保護モードを適用する。
         /// </summary>
-        [MenuItem(LOCK_PATH, priority = 200)]
-        private static void ToggleOption()
+        /// <param name="sourcePath"> 移動前のアセットパス。 </param>
+        /// <param name="destinationPath"> 移動先のアセットパス。 </param>
+        /// <returns> Unityの通常移動へ委譲するか、移動を失敗させるかを示す値。 </returns>
+        private static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
         {
-            // 現在のチェック状態を取得
-            var isChecked = EditorPrefs.GetBool(LOCK_PATH, true);
-
-            // 状態を反転して保存
-            EditorPrefs.SetBool(LOCK_PATH, !isChecked);
-        }
-
-        /// <summary>
-        ///     メニューのチェック表示を最新状態に更新する
-        /// </summary>
-        /// <returns>常に true（メニュー項目を有効にする）</returns>
-        [MenuItem(LOCK_PATH, true)]
-        private static bool ValidateLock()
-        {
-            // 最新のチェック状態を取得して、メニューのチェック表示を更新する
-            var isChecked = EditorPrefs.GetBool(LOCK_PATH, true);
-            Menu.SetChecked(LOCK_PATH, isChecked);
-
-            return true;
-        }
-
-        /// <summary>
-        ///     SymphonyFrameWorkフォルダ内の物が移動されたら戻す
-        /// </summary>
-        /// <param name="movedAssets"></param>
-        /// <param name="movedFromAssetPaths"></param>
-        private static void SymphonyFileDontMove(string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            for (var i = 0; i < movedAssets.Length; i++)
+            if (!IsFrameworkAsset(sourcePath))
             {
-                var oldPath = movedFromAssetPaths[i];
-                var newPath = movedAssets[i];
-
-                //移動がSymphonyFrameWorkのアセットかどうかを判定
-                if (oldPath.Contains(SymphonyConstant.SYMPHONY_FRAMEWORK))
-                {
-                    //ロックされている時は移動できない
-                    if (EditorPrefs.GetBool(LOCK_PATH, true))
-                    {
-                        if (EditorUtility.DisplayDialog(
-                                "移動禁止",
-                                $"SymphonyFrameWorkは移動できません\npath : '{oldPath}'",
-                                "OK"))
-                        {
-                            // 移動を元に戻す
-                            AssetDatabase.MoveAsset(newPath, oldPath);
-                            AssetDatabase.Refresh();
-                        }
-                    }
-                    //ロックされていない時は警告を出す
-                    else
-                    {
-                        if (!EditorUtility.DisplayDialog(
-                                "移動注意",
-                                $"SymphonyFrameWorkを移動しようとしています。\n本当に移動しますか？\npath : '{oldPath}'",
-                                "OK", "Cancel"))
-                        {
-                            // 移動を元に戻す
-                            AssetDatabase.MoveAsset(newPath, oldPath);
-                            AssetDatabase.Refresh();
-                        }
-                    }
-                }
+                return AssetMoveResult.DidNotMove;
             }
+
+            SymphonyUserSettingConfig config =
+                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+
+            switch (config.AssetProtectionMode)
+            {
+                case AssetProtectionModeEnum.Enabled:
+                    return PreventMove(sourcePath);
+                case AssetProtectionModeEnum.Warning:
+                    return ConfirmMove(sourcePath);
+                case AssetProtectionModeEnum.Disabled:
+                    Debug.Log(
+                        $"[{nameof(SymphonyAssetProtector)}] SymphonyFrameWork配下のアセットを移動します。" +
+                        $" path: '{sourcePath}', destination: '{destinationPath}'");
+                    return AssetMoveResult.DidNotMove;
+                default:
+                    return AssetMoveResult.FailedMove;
+            }
+        }
+
+        /// <summary>
+        ///     Enabledモードの通知を1回だけ表示して移動を拒否する。
+        /// </summary>
+        /// <param name="sourcePath"> 移動前のアセットパス。 </param>
+        /// <returns> 移動を失敗させる値。 </returns>
+        private static AssetMoveResult PreventMove(string sourcePath)
+        {
+            if (!_hasDisplayedEnabledDialog)
+            {
+                EditorUtility.DisplayDialog(
+                    "移動禁止",
+                    $"SymphonyFrameWorkは移動できません。\npath: '{sourcePath}'",
+                    "OK");
+                _hasDisplayedEnabledDialog = true;
+            }
+
+            return AssetMoveResult.FailedMove;
+        }
+
+        /// <summary>
+        ///     Warningモードの選択を1回だけ取得し、同じ操作内で再利用する。
+        /// </summary>
+        /// <param name="sourcePath"> 移動前のアセットパス。 </param>
+        /// <returns> 利用者の選択に対応する移動結果。 </returns>
+        private static AssetMoveResult ConfirmMove(string sourcePath)
+        {
+            if (_warningMoveResult.HasValue)
+            {
+                return _warningMoveResult.Value;
+            }
+
+            bool shouldMove = EditorUtility.DisplayDialog(
+                "移動注意",
+                $"SymphonyFrameWorkを移動しようとしています。\n本当に移動しますか？\npath: '{sourcePath}'",
+                "移動する",
+                "元に戻す");
+            _warningMoveResult = shouldMove
+                ? AssetMoveResult.DidNotMove
+                : AssetMoveResult.FailedMove;
+
+            return _warningMoveResult.Value;
+        }
+
+        /// <summary> 指定したパスがFrameworkルートまたはその配下かを判定する。 </summary>
+        /// <param name="sourcePath"> 判定するアセットパス。 </param>
+        /// <returns> Framework配下の場合はtrue。 </returns>
+        private static bool IsFrameworkAsset(string sourcePath)
+        {
+            string frameworkPath = EditorSymphonyConstant.FRAMEWORK_PATH;
+            return sourcePath.Equals(frameworkPath, StringComparison.Ordinal) ||
+                   sourcePath.StartsWith(frameworkPath + "/", StringComparison.Ordinal);
+        }
+
+        /// <summary> coalesceしたアセット操作状態のリセットを1回だけ処理する。 </summary>
+        internal static void ProcessPendingChanges()
+        {
+            if (!_hasPendingOperationReset)
+            {
+                return;
+            }
+
+            _hasPendingOperationReset = false;
+            _hasDisplayedEnabledDialog = false;
+            _warningMoveResult = null;
         }
     }
 }

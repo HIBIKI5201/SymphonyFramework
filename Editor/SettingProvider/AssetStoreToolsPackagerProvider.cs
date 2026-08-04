@@ -3,11 +3,16 @@ using UnityEditor;
 
 namespace SymphonyFrameWork.Editor.SettingProvider
 {
-    public class AssetStoreToolsPackagerProvider
+    /// <summary> Asset Store Tools PackagerのProject Settings画面を提供する。 </summary>
+    public sealed class AssetStoreToolsPackagerProvider
     {
+        /// <summary> Project Settingsに表示する設定項目名。 </summary>
         public const string LABEL = "Asset Store Tools Packager";
+
+        /// <summary> SettingsProviderの完全な設定パス。 </summary>
         public const string SELF_PATH = SymphonySettingProvider.PROVIDER_PATH + LABEL;
 
+        /// <summary> Packager設定用のSettingsProviderを生成する。 </summary>
         [SettingsProvider]
         public static SettingsProvider CreateCustomSettingsProvider()
         {
@@ -27,6 +32,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             return provider;
         }
 
+        /// <summary> Packagerが使用する入出力パス設定を描画する。 </summary>
         private static void IMGUI(string searchContext)
         {
             string assetStoreToolsPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;

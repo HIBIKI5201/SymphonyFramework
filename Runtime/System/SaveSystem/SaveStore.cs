@@ -1,0 +1,239 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Utility;
+
+using UnityEngine;
+
+namespace SymphonyFrameWork.System.SaveSystem
+{
+    /// <summary>
+    ///     プロジェクト設定に従ってセーブデータを一括管理するストアです。
+    ///     引数の検証と<see cref="SaveDataService"/>への転送だけを行い、状態は保持しません。
+    /// </summary>
+    public static class SaveStore
+    {
+        /// <summary> 指定型の永続化データが存在するか確認する。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で存在確認に失敗した場合。 </exception>
+        public static bool Exists<T>() where T : SaveDataContent, new()
+        {
+            return Exists(typeof(T));
+        }
+
+        /// <summary> 指定型の永続化データが存在するか確認する。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で存在確認に失敗した場合。 </exception>
+        public static bool Exists(Type dataType)
+        {
+            ValidateDataType(dataType);
+            return EnsureInitialized().Exists(dataType);
+        }
+
+        /// <summary>
+        ///     読み込み済みのインスタンスを取得します。暗黙の読み込みは行いません。
+        ///     初回取得は<see cref="LoadAsync{T}" />をawaitし、戻り値で受け取ってください。
+        /// </summary>
+        /// <exception cref="InvalidOperationException"> 対象型がまだ読み込まれていない場合。 </exception>
+        public static T Get<T>() where T : SaveDataContent, new()
+        {
+            return (T)Get(typeof(T));
+        }
+
+        /// <summary>
+        ///     読み込み済みのインスタンスを取得します。暗黙の読み込みは行いません。
+        ///     初回取得は<see cref="LoadAsync(Type, CancellationToken)" />をawaitしてください。
+        /// </summary>
+        /// <exception cref="InvalidOperationException"> 対象型がまだ読み込まれていない場合。 </exception>
+        public static SaveDataContent Get(Type dataType)
+        {
+            ValidateDataType(dataType);
+            return EnsureInitialized().Get(dataType);
+        }
+
+        /// <summary> 指定型が読み込み済みで、<see cref="Get{T}" />が使用できるか確認する。 </summary>
+        public static bool IsLoaded<T>() where T : SaveDataContent, new()
+        {
+            return IsLoaded(typeof(T));
+        }
+
+        /// <summary> 指定型が読み込み済みで、<see cref="Get(Type)" />が使用できるか確認する。 </summary>
+        public static bool IsLoaded(Type dataType)
+        {
+            ValidateDataType(dataType);
+            return EnsureInitialized().IsLoaded(dataType);
+        }
+
+        /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
+        public static Awaitable<T> LoadAsync<T>(CancellationToken token = default)
+            where T : SaveDataContent, new()
+        {
+            ValidateDataType(typeof(T));
+            SaveDataService service = EnsureInitialized();
+
+            return SymphonyAwaitable.FromTask(LoadAndGetAsync<T>(service, token));
+        }
+
+        /// <summary> 指定型の保存済みデータをキャッシュへ非同期に読み込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
+        public static Awaitable LoadAsync(Type dataType, CancellationToken token = default)
+        {
+            ValidateDataType(dataType);
+
+            // 重複ロード中は同じTaskが返るが、FromTaskが呼び出しごとに新しい
+            // Awaitableを作るため、Awaitableを共有できないという制約と両立する。
+            return SymphonyAwaitable.FromTask(EnsureInitialized().LoadAsync(dataType, token));
+        }
+
+        /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
+        public static Awaitable SaveAsync<T>(CancellationToken token = default)
+            where T : SaveDataContent, new() => SaveAsync(typeof(T), token);
+
+        /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で保存に失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
+        public static Awaitable SaveAsync(Type dataType, CancellationToken token = default)
+        {
+            ValidateDataType(dataType);
+            return SymphonyAwaitable.FromTask(EnsureInitialized().SaveAsync(dataType, token));
+        }
+
+        /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
+        public static Awaitable DeleteAsync<T>(CancellationToken token = default)
+            where T : SaveDataContent, new() => DeleteAsync(typeof(T), token);
+
+        /// <summary> 指定型の保存済みデータを削除し、キャッシュを既定値へ戻す。 </summary>
+        /// <exception cref="SaveDataOperationException"> ローダーまたは保存先で削除または再読み込みに失敗した場合。 </exception>
+        /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
+        public static Awaitable DeleteAsync(Type dataType, CancellationToken token = default)
+        {
+            ValidateDataType(dataType);
+            return SymphonyAwaitable.FromTask(EnsureInitialized().DeleteAsync(dataType, token));
+        }
+
+        /// <summary> 読み込み完了後のインスタンスを返す。 </summary>
+        /// <typeparam name="T"> 対象のセーブデータ型。 </typeparam>
+        /// <param name="service"> 処理を委譲するService。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 読み込み後のインスタンス。 </returns>
+        private static async Task<T> LoadAndGetAsync<T>(
+            SaveDataService service,
+            CancellationToken token)
+            where T : SaveDataContent, new()
+        {
+            await service.LoadAsync(typeof(T), token);
+            return (T)service.Get(typeof(T));
+        }
+
+        /// <summary>
+        ///     現在キャッシュされている全エントリの読み取り専用スナップショットを取得する。
+        ///     並び順は<see cref="Type.FullName" />のordinal昇順。
+        /// </summary>
+        public static IReadOnlyList<SaveDataEntryInfo> GetEntries()
+        {
+            return _query?.GetInfos() ?? Array.Empty<SaveDataEntryInfo>();
+        }
+
+        /// <summary> Save Storeが初期化済みかどうか。 </summary>
+        internal static bool IsInitialized => _service != null;
+
+        /// <summary>
+        ///     状態表示に接続するためのViewModel。未初期化の場合はnull。
+        ///     <see cref="OnCurrentViewModelChanged" />で差し替えを検知して接続し直す。
+        /// </summary>
+        internal static SaveDataViewModel CurrentViewModel => _viewModel;
+
+        /// <summary>
+        ///     <see cref="CurrentViewModel" />が差し替わったときに発行される。
+        ///     Save DataはEdit Modeでも初期化されるため、Play Mode遷移だけでは接続し直せない。
+        /// </summary>
+        internal static event Action OnCurrentViewModelChanged;
+
+        /// <summary>
+        ///     ローダーとキャッシュを破棄し、次回アクセス時にConfigから再解決する。
+        ///     Configを編集するEditorのProject Settings画面から呼び出す。
+        /// </summary>
+        internal static void RefreshLoader()
+        {
+            ResetRuntimeState();
+        }
+
+        /// <summary>
+        ///     Compositionが解決したローダーの取得処理を設定する。
+        /// </summary>
+        /// <param name="loaderResolver"> 現在のConfigに対応するローダーを返す処理。 </param>
+        internal static void ConfigureLoaderResolver(
+            Func<SaveDataLoaderStrategy> loaderResolver)
+        {
+            if (loaderResolver == null)
+            {
+                throw new ArgumentNullException(nameof(loaderResolver));
+            }
+
+            _viewModel?.Dispose();
+            _service?.Reset();
+
+            var registry = new SaveDataEntryRegistry();
+            _service = new SaveDataService(registry, loaderResolver);
+            _query = new SaveDataQuery(registry);
+            _viewModel = new SaveDataViewModel(_query, _service);
+
+            OnCurrentViewModelChanged?.Invoke();
+        }
+
+        /// <summary> Domain Reloadの有無に依存しないようランタイム状態を初期化する。 </summary>
+        internal static void ResetRuntimeState()
+        {
+            _service?.Reset();
+        }
+
+        /// <summary>
+        ///     現在選択されているローダーを取得する。
+        ///     Adaptorが選んだ実装は公開APIへ出さず、状態を表示するEditorウィンドウからのみ参照する。
+        /// </summary>
+        internal static SaveDataLoaderStrategy GetCurrentLoader() => EnsureInitialized().GetCurrentLoader();
+
+        /// <summary> Compositionからローダーが注入済みであることを確認する。 </summary>
+        /// <returns> 処理を委譲するService。 </returns>
+        private static SaveDataService EnsureInitialized()
+        {
+            return _service ?? throw new SymphonyNotInitializedException(typeof(SaveStore));
+        }
+
+        /// <summary> ストアで扱えるデフォルトコンストラクタ付き具象型か検証する。 </summary>
+        private static void ValidateDataType(Type dataType)
+        {
+            if (dataType == null)
+            {
+                throw new ArgumentNullException(nameof(dataType));
+            }
+
+            if (!dataType.IsClass || dataType.IsAbstract || dataType.IsGenericTypeDefinition)
+            {
+                throw new ArgumentException("セーブ対象は new() 可能な具象クラスにしてください。", nameof(dataType));
+            }
+
+            if (dataType.GetConstructor(Type.EmptyTypes) == null)
+            {
+                throw new ArgumentException("デフォルトコンストラクタが必要です。", nameof(dataType));
+            }
+
+            if (!typeof(SaveDataContent).IsAssignableFrom(dataType))
+            {
+                throw new ArgumentException($"{nameof(SaveDataContent)} を継承した型を指定してください。", nameof(dataType));
+            }
+        }
+
+        private static SaveDataService _service;
+        private static SaveDataQuery _query;
+        private static SaveDataViewModel _viewModel;
+    }
+}

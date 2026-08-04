@@ -1,0 +1,279 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+using SymphonyFrameWork.Exceptions;
+
+using UnityEngine;
+
+namespace SymphonyFrameWork.System.SaveSystem
+{
+    /// <summary>
+    ///     セーブデータの存在確認、読み込み、保存、削除の処理順と失敗時の変換を担当する。
+    ///     状態の保持は<see cref="SaveDataEntryRegistry"/>、保存先へのI/Oは
+    ///     <see cref="SaveDataLoaderStrategy"/>へ委譲する。
+    /// </summary>
+    internal sealed class SaveDataService
+    {
+        /// <summary>
+        ///     エントリの管理先とローダーの解決処理を指定して生成する。
+        /// </summary>
+        /// <param name="registry"> エントリを所有するレジストリ。 </param>
+        /// <param name="loaderResolver"> 現在のConfigに対応するローダーを返す処理。 </param>
+        public SaveDataService(
+            SaveDataEntryRegistry registry,
+            Func<SaveDataLoaderStrategy> loaderResolver)
+        {
+            _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+            _loaderResolver = loaderResolver ?? throw new ArgumentNullException(nameof(loaderResolver));
+        }
+
+        /// <summary>
+        ///     表示内容が変わりうる操作が完了したときに発行される。
+        ///     発行はその操作を完了させたスレッドで行う。
+        /// </summary>
+        internal event Action OnStateChanged;
+
+        /// <summary> 指定型の永続化データが存在するか確認する。 </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <returns> 永続化データが存在する場合はtrue。 </returns>
+        public bool Exists(Type dataType)
+        {
+            SaveDataLoaderStrategy loader = GetLoader();
+
+            try
+            {
+                return loader.Exists(dataType);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (SaveDataOperationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new SaveDataOperationException(
+                    SaveDataOperationEnum.Exists,
+                    dataType,
+                    loader.GetType(),
+                    ex);
+            }
+        }
+
+        /// <summary>
+        ///     読み込み済みのインスタンスを取得する。
+        ///     暗黙の同期読み込みは行わない。非同期処理を同期ブロックすると、
+        ///     PlayerLoopで進む待機を含むLoaderで完了不能になるため。
+        /// </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <returns> 読み込み済みのインスタンス。 </returns>
+        /// <exception cref="InvalidOperationException"> 対象型がまだ読み込まれていない場合。 </exception>
+        public SaveDataContent Get(Type dataType)
+        {
+            if (!_registry.IsLoaded(dataType))
+            {
+                throw new InvalidOperationException(
+                    $"[{nameof(SaveStore)}] {dataType.Name} はまだ読み込まれていません。"
+                    + $" 先に await {nameof(SaveStore)}.{nameof(SaveStore.LoadAsync)}<{dataType.Name}>() を呼んでください。");
+            }
+
+            return _registry.GetOrCreate(dataType).Content;
+        }
+
+        /// <summary> 指定型が読み込み済みか確認する。 </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <returns> 読み込み済みの場合はtrue。 </returns>
+        public bool IsLoaded(Type dataType) => _registry.IsLoaded(dataType);
+
+        /// <summary> 指定型の永続化データをキャッシュへ非同期に読み込む。 </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 読み込みの完了を表すTask。 </returns>
+        public Task LoadAsync(Type dataType, CancellationToken token = default)
+        {
+            SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
+
+            if (_registry.TryGetLoadingTask(dataType, out Task loadingTask))
+            {
+                return loadingTask;
+            }
+
+            Task loadTask = LoadInternalAsync(dataType, entry.Content, token);
+            _registry.RegisterLoadingTaskIfPending(dataType, loadTask);
+            return loadTask;
+        }
+
+        /// <summary> 指定型のキャッシュを保存先へ非同期に書き込む。 </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 保存の完了を表すTask。 </returns>
+        public async Task SaveAsync(Type dataType, CancellationToken token = default)
+        {
+            SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
+            SaveDataContent content = entry.Content;
+            SaveDataLoaderStrategy loader = GetLoader();
+
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperationEnum.Save,
+                dataType,
+                loader,
+                () => loader.SaveAsync(dataType, content, token));
+
+            _registry.MarkLoaded(dataType, content);
+            RaiseStateChanged();
+        }
+
+        /// <summary> 指定型の永続化データを削除し、キャッシュを既定値へ戻す。 </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 削除の完了を表すTask。 </returns>
+        public async Task DeleteAsync(Type dataType, CancellationToken token = default)
+        {
+            SaveDataEntryEntity entry = _registry.GetOrCreate(dataType);
+            SaveDataContent content = entry.Content;
+            _registry.MarkUnloaded(dataType);
+
+            SaveDataLoaderStrategy loader = GetLoader();
+
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperationEnum.Delete,
+                dataType,
+                loader,
+                () => loader.DeleteAsync(dataType, token));
+
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperationEnum.Load,
+                dataType,
+                loader,
+                () => loader.LoadAsync(dataType, content, token));
+
+            _registry.MarkLoaded(dataType, content);
+            RaiseStateChanged();
+        }
+
+        /// <summary>
+        ///     現在選択されているローダーを取得する。未解決の場合はresolverから取得する。
+        /// </summary>
+        /// <returns> 現在のローダー。 </returns>
+        public SaveDataLoaderStrategy GetCurrentLoader() => GetLoader();
+
+        /// <summary> ローダーとキャッシュを破棄し、次回アクセス時に再解決させる。 </summary>
+        public void Reset()
+        {
+            _cachedLoader = null;
+
+            int version = _registry.Version;
+            _registry.Clear();
+
+            if (_registry.Version != version)
+            {
+                RaiseStateChanged();
+            }
+        }
+
+        /// <summary> 重複ロード管理の後始末を保証しながら対象データを読み込む。 </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="content"> 読み込み先のインスタンス。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 読み込みの完了を表すTask。 </returns>
+        private async Task LoadInternalAsync(
+            Type dataType,
+            SaveDataContent content,
+            CancellationToken token)
+        {
+            try
+            {
+                SaveDataLoaderStrategy loader = GetLoader();
+                await ExecuteLoaderOperationAsync(
+                    SaveDataOperationEnum.Load,
+                    dataType,
+                    loader,
+                    () => loader.LoadAsync(dataType, content, token));
+                _registry.MarkLoaded(dataType, content);
+            }
+            finally
+            {
+                _registry.RemoveLoadingTask(dataType);
+                RaiseStateChanged();
+            }
+        }
+
+        /// <summary>
+        ///     状態変更を通知する。購読側の例外はここで止める。
+        ///     購読しているのは表示専用のViewModelであり、その失敗を保存や読み込みの失敗にしない。
+        ///     メインスレッド外で完了した場合のReactivePropertyの例外もここで捕捉する。
+        /// </summary>
+        private void RaiseStateChanged()
+        {
+            try
+            {
+                OnStateChanged?.Invoke();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+        }
+
+        /// <summary> ローダー操作へセーブデータ型とローダー型の文脈を付けて実行する。 </summary>
+        /// <param name="operation"> 実行する操作。 </param>
+        /// <param name="dataType"> 操作対象のセーブデータ型。 </param>
+        /// <param name="loader"> 操作に使用するローダー。 </param>
+        /// <param name="execute"> 実行するローダー処理。 </param>
+        /// <returns> 操作の完了を表すTask。 </returns>
+        private static async Task ExecuteLoaderOperationAsync(
+            SaveDataOperationEnum operation,
+            Type dataType,
+            SaveDataLoaderStrategy loader,
+            Func<Task> execute)
+        {
+            try
+            {
+                await execute();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (SaveDataOperationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new SaveDataOperationException(
+                    operation,
+                    dataType,
+                    loader.GetType(),
+                    ex);
+            }
+        }
+
+        /// <summary> キャッシュ済みローダーを返し、未解決の場合はresolverから取得する。 </summary>
+        /// <returns> 現在のローダー。 </returns>
+        private SaveDataLoaderStrategy GetLoader()
+        {
+            if (_cachedLoader != null)
+            {
+                return _cachedLoader;
+            }
+
+            _cachedLoader = _loaderResolver();
+            if (_cachedLoader == null)
+            {
+                throw new InvalidOperationException(
+                    $"[{nameof(SaveStore)}] ローダーの解決結果がnullです。");
+            }
+
+            return _cachedLoader;
+        }
+
+        private readonly SaveDataEntryRegistry _registry;
+        private readonly Func<SaveDataLoaderStrategy> _loaderResolver;
+
+        private SaveDataLoaderStrategy _cachedLoader;
+    }
+}

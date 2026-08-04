@@ -1,7 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger;
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -12,32 +15,45 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     public static class SymphonyConfigManager
     {
-        internal static void AllConfigCheck()
+        /// <summary> Runtime用とEditor用のすべての設定アセットが存在することを保証する。 </summary>
+        /// <returns> AssetDatabaseの更新が必要な変更を行った場合はtrue。 </returns>
+        internal static bool AllConfigCheck()
         {
+            bool hasAssetChanges = false;
+
             // Runtime用 (ScriptableObject)
-            FileCheck<SceneManagerConfig>();
-            FileCheck<AudioManagerConfig>();
-            
+            hasAssetChanges |= FileCheck<SceneLoadConfig>();
+            hasAssetChanges |= FileCheck<AudioConfig>();
+            hasAssetChanges |= FileCheck<SaveDataConfig>();
+
             // Editor用 (ScriptableSingleton)
             // GetConfigを呼ぶだけで、アセットが存在しなければ自動生成、あればロードされる
+            CreateUserSettingFolder();
             EditorFileCheck<AutoEnumGeneratorConfig>();
+            EditorFileCheck<SymphonyUserSettingConfig>();
+
+            return hasAssetChanges;
         }
 
         /// <summary>
         ///     Runtimeファイルが存在するか確認する (Resources内)
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        private static void FileCheck<T>() where T : ScriptableObject
+        /// <typeparam name="T"> 存在を保証するRuntime設定アセットの型。 </typeparam>
+        /// <returns> 設定アセットまたは配置先フォルダを生成した場合はtrue。 </returns>
+        private static bool FileCheck<T>() where T : ScriptableObject
         {
             string path = SymphonyConfigLocator.GetFullPath<T>();
             if (path == null)
             {
                 Debug.LogWarning(typeof(T).Name + " doesn't exist!");
-                return;
+                return false;
             }
 
             // ファイルが存在するなら終了
-            if (AssetDatabase.LoadAssetAtPath<T>(path) != null) return;
+            if (AssetDatabase.LoadAssetAtPath<T>(path) != null)
+            {
+                return false;
+            }
 
             string directory = SymphonyConstant.RESOURCES_RUNTIME_PATH;
 
@@ -48,15 +64,14 @@ namespace SymphonyFrameWork.Editor
             var asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, path);
 
-            // 変更を反映させるためにRefresh()を呼び出す
-            AssetDatabase.Refresh();
-
             // アセットを保存
             AssetDatabase.SaveAssets();
 
-            SymphonyDebugLogger.DirectLog($"'{path}' に新しい {typeof(T).Name} を作成しました。");
+            SymphonyDebugLogger.LogDirect($"'{path}' に新しい {typeof(T).Name} を作成しました。");
+            return true;
         }
 
+        /// <summary> Editor用ScriptableSingletonを取得して必要に応じて生成する。 </summary>
         private static void EditorFileCheck<T>() where T : ScriptableSingleton<T>
         {
             _ = SymphonyEditorConfigLocator.GetConfig<T>();
@@ -68,10 +83,26 @@ namespace SymphonyFrameWork.Editor
         private static void CreateResourcesFolder(string resourcesPath)
         {
             //リソースがなければ生成
-            if (!Directory.Exists(resourcesPath))
+            if (Directory.Exists(resourcesPath))
             {
-                Directory.CreateDirectory(resourcesPath);
-                AssetDatabase.Refresh();
+                return;
+            }
+
+            Directory.CreateDirectory(resourcesPath);
+        }
+
+        /// <summary> UserSettings内にFramework設定の保存先フォルダを生成する。 </summary>
+        private static void CreateUserSettingFolder()
+        {
+            try
+            {
+                Directory.CreateDirectory(EditorSymphonyConstant.USER_SETTING_FILE_PATH);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning(
+                    $"[{nameof(SymphonyConfigManager)}] UserSettingsの保存先を生成できませんでした。" +
+                    $" path: '{EditorSymphonyConstant.USER_SETTING_FILE_PATH}', reason: '{exception.Message}'");
             }
         }
     }

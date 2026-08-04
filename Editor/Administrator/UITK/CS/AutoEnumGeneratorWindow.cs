@@ -1,18 +1,22 @@
 ﻿using SymphonyFrameWork.Utility;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
+    /// <summary> enum自動更新設定と手動生成操作を提供する管理パネル。 </summary>
     [UxmlElement]
-    public partial class AutoEnumGeneratorWindow : SymphonyVisualElement
+    public sealed partial class AutoEnumGeneratorWindow : SymphonyVisualElement
     {
+        /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
         public AutoEnumGeneratorWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "AutoEnumGeneratorWindow.uxml",
-            InitializeType.None,
-            LoadType.AssetDataBase)
+            InitializeTypeEnum.None,
+            LoadTypeEnum.AssetDataBase)
         { }
-        protected override ValueTask Initialize_S(VisualElement container)
+        /// <summary> 自動生成設定のToggleと手動生成Buttonを構成する。 </summary>
+        protected override Awaitable Initialize_S(VisualElement container)
         {
             //コンフィグデータを取得
             var config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
@@ -35,7 +39,7 @@ namespace SymphonyFrameWork.Editor
                 evt => config.AutoLayerUpdate = evt.newValue);
             layers.button.clicked += () => AutoEnumGenerator.LayersEnumGenerate();
 
-            return default;
+            return SymphonyAwaitable.Completed();
 
             (Toggle toggle, Button button) GetElement(string name) =>
                 container.Q<VisualElement>(name) switch
