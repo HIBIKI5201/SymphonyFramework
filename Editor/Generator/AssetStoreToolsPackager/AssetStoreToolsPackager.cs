@@ -133,16 +133,24 @@ namespace SymphonyFrameWork.Editor
                 ? GetProjectUsedDependencies(AssetStoreToolsPackagerData.AssetStoreToolsPath)
                 : null;
 
+            // 読み込めない場合もリビジョン0として出力は続行する。
+            // 差分インポート側で常に新規と判定されるだけで、既存の出力機能は損なわれない。
+            AssetStoreToolsVersionLog versionLog = AssetStoreToolsVersionLogStore.Load();
+
             List<AssetStoreToolsPackagePlanEntry> entries = new();
             foreach (string dir in directories)
             {
+                string name = Path.GetFileName(dir);
+                string[] assetPaths = usedAssetPaths != null
+                    ? CollectExportAssets(dir, usedAssetPaths, config.ForceIncludeExtensions)
+                    : CollectAllAssets(dir);
+
                 entries.Add(new AssetStoreToolsPackagePlanEntry
                 {
                     DirectoryPath = dir,
-                    Name = Path.GetFileName(dir),
-                    AssetPaths = usedAssetPaths != null
-                        ? CollectExportAssets(dir, usedAssetPaths, config.ForceIncludeExtensions)
-                        : CollectAllAssets(dir),
+                    Name = name,
+                    Version = versionLog?.GetVersion(name) ?? 0,
+                    AssetPaths = assetPaths,
                 });
             }
 
@@ -179,6 +187,11 @@ namespace SymphonyFrameWork.Editor
                 Directory.CreateDirectory(context.ExportFullPath);
             }
 
+            // 出力時バージョンを先に書き、AssetDatabaseへ載せてからパッケージ化する。
+            // Refreshを省くと新規ファイルがAssetDatabaseに載らず、Recurseでも明示指定でも出力されない。
+            WriteExportedVersions(plan);
+            AssetDatabase.Refresh();
+
             if ((plan.Mode & PackageModeEnum.Singles) != 0)
             {
                 ExportPackage(context, plan);
@@ -187,6 +200,19 @@ namespace SymphonyFrameWork.Editor
             if ((plan.Mode & PackageModeEnum.Combine) != 0)
             {
                 CreateCombinedPackage(context, plan);
+            }
+
+            // マニフェストは個別出力のときだけ書く。ZIPへ含めるためZIP化より前に書く。
+            if ((plan.Mode & PackageModeEnum.Singles) != 0)
+            {
+                WriteManifest(context, plan);
+            }
+            else if ((plan.Mode & PackageModeEnum.Combine) != 0)
+            {
+                Debug.LogWarning(
+                    $"[{nameof(AssetStoreToolsPackager)}]\n"
+                    + "統合パッケージだけの出力は差分インポートの対象になりません。"
+                    + "ディレクトリ単位で取り出せないためです。");
             }
 
             if (plan.CreateZip)
@@ -199,6 +225,81 @@ namespace SymphonyFrameWork.Editor
 
 
         private const string PACKAGE_NAME = "AssetStoreToolsPackage";
+
+        /// <summary>
+        ///     出力対象アセットへ出力時バージョンファイルのパスを加える。
+        /// </summary>
+        /// <remarks>
+        ///     「Used Dependencies」の経路では計画の一覧がそのままExportPackageの引数になるため、
+        ///     ここで加えないとバージョンファイルがパッケージへ含まれない。
+        ///     計画そのものへは加えない。加えると空のディレクトリを検出できなくなる。
+        /// </remarks>
+        /// <param name="assetPaths"> 収集済みの出力対象アセット。 </param>
+        /// <param name="directoryPath"> 出力単位となるディレクトリのパス。 </param>
+        /// <returns> パスの昇順で並んだ出力対象アセットのパス。 </returns>
+        private static string[] AppendExportedVersionPath(
+            IEnumerable<string> assetPaths,
+            string directoryPath)
+        {
+            string exportedVersionPath = BuildExportedVersionPath(directoryPath);
+
+            return assetPaths
+                .Append(exportedVersionPath)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        /// <summary> ディレクトリ直下の出力時バージョンファイルのパスを組み立てる。 </summary>
+        /// <param name="directoryPath"> 出力単位となるディレクトリのパス。 </param>
+        /// <returns> スラッシュ区切りのアセットパス。 </returns>
+        private static string BuildExportedVersionPath(string directoryPath)
+            => directoryPath.Replace("\\", "/").TrimEnd('/')
+               + "/" + EditorSymphonyConstant.ASSET_STORE_TOOLS_EXPORTED_VERSION_FILE_NAME;
+
+        /// <summary>
+        ///     計画中の各ディレクトリへ出力時バージョンを書き出す。
+        /// </summary>
+        /// <remarks>
+        ///     書き込みに失敗しても出力は続行する。バージョンファイルの無いパッケージは
+        ///     インポート側で常に新規と判定されるだけで、既存の出力機能は損なわれない。
+        /// </remarks>
+        /// <param name="plan"> 出力する計画。 </param>
+        private static void WriteExportedVersions(AssetStoreToolsPackagePlan plan)
+        {
+            foreach (AssetStoreToolsPackagePlanEntry entry in plan.Entries)
+            {
+                AssetStoreToolsVersionLogStore.TryWriteExportedVersion(
+                    entry.DirectoryPath,
+                    entry.Name,
+                    entry.Version);
+            }
+        }
+
+        /// <summary>
+        ///     出力先フォルダへ、個別出力したパッケージ一覧のマニフェストを書き出す。
+        /// </summary>
+        /// <param name="context"> 出力先を保持するパッケージコンテキスト。 </param>
+        /// <param name="plan"> 出力した計画。 </param>
+        private static void WriteManifest(
+            in AssetStoreToolsPackageContext context,
+            AssetStoreToolsPackagePlan plan)
+        {
+            var manifest = new AssetStoreToolsPackageManifest
+            {
+                ExportedAt = AssetStoreToolsVersionLog.CreateTimestamp(),
+                Packages = plan.Entries
+                    .Select(entry => new AssetStoreToolsPackageManifestEntry
+                    {
+                        Name = entry.Name,
+                        Version = entry.Version,
+                        FileName = $"{entry.Name}.unitypackage",
+                    })
+                    .ToList(),
+            };
+
+            AssetStoreToolsVersionLogStore.TryWriteManifest(context.ExportFullPath, manifest);
+        }
 
         /// <summary>
         ///     個別のパッケージ生成。
@@ -224,7 +325,8 @@ namespace SymphonyFrameWork.Editor
                             continue;
                         }
 
-                        exportFiles = entry.AssetPaths.ToArray();
+                        // 出力時バージョンは計画に含めず、ここで加える。
+                        exportFiles = AppendExportedVersionPath(entry.AssetPaths, entry.DirectoryPath);
                         options = ExportPackageOptions.Default;
                     }
                     else
@@ -268,17 +370,19 @@ namespace SymphonyFrameWork.Editor
 
                 if (plan.UsedDependencies)
                 {
-                    exportFiles = plan.Entries
-                        .SelectMany(entry => entry.AssetPaths)
-                        .Distinct()
-                        .ToArray();
-                    options = ExportPackageOptions.Default;
-
-                    if (exportFiles.Length == 0)
+                    // 空判定は出力時バージョンを加える前に行う。加えた後では常に非空になる。
+                    if (plan.Entries.All(entry => entry.AssetPaths.Count == 0))
                     {
                         Debug.LogWarning("使用中アセットが存在しないため統合パッケージを作成しませんでした。");
                         return;
                     }
+
+                    exportFiles = plan.Entries
+                        .SelectMany(entry =>
+                            AppendExportedVersionPath(entry.AssetPaths, entry.DirectoryPath))
+                        .Distinct()
+                        .ToArray();
+                    options = ExportPackageOptions.Default;
                 }
                 else
                 {

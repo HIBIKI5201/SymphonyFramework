@@ -1,5 +1,36 @@
 # Changelog
 
+## [3.3.0] - 2026-08-05
+Asset Store Tools Packager に、パッケージ単位のリビジョン記録を追加しました。**Runtime の公開APIとセーブデータ形式は変更していません。** 変更は Editor 専用ツールに閉じています。
+
+### Add
+
+- **パッケージ対象ディレクトリごとにリビジョン番号を記録するようにしました。** 出力した `.unitypackage` を別プロジェクトへ取り込むとき、どのパッケージが前回から変わったのかを判定する手段がありませんでした。出力日時は「出力した日時」であって「中身が変わった日時」ではないため、判断材料になりません。
+
+  記録するファイルは3種類です。
+
+  | ファイル | 置き場 | 意味 |
+  | --- | --- | --- |
+  | `PackageVersions.json` | `Asset Store Tools Path` 直下 | このプロジェクトでの各ディレクトリの現在リビジョン |
+  | `ExportedVersion.json` | 各ディレクトリ直下 | そのパッケージを出力した時点のリビジョン |
+  | `PackageManifest.json` | 出力先フォルダ | その回に出力したパッケージ名とリビジョンの一覧 |
+
+  `ExportedVersion.json` はパッケージへ同梱されるため、**インポート先では「今そこに入っているパッケージのリビジョン」**を表します。これと `PackageManifest.json` を突き合わせることで、次のバージョンで差分インポートを実現します。
+
+  `PackageVersions.json` と `ExportedVersion.json` は `Assets/` 配下にあります。**インポート先での比較に使うため、利用側のリポジトリで版管理してください。**
+
+- **`EditorSymphonyConstant` へ3つの定数を追加しました。** `ASSET_STORE_TOOLS_VERSION_LOG_FILE_NAME`、`ASSET_STORE_TOOLS_EXPORTED_VERSION_FILE_NAME`、`ASSET_STORE_TOOLS_MANIFEST_FILE_NAME` です。既存の `ASSET_STORE_TOOLS_CONFIG_FILE_NAME` と同じく、利用側が `.gitignore` やビルドスクリプトから名前で参照できるようにするためです。
+
+### Change
+
+- **パッケージ対象フォルダ配下を変更すると `PackageVersions.json` が更新されます。** 変更の検知は `AssetPostprocessor` が行い、書き出しは `SymphonyEditorOrchestrator` がまとめて1回だけ実行します。
+
+  リビジョンは「実際には変わっていないのに増える」ことがあります。Unityが再インポートしただけでも加算されるためです。これは**不要なインポートが1回余分に起きる方向**の誤りであり、「変わったのに増えない」という逆方向の誤りは起きません。
+
+- **`AssetStoreToolsPackager.Export` が出力時に `ExportedVersion.json` と `PackageManifest.json` を書くようになりました。** シグネチャと戻り値、および出力パッケージの既存の中身は変わりません。パッケージへ `ExportedVersion.json` が1ファイル増えます。
+
+- **統合パッケージ（`Export Mode = Combine`）だけで出力した場合、`PackageManifest.json` を作りません。** 統合パッケージはディレクトリ単位で取り出せず、差分インポートの単位にならないためです。その場合はConsoleへ警告を出します。
+
 ## [3.2.1] - 2026-08-05
 Editor機能と非推奨APIのドキュメントを追加しました。**コードは変更していません。** 公開API、シリアライズ形式、挙動のいずれも 3.2.0 と同じです。
 

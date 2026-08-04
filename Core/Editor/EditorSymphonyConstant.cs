@@ -52,6 +52,15 @@ namespace SymphonyFrameWork.Core
 
         /// <summary> パッケージ化設定ファイルの名前。対象フォルダ直下に置かれる。 </summary>
         public const string ASSET_STORE_TOOLS_CONFIG_FILE_NAME = "PackagerConfig.json";
+
+        /// <summary> ディレクトリごとの現在リビジョンを持つバージョンログの名前。対象フォルダ直下に置かれる。 </summary>
+        public const string ASSET_STORE_TOOLS_VERSION_LOG_FILE_NAME = "PackageVersions.json";
+
+        /// <summary> 出力時のリビジョンを記録するファイルの名前。各パッケージ対象ディレクトリ直下に置かれる。 </summary>
+        public const string ASSET_STORE_TOOLS_EXPORTED_VERSION_FILE_NAME = "ExportedVersion.json";
+
+        /// <summary> 出力したパッケージ名とリビジョンの一覧の名前。出力先フォルダに置かれる。 </summary>
+        public const string ASSET_STORE_TOOLS_MANIFEST_FILE_NAME = "PackageManifest.json";
         #endregion
 
         /// <summary> 管理ウィンドウ用UI Toolkitアセットの基準パス。 </summary>

@@ -38,6 +38,8 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Service Locatorのログ設定 | **含めない（開発者ごと）** |
 | `Assets/Resources/SymphonyFrameWork/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` | 含める |
 | `<Asset Store Tools Path>/PackagerConfig.json` | Packagerの除外フォルダと強制包含拡張子 | 含める |
+| `<Asset Store Tools Path>/PackageVersions.json` | ディレクトリごとの現在リビジョン | 含める |
+| `<Asset Store Tools Path>/<ディレクトリ>/ExportedVersion.json` | そのパッケージを出力した時点のリビジョン | 含める |
 | `<Frameworkルート>/Cache/Log.txt` | `SymphonyDebugLogger`の出力 | **含めない（生成物）** |
 
 ---
@@ -156,7 +158,28 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 
 **出力先**: `<Exported Packages Path>/Export_AssetStoreToolsPackage_<日時>/`
 
+### バージョンログ
+
+どのパッケージが前回から変わったのかを判定するために、リビジョン番号を記録します。
+
+| ファイル | 置き場 | 意味 | 誰が書くか |
+| --- | --- | --- | --- |
+| `PackageVersions.json` | `Asset Store Tools Path` 直下 | **このプロジェクトでの**各ディレクトリの現在リビジョン | ディレクトリ配下の変更を検知して自動で加算 |
+| `ExportedVersion.json` | 各ディレクトリ直下 | **そのパッケージを出力した時点の**リビジョン | パッケージ出力時に生成し、パッケージへ同梱する |
+| `PackageManifest.json` | 出力先フォルダ | その回に出力したパッケージ名とリビジョンの一覧 | パッケージ出力時に生成する |
+
+2種類のログは意味が違います。`PackageVersions.json` は「編集の履歴」、`ExportedVersion.json` は「出荷時点のスナップショット」です。`ExportedVersion.json` はパッケージへ同梱されるため、**インポート先のプロジェクトでは「今そこに入っているパッケージのリビジョン」**を表します。これと `PackageManifest.json` を突き合わせれば、インポートが必要なパッケージだけを判別できます。
+
+**リビジョンの加算**: `AssetStoreToolsVersionPostProcessor`（`AssetPostprocessor`）が対象ディレクトリ配下の変更を検知し、`SymphonyEditorOrchestrator` へ通知します。実際の書き出しはOrchestratorがまとめて1回だけ行います。
+
 **注意点**:
+
+- **`PackageVersions.json` と `ExportedVersion.json` は版管理へ含めてください。** インポート先での比較に使います。
+- リビジョンは「実際には変わっていないのに増える」ことがあります。Unityが再インポートしただけでも加算されるためです。これは**不要なインポートが1回余分に起きる方向**の誤りで、「変わったのに増えない」逆方向の誤りは起きません。
+- **統合パッケージ（`Export Mode = Combine`）は差分インポートの対象になりません。** ディレクトリ単位で取り出せないためです。`Combine` だけで出力すると `PackageManifest.json` は作られず、Consoleへ警告が出ます。
+- リビジョンを手で編集する場合、負の値は0として扱われます。
+
+### 出力全般の注意点
 
 - 確認ウィンドウで「（対象アセットなし）」と表示されたフォルダは、出力時に警告になります。`Used Dependencies` を有効にしていて、そのフォルダのアセットがプロジェクト内で1つも使われていない場合に起きます。
 - `Used Dependencies` は `AssetDatabase.GetDependencies` で依存関係を追います。この依存関係グラフに載らないファイル（`.asmdef` など）は `Force Include Extensions` で補います。
