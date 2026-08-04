@@ -118,10 +118,17 @@ namespace SymphonyFrameWork.Editor
                         .Select(d => d.Path)
                         .ToArray();
 
-                    Export(selectedDirs,
+                    // 出力内容を確定してから提示し、確認ウィンドウの承認を受けて実行する。
+                    AssetStoreToolsPackagePlan plan = CreatePlan(
+                        selectedDirs,
                         _packageMode,
                         _createZip,
                         _usedDependencies);
+
+                    if (plan != null)
+                    {
+                        AssetStoreToolsPackageConfirmWindow.Open(plan, () => Export(plan));
+                    }
                 }
             }
         }
