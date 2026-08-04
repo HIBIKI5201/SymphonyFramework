@@ -40,6 +40,9 @@ namespace SymphonyFrameWork.Editor
         /// <summary> パッケージ名と表示に使うディレクトリ名。 </summary>
         public string Name;
 
+        /// <summary> 計画を組んだ時点のリビジョン。出力時バージョンとマニフェストへ記録する。 </summary>
+        public int Version;
+
         /// <summary> このディレクトリから出力されるアセットのパス一覧。 </summary>
         public IReadOnlyList<string> AssetPaths = new List<string>();
     }
