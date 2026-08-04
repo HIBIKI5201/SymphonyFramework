@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.2.1] - 2026-08-05
+Editor機能と非推奨APIのドキュメントを追加しました。**コードは変更していません。** 公開API、シリアライズ形式、挙動のいずれも 3.2.0 と同じです。
+
+### Add
+
+- **`Documentation~/EditorTools.md` を追加しました。** Editor機能の正本です。
+
+  これまでEditor機能の説明は README の `Editor・デバッグ支援` にある10行の箇条書きだけで、**`AssetStoreToolsPackager`、`SymphonyPackageLoader`、`SymphonyAssetProtector`、`SymphonyMcpTools`、Project Settings の各設定項目は1行も書かれていませんでした。** Runtime の各サブシステムには README のクイックスタートがあるのに、Editor機能には対応する正本がありませんでした。
+
+  `Editor/` 配下の全モジュールについて、何をするものか、どのメニューやProject Settingsから開くか、設定がどこへ保存されるか、版管理へ含めるべきかを記載しています。README の箇条書きは索引として残し、詳細はこちらへ委譲します。
+
+- **`Documentation~/Deprecations.md` を追加しました。** 非推奨APIと削除予定の正本です。
+
+  非推奨APIの正本はこれまで CHANGELOG でしたが、CHANGELOG は時系列の記録であり、**「今なお非推奨で、まだ消えていないもの」を一覧できません。** 非推奨化した版まで遡って読む必要があり、その後で削除されたのかどうかも分かりませんでした。
+
+  現在7件の `[Obsolete]` メンバーがあり、そのうち**6件は非推奨化がCHANGELOGへ記載されておらず、削除予定も決まっていません**（`SymphonyDebugLogger` の4件と `SymphonyTween` の2件）。この文書では削除予定を「未定」と明記し、判断が必要な項目が残っていること自体が見えるようにしています。
+
+### Change
+
+- `Documentation~/AgentUsage.md` の「非推奨APIの期限と移行先は CHANGELOG.md を正本とします」を、`Deprecations.md` を正本とする記述へ変更しました。正本が2つになることを避けるためです。非推奨化の経緯と時期は引き続き CHANGELOG を参照します。
+
+- `AGENTS.md` の参照先表で、Editor・デバッグ機能の参照先を `EditorTools.md` へ、非推奨APIと移行方法の参照先を `Deprecations.md` へ変更しました。
+
 ## [3.2.0] - 2026-08-04
 Asset Store Tools Packager に、出力前の確認ウィンドウを追加しました。**Runtime の公開APIとセーブデータ形式は変更していません。**
 
