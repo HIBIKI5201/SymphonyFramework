@@ -7,7 +7,7 @@ namespace SymphonyFrameWork
 {
     /// <summary> セーブデータのシリアライズ方式と保存先を選択する。 </summary>
     [Serializable]
-    internal sealed class SaveSystemConfig : ScriptableObject
+    internal sealed class SaveDataConfig : ScriptableObject
     {
         /// <summary> 現在選択されているセーブデータローダー。 </summary>
         public SaveDataLoaderStrategy Loader => _loader;

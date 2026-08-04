@@ -97,8 +97,8 @@ namespace SymphonyFrameWork.Editor
         /// <returns> Configで選択されたローダー。未設定の場合は既定のローダー。 </returns>
         private static SaveDataLoaderStrategy ResolveSaveDataLoader()
         {
-            SaveSystemConfig config =
-                SymphonyConfigLocator.GetConfig<SaveSystemConfig>();
+            SaveDataConfig config =
+                SymphonyConfigLocator.GetConfig<SaveDataConfig>();
             return config?.Loader ?? new JsonUtilitySaveDataLoaderStrategy();
         }
     }

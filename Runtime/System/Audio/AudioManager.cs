@@ -62,7 +62,7 @@ namespace SymphonyFrameWork.System
         /// <param name="config"> オーディオミキサーとグループ設定。 </param>
         /// <param name="systemObjectFactory"> AudioSource所有用GameObjectの生成契約。 </param>
         internal static void Initialize(
-            AudioManagerConfig config,
+            AudioConfig config,
             ISystemObjectFactory systemObjectFactory)
         {
             ResetRuntimeState();

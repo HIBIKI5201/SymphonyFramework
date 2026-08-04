@@ -23,7 +23,7 @@ namespace SymphonyFrameWork.Orchestrator
 
         private static CancellationTokenRegistration _destroyRegistration;
         private static bool _isShuttingDown;
-        private static SymphonyOrchestratorObject _systemObject;
+        private static SymphonyLifetimeComponent _systemObject;
 
         /// <summary>
         ///     永続オブジェクトを生成し、各サブシステムを初期化する。
@@ -40,10 +40,10 @@ namespace SymphonyFrameWork.Orchestrator
             try
             {
                 var systemGameObject = new GameObject(nameof(SymphonyOrchestrator));
-                _systemObject = systemGameObject.AddComponent<SymphonyOrchestratorObject>();
+                _systemObject = systemGameObject.AddComponent<SymphonyLifetimeComponent>();
                 UnityEngine.Object.DontDestroyOnLoad(systemGameObject);
 
-                SaveSystem.Initialize(ResolveSaveDataLoader);
+                SaveDataInitializer.Initialize(ResolveSaveDataLoader);
                 RecordInitializedSubsystem(SaveStore.ResetRuntimeState);
 
                 PauseManager.Initialize();
@@ -59,7 +59,7 @@ namespace SymphonyFrameWork.Orchestrator
                 RecordInitializedSubsystem(SceneLoader.ResetRuntimeState);
 
                 AudioManager.Initialize(
-                    SymphonyConfigLocator.GetConfig<AudioManagerConfig>(),
+                    SymphonyConfigLocator.GetConfig<AudioConfig>(),
                     systemObjectFactory);
                 RecordInitializedSubsystem(AudioManager.ResetRuntimeState);
 
@@ -94,8 +94,8 @@ namespace SymphonyFrameWork.Orchestrator
         /// <returns> Configで選択されたローダー。未設定の場合は既定のローダー。 </returns>
         private static SaveDataLoaderStrategy ResolveSaveDataLoader()
         {
-            SaveSystemConfig config =
-                SymphonyConfigLocator.GetConfig<SaveSystemConfig>();
+            SaveDataConfig config =
+                SymphonyConfigLocator.GetConfig<SaveDataConfig>();
             return config?.Loader ?? new JsonUtilitySaveDataLoaderStrategy();
         }
 

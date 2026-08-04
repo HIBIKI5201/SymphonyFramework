@@ -32,7 +32,7 @@ namespace SymphonyFrameWork.Editor
             LayersEnumGenerate(true);
         }
 
-        /// <summary> AudioManagerConfigのグループ名からenumを生成する。 </summary>
+        /// <summary> AudioConfigのグループ名からenumを生成する。 </summary>
         public static void AudioEnumGenerate()
         {
             AudioEnumGenerate(true);
@@ -149,11 +149,11 @@ namespace SymphonyFrameWork.Editor
                 refreshAssetDatabase);
         }
 
-        /// <summary> AudioManagerConfigのグループ名からenumを生成する。 </summary>
+        /// <summary> AudioConfigのグループ名からenumを生成する。 </summary>
         /// <param name="refreshAssetDatabase"> 生成後にAssetDatabaseを更新する場合はtrue。 </param>
         internal static void AudioEnumGenerate(bool refreshAssetDatabase)
         {
-            var config = SymphonyConfigLocator.GetConfig<AudioManagerConfig>();
+            var config = SymphonyConfigLocator.GetConfig<AudioConfig>();
             string[] list;
             if (config)
             {

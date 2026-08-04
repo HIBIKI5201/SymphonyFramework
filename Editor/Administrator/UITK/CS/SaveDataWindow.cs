@@ -13,9 +13,9 @@ namespace SymphonyFrameWork.Editor
 {
     /// <summary> SaveDataRegistryのキャッシュ確認、編集、保存操作を提供する管理パネル。 </summary>
     [UxmlElement]
-    public sealed partial class SaveStoreWindow : SymphonyVisualElement, IDisposable
+    public sealed partial class SaveDataWindow : SymphonyVisualElement, IDisposable
     {
-        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveStoreWindow.SelectedTypeName";
+        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataWindow.SelectedTypeName";
 
         private readonly SaveDataDebugState _debugState;
         private SerializedObject _debugSerializedObject;
@@ -68,8 +68,8 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 管理パネル用UXMLと一時編集状態の初期化を開始する。 </summary>
-        public SaveStoreWindow() : base(
-            SymphonyAdministrator.UITK_UXML_PATH + "SaveStoreWindow.uxml",
+        public SaveDataWindow() : base(
+            SymphonyAdministrator.UITK_UXML_PATH + "SaveDataWindow.uxml",
             InitializeTypeEnum.None,
             LoadTypeEnum.AssetDataBase)
         {

@@ -23,7 +23,7 @@ namespace SymphonyFrameWork.System
         /// <param name="registry"> グループを所有するレジストリ。 </param>
         /// <param name="audioSourceHost"> AudioSourceの生成と解放を担う所有者。 </param>
         internal AudioService(
-            AudioManagerConfig config,
+            AudioConfig config,
             AudioGroupRegistry registry,
             IAudioSourceHost audioSourceHost)
         {
@@ -99,7 +99,7 @@ namespace SymphonyFrameWork.System
 
             SymphonyDebugLogger.AddText("Audio Managerを初期化しました。");
 
-            foreach (AudioManagerConfig.AudioGroupSettings settings in GetGroupSettings())
+            foreach (AudioConfig.AudioGroupConfig settings in GetGroupSettings())
             {
                 BuildGroup(mixer, settings);
             }
@@ -109,7 +109,7 @@ namespace SymphonyFrameWork.System
 
         /// <summary> Configから有効なグループ設定を列挙する。 </summary>
         /// <returns> グループ名が設定されている設定の一覧。 </returns>
-        private IEnumerable<AudioManagerConfig.AudioGroupSettings> GetGroupSettings()
+        private IEnumerable<AudioConfig.AudioGroupConfig> GetGroupSettings()
         {
             return _config.AudioGroupSettingList
                 .Where(settings => settings != null
@@ -121,7 +121,7 @@ namespace SymphonyFrameWork.System
         /// </summary>
         /// <param name="mixer"> 対象のAudioMixer。 </param>
         /// <param name="settings"> グループの再生設定。 </param>
-        private void BuildGroup(AudioMixer mixer, AudioManagerConfig.AudioGroupSettings settings)
+        private void BuildGroup(AudioMixer mixer, AudioConfig.AudioGroupConfig settings)
         {
             string groupName = settings.AudioGroupName;
 
@@ -159,7 +159,7 @@ namespace SymphonyFrameWork.System
         /// <returns> 取得できた初期音量。取得できない場合はnull。 </returns>
         private static float? ResolveOriginalVolume(
             AudioMixer mixer,
-            AudioManagerConfig.AudioGroupSettings settings,
+            AudioConfig.AudioGroupConfig settings,
             string groupName)
         {
             if (!string.IsNullOrEmpty(settings.ExposedVolumeParameterName)
@@ -173,7 +173,7 @@ namespace SymphonyFrameWork.System
             return null;
         }
 
-        private readonly AudioManagerConfig _config;
+        private readonly AudioConfig _config;
         private readonly AudioGroupRegistry _registry;
         private readonly IAudioSourceHost _audioSourceHost;
     }

@@ -16,10 +16,10 @@ namespace SymphonyFrameWork.Editor
         public static string UITK_UXML_PATH = EditorSymphonyConstant.UITK_PATH + "UXML/";
 
         private PauseWindow _pauseWindow;
-        private ServiceLocatorWindow _serviceLocatorWindow;
+        private ServiceLocateWindow _serviceLocatorWindow;
         private SceneLoaderWindow _sceneLoaderWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
-        private SaveStoreWindow _saveDataRegistryWindow;
+        private SaveDataWindow _saveDataRegistryWindow;
 
         /// <summary> UXMLから管理パネルを構築する。 </summary>
         private void OnEnable()
@@ -29,10 +29,10 @@ namespace SymphonyFrameWork.Editor
             if (container != null)
             {
                 _pauseWindow = container.Q<PauseWindow>();
-                _serviceLocatorWindow = container.Q<ServiceLocatorWindow>();
+                _serviceLocatorWindow = container.Q<ServiceLocateWindow>();
                 _sceneLoaderWindow = container.Q<SceneLoaderWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
-                _saveDataRegistryWindow = container.Q<SaveStoreWindow>();
+                _saveDataRegistryWindow = container.Q<SaveDataWindow>();
             }
             else
             {

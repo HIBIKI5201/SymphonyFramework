@@ -78,8 +78,8 @@ Editor拡張のパス判定とアセット保護がこの配置を前提とす�
 Assets/
 ├─ Resources/SymphonyFrameWork/
 │  ├─ SceneLoadConfig.asset
-│  ├─ AudioManagerConfig.asset
-│  └─ SaveSystemConfig.asset
+│  ├─ AudioConfig.asset
+│  └─ SaveDataConfig.asset
 └─ Scripts/SymphonyFrameWork/
    ├─ SceneListEnum.cs
    ├─ TagsEnum.cs
@@ -93,7 +93,7 @@ Assets/
 - `Window > SymphonyFrameWork > Symphony Administrator`: 各機能の状態確認とenum生成
 - `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択
 - `SceneLoadConfig.asset`: 再生開始時のシーン初期化
-- `AudioManagerConfig.asset`: AudioMixerとグループ設定
+- `AudioConfig.asset`: AudioMixerとグループ設定
 
 asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してください。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も追加します。
 
@@ -128,7 +128,7 @@ GameSession awaited = await ServiceLocator.GetInstanceAsync<GameSession>(
     token: destroyCancellationToken);
 ```
 
-`Locator`は参照だけを登録し、`Singleton`はComponentを永続管理オブジェクト配下へ移動します。GameObjectへ`SymphonyLocate`を追加してInspectorから登録することもできます。
+`Locator`は参照だけを登録し、`Singleton`はComponentを永続管理オブジェクト配下へ移動します。GameObjectへ`ServiceLocateComponent`を追加してInspectorから登録することもできます。
 
 通常の`RegisterInstance`が型重複で`false`を返した場合、渡した候補の所有権は呼び出し側に残ります。重複した新規候補を以後使わず、自動的に`Dispose`またはGameObject破棄してよい場合だけ、所有権移譲を明示する`RegisterInstanceWithAutoDispose`を使います。
 
@@ -180,7 +180,7 @@ public async void OpenGameScene()
 }
 ```
 
-`SceneLoadRequest`はシーン名とActive Scene選択用の優先度を1つの値として扱います。複数シーンでは`SceneLoadRequest[]`を`LoadScenes`へ渡せるため、シーン名と優先度の対応を崩しません。進捗の推奨契約は`IProgress<float>`です。既存のシーン名と`Action<float>`を使うoverloadも互換性のため利用できます。
+`SceneLoadRequest`はシーン名とActive Scene選択用の優先度を1つの値として扱います。複数シーンでは`SceneLoadRequest[]`を`LoadScenesAsync`へ渡せるため、シーン名と優先度の対応を崩しません。進捗の推奨契約は`IProgress<float>`です。既存のシーン名と`Action<float>`を使うoverloadも互換性のため利用できます。
 
 追跡中の全シーンは、変更不能な`SceneLoadInfo`のスナップショットとして取得できます。取得後にロード状態が変わっても、既に取得した値は変化しません。
 
@@ -232,7 +232,7 @@ await SaveStore.DeleteAsync<PlayerData>();
 
 ### Audio Manager
 
-`AudioManagerConfig.asset`へAudioMixerとグループを登録すると、グループ名からAudioSourceを取得できます。
+`AudioConfig.asset`へAudioMixerとグループを登録すると、グループ名からAudioSourceを取得できます。
 
 ```csharp
 using SymphonyFrameWork.System;

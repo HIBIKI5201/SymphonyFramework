@@ -2,9 +2,9 @@
     <Style src="project://database/Assets/SymphonyFrameWork/Editor/Administrator/UITK/SymphonyWIndow.uss?fileID=7433441132597879392&amp;guid=16c3f611d15eda644b63e276b16e6925&amp;type=3#SymphonyWIndow"/>
     <engine:ScrollView>
         <SymphonyFrameWork.Editor.PauseWindow/>
-        <SymphonyFrameWork.Editor.ServiceLocatorWindow/>
+        <SymphonyFrameWork.Editor.ServiceLocateWindow/>
         <SymphonyFrameWork.Editor.SceneLoaderWindow/>
-        <SymphonyFrameWork.Editor.SaveStoreWindow/>
+        <SymphonyFrameWork.Editor.SaveDataWindow/>
         <SymphonyFrameWork.Editor.AutoEnumGeneratorWindow/>
     </engine:ScrollView>
 </engine:UXML>

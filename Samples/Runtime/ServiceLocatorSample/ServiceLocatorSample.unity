@@ -449,7 +449,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4c2c69bb427f88f408b097383b690c25, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Utility.SymphonyLocate
+  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Utility.ServiceLocateComponent
   _target: {fileID: 1385560255}
   _locateType: 0
   _autoRegister: 1
@@ -559,7 +559,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4c2c69bb427f88f408b097383b690c25, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Utility.SymphonyLocate
+  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Utility.ServiceLocateComponent
   _target: {fileID: 1892205056}
   _locateType: 1
   _autoRegister: 1

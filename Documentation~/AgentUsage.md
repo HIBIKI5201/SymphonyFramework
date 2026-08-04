@@ -10,7 +10,7 @@
 - asmdefを使う利用側コードは`SymphonyFrameWork`を参照する。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も参照する。
 - `ServiceLocator`、`SceneLoader`、`SaveStore`、`AudioManager`、`PauseManager`はstatic Facadeである。`new`や`.Instance`は使わない。
 - `SymphonyOrchestrator`が最初のシーンより前に自動初期化する。Bootstrap用GameObjectや専用シーンを作らない。
-- `SceneLoadConfig`、`AudioManagerConfig`、`SaveSystemConfig`は`internal`である。型として参照せず、InspectorまたはProject Settingsから設定する。
+- `SceneLoadConfig`、`AudioConfig`、`SaveDataConfig`は`internal`である。型として参照せず、InspectorまたはProject Settingsから設定する。
 - `SymphonyFrameWork.Editor`はEditor専用である。Runtime asmdefやPlayerビルド対象コードから参照しない。
 - パッケージ直下の`Cache/Log.txt`はEditor用の生成キャッシュである。編集・コミットせず、不要なら削除してよい。
 
@@ -56,7 +56,7 @@
 
 ## Audio Manager
 
-- `GetAudioSource`で使うグループ名が`AudioManagerConfig.asset`へ登録済みか確認する。
+- `GetAudioSource`で使うグループ名が`AudioConfig.asset`へ登録済みか確認する。
 - `VolumeSliderChanged`へ渡す値はdBではなく0〜1の比率。
 
 ## Pause Manager

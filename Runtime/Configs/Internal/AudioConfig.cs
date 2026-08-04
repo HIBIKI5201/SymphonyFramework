@@ -6,23 +6,23 @@ using UnityEngine.Audio;
 namespace SymphonyFrameWork
 {
     /// <summary> AudioManagerが使用するミキサーとグループ設定を保持する。 </summary>
-    internal sealed class AudioManagerConfig : ScriptableObject
+    internal sealed class AudioConfig : ScriptableObject
     {
         /// <summary> 再生と音量制御に使用するAudioMixer。 </summary>
         public AudioMixer AudioMixer => _audioMixer;
 
         /// <summary> AudioMixerグループごとの再生設定。 </summary>
-        public List<AudioGroupSettings> AudioGroupSettingList => _audioGroupSettingList;
+        public List<AudioGroupConfig> AudioGroupSettingList => _audioGroupSettingList;
 
         [SerializeField, Tooltip("再生と音量制御に使用するAudioMixer。")]
         private AudioMixer _audioMixer;
 
         [SerializeField, Tooltip("AudioMixerグループごとの再生設定。")]
-        private List<AudioGroupSettings> _audioGroupSettingList;
+        private List<AudioGroupConfig> _audioGroupSettingList;
 
         /// <summary> AudioMixerグループに対応する再生と音量制御の設定を保持する。 </summary>
         [Serializable]
-        internal sealed class AudioGroupSettings
+        internal sealed class AudioGroupConfig
         {
             /// <summary> AudioMixer内のグループ名。 </summary>
             public string AudioGroupName => _audioGroupName;

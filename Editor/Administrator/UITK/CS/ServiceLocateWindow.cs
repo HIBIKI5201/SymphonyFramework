@@ -13,13 +13,13 @@ namespace SymphonyFrameWork.Editor
 {
     /// <summary> Service Locatorの登録状態とデバッグログ設定を表示する管理パネル。 </summary>
     [UxmlElement]
-    public sealed partial class ServiceLocatorWindow :
+    public sealed partial class ServiceLocateWindow :
         SymphonyVisualElement,
         IDisposable
     {
         /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
-        public ServiceLocatorWindow() : base(
-            SymphonyAdministrator.UITK_UXML_PATH + "ServiceLocatorWindow.uxml",
+        public ServiceLocateWindow() : base(
+            SymphonyAdministrator.UITK_UXML_PATH + "ServiceLocateWindow.uxml",
             InitializeTypeEnum.None,
             LoadTypeEnum.AssetDataBase)
         { }

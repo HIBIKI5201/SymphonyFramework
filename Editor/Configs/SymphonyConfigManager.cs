@@ -23,8 +23,8 @@ namespace SymphonyFrameWork.Editor
 
             // Runtime用 (ScriptableObject)
             hasAssetChanges |= FileCheck<SceneLoadConfig>();
-            hasAssetChanges |= FileCheck<AudioManagerConfig>();
-            hasAssetChanges |= FileCheck<SaveSystemConfig>();
+            hasAssetChanges |= FileCheck<AudioConfig>();
+            hasAssetChanges |= FileCheck<SaveDataConfig>();
 
             // Editor用 (ScriptableSingleton)
             // GetConfigを呼ぶだけで、アセットが存在しなければ自動生成、あればロードされる

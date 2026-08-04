@@ -61,9 +61,21 @@
 
 - **`SaveDataRegistryEntryInfo` を `SaveDataEntryInfo` へ改名しました。** `SaveStore.GetEntries()` の戻り値要素型です。メンバー（`DataType`、`Data`、`SaveDate`、`IsLoaded`）は変更ありません。
 
-- **`SceneManagerConfig` を `SceneLoadConfig` へ改名しました。** Configは `Resources.Load<T>(typeof(T).Name)` で解決するため、**利用側は設定アセットのファイル名を手動で `SceneLoadConfig.asset` へリネームしてください。** リネームしないと設定が解決されず、再生時のシーン初期化設定が既定値へ戻ります。自動移行は2.xで試して失敗しているため、本バージョンでも行いません。
+- **Config3件を改名しました。設定アセットのファイル名を手動でリネームする必要があります。**
 
-  Unityが先に空の `SceneLoadConfig.asset` を自動生成した場合は、それを削除してから旧アセットをリネームします。逆順にすると設定値が失われます。
+  | 2.x のアセット | 3.0.0 のアセット |
+  | --- | --- |
+  | `SceneManagerConfig.asset` | `SceneLoadConfig.asset` |
+  | `AudioManagerConfig.asset` | `AudioConfig.asset` |
+  | `SaveSystemConfig.asset` | `SaveDataConfig.asset` |
+
+  Configは `Resources.Load<T>(typeof(T).Name)` で解決するため、**アセット名を変えないと設定が解決されず、シーン初期化・AudioMixer設定・ローダー選択がすべて既定値へ戻ります。** 自動移行は2.xで試して失敗しているため、本バージョンでも行いません。
+
+  **手順**: Unityを開く前に `Assets/Resources/SymphonyFrameWork/` の3つのアセットをリネームします。先にUnityを開いて空のアセットが自動生成された場合は、**自動生成分を削除してから旧アセットをリネームしてください。** 逆順にすると設定値が失われます。
+
+  Config型自体は `internal` のため、型名を直接参照しているコードはありません。`AudioConfig` の入れ子型 `AudioGroupSettings` は `AudioGroupConfig` へ改名しましたが、これも `internal` です。
+
+- **`SymphonyLocate` を `ServiceLocateComponent` へ改名しました。** Inspectorから登録する公開Componentです。**スクリプトのGUIDは維持しているため、シーンやPrefabに配置済みの参照は切れません。** コード上で型名を参照している場合のみ置換してください。
 
 - **移行期間を終えた次の型を削除しました。**
 
@@ -75,7 +87,9 @@
   | `SymphonyTask` | `SymphonyAwaitable` |
   | `ISaveDataLoader<T>`、`JsonUtilityDataLoader<T>`、`NugetDataLoader<T>`（`Runtime/Obsolete/`） | `SaveDataLoaderStrategy` |
 
-- **Editorの `SaveDataRegistryWindow` を `SaveStoreWindow` へ改名しました。** Facade名に揃える他の管理パネルと同じ規則です。UXMLも同名へ改名しています。
+- **Editorの管理パネル2件を改名しました。** `SaveDataRegistryWindow` → `SaveDataWindow`、`ServiceLocatorWindow` → `ServiceLocateWindow`。UXMLも同名へ改名しています。サブシステム名へ揃える規則です。
+
+- 内部型 `SaveSystem` を `SaveDataInitializer` へ、`SymphonyOrchestratorObject` を `SymphonyLifetimeComponent` へ改名しました。いずれも `internal` のため利用側への影響はありません。名前空間 `SymphonyFrameWork.System.SaveSystem` は変更していません。
 
 ### Change
 

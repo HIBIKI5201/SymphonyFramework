@@ -8,7 +8,7 @@ namespace SymphonyFrameWork.System.SaveSystem
     ///     Newtonsoft.Json と PlayerPrefs を利用するセーブデータローダーです。
     /// </summary>
     [Serializable]
-    // 旧型名はSaveSystemConfigの[SerializeReference]へ焼かれている。
+    // 旧型名はSaveDataConfigの[SerializeReference]へ焼かれている。
     // これが無いと既存のConfigアセットでローダーが解決できなくなる。
     [MovedFrom(true, null, null, "NewtonsoftSaveDataLoader")]
     internal sealed class NewtonsoftSaveDataLoaderStrategy : PlayerPrefsSaveDataLoaderStrategy

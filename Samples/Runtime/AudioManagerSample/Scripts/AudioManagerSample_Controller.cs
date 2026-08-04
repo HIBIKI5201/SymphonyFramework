@@ -40,7 +40,7 @@ namespace SymphonyFrameWork.Samples.AudioManagerSample
             AudioSource source = AudioManager.GetAudioSource(_audioGroupName);
             if (source == null)
             {
-                AddCommentary($"\"{_audioGroupName}\" のAudioSourceを取得できません。AudioMixerとAudioManagerConfigの設定を確認してください。");
+                AddCommentary($"\"{_audioGroupName}\" のAudioSourceを取得できません。AudioMixerとAudioConfigの設定を確認してください。");
                 return;
             }
 
@@ -80,7 +80,7 @@ namespace SymphonyFrameWork.Samples.AudioManagerSample
 
             GUILayout.BeginArea(innerRect);
             GUILayout.Label("実況解説");
-            GUILayout.Label("1. AudioSourceが取得できない場合は、AudioMixerとAudioManagerConfigのグループ名を確認してください。");
+            GUILayout.Label("1. AudioSourceが取得できない場合は、AudioMixerとAudioConfigのグループ名を確認してください。");
             GUILayout.Label("2. Volumeスライダーは AudioManager.VolumeSliderChanged を呼び出します。");
             GUILayout.Label("3. Play/StopはAudioManager.GetAudioSourceで取得したAudioSourceを直接操作します。");
             GUILayout.Space(8f);

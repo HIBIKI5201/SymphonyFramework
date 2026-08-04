@@ -7,7 +7,7 @@ using UnityEngine;
 namespace SymphonyFrameWork.Editor.SettingProvider
 {
     /// <summary> Save SystemのProject Settings画面を提供する。 </summary>
-    public sealed class SaveSystemSettingProvider
+    public sealed class SaveDataSettingProvider
     {
         /// <summary> Project Settingsに表示する設定項目名。 </summary>
         public const string LABEL = "Save System";
@@ -30,10 +30,10 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         /// <summary> ローダー選択と現在のローダー情報を描画する。 </summary>
         private static void IMGUI(string searchContext)
         {
-            SaveSystemConfig config = GetOrCreateConfig();
+            SaveDataConfig config = GetOrCreateConfig();
             if (config == null)
             {
-                EditorGUILayout.HelpBox("SaveSystemConfig を生成できませんでした。", MessageType.Error);
+                EditorGUILayout.HelpBox("SaveDataConfig を生成できませんでした。", MessageType.Error);
                 return;
             }
 
@@ -70,10 +70,10 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             }
         }
 
-        /// <summary> SaveSystemConfigを取得し、存在しない場合は生成して再取得する。 </summary>
-        private static SaveSystemConfig GetOrCreateConfig()
+        /// <summary> SaveDataConfigを取得し、存在しない場合は生成して再取得する。 </summary>
+        private static SaveDataConfig GetOrCreateConfig()
         {
-            SaveSystemConfig config = SymphonyConfigLocator.GetConfig<SaveSystemConfig>();
+            SaveDataConfig config = SymphonyConfigLocator.GetConfig<SaveDataConfig>();
             if (config != null)
             {
                 return config;
@@ -81,8 +81,8 @@ namespace SymphonyFrameWork.Editor.SettingProvider
 
             SymphonyConfigManager.AllConfigCheck();
             AssetDatabase.Refresh();
-            return AssetDatabase.LoadAssetAtPath<SaveSystemConfig>(
-                SymphonyConfigLocator.GetFullPath<SaveSystemConfig>());
+            return AssetDatabase.LoadAssetAtPath<SaveDataConfig>(
+                SymphonyConfigLocator.GetFullPath<SaveDataConfig>());
         }
     }
 }
