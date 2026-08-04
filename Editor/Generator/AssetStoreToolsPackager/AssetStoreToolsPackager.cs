@@ -38,7 +38,16 @@ namespace SymphonyFrameWork.Editor
             /// <summary> 選択ディレクトリを個別のパッケージとして出力する。 </summary>
             Singles = 1 << 0,
 
-            /// <summary> 選択ディレクトリを1つの統合パッケージとして出力する。 </summary>
+            /// <summary>
+            ///     選択ディレクトリを1つの統合パッケージとして出力する。
+            /// </summary>
+            /// <remarks>
+            ///     統合パッケージはディレクトリ単位で取り出せないため、差分インポートの単位にならない。
+            ///     この形式で出力してもPackageManifest.jsonは作られない。
+            /// </remarks>
+            [Obsolete(
+                "差分インポートに対応しないため廃止予定です。" + nameof(Singles) + "を使用してください。",
+                error: false)]
             Combine = 1 << 1,
         }
 
@@ -197,23 +206,31 @@ namespace SymphonyFrameWork.Editor
                 ExportPackage(context, plan);
             }
 
+            // 非推奨のCombineは削除まで動作を維持する必要があるため、
+            // 廃止予定の警告をここでは抑止する。利用側の指定に対しては警告が出る。
+#pragma warning disable CS0618
             if ((plan.Mode & PackageModeEnum.Combine) != 0)
             {
                 CreateCombinedPackage(context, plan);
             }
+#pragma warning restore CS0618
 
             // マニフェストは個別出力のときだけ書く。ZIPへ含めるためZIP化より前に書く。
             if ((plan.Mode & PackageModeEnum.Singles) != 0)
             {
                 WriteManifest(context, plan);
             }
+#pragma warning disable CS0618
             else if ((plan.Mode & PackageModeEnum.Combine) != 0)
             {
                 Debug.LogWarning(
                     $"[{nameof(AssetStoreToolsPackager)}]\n"
                     + "統合パッケージだけの出力は差分インポートの対象になりません。"
-                    + "ディレクトリ単位で取り出せないためです。");
+                    + "ディレクトリ単位で取り出せないためです。"
+                    + $"\n{nameof(PackageModeEnum)}.{nameof(PackageModeEnum.Combine)}は廃止予定です。"
+                    + $"{nameof(PackageModeEnum.Singles)}を使用してください。");
             }
+#pragma warning restore CS0618
 
             if (plan.CreateZip)
             {
