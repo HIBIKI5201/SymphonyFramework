@@ -184,6 +184,8 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupの変更�
 
 **変更の検知**: `TagsAndLayersPostProcessor`（`AssetPostprocessor`）がタグ・レイヤー設定ファイルの変更を、`EditorBuildSettings.sceneListChanged` がシーン一覧の変更を検知します。検知した変更は `SymphonyEditorOrchestrator` へ通知され、まとめて1回処理されます。
 
+**補助メニュー**: `Tools > SymphonyFrameWork > Debug > CreateResourcesFolder` は、生成先の `Resources` フォルダを手動で作り直すためのものです。通常は自動生成に任せてください。
+
 **注意点**:
 
 - **生成されたenumを手で編集しないでください。** 再生成で失われます。
