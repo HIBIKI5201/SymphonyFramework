@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> SceneManagerConfigのシーン一覧をBuild Settingsから選択可能にする。 </summary>
-    [CustomEditor(typeof(SceneManagerConfig))]
-    public sealed class SceneManagerConfigDrawer: UnityEditor.Editor
+    /// <summary> SceneLoadConfigのシーン一覧をBuild Settingsから選択可能にする。 </summary>
+    [CustomEditor(typeof(SceneLoadConfig))]
+    public sealed class SceneLoadConfigDrawer: UnityEditor.Editor
     {
         private string[] _sceneNames;
         

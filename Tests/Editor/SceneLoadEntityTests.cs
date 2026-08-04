@@ -15,7 +15,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(entity.Name, Is.EqualTo("Game"));
             Assert.That(entity.Priority, Is.EqualTo(4));
-            Assert.That(entity.State, Is.EqualTo(SceneLoadState.Loading));
+            Assert.That(entity.State, Is.EqualTo(SceneLoadStateEnum.Loading));
             Assert.That(entity.Progress, Is.Zero);
         }
 
@@ -43,7 +43,7 @@ namespace SymphonyFrameWork.Tests
 
             entity.CompleteLoading();
 
-            Assert.That(entity.State, Is.EqualTo(SceneLoadState.Complete));
+            Assert.That(entity.State, Is.EqualTo(SceneLoadStateEnum.Complete));
             Assert.That(entity.Progress, Is.EqualTo(1f));
         }
 
@@ -53,11 +53,11 @@ namespace SymphonyFrameWork.Tests
         {
             var entity = new SceneLoadEntity(
                 "Game",
-                state: SceneLoadState.Complete);
+                state: SceneLoadStateEnum.Complete);
 
             entity.StartUnloading();
 
-            Assert.That(entity.State, Is.EqualTo(SceneLoadState.Unloading));
+            Assert.That(entity.State, Is.EqualTo(SceneLoadStateEnum.Unloading));
             Assert.That(entity.Progress, Is.Zero);
         }
 

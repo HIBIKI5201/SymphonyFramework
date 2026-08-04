@@ -20,17 +20,17 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(ZebraService),
                 new ZebraService(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out _);
             registry.TryRegister(
                 typeof(AlphaService),
                 new AlphaService(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 out _);
             registry.TryRegister(
                 typeof(MiddleService),
                 new MiddleService(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out _);
             var query = new ServiceLocateQuery(registry);
 
@@ -61,7 +61,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(AlphaService),
                 instance,
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 out _);
             var query = new ServiceLocateQuery(registry);
 
@@ -75,7 +75,7 @@ namespace SymphonyFrameWork.Tests
             Assert.That(found, Is.True);
             Assert.That(registrationInfo.ServiceType, Is.EqualTo(typeof(AlphaService)));
             Assert.That(registrationInfo.Instance, Is.SameAs(instance));
-            Assert.That(registrationInfo.LocateType, Is.EqualTo(LocateType.Singleton));
+            Assert.That(registrationInfo.LocateType, Is.EqualTo(LocateTypeEnum.Singleton));
             Assert.That(missing, Is.False);
             Assert.That(missingInfo, Is.EqualTo(default(ServiceRegistrationInfo)));
         }
@@ -89,7 +89,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(AlphaService),
                 instance,
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out _);
             var query = new ServiceLocateQuery(registry);
 
@@ -111,7 +111,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(AlphaService),
                 new AlphaService(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out _);
             var query = new ServiceLocateQuery(registry);
             IReadOnlyList<ServiceRegistrationInfo> previousInfos = query.GetInfos();
@@ -120,7 +120,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(MiddleService),
                 new MiddleService(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 out _);
 
             Assert.That(previousInfos, Has.Count.EqualTo(1));
@@ -137,7 +137,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(AlphaService),
                 new AlphaService(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out _);
             var query = new ServiceLocateQuery(registry);
 
@@ -145,7 +145,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(serviceDto.ServiceTypeName, Is.EqualTo(nameof(AlphaService)));
             Assert.That(serviceDto.InstanceName, Is.EqualTo(nameof(AlphaService)));
-            Assert.That(serviceDto.LocateType, Is.EqualTo(LocateType.Locator));
+            Assert.That(serviceDto.LocateType, Is.EqualTo(LocateTypeEnum.Locator));
         }
 
         /// <summary> 破棄済みUnity ObjectをDtoでは安全な表示文字列へ変換する。 </summary>
@@ -158,7 +158,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(Transform),
                 instance,
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 out _);
             UnityEngine.Object.DestroyImmediate(gameObject);
             var query = new ServiceLocateQuery(registry);

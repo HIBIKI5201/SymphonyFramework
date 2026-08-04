@@ -18,15 +18,15 @@ namespace SymphonyFrameWork.System.SaveSystem
 
         /// <summary> キャッシュ済みエントリの公開スナップショット一覧を返す。 </summary>
         /// <returns> 型の完全名を基準にordinal昇順で並んだ変更不能な一覧。 </returns>
-        internal IReadOnlyList<SaveDataRegistryEntryInfo> GetInfos()
+        internal IReadOnlyList<SaveDataEntryInfo> GetInfos()
         {
             List<SaveDataEntryEntity> entities = GetSortedEntities();
-            var infos = new SaveDataRegistryEntryInfo[entities.Count];
+            var infos = new SaveDataEntryInfo[entities.Count];
 
             for (int i = 0; i < entities.Count; i++)
             {
                 SaveDataEntryEntity entity = entities[i];
-                infos[i] = new SaveDataRegistryEntryInfo(
+                infos[i] = new SaveDataEntryInfo(
                     entity.DataType,
                     entity.Content,
                     entity.IsLoaded);

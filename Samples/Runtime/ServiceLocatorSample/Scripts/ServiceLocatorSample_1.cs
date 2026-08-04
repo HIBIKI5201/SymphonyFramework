@@ -11,7 +11,7 @@ namespace SymphonyFrameWork.Samples.ServiceLocatorSample
         {
             ServiceLocator.RegisterInstanceWithAutoDispose(
                 this,
-                LocateType.Singleton);
+                LocateTypeEnum.Singleton);
         }
     }
 }

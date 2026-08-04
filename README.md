@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **3.0.0-preview.3**
+- 現在のバージョン: **3.0.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -77,7 +77,7 @@ Editor拡張のパス判定とアセット保護がこの配置を前提とす�
 ```text
 Assets/
 ├─ Resources/SymphonyFrameWork/
-│  ├─ SceneManagerConfig.asset
+│  ├─ SceneLoadConfig.asset
 │  ├─ AudioManagerConfig.asset
 │  └─ SaveSystemConfig.asset
 └─ Scripts/SymphonyFrameWork/
@@ -92,7 +92,7 @@ Assets/
 
 - `Window > SymphonyFrameWork > Symphony Administrator`: 各機能の状態確認とenum生成
 - `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択
-- `SceneManagerConfig.asset`: 再生開始時のシーン初期化
+- `SceneLoadConfig.asset`: 再生開始時のシーン初期化
 - `AudioManagerConfig.asset`: AudioMixerとグループ設定
 
 asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してください。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も追加します。
@@ -111,7 +111,7 @@ public sealed class GameSession : MonoBehaviour
 {
     private void OnEnable()
     {
-        ServiceLocator.RegisterInstance(this, LocateType.Locator);
+        ServiceLocator.RegisterInstance(this, LocateTypeEnum.Locator);
     }
 
     private void OnDisable()
@@ -135,7 +135,7 @@ GameSession awaited = await ServiceLocator.GetInstanceAsync<GameSession>(
 ```csharp
 ServiceLocator.RegisterInstanceWithAutoDispose(
     newSession,
-    LocateType.Singleton);
+    LocateTypeEnum.Singleton);
 ```
 
 登録中の型、payload、登録方式を一覧で診断する場合は、取得時点の不変な`ServiceRegistrationInfo`を使います。既知の型だけを調べる場合は`TryGetRegistrationInfo`を使えます。
@@ -167,7 +167,7 @@ public async void OpenGameScene()
     IProgress<float> progress = new Progress<float>(
         value => Debug.Log($"Loading: {value:P0}"));
 
-    bool succeeded = await SceneLoader.LoadScene(
+    bool succeeded = await SceneLoader.LoadSceneAsync(
         request,
         progress,
         mode: LoadSceneMode.Additive,

@@ -19,13 +19,13 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
 
             bool registered = service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
 
             Assert.That(registered, Is.False);
@@ -43,7 +43,7 @@ namespace SymphonyFrameWork.Tests
             bool registered = service.Register(
                 typeof(ServiceA),
                 null,
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: true);
 
             Assert.That(registered, Is.False);
@@ -64,13 +64,13 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
 
             bool registered = service.Register(
                 typeof(ServiceA),
                 duplicate,
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: true);
 
             Assert.That(registered, Is.False);
@@ -89,12 +89,12 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: false);
             service.Register(
                 typeof(ServiceB),
                 new ServiceB(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
 
             Assert.That(host.AttachCount, Is.EqualTo(1));
@@ -114,7 +114,7 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: false);
 
             Assert.That(wasAttached, Is.True);
@@ -130,7 +130,7 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: false);
 
             bool unregistered = service.Unregister(typeof(ServiceA));
@@ -151,7 +151,7 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: false);
 
             bool destroyed = service.Destroy(typeof(ServiceA));
@@ -184,7 +184,7 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
 
             Assert.That(parameterlessCount, Is.Zero);
@@ -204,12 +204,12 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
             service.Unregister(typeof(ServiceB));
             service.Unregister(typeof(ServiceA));
@@ -228,7 +228,7 @@ namespace SymphonyFrameWork.Tests
             Assert.Throws<InvalidOperationException>(() => service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: false));
 
             Assert.That(registry.Contains(typeof(ServiceA)), Is.False);
@@ -246,7 +246,7 @@ namespace SymphonyFrameWork.Tests
             Assert.Throws<InvalidOperationException>(() => service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: true));
 
             Assert.That(registry.Contains(typeof(ServiceA)), Is.False);

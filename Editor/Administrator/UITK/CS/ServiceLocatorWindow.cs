@@ -6,6 +6,7 @@ using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
@@ -19,8 +20,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
         public ServiceLocatorWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "ServiceLocatorWindow.uxml",
-            InitializeType.None,
-            LoadType.AssetDataBase)
+            InitializeTypeEnum.None,
+            LoadTypeEnum.AssetDataBase)
         { }
 
         private IDisposable _registrationSubscription;
@@ -45,11 +46,11 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 登録一覧とService Locatorのログ設定Toggleを構成する。 </summary>
         /// <param name="container"> UXMLから生成されたルート要素。 </param>
         /// <returns> 同期的に完了する初期化処理。 </returns>
-        protected override ValueTask Initialize_S(VisualElement container)
+        protected override Awaitable Initialize_S(VisualElement container)
         {
             if (_isDisposed)
             {
-                return default;
+                return SymphonyAwaitable.Completed();
             }
 
             _locateList = container.Q<ListView>("locate-list");
@@ -68,7 +69,7 @@ namespace SymphonyFrameWork.Editor
             InitializeLogToggles(container);
             EditorApplication.playModeStateChanged += PlayModeStateChangedHandler;
             BindViewModel();
-            return default;
+            return SymphonyAwaitable.Completed();
         }
 
         /// <summary> Play Mode遷移に合わせて現在のViewModelへ接続し直す。 </summary>

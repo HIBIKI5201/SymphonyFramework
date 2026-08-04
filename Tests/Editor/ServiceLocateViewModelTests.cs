@@ -18,7 +18,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 out _);
             var service = new ServiceLocateService(registry, new FakeServiceHost());
             using var viewModel = new ServiceLocateViewModel(
@@ -30,7 +30,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(serviceDtos, Has.Count.EqualTo(1));
             Assert.That(serviceDtos[0].ServiceTypeName, Is.EqualTo(nameof(ServiceA)));
-            Assert.That(serviceDtos[0].LocateType, Is.EqualTo(LocateType.Singleton));
+            Assert.That(serviceDtos[0].LocateType, Is.EqualTo(LocateTypeEnum.Singleton));
         }
 
         /// <summary> 登録、解除、破棄のService eventで最新一覧を通知する。 </summary>
@@ -50,13 +50,13 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
             service.Unregister(typeof(ServiceA));
             service.Register(
                 typeof(ServiceB),
                 new ServiceB(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: false);
             service.Destroy(typeof(ServiceB));
 
@@ -80,12 +80,12 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 disposeOnFailure: false);
 
             Assert.That(notificationCount, Is.EqualTo(1));
@@ -109,7 +109,7 @@ namespace SymphonyFrameWork.Tests
             service.Register(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 disposeOnFailure: false);
 
             Assert.That(notificationCount, Is.Zero);

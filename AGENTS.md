@@ -21,7 +21,7 @@
 1. `Packages/manifest.json`またはパッケージの`package.json`で、実際の導入バージョンを確認する。
 2. 利用側コードだけを`Assets/`へ書き、`Packages/symphonyframework/`や`Assets/SymphonyFrameWork/`のパッケージ本体を直接編集しない。
 3. 利用側asmdefから`SymphonyFrameWork`を参照する。自動生成enumを使う場合だけ`SymphonyFrameWork.Enum`も参照する。
-4. `SceneManagerConfig`、`AudioManagerConfig`、`SaveSystemConfig`は`internal`である。InspectorまたはProject Settingsから設定し、型として参照しない。
+4. `SceneLoadConfig`、`AudioManagerConfig`、`SaveSystemConfig`は`internal`である。InspectorまたはProject Settingsから設定し、型として参照しない。
 5. 主要APIはstatic Facadeである。`new`や`.Instance`を使わない。
 6. 初期化は`SymphonyOrchestrator`が自動実行する。Bootstrap用GameObjectや専用シーンを作らない。
 7. Runtimeコードから`SymphonyFrameWork.Editor`を参照しない。

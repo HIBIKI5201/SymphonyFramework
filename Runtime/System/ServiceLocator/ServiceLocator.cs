@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Utility;
 
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <typeparam name="T"> 登録するインスタンスの型。 </typeparam>
         /// <param name="instance"> 登録するインスタンス。 </param>
         /// <param name="type"> SingletonまたはLocatorの登録方式。 </param>
-        public static bool RegisterInstance<T>(T instance, LocateType type = DEFAULT_LOCATE_TYPE) where T : class
+        public static bool RegisterInstance<T>(T instance, LocateTypeEnum type = DEFAULT_LOCATE_TYPE) where T : class
         {
             return RegisterInstance(typeof(T), instance, type);
         }
@@ -35,7 +36,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <param name="type"> 登録時のキーとして使用する実行時型。 </param>
         /// <param name="instance"> 登録するインスタンス。 </param>
         /// <param name="locateType"> SingletonまたはLocatorの登録方式。 </param>
-        public static bool RegisterInstance(Type type, object instance, LocateType locateType = DEFAULT_LOCATE_TYPE)
+        public static bool RegisterInstance(Type type, object instance, LocateTypeEnum locateType = DEFAULT_LOCATE_TYPE)
         {
             return RegisterInstance(
                 type,
@@ -53,7 +54,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> 登録できた場合はtrue。 </returns>
         public static bool RegisterInstanceWithAutoDispose<T>(
             T instance,
-            LocateType type = DEFAULT_LOCATE_TYPE)
+            LocateTypeEnum type = DEFAULT_LOCATE_TYPE)
             where T : class
         {
             return RegisterInstanceWithAutoDispose(
@@ -72,7 +73,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public static bool RegisterInstanceWithAutoDispose(
             Type type,
             object instance,
-            LocateType locateType = DEFAULT_LOCATE_TYPE)
+            LocateTypeEnum locateType = DEFAULT_LOCATE_TYPE)
         {
             return RegisterInstance(
                 type,
@@ -314,12 +315,26 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> 指定した型のインスタンス。 </returns>
         /// <exception cref="TimeoutException"> 制限時間内にインスタンスが登録されなかった場合。 </exception>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static async ValueTask<T> GetInstanceAsync<T>(
+        public static Awaitable<T> GetInstanceAsync<T>(
             byte grace = 120,
             CancellationToken token = default) where T : class
         {
             EnsureInitialized();
+            return SymphonyAwaitable.FromTask(GetInstanceInternalAsync<T>(grace, token));
+        }
 
+        /// <summary>
+        ///     登録待機の本体。重複排除もキャンセルも<see cref="TaskCompletionSource{TResult}" />で
+        ///     行うため、内部はTaskのまま保持し、公開面だけAwaitableへ変換する。
+        /// </summary>
+        /// <typeparam name="T"> 取得したいインスタンスの型。 </typeparam>
+        /// <param name="grace"> 最大待機時間（秒）。 </param>
+        /// <param name="token"> キャンセルトークン。 </param>
+        /// <returns> 指定した型のインスタンス。 </returns>
+        private static async Task<T> GetInstanceInternalAsync<T>(
+            byte grace,
+            CancellationToken token) where T : class
+        {
             // 既に登録されている場合は即座に返します。
             if (TryGetInstance<T>(out var instance))
             {
@@ -360,15 +375,30 @@ namespace SymphonyFrameWork.System.ServiceLocate
         ///     呼び出し側からのキャンセルは失敗へ変換せず伝播する。
         /// </summary>
         /// <exception cref="OperationCanceledException"> 呼び出し側から処理が中断された場合。 </exception>
-        public static async ValueTask<(bool success, T result)> TryGetInstanceAsync<T>(
+        public static Awaitable<(bool success, T result)> TryGetInstanceAsync<T>(
             byte grace = 120,
             CancellationToken token = default)
+            where T : class
+        {
+            EnsureInitialized();
+            return SymphonyAwaitable.FromTask(
+                TryGetInstanceInternalAsync<T>(grace, token));
+        }
+
+        /// <summary> 期限超過だけを失敗へ変換し、キャンセルはそのまま伝播する。 </summary>
+        /// <typeparam name="T"> 取得したいインスタンスの型。 </typeparam>
+        /// <param name="grace"> 最大待機時間（秒）。 </param>
+        /// <param name="token"> キャンセルトークン。 </param>
+        /// <returns> 取得の成否と結果。 </returns>
+        private static async Task<(bool success, T result)> TryGetInstanceInternalAsync<T>(
+            byte grace,
+            CancellationToken token)
             where T : class
         {
             try
             {
                 // 指定した型のインスタンスが登録されるまで待機し、取得します。
-                T result = await GetInstanceAsync<T>(grace, token);
+                T result = await GetInstanceInternalAsync<T>(grace, token);
                 return (result != null, result);
             }
             catch (TimeoutException)
@@ -499,7 +529,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         private static bool RegisterInstance(
             Type type,
             object instance,
-            LocateType locateType,
+            LocateTypeEnum locateType,
             bool disposeOnFailure)
         {
             EnsureInitialized();
@@ -516,8 +546,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
                     nameof(instance));
             }
 
-            if (locateType != LocateType.Locator
-                && locateType != LocateType.Singleton)
+            if (locateType != LocateTypeEnum.Locator
+                && locateType != LocateTypeEnum.Singleton)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(locateType),
@@ -539,8 +569,8 @@ namespace SymphonyFrameWork.System.ServiceLocate
                     : instance.GetType().Name;
                 string locateTypeName = locateType switch
                 {
-                    LocateType.Locator => "ロケート",
-                    LocateType.Singleton => "シングルトン",
+                    LocateTypeEnum.Locator => "ロケート",
+                    LocateTypeEnum.Singleton => "シングルトン",
                     _ => string.Empty
                 };
                 Debug.Log($"{type.Name}クラスの{instanceName}が{locateTypeName}登録されました");
@@ -549,7 +579,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             return registered;
         }
 
-        private const LocateType DEFAULT_LOCATE_TYPE = LocateType.Locator;
+        private const LocateTypeEnum DEFAULT_LOCATE_TYPE = LocateTypeEnum.Locator;
 
         private static ServiceHostComponent _host;
         private static ServiceLocateRegistry _registry;

@@ -17,7 +17,7 @@ namespace SymphonyFrameWork.Utility
         ///     初期化のタイプ
         /// </summary>
         [Flags]
-        public enum InitializeType
+        public enum InitializeTypeEnum
         {
             None = 0,
             Absolute = 1 << 0,
@@ -29,7 +29,7 @@ namespace SymphonyFrameWork.Utility
         /// <summary>
         ///     ロードの方法
         /// </summary>
-        public enum LoadType
+        public enum LoadTypeEnum
         {
             Resources = 0,
             Addressable = 1,
@@ -40,8 +40,8 @@ namespace SymphonyFrameWork.Utility
         /// <param name="path"> 読み込むUXMLアセットのパス。 </param>
         /// <param name="initializeType"> ルート要素へ適用する初期化設定。 </param>
         /// <param name="loadType"> UXMLアセットの読込方法。 </param>
-        public SymphonyVisualElement(string path, InitializeType initializeType = InitializeType.All,
-            LoadType loadType = LoadType.Addressable)
+        public SymphonyVisualElement(string path, InitializeTypeEnum initializeType = InitializeTypeEnum.All,
+            LoadTypeEnum loadType = LoadTypeEnum.Addressable)
         {
             InitializeTask = Initialize(path, initializeType, loadType);
         }
@@ -61,7 +61,7 @@ namespace SymphonyFrameWork.Utility
         /// <param name="type">初期化のタイプ</param>
         /// <param name="loadType"> UXMLアセットの読込方法。 </param>
         /// <returns> UXML読込とサブクラス初期化を表すTask。 </returns>
-        private async Task Initialize(string path, InitializeType type, LoadType loadType)
+        private async Task Initialize(string path, InitializeTypeEnum type, LoadTypeEnum loadType)
         {
             VisualTreeAsset treeAsset = default;
             if (string.IsNullOrEmpty(path))
@@ -72,11 +72,11 @@ namespace SymphonyFrameWork.Utility
 
             switch (loadType)
             {
-                case LoadType.Resources:
+                case LoadTypeEnum.Resources:
                     treeAsset = Resources.Load<VisualTreeAsset>(path);
                     break;
                     
-                case LoadType.Addressable:
+                case LoadTypeEnum.Addressable:
                     AsyncOperationHandle<VisualTreeAsset> asyncOperation 
                         = Addressables.LoadAssetAsync<VisualTreeAsset>(path);
                     await asyncOperation.Task;
@@ -93,7 +93,7 @@ namespace SymphonyFrameWork.Utility
                     asyncOperation.Release();
                     break;
 
-                case LoadType.AssetDataBase:
+                case LoadTypeEnum.AssetDataBase:
 #if UNITY_EDITOR
                     treeAsset = EditorAssetLoader?.Invoke(path);
 #else
@@ -109,15 +109,15 @@ namespace SymphonyFrameWork.Utility
 
                 treeAsset.CloneTree(this);
 
-                if ((type & InitializeType.PickModeIgnore) != 0)
+                if ((type & InitializeTypeEnum.PickModeIgnore) != 0)
                 {
                     RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
                     pickingMode = PickingMode.Ignore;
                 }
 
-                if ((type & InitializeType.Absolute) != 0) { style.position = Position.Absolute; }
+                if ((type & InitializeTypeEnum.Absolute) != 0) { style.position = Position.Absolute; }
 
-                if ((type & InitializeType.FullRangth) != 0)
+                if ((type & InitializeTypeEnum.FullRangth) != 0)
                 {
                     style.height = Length.Percent(100);
                     style.width = Length.Percent(100);
@@ -138,7 +138,7 @@ namespace SymphonyFrameWork.Utility
         ///     サブクラス固有の初期化処理
         /// </summary>
         /// <param name="root">ロードしたUXMLのコンテナ</param>
-        /// <returns> サブクラス固有の初期化処理を表すValueTask。 </returns>
-        protected abstract ValueTask Initialize_S(VisualElement root);
+        /// <returns> サブクラス固有の初期化処理を表すAwaitable。 </returns>
+        protected abstract Awaitable Initialize_S(VisualElement root);
     }
 }

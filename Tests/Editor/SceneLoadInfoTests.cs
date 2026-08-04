@@ -13,13 +13,13 @@ namespace SymphonyFrameWork.Tests
         {
             var sceneInfo = new SceneLoadInfo(
                 "Game",
-                SceneLoadState.Loading,
+                SceneLoadStateEnum.Loading,
                 5,
                 0.25f,
                 true);
 
             Assert.That(sceneInfo.SceneName, Is.EqualTo("Game"));
-            Assert.That(sceneInfo.State, Is.EqualTo(SceneLoadState.Loading));
+            Assert.That(sceneInfo.State, Is.EqualTo(SceneLoadStateEnum.Loading));
             Assert.That(sceneInfo.Priority, Is.EqualTo(5));
             Assert.That(sceneInfo.Progress, Is.EqualTo(0.25f));
             Assert.That(sceneInfo.IsActive, Is.True);
@@ -31,13 +31,13 @@ namespace SymphonyFrameWork.Tests
         {
             var left = new SceneLoadInfo(
                 "Game",
-                SceneLoadState.Complete,
+                SceneLoadStateEnum.Complete,
                 2,
                 1f,
                 false);
             var right = new SceneLoadInfo(
                 "Game",
-                SceneLoadState.Complete,
+                SceneLoadStateEnum.Complete,
                 2,
                 1f,
                 false);
@@ -54,13 +54,13 @@ namespace SymphonyFrameWork.Tests
         {
             var left = new SceneLoadInfo(
                 "Game",
-                SceneLoadState.Loading,
+                SceneLoadStateEnum.Loading,
                 2,
                 0.25f,
                 false);
             var right = new SceneLoadInfo(
                 "Game",
-                SceneLoadState.Loading,
+                SceneLoadStateEnum.Loading,
                 2,
                 0.5f,
                 false);

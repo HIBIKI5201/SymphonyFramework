@@ -1,6 +1,7 @@
 ﻿using SymphonyFrameWork.System.ServiceLocate;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SymphonyFrameWork.Utility
 {
@@ -44,17 +45,27 @@ namespace SymphonyFrameWork.Utility
         /// <param name="grace"> 登録を待機する最大秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         /// <returns> キャッシュまたは待機後に取得したインスタンス。 </returns>
-        public async ValueTask<T> GetInstanceAsync(byte grace = 120, CancellationToken token = default)
+        public Awaitable<T> GetInstanceAsync(byte grace = 120, CancellationToken token = default)
         {
             T instance = _instance;
 
-            // インスタンスがキャッシュされていなければ取得。
-            if (instance == null)
+            // キャッシュ済みなら待機せず、呼び出しごとの新しいAwaitableで即座に返す。
+            if (instance != null)
             {
-                instance = await ServiceLocator.GetInstanceAsync<T>(grace, token);
-                _instance = instance; //キャッシュする。
+                return SymphonyAwaitable.FromResult(instance);
             }
 
+            return SymphonyAwaitable.FromTask(LocateAndCacheAsync(grace, token));
+        }
+
+        /// <summary> Service Locatorの登録を待機し、取得したインスタンスをキャッシュする。 </summary>
+        /// <param name="grace"> 登録を待機する最大秒数。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 待機後に取得したインスタンス。 </returns>
+        private async Task<T> LocateAndCacheAsync(byte grace, CancellationToken token)
+        {
+            T instance = await ServiceLocator.GetInstanceAsync<T>(grace, token);
+            _instance = instance; //キャッシュする。
             return instance;
         }
 

@@ -13,7 +13,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal ServiceRegistrationInfo(
             Type serviceType,
             object instance,
-            LocateType locateType)
+            LocateTypeEnum locateType)
         {
             ServiceType = serviceType;
             Instance = instance;
@@ -27,7 +27,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         public object Instance { get; }
 
         /// <summary> 登録時に指定された登録方式。 </summary>
-        public LocateType LocateType { get; }
+        public LocateTypeEnum LocateType { get; }
 
         /// <summary> 2つの登録スナップショットが同値か判定する。 </summary>
         /// <param name="left"> 左辺のスナップショット。 </param>

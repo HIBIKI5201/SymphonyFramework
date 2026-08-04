@@ -30,7 +30,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal bool Register(
             Type serviceType,
             object instance,
-            LocateType locateType,
+            LocateTypeEnum locateType,
             bool disposeOnFailure)
         {
             if (instance == null)
@@ -54,7 +54,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
             try
             {
-                if (locateType == LocateType.Singleton)
+                if (locateType == LocateTypeEnum.Singleton)
                 {
                     _host.Attach(instance);
                 }

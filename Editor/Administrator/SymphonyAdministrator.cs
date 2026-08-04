@@ -19,7 +19,7 @@ namespace SymphonyFrameWork.Editor
         private ServiceLocatorWindow _serviceLocatorWindow;
         private SceneLoaderWindow _sceneLoaderWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
-        private SaveDataRegistryWindow _saveDataRegistryWindow;
+        private SaveStoreWindow _saveDataRegistryWindow;
 
         /// <summary> UXMLから管理パネルを構築する。 </summary>
         private void OnEnable()
@@ -32,7 +32,7 @@ namespace SymphonyFrameWork.Editor
                 _serviceLocatorWindow = container.Q<ServiceLocatorWindow>();
                 _sceneLoaderWindow = container.Q<SceneLoaderWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
-                _saveDataRegistryWindow = container.Q<SaveDataRegistryWindow>();
+                _saveDataRegistryWindow = container.Q<SaveStoreWindow>();
             }
             else
             {

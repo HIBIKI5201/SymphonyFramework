@@ -30,7 +30,7 @@ namespace SymphonyFrameWork.Editor
 
         /// <summary> 個別または統合パッケージの出力形式を表すフラグ。 </summary>
         [Flags]
-        public enum PackageMode : byte
+        public enum PackageModeEnum : byte
         {
             /// <summary> パッケージを出力しない無効な状態。 </summary>
             Nothing = 0,
@@ -85,7 +85,7 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 指定ディレクトリを選択された形式で出力し、必要に応じてZIP化する。 </summary>
-        public static void Export(string[] directories, PackageMode mode, bool createZip = false, bool usedDependencies = false)
+        public static void Export(string[] directories, PackageModeEnum mode, bool createZip = false, bool usedDependencies = false)
         {
             if (directories.Length == 0)
             {
@@ -113,12 +113,12 @@ namespace SymphonyFrameWork.Editor
                 usedAssetPaths = GetProjectUsedDependencies(astPath);
             }
 
-            if ((mode & PackageMode.Singles) != 0)
+            if ((mode & PackageModeEnum.Singles) != 0)
             {
                 ExportPackage(context, usedAssetPaths);
             }
 
-            if ((mode & PackageMode.Combine) != 0)
+            if ((mode & PackageModeEnum.Combine) != 0)
             {
                 CreateCombinedPackage(context, usedAssetPaths);
             }

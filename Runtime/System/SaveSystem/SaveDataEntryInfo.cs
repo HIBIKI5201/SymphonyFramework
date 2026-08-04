@@ -3,13 +3,13 @@
 namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary> レジストリにキャッシュされたセーブデータと型の組を表す。 </summary>
-    public readonly struct SaveDataRegistryEntryInfo
+    public readonly struct SaveDataEntryInfo
     {
         /// <summary>
         ///     セーブデータ型とキャッシュインスタンスから情報を生成する。
         ///     生成は<see cref="SaveDataQuery" />の責務であり、利用側は<see cref="SaveStore.GetEntries" />で取得する。
         /// </summary>
-        internal SaveDataRegistryEntryInfo(Type dataType, SaveDataContent data, bool isLoaded)
+        internal SaveDataEntryInfo(Type dataType, SaveDataContent data, bool isLoaded)
         {
             DataType = dataType;
             Data = data;

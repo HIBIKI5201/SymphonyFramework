@@ -200,12 +200,12 @@ namespace SymphonyFrameWork.Editor.Debugger
 
         /// <summary>
         ///     登録情報から診断上の実効登録方式を判定する。
-        ///     Componentでない登録は<see cref="LocateType.Singleton"/>を指定しても
+        ///     Componentでない登録は<see cref="LocateTypeEnum.Singleton"/>を指定しても
         ///     階層移動が起きず両者の挙動が同じになるため、常にLocatorとして扱う。
         /// </summary>
         /// <param name="registrationInfo"> 登録方式とpayloadを持つ公開スナップショット。 </param>
         /// <returns> Componentでは記録された登録方式、それ以外はLocator。 </returns>
-        private static LocateType GetLocateType(
+        private static LocateTypeEnum GetLocateType(
             ServiceRegistrationInfo registrationInfo)
         {
             if (registrationInfo.Instance is Component)
@@ -213,7 +213,7 @@ namespace SymphonyFrameWork.Editor.Debugger
                 return registrationInfo.LocateType;
             }
 
-            return LocateType.Locator;
+            return LocateTypeEnum.Locator;
         }
 
         /// <summary> 登録済みインスタンスの診断用表示名を取得する。 </summary>

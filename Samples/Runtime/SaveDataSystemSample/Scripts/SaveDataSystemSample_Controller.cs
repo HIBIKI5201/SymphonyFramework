@@ -309,7 +309,7 @@ namespace SymphonyFrameWork.Samples.SaveDataSystemSample
         /// <summary> 指定型のデータがRegistryへキャッシュ済みか確認する。 </summary>
         private static bool IsCacheLoaded<T>() where T : SaveDataContent, new()
         {
-            foreach (SaveDataRegistryEntryInfo entry in SaveStore.GetEntries())
+            foreach (SaveDataEntryInfo entry in SaveStore.GetEntries())
             {
                 if (entry.DataType == typeof(T))
                 {

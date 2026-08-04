@@ -33,8 +33,8 @@ namespace SymphonyFrameWork.Samples.ServiceLocatorSample
             await Awaitable.WaitForSecondsAsync(3f, destroyCancellationToken);
 
             Debug.Log("Reloading the current scene...");
-            await SceneLoader.UnloadScene(currentSceneName);
-            await SceneLoader.LoadScene(currentSceneName, mode: LoadSceneMode.Single, priority: 1);
+            await SceneLoader.UnloadSceneAsync(currentSceneName);
+            await SceneLoader.LoadSceneAsync(currentSceneName, mode: LoadSceneMode.Single, priority: 1);
             Debug.Log("Reloading done.");
 
             camera = ServiceLocator.GetRequiredInstance<Camera>();

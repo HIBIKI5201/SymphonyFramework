@@ -16,11 +16,11 @@ namespace SymphonyFrameWork.Tests
             var registrationInfo = new ServiceRegistrationInfo(
                 typeof(ServiceA),
                 instance,
-                LocateType.Singleton);
+                LocateTypeEnum.Singleton);
 
             Assert.That(registrationInfo.ServiceType, Is.EqualTo(typeof(ServiceA)));
             Assert.That(registrationInfo.Instance, Is.SameAs(instance));
-            Assert.That(registrationInfo.LocateType, Is.EqualTo(LocateType.Singleton));
+            Assert.That(registrationInfo.LocateType, Is.EqualTo(LocateTypeEnum.Singleton));
         }
 
         /// <summary> 同じpayload参照と値を持つInfoは等値になる。 </summary>
@@ -31,11 +31,11 @@ namespace SymphonyFrameWork.Tests
             var left = new ServiceRegistrationInfo(
                 typeof(ServiceA),
                 instance,
-                LocateType.Locator);
+                LocateTypeEnum.Locator);
             var right = new ServiceRegistrationInfo(
                 typeof(ServiceA),
                 instance,
-                LocateType.Locator);
+                LocateTypeEnum.Locator);
 
             Assert.That(left.Equals(right), Is.True);
             Assert.That(left == right, Is.True);
@@ -50,11 +50,11 @@ namespace SymphonyFrameWork.Tests
             var left = new ServiceRegistrationInfo(
                 typeof(string),
                 new string('a', 1),
-                LocateType.Locator);
+                LocateTypeEnum.Locator);
             var right = new ServiceRegistrationInfo(
                 typeof(string),
                 new string('a', 1),
-                LocateType.Locator);
+                LocateTypeEnum.Locator);
 
             Assert.That(left.Equals(right), Is.False);
             Assert.That(left == right, Is.False);
@@ -69,11 +69,11 @@ namespace SymphonyFrameWork.Tests
             var locator = new ServiceRegistrationInfo(
                 typeof(ServiceA),
                 instance,
-                LocateType.Locator);
+                LocateTypeEnum.Locator);
             var singleton = new ServiceRegistrationInfo(
                 typeof(ServiceA),
                 instance,
-                LocateType.Singleton);
+                LocateTypeEnum.Singleton);
 
             Assert.That(locator, Is.Not.EqualTo(singleton));
         }

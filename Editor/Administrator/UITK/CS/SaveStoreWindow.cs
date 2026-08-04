@@ -13,9 +13,9 @@ namespace SymphonyFrameWork.Editor
 {
     /// <summary> SaveDataRegistryのキャッシュ確認、編集、保存操作を提供する管理パネル。 </summary>
     [UxmlElement]
-    public sealed partial class SaveDataRegistryWindow : SymphonyVisualElement, IDisposable
+    public sealed partial class SaveStoreWindow : SymphonyVisualElement, IDisposable
     {
-        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataRegistryWindow.SelectedTypeName";
+        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveStoreWindow.SelectedTypeName";
 
         private readonly SaveDataDebugState _debugState;
         private SerializedObject _debugSerializedObject;
@@ -68,10 +68,10 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 管理パネル用UXMLと一時編集状態の初期化を開始する。 </summary>
-        public SaveDataRegistryWindow() : base(
-            SymphonyAdministrator.UITK_UXML_PATH + "SaveDataRegistryWindow.uxml",
-            InitializeType.None,
-            LoadType.AssetDataBase)
+        public SaveStoreWindow() : base(
+            SymphonyAdministrator.UITK_UXML_PATH + "SaveStoreWindow.uxml",
+            InitializeTypeEnum.None,
+            LoadTypeEnum.AssetDataBase)
         {
             _debugState = ScriptableObject.CreateInstance<SaveDataDebugState>();
             // HideAndDontSave には NotEditable も含まれ、SerializedProperty がすべて
@@ -81,7 +81,7 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> レジストリ操作ボタン、一覧、データInspectorを構成する。 </summary>
-        protected override ValueTask Initialize_S(VisualElement root)
+        protected override Awaitable Initialize_S(VisualElement root)
         {
             _currentLoaderLabel = root.Q<Label>("save-current-loader");
             _loadedEntriesCountLabel = root.Q<Label>("save-loaded-entries");
@@ -101,7 +101,7 @@ namespace SymphonyFrameWork.Editor
             SaveStore.OnCurrentViewModelChanged += ViewModelChangedHandler;
             BindViewModel();
 
-            return default;
+            return SymphonyAwaitable.Completed();
         }
 
         /// <summary> UIコールバックと一時編集用Unityオブジェクトを破棄する。 </summary>

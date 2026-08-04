@@ -12,7 +12,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         internal SceneLoadEntity(
             string name,
             int priority = 0,
-            SceneLoadState state = SceneLoadState.Loading)
+            SceneLoadStateEnum state = SceneLoadStateEnum.Loading)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -22,14 +22,14 @@ namespace SymphonyFrameWork.System.SceneLoad
             Name = name;
             Priority = priority;
             State = state;
-            Progress = state == SceneLoadState.Complete ? 1f : 0f;
+            Progress = state == SceneLoadStateEnum.Complete ? 1f : 0f;
         }
 
         /// <summary> シーン名。 </summary>
         internal string Name { get; }
 
         /// <summary> 現在のロード状態。 </summary>
-        internal SceneLoadState State { get; private set; }
+        internal SceneLoadStateEnum State { get; private set; }
 
         /// <summary> Active Scene選択に使用する優先度。 </summary>
         internal int Priority { get; private set; }
@@ -42,11 +42,11 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns> 状態または値が変化した場合はtrue。 </returns>
         internal bool StartLoading(int priority)
         {
-            bool changed = State != SceneLoadState.Loading
+            bool changed = State != SceneLoadStateEnum.Loading
                 || Priority != priority
                 || Progress != 0f;
 
-            State = SceneLoadState.Loading;
+            State = SceneLoadStateEnum.Loading;
             Priority = priority;
             Progress = 0f;
             return changed;
@@ -71,8 +71,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns> 状態または値が変化した場合はtrue。 </returns>
         internal bool CompleteLoading()
         {
-            bool changed = State != SceneLoadState.Complete || Progress != 1f;
-            State = SceneLoadState.Complete;
+            bool changed = State != SceneLoadStateEnum.Complete || Progress != 1f;
+            State = SceneLoadStateEnum.Complete;
             Progress = 1f;
             return changed;
         }
@@ -81,8 +81,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns> 状態または値が変化した場合はtrue。 </returns>
         internal bool StartUnloading()
         {
-            bool changed = State != SceneLoadState.Unloading || Progress != 0f;
-            State = SceneLoadState.Unloading;
+            bool changed = State != SceneLoadStateEnum.Unloading || Progress != 0f;
+            State = SceneLoadStateEnum.Unloading;
             Progress = 0f;
             return changed;
         }

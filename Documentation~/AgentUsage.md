@@ -10,7 +10,7 @@
 - asmdefを使う利用側コードは`SymphonyFrameWork`を参照する。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も参照する。
 - `ServiceLocator`、`SceneLoader`、`SaveStore`、`AudioManager`、`PauseManager`はstatic Facadeである。`new`や`.Instance`は使わない。
 - `SymphonyOrchestrator`が最初のシーンより前に自動初期化する。Bootstrap用GameObjectや専用シーンを作らない。
-- `SceneManagerConfig`、`AudioManagerConfig`、`SaveSystemConfig`は`internal`である。型として参照せず、InspectorまたはProject Settingsから設定する。
+- `SceneLoadConfig`、`AudioManagerConfig`、`SaveSystemConfig`は`internal`である。型として参照せず、InspectorまたはProject Settingsから設定する。
 - `SymphonyFrameWork.Editor`はEditor専用である。Runtime asmdefやPlayerビルド対象コードから参照しない。
 - パッケージ直下の`Cache/Log.txt`はEditor用の生成キャッシュである。編集・コミットせず、不要なら削除してよい。
 
@@ -28,7 +28,7 @@
 
 - 登録と解除を同じライフサイクルの対として書く。基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。
 - 通常の`RegisterInstance`がfalseの場合も候補の所有権は呼び出し側に残る。型重複時に候補を自動解放してよい場合だけ`RegisterInstanceWithAutoDispose`へ所有権を移す。
-- `LocateType.Locator`は参照だけを登録する。`LocateType.Singleton`はComponentを管理オブジェクト配下へ移動するため、シーンローカルなオブジェクトには使わない。
+- `LocateTypeEnum.Locator`は参照だけを登録する。`LocateTypeEnum.Singleton`はComponentを管理オブジェクト配下へ移動するため、シーンローカルなオブジェクトには使わない。
 - 任意依存は`TryGetInstance<T>`、nullを許容する既存コードは`GetInstance<T>`、必須依存は`GetRequiredInstance<T>`を使う。
 - 登録中の型と登録方式を一覧で調べる場合は`GetRegistrationInfos()`、既知の型だけを調べる場合は`TryGetRegistrationInfo(Type, out ...)`を使う。返る`ServiceRegistrationInfo`は取得時点のスナップショットとして扱う。
 - `GetInstanceAsync<T>`の期限超過は`TimeoutException`、呼び出し側キャンセルは`OperationCanceledException`。`TryGetInstanceAsync<T>`がfalseへ変換するのは期限超過だけ。
@@ -45,13 +45,14 @@
 ## Save Data System
 
 - 保存型は`SaveDataContent`を継承した、デフォルトコンストラクタを持つ具象classにする。
-- **旧`SaveDataRegistry`は非推奨である。** `SaveStore`へ置換する。動作は同じで、3.0.0で削除する。
+- **旧`SaveDataRegistry`は3.0.0で削除済みである。** `SaveStore`を使う。
 - `SaveStore.Get<T>()`が返す型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
 - 非同期I/Oを行う独自ローダーでは、先に`LoadAsync<T>()`をawaitしてから`Get<T>()`する。
 - 保存先の失敗は`SaveDataOperationException`の`Operation`、`DataType`、`LoaderType`、`InnerException`で診断する。キャンセルは`OperationCanceledException`のまま伝播する。
 - 独自`SaveDataLoaderStrategy`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
+- 独自ローダーが実装する`LoadJsonAsync`／`SaveJsonAsync`／`DeleteCoreAsync`は`Awaitable`を返す。同期的に完了する場合は`SymphonyAwaitable.Completed()`と`SymphonyAwaitable.FromResult(json)`を使い、`null`を返さない。
 - キャッシュ済みの一覧は`SaveStore.GetEntries()`で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。
-- **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは`SaveDataRegistryEntryInfo.IsLoaded`で判定する。
+- **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは`SaveDataEntryInfo.IsLoaded`で判定する。
 
 ## Audio Manager
 

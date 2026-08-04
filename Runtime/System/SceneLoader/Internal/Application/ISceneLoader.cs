@@ -33,7 +33,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="progress"> 進捗の通知先。 </param>
         /// <param name="token"> 待機を中断するトークン。 </param>
         /// <returns> ロードに成功した場合はtrue。 </returns>
-        ValueTask<bool> LoadSceneAsync(
+        Task<bool> LoadSceneAsync(
             string sceneName,
             IProgress<float> progress,
             CancellationToken token);
@@ -43,14 +43,14 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="progress"> 進捗の通知先。 </param>
         /// <param name="token"> 待機を中断するトークン。 </param>
         /// <returns> アンロードに成功した場合はtrue。 </returns>
-        ValueTask<bool> UnloadSceneAsync(
+        Task<bool> UnloadSceneAsync(
             string sceneName,
             IProgress<float> progress,
             CancellationToken token);
 
         /// <summary> ロード済みSceneのルートObjectへ依存注入と非同期初期化を行う。 </summary>
         /// <param name="sceneName"> シーン名。 </param>
-        /// <returns> 初期化処理を表すValueTask。 </returns>
-        ValueTask InitializeRootObjectsAsync(string sceneName);
+        /// <returns> 初期化処理を表すTask。 </returns>
+        Task InitializeRootObjectsAsync(string sceneName);
     }
 }

@@ -3,7 +3,7 @@
     /// <summary>
     ///     登録するインスタンスの種類を定義します。
     /// </summary>
-    public enum LocateType : byte
+    public enum LocateTypeEnum : byte
     {
         /// <summary>
         ///     通常のシングルトンとして登録します。

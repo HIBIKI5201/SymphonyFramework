@@ -47,7 +47,7 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
             var request = new SceneLoadRequest(SCENE_A, PRIORITY_A);
             IProgress<float> progress = new Progress<float>(
                 value => _sceneAProgress = value);
-            bool succeeded = await SceneLoader.LoadScene(
+            bool succeeded = await SceneLoader.LoadSceneAsync(
                 request,
                 progress,
                 mode: LoadSceneMode.Additive,
@@ -71,7 +71,7 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
             _isBusy = true;
             AddCommentary($"{SCENE_B} を優先度{PRIORITY_B}で追加ロードします。優先度が現在のActive以上のため、ロード後にActiveへ切り替わります。");
 
-            bool succeeded = await SceneLoader.LoadScene(
+            bool succeeded = await SceneLoader.LoadSceneAsync(
                 SCENE_B,
                 mode: LoadSceneMode.Additive,
                 priority: PRIORITY_B,
@@ -94,7 +94,7 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
 
             _isBusy = true;
             AddCommentary($"{SCENE_A} をアンロードします。Activeだった場合は次に優先度が高いシーンへ切り替わります。");
-            await SceneLoader.UnloadScene(SCENE_A, token: destroyCancellationToken);
+            await SceneLoader.UnloadSceneAsync(SCENE_A, token: destroyCancellationToken);
             AddCommentary($"{SCENE_A} のアンロードが完了しました。");
             _isBusy = false;
         }
@@ -110,7 +110,7 @@ namespace SymphonyFrameWork.Samples.SceneLoaderSample
 
             _isBusy = true;
             AddCommentary($"{SCENE_B} をアンロードします。Activeだった場合は次に優先度が高いシーンへ切り替わります。");
-            await SceneLoader.UnloadScene(SCENE_B, token: destroyCancellationToken);
+            await SceneLoader.UnloadSceneAsync(SCENE_B, token: destroyCancellationToken);
             AddCommentary($"{SCENE_B} のアンロードが完了しました。");
             _isBusy = false;
         }

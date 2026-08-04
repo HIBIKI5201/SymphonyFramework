@@ -54,7 +54,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 entity = new SceneLoadEntity(
                     request.SceneName,
                     request.Priority,
-                    SceneLoadState.Complete);
+                    SceneLoadStateEnum.Complete);
                 _entities.Add(request.SceneName, entity);
                 return entity;
             }
@@ -141,7 +141,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             foreach (KeyValuePair<string, SceneLoadEntity> pair in _entities)
             {
                 SceneLoadEntity current = pair.Value;
-                if (current.State != SceneLoadState.Complete)
+                if (current.State != SceneLoadStateEnum.Complete)
                 {
                     continue;
                 }
@@ -187,7 +187,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                     new SceneLoadEntity(
                         sceneName,
                         priority,
-                        SceneLoadState.Complete));
+                        SceneLoadStateEnum.Complete));
             }
 
             bool changed = !HasSameEntities(nextEntities);
@@ -217,7 +217,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         internal bool RegisterLoadedAction(string sceneName, Action action)
         {
             if (TryGet(sceneName, out SceneLoadEntity entity)
-                && entity.State == SceneLoadState.Complete)
+                && entity.State == SceneLoadStateEnum.Complete)
             {
                 return true;
             }

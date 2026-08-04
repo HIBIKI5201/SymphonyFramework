@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.Tests
             registry.GetOrCreate(typeof(AlphaSaveData));
             var query = new SaveDataQuery(registry);
 
-            IReadOnlyList<SaveDataRegistryEntryInfo> infos = query.GetInfos();
+            IReadOnlyList<SaveDataEntryInfo> infos = query.GetInfos();
 
             Assert.That(
                 new[] { infos[0].DataType, infos[1].DataType },
@@ -74,7 +74,7 @@ namespace SymphonyFrameWork.Tests
             SaveDataEntryEntity entry = registry.GetOrCreate(typeof(AlphaSaveData));
             var query = new SaveDataQuery(registry);
 
-            SaveDataRegistryEntryInfo created = query.GetInfos()[0];
+            SaveDataEntryInfo created = query.GetInfos()[0];
             Assert.That(created.Data, Is.Not.Null);
             Assert.That(created.IsLoaded, Is.False);
 
@@ -111,7 +111,7 @@ namespace SymphonyFrameWork.Tests
             var query = new SaveDataQuery(registry);
 
             Assert.That(
-                ((IList<SaveDataRegistryEntryInfo>)query.GetInfos()).IsReadOnly,
+                ((IList<SaveDataEntryInfo>)query.GetInfos()).IsReadOnly,
                 Is.True);
             Assert.That(
                 ((IList<SaveDataDto>)query.GetDtos()).IsReadOnly,

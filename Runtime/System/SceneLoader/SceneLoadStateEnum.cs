@@ -3,7 +3,7 @@
 namespace SymphonyFrameWork.System.SceneLoad
 {
     /// <summary> 追跡中シーンのロードおよびアンロード状態を表す。 </summary>
-    public enum SceneLoadState : int
+    public enum SceneLoadStateEnum : int
     {
         /// <summary> 追跡されていない状態。 </summary>
         None = -1,

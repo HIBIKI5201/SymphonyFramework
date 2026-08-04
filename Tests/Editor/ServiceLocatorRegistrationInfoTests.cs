@@ -44,11 +44,11 @@ namespace SymphonyFrameWork.Tests
             ServiceLocator.RegisterInstance(
                 typeof(ZebraService),
                 zebra,
-                LocateType.Locator);
+                LocateTypeEnum.Locator);
             ServiceLocator.RegisterInstance(
                 typeof(AlphaService),
                 alpha,
-                LocateType.Singleton);
+                LocateTypeEnum.Singleton);
 
             IReadOnlyList<ServiceRegistrationInfo> registrationInfos =
                 ServiceLocator.GetRegistrationInfos();
@@ -56,7 +56,7 @@ namespace SymphonyFrameWork.Tests
             Assert.That(registrationInfos, Has.Count.EqualTo(2));
             Assert.That(registrationInfos[0].ServiceType, Is.EqualTo(typeof(AlphaService)));
             Assert.That(registrationInfos[0].Instance, Is.SameAs(alpha));
-            Assert.That(registrationInfos[0].LocateType, Is.EqualTo(LocateType.Singleton));
+            Assert.That(registrationInfos[0].LocateType, Is.EqualTo(LocateTypeEnum.Singleton));
             Assert.That(registrationInfos[1].ServiceType, Is.EqualTo(typeof(ZebraService)));
             Assert.That(registrationInfos[1].Instance, Is.SameAs(zebra));
         }
@@ -66,7 +66,7 @@ namespace SymphonyFrameWork.Tests
         public void TryGetRegistrationInfo_RegisteredMissingAndNullTypes_UsesTryContract()
         {
             var instance = new AlphaService();
-            ServiceLocator.RegisterInstance(instance, LocateType.Locator);
+            ServiceLocator.RegisterInstance(instance, LocateTypeEnum.Locator);
 
             bool found = ServiceLocator.TryGetRegistrationInfo(
                 typeof(AlphaService),

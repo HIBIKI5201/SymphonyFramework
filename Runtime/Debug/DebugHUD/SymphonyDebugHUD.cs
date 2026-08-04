@@ -72,7 +72,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="duration"> 表示を継続する秒数。 </param>
         /// <param name="color"> 文字へ適用する色。既定値の場合は色指定なし。 </param>
         /// <param name="token"> 表示待機を中断するためのトークン。 </param>
-        public static async ValueTask AddText(string text, float duration = 3, Color color = default, CancellationToken token = default)
+        public static async Awaitable AddText(string text, float duration = 3, Color color = default, CancellationToken token = default)
         {
             EnsureInitialized();
 

@@ -121,9 +121,9 @@ namespace SymphonyFrameWork.System.SaveSystem
         ///     現在キャッシュされている全エントリの読み取り専用スナップショットを取得する。
         ///     並び順は<see cref="Type.FullName" />のordinal昇順。
         /// </summary>
-        public static IReadOnlyList<SaveDataRegistryEntryInfo> GetEntries()
+        public static IReadOnlyList<SaveDataEntryInfo> GetEntries()
         {
-            return _query?.GetInfos() ?? Array.Empty<SaveDataRegistryEntryInfo>();
+            return _query?.GetInfos() ?? Array.Empty<SaveDataEntryInfo>();
         }
 
         /// <summary> Save Storeが初期化済みかどうか。 </summary>

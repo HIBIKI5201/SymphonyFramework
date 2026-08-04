@@ -6,7 +6,7 @@ namespace SymphonyFrameWork.Config
     /// <summary>
     ///     シーンマネージャーのコンフィグを格納する
     /// </summary>
-    internal sealed class SceneManagerConfig : ScriptableObject
+    internal sealed class SceneLoadConfig : ScriptableObject
     {
         /// <summary> 再生開始時にシーンを整理して初期シーンをロードするかを示す。 </summary>
         public bool IsResetAndLoadOnPlay => _isResetAndLoadOnPlay;

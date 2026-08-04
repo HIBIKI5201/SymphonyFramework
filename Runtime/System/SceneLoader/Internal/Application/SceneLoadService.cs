@@ -133,7 +133,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="mode"> AdditiveまたはSingle相当のロード方式。 </param>
         /// <param name="token"> 処理を中断するトークン。 </param>
         /// <returns> ロードに成功した場合はtrue。 </returns>
-        internal async ValueTask<bool> LoadScene(
+        internal async Task<bool> LoadScene(
             SceneLoadRequest request,
             IProgress<float> progress = null,
             LoadSceneMode mode = LoadSceneMode.Additive,
@@ -235,14 +235,14 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="progress"> 平均進捗の通知先。 </param>
         /// <param name="token"> 処理を中断するトークン。 </param>
         /// <returns> すべてロードできた場合はtrue。 </returns>
-        internal async ValueTask<bool> LoadScenes(
+        internal async Task<bool> LoadScenes(
             SceneLoadRequest[] requests,
             IProgress<float> progress = null,
             CancellationToken token = default)
         {
             ValidateRequests(requests, nameof(requests));
 
-            ValueTask<bool>[] loadTasks = new ValueTask<bool>[requests.Length];
+            Task<bool>[] loadTasks = new Task<bool>[requests.Length];
             float[] progresses = new float[requests.Length];
 
             for (int i = 0; i < requests.Length; i++)
@@ -260,9 +260,12 @@ namespace SymphonyFrameWork.System.SceneLoad
                 progress,
                 token);
 
+            // WaitForAllで全件完了済みだが、faultedの場合に元例外をそのまま伝播させるため
+            // Task.Resultではなくawaitで取り出す。Resultだとキャンセルや例外が
+            // AggregateExceptionへ包まれ、ValueTask時代の伝播と変わってしまう。
             for (int i = 0; i < loadTasks.Length; i++)
             {
-                if (!loadTasks[i].Result)
+                if (!await loadTasks[i])
                 {
                     return false;
                 }
@@ -276,7 +279,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="progress"> 進捗の通知先。 </param>
         /// <param name="token"> 処理を中断するトークン。 </param>
         /// <returns> アンロードに成功した場合はtrue。 </returns>
-        internal async ValueTask<bool> UnloadScene(
+        internal async Task<bool> UnloadScene(
             string sceneName,
             IProgress<float> progress = null,
             CancellationToken token = default)
@@ -354,14 +357,14 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="progress"> 平均進捗の通知先。 </param>
         /// <param name="token"> 処理を中断するトークン。 </param>
         /// <returns> すべてアンロードできた場合はtrue。 </returns>
-        internal async ValueTask<bool> UnloadScenes(
+        internal async Task<bool> UnloadScenes(
             string[] sceneNames,
             IProgress<float> progress = null,
             CancellationToken token = default)
         {
             ValidateSceneNames(sceneNames, nameof(sceneNames));
 
-            ValueTask<bool>[] unloadTasks = new ValueTask<bool>[sceneNames.Length];
+            Task<bool>[] unloadTasks = new Task<bool>[sceneNames.Length];
             float[] progresses = new float[sceneNames.Length];
 
             for (int i = 0; i < sceneNames.Length; i++)
@@ -381,7 +384,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
             for (int i = 0; i < unloadTasks.Length; i++)
             {
-                if (!unloadTasks[i].Result)
+                if (!await unloadTasks[i])
                 {
                     return false;
                 }
@@ -404,13 +407,13 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> 指定したSceneがロード完了状態になるまで待機する。 </summary>
         /// <param name="sceneName"> シーン名。 </param>
         /// <param name="token"> 待機を中断するトークン。 </param>
-        /// <returns> 待機処理を表すValueTask。 </returns>
-        internal async ValueTask WaitForLoadSceneAsync(
+        /// <returns> 待機処理を表すTask。 </returns>
+        internal async Task WaitForLoadSceneAsync(
             string sceneName,
             CancellationToken token = default)
         {
             while (!_registry.TryGet(sceneName, out SceneLoadEntity entity)
-                || entity.State < SceneLoadState.Complete)
+                || entity.State < SceneLoadStateEnum.Complete)
             {
                 await Awaitable.NextFrameAsync(token);
             }
@@ -431,8 +434,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="isResetAndLoadOnPlay"> Sceneの整理と初期ロードを行うか。 </param>
         /// <param name="initializeSceneNames"> 初期ロードするScene名。 </param>
         /// <param name="resetIgnoreSceneNames"> 整理時に残すScene名。 </param>
-        /// <returns> 起動時処理を表すValueTask。 </returns>
-        internal async ValueTask InitializeAfterSceneLoad(
+        /// <returns> 起動時処理を表すTask。 </returns>
+        internal async Task InitializeAfterSceneLoad(
             bool isResetAndLoadOnPlay,
             string[] initializeSceneNames,
             string[] resetIgnoreSceneNames)
@@ -485,8 +488,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> 指定したSceneだけを残し、それ以外をアンロードする。 </summary>
         /// <param name="sceneNameToKeep"> 残すScene名。 </param>
         /// <param name="token"> 処理を中断するトークン。 </param>
-        /// <returns> Scene整理を表すValueTask。 </returns>
-        private async ValueTask ResetScene(
+        /// <returns> Scene整理を表すTask。 </returns>
+        private async Task ResetScene(
             string sceneNameToKeep,
             CancellationToken token)
         {
@@ -515,9 +518,9 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="progresses"> Sceneごとの進捗。 </param>
         /// <param name="progress"> 平均進捗の通知先。 </param>
         /// <param name="token"> 処理を中断するトークン。 </param>
-        /// <returns> 待機処理を表すValueTask。 </returns>
-        private static async ValueTask WaitForAll(
-            ValueTask<bool>[] tasks,
+        /// <returns> 待機処理を表すTask。 </returns>
+        private static async Task WaitForAll(
+            Task<bool>[] tasks,
             float[] progresses,
             IProgress<float> progress,
             CancellationToken token)

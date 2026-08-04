@@ -22,7 +22,7 @@ namespace SymphonyFrameWork.Editor
             bool hasAssetChanges = false;
 
             // Runtime用 (ScriptableObject)
-            hasAssetChanges |= FileCheck<SceneManagerConfig>();
+            hasAssetChanges |= FileCheck<SceneLoadConfig>();
             hasAssetChanges |= FileCheck<AudioManagerConfig>();
             hasAssetChanges |= FileCheck<SaveSystemConfig>();
 

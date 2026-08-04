@@ -17,8 +17,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
         public PauseWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "PauseWindow.uxml",
-            InitializeType.None,
-            LoadType.AssetDataBase)
+            InitializeTypeEnum.None,
+            LoadTypeEnum.AssetDataBase)
         { }
 
         /// <summary> ViewModelとEditor callbackの購読を解除する。 </summary>
@@ -38,11 +38,11 @@ namespace SymphonyFrameWork.Editor
         /// <summary> PauseManagerへの操作ボタンと状態表示要素を構成する。 </summary>
         /// <param name="container"> UXMLから生成されたルート要素。 </param>
         /// <returns> 同期的に完了する初期化処理。 </returns>
-        protected override ValueTask Initialize_S(VisualElement container)
+        protected override Awaitable Initialize_S(VisualElement container)
         {
             if (_isDisposed)
             {
-                return default;
+                return SymphonyAwaitable.Completed();
             }
 
             _pauseVisual = container.Q<VisualElement>("pause");
@@ -57,7 +57,7 @@ namespace SymphonyFrameWork.Editor
             EditorApplication.playModeStateChanged += PlayModeStateChangedHandler;
             BindViewModel();
 
-            return default;
+            return SymphonyAwaitable.Completed();
         }
 
         /// <summary> Play Mode遷移に合わせて現在のViewModelへ接続し直す。 </summary>

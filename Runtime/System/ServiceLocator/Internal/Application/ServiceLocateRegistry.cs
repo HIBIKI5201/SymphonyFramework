@@ -19,7 +19,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal bool TryRegister(
             Type serviceType,
             object instance,
-            LocateType locateType,
+            LocateTypeEnum locateType,
             out ServiceRegistrationEntity entity)
         {
             if (_entities.ContainsKey(serviceType))

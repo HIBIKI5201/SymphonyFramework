@@ -19,7 +19,7 @@ namespace SymphonyFrameWork.Tests
             bool registered = registry.TryRegister(
                 typeof(ServiceA),
                 instance,
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 out ServiceRegistrationEntity registeredEntity);
 
             Assert.That(registered, Is.True);
@@ -40,13 +40,13 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(ServiceA),
                 first,
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out ServiceRegistrationEntity firstEntity);
 
             bool registered = registry.TryRegister(
                 typeof(ServiceA),
                 second,
-                LocateType.Singleton,
+                LocateTypeEnum.Singleton,
                 out ServiceRegistrationEntity duplicateEntity);
 
             Assert.That(registered, Is.False);
@@ -66,7 +66,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out ServiceRegistrationEntity entity);
 
             bool removed = registry.TryRemove(
@@ -156,7 +156,7 @@ namespace SymphonyFrameWork.Tests
             registry.TryRegister(
                 typeof(ServiceA),
                 new ServiceA(),
-                LocateType.Locator,
+                LocateTypeEnum.Locator,
                 out ServiceRegistrationEntity entity);
             registry.RegisterWaitingAction<ServiceB>(() => invocationCount++);
 

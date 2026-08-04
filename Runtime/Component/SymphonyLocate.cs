@@ -17,7 +17,7 @@ namespace SymphonyFrameWork.Utility
         private Component _target;
 
         [SerializeField, Tooltip("SingletonまたはLocatorの登録方式。")]
-        private LocateType _locateType = LocateType.Locator;
+        private LocateTypeEnum _locateType = LocateTypeEnum.Locator;
 
         [SerializeField, Tooltip("有効化時に対象をService Locatorへ自動登録するか。")]
         private bool _autoRegister = true;

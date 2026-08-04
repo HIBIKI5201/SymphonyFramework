@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 
 using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFrameWork.Utility;
 
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -33,22 +34,22 @@ namespace SymphonyFrameWork.Tests
 
             protected override bool ExistsCore(Type dataType) => _storage.ContainsKey(dataType);
 
-            protected override ValueTask<string> LoadJsonAsync(Type dataType, CancellationToken token)
+            protected override Awaitable<string> LoadJsonAsync(Type dataType, CancellationToken token)
             {
                 _storage.TryGetValue(dataType, out string json);
-                return new ValueTask<string>(json);
+                return SymphonyAwaitable.FromResult(json);
             }
 
-            protected override ValueTask SaveJsonAsync(Type dataType, string json, CancellationToken token)
+            protected override Awaitable SaveJsonAsync(Type dataType, string json, CancellationToken token)
             {
                 _storage[dataType] = json;
-                return default;
+                return SymphonyAwaitable.Completed();
             }
 
-            protected override ValueTask DeleteCoreAsync(Type dataType, CancellationToken token)
+            protected override Awaitable DeleteCoreAsync(Type dataType, CancellationToken token)
             {
                 _storage.Remove(dataType);
-                return default;
+                return SymphonyAwaitable.Completed();
             }
 
             protected override string SerializeToJson(Type dataType, SaveDataContent data) =>

@@ -1,5 +1,92 @@
 # Changelog
 
+## [3.0.0] - 2026-08-04
+**3.0.0 の確定版です。** `3.0.0-preview.1`〜`preview.3` で積み上げた Awaitable 移行（Phase 5）を Scene Load、Service Locate、Debug HUD、Component、Editor UI、Loader Strategy まで広げ、移行期間を終えた旧シムの削除と改名（Phase 6）を行いました。preview 版から更新する場合は、本項の Breaking をすべて確認してください。
+
+`SaveDataContent` のフィールド構成、保存されるJSON、PlayerPrefsのキーは変更していないため、**既存のセーブデータはそのまま読み込めます。**
+
+### Breaking
+
+- **`SceneLoader` の非同期API4件を改名し、戻り値を `Awaitable` にしました。** `LoadScene` → `LoadSceneAsync`、`LoadScenes` → `LoadScenesAsync`、`UnloadScene` → `UnloadSceneAsync`、`UnloadScenes` → `UnloadScenesAsync`。`WaitForLoadSceneAsync` は名前を維持し、戻り値だけ `Awaitable` になります。
+
+  **移行方法**: 呼び出し名に `Async` を付ける。`await` して使っている場合、それ以外の変更は不要です。
+
+  ```csharp
+  // 2.x
+  bool ok = await SceneLoader.LoadScene("Game", priority: 10);
+  // 3.0.0
+  bool ok = await SceneLoader.LoadSceneAsync("Game", priority: 10);
+  ```
+
+  戻り値を `Task` / `ValueTask` として受けている場合は `SymphonyAwaitable.AsTask` で変換します。**`Awaitable` は1回しか `await` できず、フィールドへ保存も共有もできません。**
+
+- **`ServiceLocator.GetInstanceAsync<T>()` と `TryGetInstanceAsync<T>()` が `Awaitable` を返すようになりました。** 名前と引数は変わりません。あわせて未初期化時の `SymphonyNotInitializedException` が、await 時ではなく**呼び出し時に同期的に送出**されます。
+
+- **`SymphonyLocateObject<T>.GetInstanceAsync()`、`SymphonyDebugHUD.AddText()`、`SymphonyTween.Tweening()` / `PausableTweening()` が `Awaitable` を返すようになりました。**
+
+- **`SaveDataLoaderStrategy` の派生実装が `Awaitable` を返すようになりました。** 対象は `LoadJsonAsync` / `SaveJsonAsync` / `DeleteCoreAsync` の3つです。
+
+  **移行方法**: 戻り値型を置換し、同期的に完了する実装は `default` ではなく `SymphonyAwaitable.Completed()`（値を返す場合は `SymphonyAwaitable.FromResult(json)`）を返します。**`Awaitable` は参照型のため、`default` は `null` になり await で例外になります。** `ExistsCore` / `SerializeToJson` / `OverwriteFromJson` は変更ありません。
+
+  ```csharp
+  // 2.x
+  protected override ValueTask SaveJsonAsync(Type dataType, string json, CancellationToken token)
+  {
+      File.WriteAllText(GetPath(dataType), json);
+      return default;
+  }
+  // 3.0.0
+  protected override Awaitable SaveJsonAsync(Type dataType, string json, CancellationToken token)
+  {
+      File.WriteAllText(GetPath(dataType), json);
+      return SymphonyAwaitable.Completed();
+  }
+  ```
+
+- **`SymphonyVisualElement.Initialize_S()` が `Awaitable` を返すようになりました。** 継承しているEditor拡張は戻り値型と `return default;` を上記と同じ要領で書き換えます。
+
+- **公開enum7型を `Enum` サフィックスへ改名しました。** enumは他のenum型へ暗黙変換できず演算子も定義できないため、互換シムを作れません。
+
+  | 2.x | 3.0.0 |
+  | --- | --- |
+  | `LocateType` | `LocateTypeEnum` |
+  | `SceneLoadState` | `SceneLoadStateEnum` |
+  | `SaveDataOperation` | `SaveDataOperationEnum` |
+  | `SymphonyDebugLogger.LogKind` | `SymphonyDebugLogger.LogKindEnum` |
+  | `SymphonyVisualElement.InitializeType` | `SymphonyVisualElement.InitializeTypeEnum` |
+  | `SymphonyVisualElement.LoadType` | `SymphonyVisualElement.LoadTypeEnum` |
+  | `AssetStoreToolsPackager.PackageMode` | `AssetStoreToolsPackager.PackageModeEnum` |
+
+  **改名したのは型名だけです。** `ServiceRegistrationInfo.LocateType` のようなプロパティ名は変更していません。自動生成型の `SceneListEnum`、`TagsEnum`、`LayersEnum`、`AudioGroupTypeEnum` は既に規則へ適合しているため変更ありません。
+
+- **`SaveDataRegistryEntryInfo` を `SaveDataEntryInfo` へ改名しました。** `SaveStore.GetEntries()` の戻り値要素型です。メンバー（`DataType`、`Data`、`SaveDate`、`IsLoaded`）は変更ありません。
+
+- **`SceneManagerConfig` を `SceneLoadConfig` へ改名しました。** Configは `Resources.Load<T>(typeof(T).Name)` で解決するため、**利用側は設定アセットのファイル名を手動で `SceneLoadConfig.asset` へリネームしてください。** リネームしないと設定が解決されず、再生時のシーン初期化設定が既定値へ戻ります。自動移行は2.xで試して失敗しているため、本バージョンでも行いません。
+
+  Unityが先に空の `SceneLoadConfig.asset` を自動生成した場合は、それを削除してから旧アセットをリネームします。逆順にすると設定値が失われます。
+
+- **移行期間を終えた次の型を削除しました。**
+
+  | 削除した型 | 代替 |
+  | --- | --- |
+  | `SaveDataRegistry` | `SaveStore` |
+  | `SaveDataLoader` | `SaveDataLoaderStrategy` |
+  | `PlayerPrefsSaveDataLoader` | `PlayerPrefsSaveDataLoaderStrategy` |
+  | `SymphonyTask` | `SymphonyAwaitable` |
+  | `ISaveDataLoader<T>`、`JsonUtilityDataLoader<T>`、`NugetDataLoader<T>`（`Runtime/Obsolete/`） | `SaveDataLoaderStrategy` |
+
+- **Editorの `SaveDataRegistryWindow` を `SaveStoreWindow` へ改名しました。** Facade名に揃える他の管理パネルと同じ規則です。UXMLも同名へ改名しています。
+
+### Change
+
+- `SceneLoader` と `ServiceLocator` の内部レイヤーは `Task` のままです。公開面だけ `Awaitable` へ変換します。`SceneLoadService` の複数シーン待機と `ServiceLocator` の登録待機は、いずれも1つの待機を複数箇所で共有するため、`Awaitable` では表現できません。
+- `SceneLoadService.LoadScenes` / `UnloadScenes` が、各シーンの結果を `Task.Result` ではなく `await` で取り出すようにしました。`Result` は例外を `AggregateException` へ包むため、2.x の `ValueTask` と例外の伝播が変わってしまいます。**利用側から見える例外の型は2.xと同じです。**
+- `IInitializeAsync` は `Task` を維持します。`InitializeTask` は完了状態を保持して `IsDone` から参照するため、保存も共有もできない `Awaitable` へ移行できません。
+
+### Fix
+
+- `SaveDataContent` の保存日時が `SaveDataLoaderStrategy` の管理下から外れていた経路を塞ぎました（`UpdateSaveDate()` / `ClearSaveDate()` は `internal`）。
+
 ## [3.0.0-preview.3] - 2026-08-04
 ### Breaking
 - **`SaveStore` の非同期API6件が `ValueTask` ではなく `Awaitable` を返すようになりました。** 対象は `LoadAsync<T>` / `LoadAsync(Type)` / `SaveAsync<T>` / `SaveAsync(Type)` / `DeleteAsync<T>` / `DeleteAsync(Type)` です。

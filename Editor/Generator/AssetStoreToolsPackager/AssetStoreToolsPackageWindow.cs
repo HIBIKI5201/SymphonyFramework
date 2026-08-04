@@ -49,7 +49,7 @@ namespace SymphonyFrameWork.Editor
 
         private List<DirectoryItem> _directoryItems = new();
         private Vector2 _scrollPosition;
-        private PackageMode _packageMode = PackageMode.Singles;
+        private PackageModeEnum _packageMode = PackageModeEnum.Singles;
         private bool _createZip = false;
         private bool _usedDependencies = false;
 
@@ -98,14 +98,14 @@ namespace SymphonyFrameWork.Editor
             EditorGUILayout.EndScrollView();
 
             EditorGUILayout.Space();
-            _packageMode = (PackageMode)EditorGUILayout.EnumFlagsField("Export Mode", _packageMode);
+            _packageMode = (PackageModeEnum)EditorGUILayout.EnumFlagsField("Export Mode", _packageMode);
             _createZip = EditorGUILayout.ToggleLeft("Create ZIP File", _createZip);
             _usedDependencies = EditorGUILayout.ToggleLeft("Used Dependencies", _usedDependencies);
 
             // エクスポートボタン。
             using (new EditorGUI.DisabledGroupScope(_directoryItems.All(d => !d.IsSelected)))
             {
-                if (_packageMode == PackageMode.Nothing)
+                if (_packageMode == PackageModeEnum.Nothing)
                 {
                     GUILayout.TextField("Noting mode is invalid");
                     return;

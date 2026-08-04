@@ -26,7 +26,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <param name="dataType"> 復元するセーブデータ型。 </param>
         /// <param name="data"> 復元結果を上書きするインスタンス。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        internal async ValueTask LoadAsync(
+        internal async Task LoadAsync(
             Type dataType,
             SaveDataContent data,
             CancellationToken token = default)
@@ -58,7 +58,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <param name="dataType"> 保存するセーブデータ型。 </param>
         /// <param name="data"> 保存するインスタンス。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        internal async ValueTask SaveAsync(
+        internal async Task SaveAsync(
             Type dataType,
             SaveDataContent data,
             CancellationToken token = default)
@@ -85,24 +85,24 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 指定した型の永続化データを削除する。 </summary>
         /// <param name="dataType"> 削除するセーブデータ型。 </param>
         /// <param name="token"> 処理を中断するためのトークン。 </param>
-        internal ValueTask DeleteAsync(Type dataType, CancellationToken token = default)
+        internal async Task DeleteAsync(Type dataType, CancellationToken token = default)
         {
             ValidateDataType(dataType);
             token.ThrowIfCancellationRequested();
-            return DeleteCoreAsync(dataType, token);
+            await DeleteCoreAsync(dataType, token);
         }
 
         /// <summary> 派生ローダー固有の保存先にデータが存在するか確認する。 </summary>
         protected abstract bool ExistsCore(Type dataType);
 
         /// <summary> 派生ローダー固有の保存先からJSONを読み込む。 </summary>
-        protected abstract ValueTask<string> LoadJsonAsync(Type dataType, CancellationToken token);
+        protected abstract Awaitable<string> LoadJsonAsync(Type dataType, CancellationToken token);
 
         /// <summary> 派生ローダー固有の保存先へJSONを書き込む。 </summary>
-        protected abstract ValueTask SaveJsonAsync(Type dataType, string json, CancellationToken token);
+        protected abstract Awaitable SaveJsonAsync(Type dataType, string json, CancellationToken token);
 
         /// <summary> 派生ローダー固有の保存先からデータを削除する。 </summary>
-        protected abstract ValueTask DeleteCoreAsync(Type dataType, CancellationToken token);
+        protected abstract Awaitable DeleteCoreAsync(Type dataType, CancellationToken token);
 
         /// <summary> 指定インスタンスを派生ローダーのJSON形式へ変換する。 </summary>
         protected abstract string SerializeToJson(Type dataType, SaveDataContent data);

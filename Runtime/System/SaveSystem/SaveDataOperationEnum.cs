@@ -1,7 +1,7 @@
 ﻿namespace SymphonyFrameWork.System.SaveSystem
 {
     /// <summary> セーブデータに対して実行した操作の種類。 </summary>
-    public enum SaveDataOperation
+    public enum SaveDataOperationEnum
     {
         /// <summary> 永続化データの存在確認。 </summary>
         Exists,

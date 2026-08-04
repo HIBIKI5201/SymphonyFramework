@@ -12,7 +12,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal ServiceRegistrationEntity(
             Type serviceType,
             object instance,
-            LocateType locateType)
+            LocateTypeEnum locateType)
         {
             ServiceType = serviceType
                 ?? throw new ArgumentNullException(nameof(serviceType));
@@ -29,7 +29,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal object Instance { get; }
 
         /// <summary> 登録時に指定された登録方式。 </summary>
-        internal LocateType LocateType { get; }
+        internal LocateTypeEnum LocateType { get; }
 
         /// <summary> 現在Registryへ登録されている場合はtrue。 </summary>
         internal bool IsRegistered { get; private set; }

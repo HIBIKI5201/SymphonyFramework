@@ -12,7 +12,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal ServiceLocateDto(
             string serviceTypeName,
             string instanceName,
-            LocateType locateType)
+            LocateTypeEnum locateType)
         {
             ServiceTypeName = serviceTypeName;
             InstanceName = instanceName;
@@ -26,7 +26,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal string InstanceName { get; }
 
         /// <summary> 登録時に指定された登録方式。 </summary>
-        internal LocateType LocateType { get; }
+        internal LocateTypeEnum LocateType { get; }
 
         /// <summary> 指定した更新値と同値か判定する。 </summary>
         /// <param name="other"> 比較対象。 </param>

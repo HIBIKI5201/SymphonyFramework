@@ -47,7 +47,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
         [ContextMenu("Log Normal")]
         public void LogNormal()
         {
-            SymphonyDebugLogger.LogDirect("DebuggerSampleからの通常ログです。", SymphonyDebugLogger.LogKind.Normal, this);
+            SymphonyDebugLogger.LogDirect("DebuggerSampleからの通常ログです。", SymphonyDebugLogger.LogKindEnum.Normal, this);
             AddCommentary("LogDirectでLogKind.Normalのログを出力しました。");
         }
 
@@ -55,7 +55,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
         [ContextMenu("Log Warning")]
         public void LogWarning()
         {
-            SymphonyDebugLogger.LogDirect("DebuggerSampleからの警告ログです。", SymphonyDebugLogger.LogKind.Warning, this);
+            SymphonyDebugLogger.LogDirect("DebuggerSampleからの警告ログです。", SymphonyDebugLogger.LogKindEnum.Warning, this);
             AddCommentary("LogDirectでLogKind.Warningのログを出力しました。");
         }
 
@@ -63,7 +63,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
         [ContextMenu("Log Error")]
         public void LogError()
         {
-            SymphonyDebugLogger.LogDirect("DebuggerSampleからのエラーログです。", SymphonyDebugLogger.LogKind.Error, this);
+            SymphonyDebugLogger.LogDirect("DebuggerSampleからのエラーログです。", SymphonyDebugLogger.LogKindEnum.Error, this);
             AddCommentary("LogDirectでLogKind.Errorのログを出力しました。");
         }
 
@@ -103,7 +103,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
                 return;
             }
 
-            SymphonyDebugLogger.LogText(SymphonyDebugLogger.LogKind.Normal, clearText: true, context: this);
+            SymphonyDebugLogger.LogText(SymphonyDebugLogger.LogKindEnum.Normal, clearText: true, context: this);
             AddCommentary($"LogTextで蓄積した{_pendingLogLineCount}行を1つのログとして出力し、蓄積を破棄しました。");
             _pendingLogLineCount = 0;
         }

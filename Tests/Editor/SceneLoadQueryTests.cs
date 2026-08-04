@@ -37,7 +37,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(found, Is.True);
             Assert.That(sceneInfo.SceneName, Is.EqualTo("Game"));
-            Assert.That(sceneInfo.State, Is.EqualTo(SceneLoadState.Complete));
+            Assert.That(sceneInfo.State, Is.EqualTo(SceneLoadStateEnum.Complete));
             Assert.That(sceneInfo.Priority, Is.EqualTo(7));
             Assert.That(sceneInfo.Progress, Is.EqualTo(1f));
             Assert.That(sceneInfo.IsActive, Is.True);
@@ -79,10 +79,10 @@ namespace SymphonyFrameWork.Tests
             entity.ReportProgress(0.5f);
             IReadOnlyList<SceneLoadInfo> current = query.GetInfos();
 
-            Assert.That(previous[0].State, Is.EqualTo(SceneLoadState.Complete));
+            Assert.That(previous[0].State, Is.EqualTo(SceneLoadStateEnum.Complete));
             Assert.That(previous[0].Priority, Is.EqualTo(2));
             Assert.That(previous[0].Progress, Is.EqualTo(1f));
-            Assert.That(current[0].State, Is.EqualTo(SceneLoadState.Loading));
+            Assert.That(current[0].State, Is.EqualTo(SceneLoadStateEnum.Loading));
             Assert.That(current[0].Priority, Is.EqualTo(10));
             Assert.That(current[0].Progress, Is.EqualTo(0.5f));
         }
@@ -100,7 +100,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(sceneDtos, Has.Count.EqualTo(1));
             Assert.That(sceneDtos[0].SceneName, Is.EqualTo("Game"));
-            Assert.That(sceneDtos[0].State, Is.EqualTo(SceneLoadState.Complete));
+            Assert.That(sceneDtos[0].State, Is.EqualTo(SceneLoadStateEnum.Complete));
             Assert.That(sceneDtos[0].Priority, Is.EqualTo(3));
             Assert.That(sceneDtos[0].Progress, Is.EqualTo(1f));
             Assert.That(sceneDtos[0].IsActive, Is.True);

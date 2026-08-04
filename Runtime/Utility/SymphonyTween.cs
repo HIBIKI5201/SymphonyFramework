@@ -23,7 +23,7 @@ namespace SymphonyFrameWork.Utility
         /// <param name="d">長さ</param>
         /// <param name="curve">曲線を決める（xの大きさで正規化される）</param>
         /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        public static async Task Tweening<T>(T s, Action<T> action, T e, float d,
+        public static async Awaitable Tweening<T>(T s, Action<T> action, T e, float d,
             AnimationCurve curve = null,
             CancellationToken token = default) where T : struct
         {
@@ -65,7 +65,7 @@ namespace SymphonyFrameWork.Utility
         /// <param name="d">長さ</param>
         /// <param name="curve">曲線を決める（xの大きさで正規化される）</param>
         /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        public static async Task PausableTweening<T>(T s, Action<T> action, T e, float d,
+        public static async Awaitable PausableTweening<T>(T s, Action<T> action, T e, float d,
             AnimationCurve curve = null,
             CancellationToken token = default) where T : struct
         {

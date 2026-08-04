@@ -19,7 +19,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(registry.TryGet("Game", out SceneLoadEntity entity), Is.True);
             Assert.That(entity.Priority, Is.EqualTo(3));
-            Assert.That(entity.State, Is.EqualTo(SceneLoadState.Complete));
+            Assert.That(entity.State, Is.EqualTo(SceneLoadStateEnum.Complete));
         }
 
         /// <summary> Unity側一覧との同期時に既存Entityの優先度を維持する。 </summary>

@@ -83,8 +83,8 @@ namespace SymphonyFrameWork.Orchestrator
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void GameAfterSceneLoaded()
         {
-            SceneManagerConfig config =
-                SymphonyConfigLocator.GetConfig<SceneManagerConfig>();
+            SceneLoadConfig config =
+                SymphonyConfigLocator.GetConfig<SceneLoadConfig>();
             _ = SceneLoader.AfterSceneLoad(config);
         }
 

@@ -62,7 +62,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         /// <inheritdoc />
-        public async ValueTask<bool> LoadSceneAsync(
+        public async Task<bool> LoadSceneAsync(
             string sceneName,
             IProgress<float> progress,
             CancellationToken token)
@@ -89,7 +89,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         /// <inheritdoc />
-        public async ValueTask<bool> UnloadSceneAsync(
+        public async Task<bool> UnloadSceneAsync(
             string sceneName,
             IProgress<float> progress,
             CancellationToken token)
@@ -115,7 +115,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         }
 
         /// <inheritdoc />
-        public async ValueTask InitializeRootObjectsAsync(string sceneName)
+        public async Task InitializeRootObjectsAsync(string sceneName)
         {
             if (!TryGetLoadedScene(sceneName, out Scene scene))
             {

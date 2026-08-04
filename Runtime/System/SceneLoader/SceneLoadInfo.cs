@@ -13,7 +13,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="isActive"> Active Sceneの場合はtrue。 </param>
         internal SceneLoadInfo(
             string sceneName,
-            SceneLoadState state,
+            SceneLoadStateEnum state,
             int priority,
             float progress,
             bool isActive)
@@ -29,7 +29,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         public string SceneName { get; }
 
         /// <summary> 現在のロード状態。 </summary>
-        public SceneLoadState State { get; }
+        public SceneLoadStateEnum State { get; }
 
         /// <summary> Active Scene選択に使用する優先度。 </summary>
         public int Priority { get; }

@@ -56,7 +56,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             catch (Exception ex)
             {
                 throw new SaveDataOperationException(
-                    SaveDataOperation.Exists,
+                    SaveDataOperationEnum.Exists,
                     dataType,
                     loader.GetType(),
                     ex);
@@ -109,7 +109,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             SaveDataLoaderStrategy loader = GetLoader();
 
             await ExecuteLoaderOperationAsync(
-                SaveDataOperation.Save,
+                SaveDataOperationEnum.Save,
                 dataType,
                 loader,
                 () => loader.SaveAsync(dataType, content, token));
@@ -131,13 +131,13 @@ namespace SymphonyFrameWork.System.SaveSystem
             SaveDataLoaderStrategy loader = GetLoader();
 
             await ExecuteLoaderOperationAsync(
-                SaveDataOperation.Delete,
+                SaveDataOperationEnum.Delete,
                 dataType,
                 loader,
                 () => loader.DeleteAsync(dataType, token));
 
             await ExecuteLoaderOperationAsync(
-                SaveDataOperation.Load,
+                SaveDataOperationEnum.Load,
                 dataType,
                 loader,
                 () => loader.LoadAsync(dataType, content, token));
@@ -180,7 +180,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 SaveDataLoaderStrategy loader = GetLoader();
                 await ExecuteLoaderOperationAsync(
-                    SaveDataOperation.Load,
+                    SaveDataOperationEnum.Load,
                     dataType,
                     loader,
                     () => loader.LoadAsync(dataType, content, token));
@@ -215,12 +215,12 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <param name="dataType"> 操作対象のセーブデータ型。 </param>
         /// <param name="loader"> 操作に使用するローダー。 </param>
         /// <param name="execute"> 実行するローダー処理。 </param>
-        /// <returns> 操作の完了を表すValueTask。 </returns>
-        private static async ValueTask ExecuteLoaderOperationAsync(
-            SaveDataOperation operation,
+        /// <returns> 操作の完了を表すTask。 </returns>
+        private static async Task ExecuteLoaderOperationAsync(
+            SaveDataOperationEnum operation,
             Type dataType,
             SaveDataLoaderStrategy loader,
-            Func<ValueTask> execute)
+            Func<Task> execute)
         {
             try
             {

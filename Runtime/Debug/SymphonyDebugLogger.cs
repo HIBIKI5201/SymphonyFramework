@@ -12,7 +12,7 @@ namespace SymphonyFrameWork.Debugger.Logger
     public static class SymphonyDebugLogger
     {
         /// <summary> 出力するログの重要度を表す。 </summary>
-        public enum LogKind
+        public enum LogKindEnum
         {
             /// <summary> 通常ログとして出力する。 </summary>
             Normal,
@@ -32,14 +32,14 @@ namespace SymphonyFrameWork.Debugger.Logger
         /// <param name="context"> Consoleから追跡可能にするUnityオブジェクト。 </param>
         [HideInCallstack]
         public static void LogDirect(string text,
-            LogKind kind = LogKind.Normal,
+            LogKindEnum kind = LogKindEnum.Normal,
             UnityEngine.Object context = null)
         {
             switch (kind) 
             {
-                case LogKind.Normal: Debug.Log(text, context); break;
-                case LogKind.Warning: Debug.LogWarning(text, context); break;
-                case LogKind.Error: Debug.LogError(text, context); break;
+                case LogKindEnum.Normal: Debug.Log(text, context); break;
+                case LogKindEnum.Warning: Debug.LogWarning(text, context); break;
+                case LogKindEnum.Error: Debug.LogError(text, context); break;
             }
 
             OnLogDirect?.Invoke(text, kind);
@@ -49,7 +49,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         ///     LogDirectで出力されたログを外部へ通知する内部イベント。
         ///     ファイル出力など、Runtime層が関知すべきでない後続処理はEditor側の購読者に委ねる。
         /// </summary>
-        internal static event Action<string, LogKind> OnLogDirect;
+        internal static event Action<string, LogKindEnum> OnLogDirect;
 
         /// <summary>
         ///     直接出力されるデバッグログ。
@@ -59,7 +59,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         /// <param name="kind"> 出力するログの重要度。 </param>
         [Conditional("UNITY_EDITOR")]
         [HideInCallstack]
-        public static void LogDirectForEditor(string text, LogKind kind = LogKind.Normal)
+        public static void LogDirectForEditor(string text, LogKindEnum kind = LogKindEnum.Normal)
         {
 #if UNITY_EDITOR
             LogDirect(text, kind);
@@ -74,7 +74,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         /// <param name="clearText"> 出力後に蓄積文字列を消去する場合はtrue。 </param>
         /// <param name="context"> Consoleから追跡可能にするUnityオブジェクト。 </param>
         [HideInCallstack]
-        public static void LogText(LogKind kind = LogKind.Normal,
+        public static void LogText(LogKindEnum kind = LogKindEnum.Normal,
             string text = null,
             bool clearText = true,
             UnityEngine.Object context = null)
@@ -102,7 +102,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         /// <param name="context"> Consoleから追跡可能にするUnityオブジェクト。 </param>
         [Conditional("UNITY_EDITOR")]
         [HideInCallstack]
-        public static void LogTextForEditor(LogKind kind = LogKind.Normal,
+        public static void LogTextForEditor(LogKindEnum kind = LogKindEnum.Normal,
             string text = null,
             bool clearText = true,
             UnityEngine.Object context = null)
@@ -199,7 +199,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         /// <param name="kind"> 出力するログの重要度。 </param>
         [Obsolete("この機能は旧型式です。" + nameof(LogDirect) + "を使用してください)")]
         [Conditional("UNITY_EDITOR")]
-        public static void DirectLog(string text, LogKind kind = LogKind.Normal)
+        public static void DirectLog(string text, LogKindEnum kind = LogKindEnum.Normal)
         {
 #if UNITY_EDITOR
             LogDirect(text, kind);
@@ -212,7 +212,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         [Obsolete("この機能は旧型式です。" + nameof(LogText) + "を使用してください)")]
         [Conditional("UNITY_EDITOR")]
         [HideInCallstack]
-        public static void TextLog(LogKind kind = LogKind.Normal, bool clearText = true)
+        public static void TextLog(LogKindEnum kind = LogKindEnum.Normal, bool clearText = true)
         {
 #if UNITY_EDITOR
             LogText(kind, clearText: clearText);

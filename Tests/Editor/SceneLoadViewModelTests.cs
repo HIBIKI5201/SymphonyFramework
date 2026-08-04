@@ -144,7 +144,7 @@ namespace SymphonyFrameWork.Tests
             }
 
             /// <inheritdoc />
-            public ValueTask<bool> LoadSceneAsync(
+            public Task<bool> LoadSceneAsync(
                 string sceneName,
                 IProgress<float> progress,
                 CancellationToken token)
@@ -152,11 +152,11 @@ namespace SymphonyFrameWork.Tests
                 token.ThrowIfCancellationRequested();
                 _loadedSceneNames.Add(sceneName);
                 progress?.Report(1f);
-                return new ValueTask<bool>(true);
+                return Task.FromResult(true);
             }
 
             /// <inheritdoc />
-            public ValueTask<bool> UnloadSceneAsync(
+            public Task<bool> UnloadSceneAsync(
                 string sceneName,
                 IProgress<float> progress,
                 CancellationToken token)
@@ -164,13 +164,13 @@ namespace SymphonyFrameWork.Tests
                 token.ThrowIfCancellationRequested();
                 bool removed = _loadedSceneNames.Remove(sceneName);
                 progress?.Report(1f);
-                return new ValueTask<bool>(removed);
+                return Task.FromResult(removed);
             }
 
             /// <inheritdoc />
-            public ValueTask InitializeRootObjectsAsync(string sceneName)
+            public Task InitializeRootObjectsAsync(string sceneName)
             {
-                return default;
+                return Task.CompletedTask;
             }
         }
     }

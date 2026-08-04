@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Exceptions;
+using SymphonyFrameWork.Utility;
 
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace SymphonyFrameWork.System.SceneLoad
@@ -41,7 +43,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="sceneName"> 状態を取得するシーン名。 </param>
         /// <param name="state"> 取得できたシーン状態。 </param>
         /// <returns> 状態を取得できた場合はtrue。 </returns>
-        public static bool TryGetState(string sceneName, out SceneLoadState state)
+        public static bool TryGetState(string sceneName, out SceneLoadStateEnum state)
         {
             EnsureInitialized();
 
@@ -51,7 +53,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 return true;
             }
 
-            state = SceneLoadState.None;
+            state = SceneLoadStateEnum.None;
             return false;
         }
 
@@ -109,7 +111,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns> ロードに成功した場合はtrue。 </returns>
         /// <exception cref="ArgumentException"> リクエストのシーン名がnull、空、空白の場合。 </exception>
         /// <exception cref="SceneInitializationException"> ロード後の依存注入または非同期初期化に失敗した場合。 </exception>
-        public static ValueTask<bool> LoadScene(
+        public static Awaitable<bool> LoadSceneAsync(
             SceneLoadRequest request,
             IProgress<float> progress = null,
             LoadSceneMode mode = LoadSceneMode.Additive,
@@ -118,11 +120,12 @@ namespace SymphonyFrameWork.System.SceneLoad
             EnsureInitialized();
             ValidateRequest(request, nameof(request));
 
-            return _service.LoadScene(
-                request,
-                progress,
-                mode,
-                token);
+            return SymphonyAwaitable.FromTask(
+                _service.LoadScene(
+                    request,
+                    progress,
+                    mode,
+                    token));
         }
 
         /// <summary> シーンをロードする。 </summary>
@@ -134,7 +137,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns> ロードに成功した場合はtrue。 </returns>
         /// <exception cref="ArgumentException"> シーン名がnull、空、空白の場合。 </exception>
         /// <exception cref="SceneInitializationException"> ロード後の依存注入または非同期初期化に失敗した場合。 </exception>
-        public static ValueTask<bool> LoadScene(
+        public static Awaitable<bool> LoadSceneAsync(
             string sceneName,
             Action<float> loadingAction = null,
             LoadSceneMode mode = LoadSceneMode.Additive,
@@ -144,11 +147,12 @@ namespace SymphonyFrameWork.System.SceneLoad
             EnsureInitialized();
 
             var request = new SceneLoadRequest(sceneName, priority);
-            return _service.LoadScene(
-                request,
-                WrapProgress(loadingAction),
-                mode,
-                token);
+            return SymphonyAwaitable.FromTask(
+                _service.LoadScene(
+                    request,
+                    WrapProgress(loadingAction),
+                    mode,
+                    token));
         }
 
         /// <summary> 複数のScene Load Requestをロードする。 </summary>
@@ -159,14 +163,15 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <exception cref="ArgumentNullException"> リクエスト一覧がnullの場合。 </exception>
         /// <exception cref="ArgumentException"> リクエスト一覧が空、または無効なシーン名を含む場合。 </exception>
         /// <exception cref="SceneInitializationException"> ロード後の依存注入または非同期初期化に失敗した場合。 </exception>
-        public static ValueTask<bool> LoadScenes(
+        public static Awaitable<bool> LoadScenesAsync(
             SceneLoadRequest[] requests,
             IProgress<float> progress = null,
             CancellationToken token = default)
         {
             EnsureInitialized();
             ValidateRequests(requests);
-            return _service.LoadScenes(requests, progress, token);
+            return SymphonyAwaitable.FromTask(
+                _service.LoadScenes(requests, progress, token));
         }
 
         /// <summary> 複数のシーンをロードする。 </summary>
@@ -177,7 +182,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <exception cref="ArgumentNullException"> シーン名一覧がnullの場合。 </exception>
         /// <exception cref="ArgumentException"> シーン名一覧が空、または無効なシーン名を含む場合。 </exception>
         /// <exception cref="SceneInitializationException"> ロード後の依存注入または非同期初期化に失敗した場合。 </exception>
-        public static ValueTask<bool> LoadScenes(
+        public static Awaitable<bool> LoadScenesAsync(
             string[] sceneNames,
             Action<float> loadingAction = null,
             CancellationToken token = default)
@@ -191,10 +196,11 @@ namespace SymphonyFrameWork.System.SceneLoad
                 requests[i] = new SceneLoadRequest(sceneNames[i]);
             }
 
-            return _service.LoadScenes(
-                requests,
-                WrapProgress(loadingAction),
-                token);
+            return SymphonyAwaitable.FromTask(
+                _service.LoadScenes(
+                    requests,
+                    WrapProgress(loadingAction),
+                    token));
         }
 
         /// <summary> シーンをアンロードする。 </summary>
@@ -203,7 +209,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
         /// <returns> アンロードに成功した場合はtrue。 </returns>
         /// <exception cref="ArgumentException"> シーン名がnull、空、空白の場合。 </exception>
-        public static ValueTask<bool> UnloadScene(
+        public static Awaitable<bool> UnloadSceneAsync(
             string sceneName,
             Action<float> loadingAction = null,
             CancellationToken token = default)
@@ -215,10 +221,11 @@ namespace SymphonyFrameWork.System.SceneLoad
                 throw new ArgumentException("シーン名を指定してください。", nameof(sceneName));
             }
 
-            return _service.UnloadScene(
-                sceneName,
-                WrapProgress(loadingAction),
-                token);
+            return SymphonyAwaitable.FromTask(
+                _service.UnloadScene(
+                    sceneName,
+                    WrapProgress(loadingAction),
+                    token));
         }
 
         /// <summary> 複数のシーンをアンロードする。 </summary>
@@ -228,7 +235,7 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <returns> すべてアンロードできた場合はtrue。 </returns>
         /// <exception cref="ArgumentNullException"> シーン名一覧がnullの場合。 </exception>
         /// <exception cref="ArgumentException"> シーン名一覧が空、または無効なシーン名を含む場合。 </exception>
-        public static ValueTask<bool> UnloadScenes(
+        public static Awaitable<bool> UnloadScenesAsync(
             string[] sceneNames,
             Action<float> loadingAction = null,
             CancellationToken token = default)
@@ -236,10 +243,11 @@ namespace SymphonyFrameWork.System.SceneLoad
             EnsureInitialized();
             ValidateSceneNames(sceneNames);
 
-            return _service.UnloadScenes(
-                sceneNames,
-                WrapProgress(loadingAction),
-                token);
+            return SymphonyAwaitable.FromTask(
+                _service.UnloadScenes(
+                    sceneNames,
+                    WrapProgress(loadingAction),
+                    token));
         }
 
         /// <summary> シーンのロード完了後に一度実行するcallbackを登録する。 </summary>
@@ -265,8 +273,8 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> 指定したシーンがロードされるまで待機する。 </summary>
         /// <param name="sceneName"> ロード完了を待機するシーン名。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        /// <returns> 待機処理を表すValueTask。 </returns>
-        public static ValueTask WaitForLoadSceneAsync(
+        /// <returns> 待機処理を表すAwaitable。 </returns>
+        public static Awaitable WaitForLoadSceneAsync(
             string sceneName,
             CancellationToken token = default)
         {
@@ -277,7 +285,8 @@ namespace SymphonyFrameWork.System.SceneLoad
                 throw new ArgumentException("シーン名を指定してください。", nameof(sceneName));
             }
 
-            return _service.WaitForLoadSceneAsync(sceneName, token);
+            return SymphonyAwaitable.FromTask(
+                _service.WaitForLoadSceneAsync(sceneName, token));
         }
 
         /// <summary> Scene Loaderが初期化済みかどうか。 </summary>
@@ -313,8 +322,8 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         /// <summary> 初期Sceneロード後に起動時設定を適用する。 </summary>
         /// <param name="config"> 起動時のScene整理とロード設定。 </param>
-        /// <returns> 起動時処理を表すValueTask。 </returns>
-        internal static ValueTask AfterSceneLoad(SceneManagerConfig config)
+        /// <returns> 起動時処理を表すTask。 </returns>
+        internal static Task AfterSceneLoad(SceneLoadConfig config)
         {
             EnsureInitialized();
 
