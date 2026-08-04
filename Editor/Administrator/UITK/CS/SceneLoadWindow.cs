@@ -13,11 +13,11 @@ namespace SymphonyFrameWork.Editor
 {
     /// <summary> SceneLoaderが追跡するシーン状態を一覧表示する管理パネル。 </summary>
     [UxmlElement]
-    public sealed partial class SceneLoaderWindow : SymphonyVisualElement, IDisposable
+    public sealed partial class SceneLoadWindow : SymphonyVisualElement, IDisposable
     {
         /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
-        public SceneLoaderWindow() : base(
-            SymphonyAdministrator.UITK_UXML_PATH + "SceneLoaderWindow.uxml",
+        public SceneLoadWindow() : base(
+            SymphonyAdministrator.UITK_UXML_PATH + "SceneLoadWindow.uxml",
             InitializeTypeEnum.None,
             LoadTypeEnum.AssetDataBase)
         { }

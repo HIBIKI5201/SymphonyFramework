@@ -87,7 +87,7 @@
   | `SymphonyTask` | `SymphonyAwaitable` |
   | `ISaveDataLoader<T>`、`JsonUtilityDataLoader<T>`、`NugetDataLoader<T>`（`Runtime/Obsolete/`） | `SaveDataLoaderStrategy` |
 
-- **Editorの管理パネル2件を改名しました。** `SaveDataRegistryWindow` → `SaveDataWindow`、`ServiceLocatorWindow` → `ServiceLocateWindow`。UXMLも同名へ改名しています。サブシステム名へ揃える規則です。
+- **Editorの管理パネル3件を改名しました。** `SaveDataRegistryWindow` → `SaveDataWindow`、`ServiceLocatorWindow` → `ServiceLocateWindow`、`SceneLoaderWindow` → `SceneLoadWindow`。UXMLも同名へ改名しています。サブシステム名へ揃える規則です。
 
 - 内部型 `SaveSystem` を `SaveDataInitializer` へ、`SymphonyOrchestratorObject` を `SymphonyLifetimeComponent` へ改名しました。いずれも `internal` のため利用側への影響はありません。名前空間 `SymphonyFrameWork.System.SaveSystem` は変更していません。
 

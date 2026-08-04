@@ -180,10 +180,10 @@ flowchart LR
     Query --> Registry
     Query --> Info["SceneLoadInfo"]
     Service -->|状態変更event| ViewModel["SceneLoadViewModel"]
-    ViewModel -->|ReactiveProperty| Window["SceneLoaderWindow"]
+    ViewModel -->|ReactiveProperty| Window["SceneLoadWindow"]
 ```
 
-`SceneLoadQuery`だけがRegistry／Entityを読み取り、利用側には`SceneLoadInfo`、Viewには内部Dtoを返します。`SceneLoaderWindow`はViewModelを購読し、RuntimeのRegistryやEntityを直接参照しません。
+`SceneLoadQuery`だけがRegistry／Entityを読み取り、利用側には`SceneLoadInfo`、Viewには内部Dtoを返します。`SceneLoadWindow`はViewModelを購読し、RuntimeのRegistryやEntityを直接参照しません。
 
 Service LocateのRuntime内部では、登録Command、読み取り変換、表示状態、Unity所有処理を分離しています。
 

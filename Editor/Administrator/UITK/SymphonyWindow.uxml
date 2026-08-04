@@ -3,7 +3,7 @@
     <engine:ScrollView>
         <SymphonyFrameWork.Editor.PauseWindow/>
         <SymphonyFrameWork.Editor.ServiceLocateWindow/>
-        <SymphonyFrameWork.Editor.SceneLoaderWindow/>
+        <SymphonyFrameWork.Editor.SceneLoadWindow/>
         <SymphonyFrameWork.Editor.SaveDataWindow/>
         <SymphonyFrameWork.Editor.AutoEnumGeneratorWindow/>
     </engine:ScrollView>
