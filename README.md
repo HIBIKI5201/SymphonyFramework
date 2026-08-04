@@ -295,6 +295,8 @@ Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズ�
 
 ## Editor・デバッグ支援
 
+各機能の入口、設定の保存先、注意点は[Editor機能](./Documentation~/EditorTools.md)にあります。
+
 - `Symphony Administrator`: Service Locator、Scene Loader、Save Data、Pauseの状態確認
 - `SymphonyDebugHUD`: FPS、メモリ使用量、任意テキストのGame View表示
 - `SymphonyDebugLogger`: 複数行ログとEditorでの`Cache/Log.txt`出力
@@ -320,6 +322,8 @@ Package Managerから[`Samples/Runtime`](./Samples/Runtime)の各サンプルを
 
 - [変更履歴](./CHANGELOG.md)
 - [パッケージ構成・クラス図](./Documentation~/Architecture.md)
+- [Editor機能](./Documentation~/EditorTools.md)
+- [非推奨APIと削除予定](./Documentation~/Deprecations.md)
 - [AGENTS.md（AIエージェント向けの導線と常時ルール）](./AGENTS.md)
   - [利用コードを書くときの注意事項](./Documentation~/AgentUsage.md)
   - [利用コードの検証手順](./Documentation~/AgentVerification.md)
