@@ -141,6 +141,10 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 
 **入口**: `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder`
 
+ウィンドウは **Export** と **Import** の2タブです。Export で `.unitypackage` を出力し、Import で別プロジェクトの出力物のうち更新されたものだけを取り込みます。
+
+### Export タブ
+
 **操作**:
 
 1. 出力するフォルダをチェックボックスで選ぶ。`PackagerConfig.json` の `Ignored Directories` に入っているフォルダは `(Ignored)` と表示され、選択できません
@@ -157,6 +161,33 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 4. `Export` で実行、`Cancel` で中止
 
 **出力先**: `<Exported Packages Path>/Export_AssetStoreToolsPackage_<日時>/`
+
+### Import タブ
+
+出力済みパッケージのうち、**このプロジェクトで更新されたものだけ**を取り込みます。
+
+**操作**:
+
+1. `Exported Packages` で取り込み元の出力済みフォルダを選ぶ（新しい順に並びます）
+2. 一覧に各パッケージの状態とリビジョンの変化が出ます
+
+   | 状態 | 意味 | 既定の選択 |
+   | --- | --- | --- |
+   | `New` | このプロジェクトへまだ導入されていない | 選択する |
+   | `Updated` | 導入済みだが、出力側の方が新しい | 選択する |
+   | `UpToDate` | リビジョンが一致している | 選択しない |
+   | `Newer` | ローカルの方が新しい | **選択しない** |
+
+3. `Select Updated` で `New` と `Updated` だけを選び直せます。`Deselect All` で全解除します
+4. `Import Selected Packages` で選択したものを順に取り込みます
+
+**判定のしかた**: 出力先フォルダの `PackageManifest.json` にあるリビジョンと、ローカルの `<Asset Store Tools Path>/<ディレクトリ>/ExportedVersion.json` のリビジョンを突き合わせます。ローカルにファイルが無ければ未導入（`New`）です。
+
+**注意点**:
+
+- **`Newer` は既定で選択しません。** ローカルの方が新しいものを取り込むと、意図しない巻き戻しになるためです。必要な場合は手で選んでください。
+- `PackageManifest.json` が無い出力済みフォルダは取り込めません。統合パッケージ（`Combine`）だけで出力した場合がこれにあたります。
+- 取り込むと、パッケージ同梱の `ExportedVersion.json` が更新され、次回の比較へ反映されます。
 
 ### バージョンログ
 

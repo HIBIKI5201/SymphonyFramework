@@ -128,6 +128,106 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
+        ///     パッケージ対象ディレクトリの出力時バージョンを読み込む。
+        /// </summary>
+        /// <remarks>
+        ///     インポート先では、このファイルが「今そこに入っているパッケージのリビジョン」を表す。
+        ///     ファイルが無い場合は、そのパッケージが未導入であることを意味する。
+        /// </remarks>
+        /// <param name="directoryPath"> 読み込み元のディレクトリパス。 </param>
+        /// <param name="version"> 読み込んだリビジョン。読み込めない場合は0。 </param>
+        /// <returns> ファイルが存在し読み込めた場合はtrue。 </returns>
+        internal static bool TryReadExportedVersion(string directoryPath, out int version)
+        {
+            version = 0;
+
+            if (string.IsNullOrEmpty(directoryPath))
+            {
+                return false;
+            }
+
+            string path = CombinePath(
+                directoryPath,
+                EditorSymphonyConstant.ASSET_STORE_TOOLS_EXPORTED_VERSION_FILE_NAME);
+
+            if (!File.Exists(path))
+            {
+                return false;
+            }
+
+            try
+            {
+                var exportedVersion =
+                    JsonConvert.DeserializeObject<AssetStoreToolsExportedVersion>(
+                        File.ReadAllText(path));
+
+                if (exportedVersion == null)
+                {
+                    Debug.LogError($"{LOG_PREFIX}\n出力時バージョンの内容が空です: {path}");
+                    return false;
+                }
+
+                version = exportedVersion.Version;
+                return true;
+            }
+            catch (JsonException e)
+            {
+                Debug.LogError($"{LOG_PREFIX}\n出力時バージョンの解析に失敗しました: {path}\n{e.Message}");
+                return false;
+            }
+            catch (IOException e)
+            {
+                Debug.LogError($"{LOG_PREFIX}\n出力時バージョンの読み込みに失敗しました: {path}\n{e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     出力先フォルダのマニフェストを読み込む。
+        /// </summary>
+        /// <param name="exportDirectoryPath"> 読み込み元の出力先フォルダ。 </param>
+        /// <returns> 読み込んだマニフェスト。読み込めない場合はnull。 </returns>
+        internal static AssetStoreToolsPackageManifest LoadManifest(string exportDirectoryPath)
+        {
+            if (string.IsNullOrEmpty(exportDirectoryPath))
+            {
+                return null;
+            }
+
+            string path = Path.Combine(
+                exportDirectoryPath,
+                EditorSymphonyConstant.ASSET_STORE_TOOLS_MANIFEST_FILE_NAME);
+
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            try
+            {
+                var manifest = JsonConvert.DeserializeObject<AssetStoreToolsPackageManifest>(
+                    File.ReadAllText(path));
+
+                if (manifest == null)
+                {
+                    Debug.LogError($"{LOG_PREFIX}\nマニフェストの内容が空です: {path}");
+                }
+
+                return manifest;
+            }
+            catch (JsonException e)
+            {
+                Debug.LogError($"{LOG_PREFIX}\nマニフェストの解析に失敗しました: {path}\n{e.Message}");
+                return null;
+            }
+            catch (IOException e)
+            {
+                Debug.LogError($"{LOG_PREFIX}\nマニフェストの読み込みに失敗しました: {path}\n{e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
         ///     出力先フォルダへパッケージ一覧のマニフェストを書き出す。
         /// </summary>
         /// <param name="exportFullPath"> 出力先フォルダの絶対パス。 </param>
