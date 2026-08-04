@@ -63,7 +63,7 @@ sequenceDiagram
     Orchestrator->>Systems: Save → Pause → Service → Scene → Audio → HUDを初期化
     Unity->>Scene: 最初のシーンをロード
     Unity->>Orchestrator: AfterSceneLoad
-    Orchestrator->>Systems: SceneManagerConfigを渡してシーン管理開始
+    Orchestrator->>Systems: SceneLoadConfigを渡してシーン管理開始
     Note over Orchestrator,Systems: 終了時は初期化と逆順にResetRuntimeState
 ```
 
@@ -86,7 +86,7 @@ classDiagram
         <<readonly struct>>
         ServiceType
         Instance
-        LocateType
+        LocateTypeEnum
     }
     class ServiceInjector {
         <<static>>
@@ -197,14 +197,14 @@ flowchart LR
     Query --> Info["ServiceRegistrationInfo"]
     Query --> Dto["ServiceLocateDto"]
     Service -->|状態変更event| ViewModel["ServiceLocateViewModel"]
-    ViewModel -->|ReactiveProperty| Window["ServiceLocatorWindow"]
+    ViewModel -->|ReactiveProperty| Window["ServiceLocateWindow"]
     Service --> HostContract["IServiceHost"]
     Host["ServiceHostComponent"] --> HostContract
     Host --> Unity["Component / Transform / Destroy"]
     Orchestrator["SymphonyOrchestrator"] -->|生成・注入| Host
 ```
 
-`ServiceLocateQuery`だけがRegistry／Entityを読み取り、利用側には`ServiceRegistrationInfo`、Viewには内部Dtoを返します。`ServiceLocatorWindow`はViewModelを購読し、登録状態が変わったときだけ再描画します。
+`ServiceLocateQuery`だけがRegistry／Entityを読み取り、利用側には`ServiceRegistrationInfo`、Viewには内部Dtoを返します。`ServiceLocateWindow`はViewModelを購読し、登録状態が変わったときだけ再描画します。
 
 通常登録が型重複で失敗しても候補payloadを解放しません。`RegisterInstanceWithAutoDispose`を選んだ場合だけ、失敗した候補を`ServiceHostComponent`が`IDisposable`またはComponentとして解放します。RegistryとEntityはUnity APIを参照しません。
 
@@ -217,14 +217,14 @@ flowchart LR
     Registry --> Entity["SaveDataEntryEntity"]
     Facade -->|Query| Query["SaveDataQuery"]
     Query --> Registry
-    Query --> Info["SaveDataRegistryEntryInfo"]
+    Query --> Info["SaveDataEntryInfo"]
     Query --> Dto["SaveDataDto"]
     Service --> Loader["SaveDataLoaderStrategy"]
     Service -->|状態変更event| ViewModel["SaveDataViewModel"]
-    ViewModel -->|ReactiveProperty| Window["SaveDataRegistryWindow"]
+    ViewModel -->|ReactiveProperty| Window["SaveDataWindow"]
 ```
 
-`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataRegistryEntryInfo`、Viewには内部Dtoを返します。`SaveDataRegistryWindow`はViewModelを購読し、状態が変わったときだけ再描画します。
+`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataEntryInfo`、Viewには内部Dtoを返します。`SaveDataWindow`はViewModelを購読し、状態が変わったときだけ再描画します。
 
 永続化データが存在するかどうか（`Exists`）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。
 
@@ -256,7 +256,7 @@ flowchart LR
     Service --> HostContract["IAudioSourceHost"]
     Host["AudioSourceHost"] --> HostContract
     Host --> Factory["ISystemObjectFactory"]
-    Service --> Config["AudioManagerConfig / AudioMixer"]
+    Service --> Config["AudioConfig / AudioMixer"]
 ```
 
 `AudioSourceHost`は**最初にAudioSourceを求められた時点で初めてGameObjectを生成します。** AudioMixerが未割り当てなどでAudioSourceを1つも作らない場合、GameObjectも作られません。

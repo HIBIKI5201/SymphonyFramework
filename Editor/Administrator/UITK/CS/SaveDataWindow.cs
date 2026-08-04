@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> SaveDataRegistryのキャッシュ確認、編集、保存操作を提供する管理パネル。 </summary>
+    /// <summary> Save Storeのキャッシュ確認、編集、保存操作を提供する管理パネル。 </summary>
     [UxmlElement]
     public sealed partial class SaveDataWindow : SymphonyVisualElement, IDisposable
     {

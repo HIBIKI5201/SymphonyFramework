@@ -23,7 +23,7 @@
 Debug.Log(typeof(ServiceLocator).FullName);
 Debug.Log(typeof(SceneLoader).FullName);
 Debug.Log(typeof(AudioManager).FullName);
-Debug.Log(typeof(SaveDataRegistry).FullName);
+Debug.Log(typeof(SaveStore).FullName);
 ```
 
 型を解決できない場合は、まずasmdef参照と`using`を確認してください。各namespaceは[AgentUsage.md](./AgentUsage.md#apiの参照先)にあります。
@@ -33,9 +33,9 @@ Debug.Log(typeof(SaveDataRegistry).FullName);
 コンパイルまたはPlay Mode開始後、利用する機能に必要なファイルが生成されているか確認します。
 
 ```text
-Assets/Resources/SymphonyFrameWork/SceneManagerConfig.asset
-Assets/Resources/SymphonyFrameWork/AudioManagerConfig.asset
-Assets/Resources/SymphonyFrameWork/SaveSystemConfig.asset
+Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset
+Assets/Resources/SymphonyFrameWork/AudioConfig.asset
+Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset
 Assets/Scripts/SymphonyFrameWork/SceneListEnum.cs
 Assets/Scripts/SymphonyFrameWork/TagsEnum.cs
 Assets/Scripts/SymphonyFrameWork/LayersEnum.cs
