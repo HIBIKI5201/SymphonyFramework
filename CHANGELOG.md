@@ -1,5 +1,38 @@
 # Changelog
 
+## [3.1.0] - 2026-08-04
+Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依存関係だけでは拾えないアセットの取りこぼしを修正しました。**Runtime の公開APIとセーブデータ形式は変更していません。** 変更は Editor 専用ツールに閉じています。
+
+### Fix
+
+- **「Used Dependencies」出力で `.asmdef` / `.asmref` とネイティブプラグインが落ちる問題を修正しました。** 強制的に含めるファイルが `.cs` のハードコード1種類しかなく、`AssetDatabase.GetDependencies` の依存関係グラフに載らないファイルが両方の条件から外れていました。出力したパッケージを導入した先で、asmdef 参照が解決できずコンパイルエラーになります。
+
+  拡張子のホワイトリストを設定項目にし、既定値へ `.asmdef` / `.asmref` とプラグインバイナリを含めました。既存の `.cs` 強制追加もこのホワイトリストへ統合しています。
+
+- **アセットの収集を `Directory.GetFiles` から `AssetDatabase.FindAssets` へ変更しました。** `.bundle` / `.framework` のようなフォルダ形式のネイティブプラグインは Unity が単一アセットとして扱うため、ファイル列挙では中身のファイルしか拾えず、`ExportPackage` へ渡しても出力されませんでした。あわせて、Unity がインポートしないファイルは収集対象から外れます（元々出力できなかったものです）。
+
+- **除外設定ファイルが `Asset Store Tools Path` の変更に追従しない問題を修正しました。** 除外設定のパスだけが既定パスの定数から組まれており、Project Settings でパスを変更すると除外設定が読まれなくなっていました。
+
+- 除外フォルダ名の比較で大文字小文字を区別しないようにしました。Windows のファイルシステムと判定が食い違うためです。
+
+### Change
+
+- **パッケージ化の設定を対象フォルダ直下の `PackagerConfig.json` へ集約しました。** 除外フォルダ名（旧 `ignore.txt`）と、新しく追加した強制包含拡張子の両方を1つのJSONで管理します。`Assets/` 配下にあるため、利用側のリポジトリで版管理し、手で編集できます。
+
+  設定の分担は「どこにあるか」（`Asset Store Tools Path`、`Exported Packages Path`）が Project Settings、「何を詰めるか」（除外フォルダ、強制包含拡張子）が `PackagerConfig.json` です。
+
+  **移行方法**: 作業は不要です。`PackagerConfig.json` が無く `ignore.txt` がある場合、初回の読み込みで内容を自動的に引き継ぎ、ログで通知します。`ignore.txt` は自動削除しないため、内容を確認してから削除してください。
+
+- **設定ファイルが壊れている場合、既定値へフォールバックせずパッケージ化を中止します。** 除外設定が無視されて意図しないフォルダが出力されるより、止めて気づける方が安全なためです。エラーログにファイルパスと解析失敗の位置が出ます。
+
+- Project Settings の Asset Store Tools Packager から、除外フォルダと強制包含拡張子を編集できるようにしました。編集内容は `Save` ボタンでファイルへ書き込みます。
+
+### Deprecated
+
+- **`EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE` を非推奨にしました。** `ignore.txt` は読み込まれなくなったためです。
+
+  **移行方法**: 設定ファイルの名前が必要な場合は `EditorSymphonyConstant.ASSET_STORE_TOOLS_CONFIG_FILE_NAME` を使ってください。パスは `Asset Store Tools Path` の設定値と連結して組み立てます。次のメジャー更新で、旧定数と `ignore.txt` からの移行処理をあわせて削除します。
+
 ## [3.0.0] - 2026-08-04
 **3.0.0 の確定版です。** `3.0.0-preview.1`〜`preview.3` で積み上げた Awaitable 移行（Phase 5）を Scene Load、Service Locate、Debug HUD、Component、Editor UI、Loader Strategy まで広げ、移行期間を終えた旧シムの削除と改名（Phase 6）を行いました。preview 版から更新する場合は、本項の Breaking をすべて確認してください。
 
