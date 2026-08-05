@@ -17,6 +17,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [Save System設定](#save-system設定) | `Project Settings > SymphonyFrameWork > Save System` |
 | [Asset Store Tools Packager設定](#asset-store-tools-packager設定) | `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` |
 | [Asset Store Tools Packager](#asset-store-tools-packager) | `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder` |
+| [出力手順のパイプライン](#出力手順のパイプライン) | `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline` |
 | [AutoEnumGenerator](#autoenumgenerator) | 自動実行。手動生成はSymphony Administratorから |
 | [FolderGenerator](#foldergenerator) | `Tools > SymphonyFrameWork > FolderGenerator` |
 | [AssemblyGenerator](#assemblygenerator) | メニューなし。他のEditor機能から呼ばれる |
@@ -161,6 +162,49 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 4. `Export` で実行、`Cancel` で中止
 
 **出力先**: `<Exported Packages Path>/Export_AssetStoreToolsPackage_<日時>/`
+
+### 出力手順のパイプライン
+
+3.6.0 から、出力手順を順序付きの Strategy 列として組み替えられます。
+
+**入口**: `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline`
+
+作成したアセットの `Steps` へ、サブクラスセレクターで手順を並べます。
+
+| 手順 | 段階 | 役割 |
+| --- | --- | --- |
+| `AssetStoreToolsUsedDependenciesStrategy` | `Plan` | 使用中アセットと強制包含拡張子だけへ絞る |
+| `AssetStoreToolsSinglePackageStrategy` | `Execute` | ディレクトリごとに出力し、`PackageManifest.json` を書く |
+| `AssetStoreToolsCombinePackageStrategy` | `Execute` | 全ディレクトリを1つへまとめる |
+| `AssetStoreToolsCreateZipStrategy` | `Execute` | 出力フォルダをZIP化する |
+
+**実行順**: パイプライン全体で「全手順の `Plan`」→「全手順の `Execute`」の順に走り、各段階の中では並び順どおりに実行されます。**絞り込みは並びのどこにあっても出力より先に走ります。**
+
+**注意点**:
+
+- **`Execute` 段階の順序は利用者の責任です。** `AssetStoreToolsCreateZipStrategy` を出力より前へ置くと、空のフォルダを圧縮します。フレームワークは並べ替えません。確認ウィンドウが並び順をそのまま表示します。
+- **`AssetStoreToolsCombinePackageStrategy` は差分インポートの対象になりません。** ディレクトリ単位で取り出せないためです。この手順だけのパイプラインでは `PackageManifest.json` が作られず、実行時に警告が出ます。
+- **1つの手順が例外を投げても、記録して次の手順へ進みます。** 自作手順の失敗でフレームワーク側の出力まで止めないためです。
+- **3.6.0 時点では、Export タブの操作は上の固定オプションのままです。** ウィンドウからパイプラインを選べるようになるのは 3.7.0 の予定です。コードから使う場合は `AssetStoreToolsPackager.Export(string[], AssetStoreToolsPackagePipeline)` を呼びます。
+
+**自作の手順を追加する**: `AssetStoreToolsPackageStepStrategy` を継承し、`[Serializable]` を付けます。置き場は `SymphonyFrameWork.Editor` を参照する Editor 用 asmdef です。
+
+```csharp
+[Serializable]
+public sealed class NotifyStrategy : AssetStoreToolsPackageStepStrategy
+{
+    public override string DisplayName => "Notify";
+
+    // 別アセンブリからのオーバーライドは protected で宣言する。
+    // protected internal のままではコンパイルエラー（CS0507）になる。
+    protected override void Execute(AssetStoreToolsPackageExportContext context)
+    {
+        // context.ExportFullPath へ出力済み。
+    }
+}
+```
+
+出力対象を絞り込む手順は `Plan` をオーバーライドし、`plan.Entries` の各要素へ `FilterAssetPaths` を呼びます。**絞り込みしかできません。** 手順がアセットを追加できると、確認ウィンドウで提示した内容より多くのものが出力され得るためです。
 
 ### Import タブ
 

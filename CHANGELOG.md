@@ -1,5 +1,49 @@
 # Changelog
 
+## [3.6.0] - 2026-08-05
+Asset Store Tools Packager の出力手順を、順序付きの Strategy 列（パイプライン）として組み替えられるようにしました。**ウィンドウの操作と出力結果は 3.5.0 と同じで、公開APIは追加だけです。**
+
+### Add
+
+- **パッケージ出力の手順を表す拡張点 `AssetStoreToolsPackageStepStrategy` を追加しました。** 利用側でこれを継承すると、独自の手順をパッケージ出力へ差し込めます。
+
+  これまでの出力内容は `Export Mode` / `Create ZIP File` / `Used Dependencies` の 3 つの固定オプションでしか表現できず、**ZIP の代わりに独自の圧縮をかける、出力後に社内ツールへ通知する、といった要求へフレームワークを書き換えずに応える手段がありませんでした。**
+
+  手順は `Plan` と `Execute` の 2 段階を持ちます。パイプライン全体で「全手順の `Plan`」→「全手順の `Execute`」の順に走り、各段階の中では並び順どおりに実行されます。**2 段階にしているのは、出力前に確認ウィンドウへ内容を提示するためです。** 絞り込みが `Execute` の中で起きると、提示した一覧と実物が食い違います。
+
+  | 既定の手順 | 段階 | 役割 |
+  | --- | --- | --- |
+  | `AssetStoreToolsUsedDependenciesStrategy` | `Plan` | 使用中アセットと強制包含拡張子だけへ絞る |
+  | `AssetStoreToolsSinglePackageStrategy` | `Execute` | ディレクトリごとに出力し、`PackageManifest.json` を書く |
+  | `AssetStoreToolsCombinePackageStrategy` | `Execute` | 全ディレクトリを 1 つへまとめる |
+  | `AssetStoreToolsCreateZipStrategy` | `Execute` | 出力フォルダを ZIP 化する |
+
+  **1 つの手順が例外を投げても、記録して次の手順へ進みます。** 利用側の自作手順の失敗で、フレームワーク側の出力まで巻き添えにしないためです。
+
+- **手順の並びを保持する `AssetStoreToolsPackagePipeline`（`ScriptableObject`）を追加しました。** `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline` から作成でき、`[SerializeReference]` と サブクラスセレクターで手順を選べます。
+
+- **`AssetStoreToolsPackager.Export(string[], AssetStoreToolsPackagePipeline)` を追加しました。** パイプラインを指定して出力します。
+
+- **`AssetStoreToolsPackagePlan` と `AssetStoreToolsPackagePlanEntry` を公開しました。** 自作の手順が出力対象を絞り込むために必要なためです。
+
+  **`AssetStoreToolsPackagePlanEntry.FilterAssetPaths` は絞り込みしかできません。** 手順がアセットを追加できると、確認ウィンドウで提示した内容より多くのものが出力され得るためです。計画そのものを組み立てられるのはフレームワーク内部だけです。
+
+- **`AssetStoreToolsPackageExportContext` を追加しました。** `Execute` 段階の手順が受け取る、出力先パスと確定済みの計画です。
+
+### Change
+
+- **確認ウィンドウの表示を `Export Mode` / `Create ZIP` / `Used Dependencies` の 3 行から、パイプライン名と手順の並びへ変えました。** 手順は並び順のまま表示します。**並べ替えは行いません。** 誤った順序（たとえば ZIP 化を出力より前へ置く）をそのまま見せることが、順序の誤りに気づく手段になるためです。
+
+- **出力対象の収集を 1 本にまとめました。** 絞り込みの有無で収集方法が分かれていたものを、「収集」と「絞り込み」の合成へ変えています。合成結果は 3.5.0 と一致します。
+
+  **絞り込みを行わない場合だけ、確認ウィンドウの一覧へ `.bundle` や `.framework` などフォルダ形式のアセットが増えます。** この経路の実際の出力はディレクトリ単位の再帰なので、もともと出力には含まれていました。提示内容が実物へ近づく変化で、**出力される `.unitypackage` の中身は変わりません。**
+
+### Deprecated
+
+- **`AssetStoreToolsPackageContext` を非推奨にしました。** `ref struct` はフィールドへ保持できず、パイプラインの拡張点へ渡せないためです。
+
+  **移行方法**: `AssetStoreToolsPackageExportContext` を使用してください。プロパティ名と意味（`PackageName`、`ExportRoot`、`ExportLocalPath`、`ExportFullPath`、`DateTime`）は同じです。`ExportDirectories` は `Plan.Entries` の `DirectoryPath` から取得できます。
+
 ## [3.5.0] - 2026-08-05
 Asset Store Tools Packager を2タブ構成にし、**更新されたパッケージだけを取り込む差分インポート**を追加しました。**Runtime の公開APIとセーブデータ形式は変更していません。**
 
