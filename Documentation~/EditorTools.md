@@ -124,10 +124,18 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 | --- | --- | --- |
 | Asset Store Tools Path | パッケージ化の対象となるフォルダ。既定は `Assets/AssetStoreTools` | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` |
 | Exported Packages Path | 出力先フォルダ。既定は `ExportedPackages` | 同上 |
+| Export Pipelines | Packagerウィンドウで選べる出力パイプライン | 同上 |
 | Ignored Directories | パッケージ対象から除外するフォルダ名 | `<Asset Store Tools Path>/PackagerConfig.json` |
 | Force Include Extensions | 依存関係に載らなくても必ず含める拡張子 | 同上 |
 
-**設定の分担**: 「どこにあるか」（パス）がProject Settings、「何を詰めるか」（除外・強制包含）が `PackagerConfig.json` です。`PackagerConfig.json` は `Assets/` 配下にあるため、利用側のリポジトリで版管理し、手で編集できます。
+**設定の分担**: 「どこにあるか」（パス）と「どう出すか」（パイプライン）がProject Settings、「何を詰めるか」（除外・強制包含）が `PackagerConfig.json` です。`PackagerConfig.json` は `Assets/` 配下にあるため、利用側のリポジトリで版管理し、手で編集できます。
+
+**Export Pipelines**:
+
+- `Create Default Pipeline` を押すと、`Singles → Used Dependencies → Create ZIP` のテンプレートを `Assets/Editor/SymphonyFrameWork/Configs/` へ生成してアサインします。**同名のアセットがある場合は上書きせず別名で作ります。**
+- `Add` で空の要素を足し、既存のパイプラインアセットをアサインできます。
+- **パイプラインは自動生成しません。** 利用側のリポジトリへ意図しないアセットを増やさないためで、Runtimeの設定アセットが自動生成されるのは Framework の動作に必須だからです。パイプラインは「使う人が構成するもの」です。
+- パス項目と同じく、**変更した時点で保存します。** `PackagerConfig.json` のような `Save` / `Reload` はありません。
 
 **注意点**:
 
@@ -149,27 +157,25 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 **操作**:
 
 1. 出力するフォルダをチェックボックスで選ぶ。`PackagerConfig.json` の `Ignored Directories` に入っているフォルダは `(Ignored)` と表示され、選択できません
-2. 出力形式を選ぶ
-
-   | 項目 | 内容 |
-   | --- | --- |
-   | Export Mode `Singles` | 選んだフォルダを個別の `.unitypackage` として出力する |
-   | Export Mode `Combine` | **廃止予定。** 選んだフォルダを1つの `.unitypackage` にまとめて出力する。差分インポートの対象にならない（→[非推奨APIと削除予定](./Deprecations.md)） |
-   | Create ZIP File | 出力フォルダ全体をZIP化する |
-   | Used Dependencies | プロジェクト内で実際に使用しているアセットと、強制包含拡張子だけに絞る |
-
-3. `Export Selected Directories` を押すと、**出力せずに確認ウィンドウが開きます。** パッケージへ含まれるアセットが階層表示されます
+2. `Export Pipeline` で出力手順を選ぶ。選択肢は Project Settings の `Export Pipelines` にアサインしたアセットで、表示名はアセット名です
+3. `Export Selected Directories` を押すと、**出力せずに確認ウィンドウが開きます。** パイプライン名、手順の並び、パッケージへ含まれるアセットの階層が表示されます
 4. `Export` で実行、`Cancel` で中止
 
 **出力先**: `<Exported Packages Path>/Export_AssetStoreToolsPackage_<日時>/`
+
+**注意点**:
+
+- **パイプラインが1つもアサインされていない場合、Export ボタンは表示されません。** `Open Project Settings` から設定画面へ移動し、`Create Default Pipeline` を押してください。
+- Export タブへ切り替えたとき、パイプラインの一覧を読み直します。ウィンドウを開いたまま Project Settings を変更することがあるためです。反映されない場合は `Refresh` を押してください。
+- **3.6.0 までの `Export Mode` / `Create ZIP File` / `Used Dependencies` は 3.7.0 で無くなりました。** 同じ内容は `Create Default Pipeline` が生成するテンプレートで表現されます（→[非推奨APIと削除予定](./Deprecations.md)）。
 
 ### 出力手順のパイプライン
 
 3.6.0 から、出力手順を順序付きの Strategy 列として組み替えられます。
 
-**入口**: `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline`
+**入口**: `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline`、または `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` の `Create Default Pipeline`
 
-作成したアセットの `Steps` へ、サブクラスセレクターで手順を並べます。
+作成したアセットの `Steps` へ、サブクラスセレクターで手順を並べます。ウィンドウから選べるようにするには、Project Settings の `Export Pipelines` へアサインします。
 
 | 手順 | 段階 | 役割 |
 | --- | --- | --- |
@@ -185,7 +191,7 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 - **`Execute` 段階の順序は利用者の責任です。** `AssetStoreToolsCreateZipStrategy` を出力より前へ置くと、空のフォルダを圧縮します。フレームワークは並べ替えません。確認ウィンドウが並び順をそのまま表示します。
 - **`AssetStoreToolsCombinePackageStrategy` は差分インポートの対象になりません。** ディレクトリ単位で取り出せないためです。この手順だけのパイプラインでは `PackageManifest.json` が作られず、実行時に警告が出ます。
 - **1つの手順が例外を投げても、記録して次の手順へ進みます。** 自作手順の失敗でフレームワーク側の出力まで止めないためです。
-- **3.6.0 時点では、Export タブの操作は上の固定オプションのままです。** ウィンドウからパイプラインを選べるようになるのは 3.7.0 の予定です。コードから使う場合は `AssetStoreToolsPackager.Export(string[], AssetStoreToolsPackagePipeline)` を呼びます。
+- コードから実行する場合は `AssetStoreToolsPackager.Export(string[], AssetStoreToolsPackagePipeline)` を呼びます。Project Settings へのアサインは不要です。
 
 **自作の手順を追加する**: `AssetStoreToolsPackageStepStrategy` を継承し、`[Serializable]` を付けます。置き場は `SymphonyFrameWork.Editor` を参照する Editor 用 asmdef です。
 
