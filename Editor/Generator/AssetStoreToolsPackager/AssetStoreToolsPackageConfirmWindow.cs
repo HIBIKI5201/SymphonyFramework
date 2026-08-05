@@ -51,9 +51,8 @@ namespace SymphonyFrameWork.Editor
 
             GUILayout.Label("以下のアセットを出力します", EditorStyles.boldLabel);
 
-            EditorGUILayout.LabelField("Export Mode", _plan.Mode.ToString());
-            EditorGUILayout.LabelField("Create ZIP", _plan.CreateZip ? "Yes" : "No");
-            EditorGUILayout.LabelField("Used Dependencies", _plan.UsedDependencies ? "Yes" : "No");
+            EditorGUILayout.LabelField("Pipeline", _plan.PipelineName);
+            EditorGUILayout.LabelField("Steps", BuildStepsLabel(_plan));
             EditorGUILayout.LabelField("Total Assets", _plan.TotalAssetCount.ToString());
 
             EditorGUILayout.Space();
@@ -95,6 +94,24 @@ namespace SymphonyFrameWork.Editor
             {
                 _onConfirmed?.Invoke();
             }
+        }
+
+        /// <summary>
+        ///     実行する手順を並び順のまま1行へ組み立てる。
+        /// </summary>
+        /// <remarks>
+        ///     並べ替えは行わない。誤った順序をそのまま見せることが、順序の誤りに気づく手段になる。
+        /// </remarks>
+        /// <param name="plan"> 提示する出力計画。 </param>
+        /// <returns> 矢印区切りの手順名。手順が無い場合はその旨を示す文字列。 </returns>
+        private static string BuildStepsLabel(AssetStoreToolsPackagePlan plan)
+        {
+            if (plan.Steps.Count == 0)
+            {
+                return "（手順が設定されていません）";
+            }
+
+            return string.Join(" → ", plan.Steps.Select(step => step.DisplayName));
         }
 
         /// <summary> 計画のディレクトリごとにツリーのルートを組み立てる。 </summary>
