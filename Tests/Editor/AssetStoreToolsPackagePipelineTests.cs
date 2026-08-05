@@ -212,8 +212,12 @@ namespace SymphonyFrameWork.Tests
             Assert.That(step.DisplayName, Is.EqualTo(nameof(RecordingPlanStepStub)));
         }
 
+        private abstract class PlanStepStubBase : AssetStoreToolsPackageStepStrategy
+        {
+        }
+
         /// <summary> Plan段階で必ず例外を投げるテスト用の手順。 </summary>
-        private sealed class ThrowingPlanStepStub : AssetStoreToolsPackageStepStrategy
+        private sealed class ThrowingPlanStepStub : PlanStepStubBase
         {
             /// <inheritdoc />
             protected internal override void Plan(AssetStoreToolsPackagePlan plan)
@@ -221,7 +225,7 @@ namespace SymphonyFrameWork.Tests
         }
 
         /// <summary> Plan段階が呼ばれたことを記録するテスト用の手順。 </summary>
-        private sealed class RecordingPlanStepStub : AssetStoreToolsPackageStepStrategy
+        private sealed class RecordingPlanStepStub : PlanStepStubBase
         {
             /// <summary> Plan段階が呼ばれたかを示す。 </summary>
             public bool IsPlanned { get; private set; }

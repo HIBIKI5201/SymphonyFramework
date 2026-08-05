@@ -11,7 +11,7 @@ namespace SymphonyFrameWork.Editor
     ///     Plan段階の手順。パイプラインのどこに置いてもExecute段階より先に走る。
     /// </remarks>
     [Serializable]
-    public sealed class AssetStoreToolsUsedDependenciesStrategy : AssetStoreToolsPackageStepStrategy
+    public sealed class AssetStoreToolsUsedDependenciesStrategy : AssetStoreToolsStanderdStrategy
     {
         /// <inheritdoc />
         public override string DisplayName => "Used Dependencies";

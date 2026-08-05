@@ -13,7 +13,7 @@ namespace SymphonyFrameWork.Editor
     ///     Execute段階の手順。個別出力したパッケージだけが差分インポートの単位になる。
     /// </remarks>
     [Serializable]
-    public sealed class AssetStoreToolsSinglePackageStrategy : AssetStoreToolsPackageStepStrategy
+    public sealed class AssetStoreToolsSinglePackageStrategy : AssetStoreToolsStanderdStrategy
     {
         /// <inheritdoc />
         public override string DisplayName => "Singles";

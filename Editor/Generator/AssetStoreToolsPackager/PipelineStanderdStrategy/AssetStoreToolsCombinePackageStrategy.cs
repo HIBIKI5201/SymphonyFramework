@@ -22,7 +22,7 @@ namespace SymphonyFrameWork.Editor
     ///     </para>
     /// </remarks>
     [Serializable]
-    public sealed class AssetStoreToolsCombinePackageStrategy : AssetStoreToolsPackageStepStrategy
+    public sealed class AssetStoreToolsCombinePackageStrategy : AssetStoreToolsStanderdStrategy
     {
         /// <inheritdoc />
         public override string DisplayName => "Combine";
