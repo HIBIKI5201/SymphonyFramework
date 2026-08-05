@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Editor.SettingProvider;
 
 using UnityEditor;
 using UnityEngine;
@@ -66,9 +67,10 @@ namespace SymphonyFrameWork.Editor
 
         private List<DirectoryItem> _directoryItems = new();
         private Vector2 _scrollPosition;
-        private PackageModeEnum _packageMode = PackageModeEnum.Singles;
-        private bool _createZip = false;
-        private bool _usedDependencies = false;
+
+        private List<AssetStoreToolsPackagePipeline> _pipelines = new();
+        private string[] _pipelineLabels = Array.Empty<string>();
+        private int _selectedPipelineIndex;
 
         private PackagerTabEnum _tab = PackagerTabEnum.Export;
         private string[] _exportDirectories = Array.Empty<string>();
@@ -78,10 +80,11 @@ namespace SymphonyFrameWork.Editor
         private Vector2 _importScrollPosition;
         private bool _hasManifest;
 
-        /// <summary> ウィンドウ有効化時に出力対象ディレクトリ一覧を読み込む。 </summary>
+        /// <summary> ウィンドウ有効化時に出力対象ディレクトリとパイプラインを読み込む。 </summary>
         private void OnEnable()
         {
             RefreshDirectories();
+            RefreshPipelines();
         }
 
         /// <summary> タブを描画し、選択中のタブの内容へ委譲する。 </summary>
@@ -93,11 +96,20 @@ namespace SymphonyFrameWork.Editor
             PackagerTabEnum previousTab = _tab;
             _tab = (PackagerTabEnum)GUILayout.Toolbar((int)_tab, TAB_LABELS);
 
-            // Importタブへ入った時点で最新の状態を読み込む。
-            // 別プロジェクトで出力した直後に開くことがあるため、表示のたびに読み直す。
-            if (_tab != previousTab && _tab == PackagerTabEnum.Import)
+            // タブへ入った時点で最新の状態を読み込む。
+            // Importは別プロジェクトで出力した直後に開くことがあり、
+            // ExportはProject Settingsのパイプライン配列がウィンドウを開いたまま変わり得るため。
+            if (_tab != previousTab)
             {
-                RefreshImportCandidates();
+                switch (_tab)
+                {
+                    case PackagerTabEnum.Export:
+                        RefreshPipelines();
+                        break;
+                    case PackagerTabEnum.Import:
+                        RefreshImportCandidates();
+                        break;
+                }
             }
 
             EditorGUILayout.Space();
@@ -119,6 +131,7 @@ namespace SymphonyFrameWork.Editor
             if (GUILayout.Button("Refresh", GUILayout.Width(100)))
             {
                 RefreshDirectories();
+                RefreshPipelines();
             }
 
             EditorGUILayout.Space();
@@ -149,20 +162,15 @@ namespace SymphonyFrameWork.Editor
             EditorGUILayout.EndScrollView();
 
             EditorGUILayout.Space();
-            _packageMode = (PackageModeEnum)EditorGUILayout.EnumFlagsField("Export Mode", _packageMode);
-            DrawCombineDeprecationHelp();
-            _createZip = EditorGUILayout.ToggleLeft("Create ZIP File", _createZip);
-            _usedDependencies = EditorGUILayout.ToggleLeft("Used Dependencies", _usedDependencies);
+
+            if (!DrawPipelineSelection())
+            {
+                return;
+            }
 
             // エクスポートボタン。
             using (new EditorGUI.DisabledGroupScope(_directoryItems.All(d => !d.IsSelected)))
             {
-                if (_packageMode == PackageModeEnum.Nothing)
-                {
-                    GUILayout.TextField("Noting mode is invalid");
-                    return;
-                }
-
                 if (GUILayout.Button("Export Selected Directories", GUILayout.Height(30)))
                 {
                     string[] selectedDirs = _directoryItems
@@ -173,9 +181,7 @@ namespace SymphonyFrameWork.Editor
                     // 出力内容を確定してから提示し、確認ウィンドウの承認を受けて実行する。
                     AssetStoreToolsPackagePlan plan = CreatePlan(
                         selectedDirs,
-                        _packageMode,
-                        _createZip,
-                        _usedDependencies);
+                        _pipelines[_selectedPipelineIndex]);
 
                     if (plan != null)
                     {
@@ -183,6 +189,37 @@ namespace SymphonyFrameWork.Editor
                     }
                 }
             }
+        }
+
+        /// <summary>
+        ///     出力パイプラインの選択を描画する。
+        /// </summary>
+        /// <remarks>
+        ///     選択肢の表示名はアセット名。手順の内容は確認ウィンドウで提示する。
+        /// </remarks>
+        /// <returns> 選択できるパイプラインがあり、出力へ進める場合はtrue。 </returns>
+        private bool DrawPipelineSelection()
+        {
+            if (_pipelines.Count == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "出力パイプラインがアサインされていません。\n"
+                    + "Project Settings > SymphonyFrameWork > Asset Store Tools Packager で"
+                    + "アサインしてください。",
+                    MessageType.Info);
+
+                if (GUILayout.Button("Open Project Settings", GUILayout.Width(180)))
+                {
+                    SettingsService.OpenProjectSettings(AssetStoreToolsPackagerProvider.SELF_PATH);
+                }
+
+                return false;
+            }
+
+            _selectedPipelineIndex = EditorGUILayout.Popup(
+                "Export Pipeline", _selectedPipelineIndex, _pipelineLabels);
+
+            return true;
         }
 
         /// <summary>
@@ -201,7 +238,7 @@ namespace SymphonyFrameWork.Editor
             {
                 EditorGUILayout.HelpBox(
                     "出力済みのパッケージがありません。\n"
-                    + "Export タブで Export Mode = Singles として出力してください。",
+                    + "Export タブで、Singles を含むパイプラインを選んで出力してください。",
                     MessageType.Info);
                 return;
             }
@@ -317,25 +354,26 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     Combineが選択されている場合に、廃止予定であることを表示する。
+        ///     Project Settingsからパイプラインの一覧を読み直す。
         /// </summary>
         /// <remarks>
-        ///     選択自体は禁止しない。既存の運用を突然壊さず、移行期間を設けるため。
+        ///     参照が外れたままの要素は選択肢から除く。
+        ///     Project Settingsの配列はnullを持てるため。
         /// </remarks>
-        private void DrawCombineDeprecationHelp()
+        private void RefreshPipelines()
         {
-#pragma warning disable CS0618
-            if ((_packageMode & PackageModeEnum.Combine) == 0)
-            {
-                return;
-            }
-#pragma warning restore CS0618
+            _pipelines.Clear();
+            _pipelines.AddRange(
+                AssetStoreToolsPackagerData.Pipelines.Where(pipeline => pipeline != null));
 
-            EditorGUILayout.HelpBox(
-                "Combine は廃止予定です。Singles を使用してください。\n"
-                + "統合パッケージはディレクトリ単位で取り出せないため、差分インポートの対象になりません。"
-                + "Combine だけを指定した場合、PackageManifest.json は作られません。",
-                MessageType.Warning);
+            _pipelineLabels = _pipelines
+                .Select(pipeline => pipeline.name)
+                .ToArray();
+
+            if (_selectedPipelineIndex >= _pipelines.Count)
+            {
+                _selectedPipelineIndex = 0;
+            }
         }
 
         /// <summary>

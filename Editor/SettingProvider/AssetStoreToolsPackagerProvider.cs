@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using SymphonyFrameWork.Core;
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,7 +34,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                 // 検索するときのキーワード
                 keywords = new HashSet<string>(new[]
                 {
-                    "asset", "store", "tools", "packager", "ignore", "extension"
+                    "asset", "store", "tools", "packager", "ignore", "extension", "pipeline"
                 }),
             };
 
@@ -68,7 +70,131 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             }
 
             EditorGUILayout.Space();
+            DrawPipelines();
+
+            EditorGUILayout.Space();
             DrawConfig();
+        }
+
+        /// <summary>
+        ///     Packagerウィンドウで選べる出力パイプラインの一覧を描画する。
+        /// </summary>
+        /// <remarks>
+        ///     ProjectSettingsへ保存する設定のため、パスの項目と同じく変更した時点で保存する。
+        ///     PackagerConfig.jsonのようなSave／Reloadは設けない。
+        /// </remarks>
+        private static void DrawPipelines()
+        {
+            EditorGUILayout.LabelField("Export Pipelines", EditorStyles.boldLabel);
+
+            List<AssetStoreToolsPackagePipeline> pipelines =
+                new(AssetStoreToolsPackagerData.Pipelines);
+
+            bool isChanged = false;
+            int removeIndex = -1;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                for (int i = 0; i < pipelines.Count; i++)
+                {
+                    EditorGUILayout.BeginHorizontal();
+
+                    var edited = (AssetStoreToolsPackagePipeline)EditorGUILayout.ObjectField(
+                        pipelines[i], typeof(AssetStoreToolsPackagePipeline), false);
+                    if (edited != pipelines[i])
+                    {
+                        pipelines[i] = edited;
+                        isChanged = true;
+                    }
+
+                    if (GUILayout.Button("-", GUILayout.Width(24)))
+                    {
+                        removeIndex = i;
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                if (removeIndex >= 0)
+                {
+                    pipelines.RemoveAt(removeIndex);
+                    isChanged = true;
+                }
+
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Add", GUILayout.Width(100)))
+                {
+                    pipelines.Add(null);
+                    isChanged = true;
+                }
+
+                if (GUILayout.Button("Create Default Pipeline", GUILayout.Width(180)))
+                {
+                    AssetStoreToolsPackagePipeline created = CreateDefaultPipelineAsset();
+                    if (created != null)
+                    {
+                        pipelines.Add(created);
+                        isChanged = true;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (isChanged)
+            {
+                AssetStoreToolsPackagerData.SetPipelines(pipelines);
+            }
+
+            if (pipelines.Count == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "出力パイプラインがアサインされていません。"
+                    + "Create Default Pipeline を押すと、Singles → Used Dependencies → Create ZIP の"
+                    + "テンプレートを生成してアサインします。",
+                    MessageType.Info);
+            }
+        }
+
+        /// <summary>
+        ///     既定テンプレートのパイプラインアセットを生成する。
+        /// </summary>
+        /// <remarks>
+        ///     Frameworkの起動時に自動生成しない。利用側のリポジトリへ意図しないアセットを増やさないため、
+        ///     このボタンの明示的な操作でだけ生成する。
+        /// </remarks>
+        /// <returns> 生成したアセット。生成に失敗した場合はnull。 </returns>
+        private static AssetStoreToolsPackagePipeline CreateDefaultPipelineAsset()
+        {
+            string directory = EditorSymphonyConstant.RESOURCES_EDITOR_PATH;
+
+            try
+            {
+                Directory.CreateDirectory(directory);
+            }
+            catch (IOException exception)
+            {
+                Debug.LogError(
+                    $"[{nameof(AssetStoreToolsPackagerProvider)}]\n"
+                    + $"パイプラインの配置先を生成できませんでした: {directory}\n{exception.Message}");
+                return null;
+            }
+
+            AssetDatabase.Refresh();
+
+            // 同名のアセットがある場合は上書きせず別名で作る。
+            // 利用側が手を入れたパイプラインを、ボタンの誤操作で失わせないため。
+            string path = AssetDatabase.GenerateUniqueAssetPath(
+                directory + "/" + nameof(AssetStoreToolsPackagePipeline) + ".asset");
+
+            AssetStoreToolsPackagePipeline pipeline = AssetStoreToolsPackagePipeline.CreateTemplate();
+            AssetDatabase.CreateAsset(pipeline, path);
+            AssetDatabase.SaveAssets();
+
+            Debug.Log(
+                $"[{nameof(AssetStoreToolsPackagerProvider)}]\n"
+                + $"既定のパイプラインを生成しました: {path}");
+
+            return pipeline;
         }
 
         /// <summary> パッケージ化設定ファイルの内容を描画する。 </summary>

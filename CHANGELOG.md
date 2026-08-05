@@ -1,5 +1,47 @@
 # Changelog
 
+## [3.7.0] - 2026-08-05
+Packager ウィンドウの出力形式を、3.6.0 で追加したパイプラインから選ぶ形にしました。**固定の3オプション（`Export Mode` / `Create ZIP File` / `Used Dependencies`）は無くなります。**
+
+### Add
+
+- **Project Settings で出力パイプラインを配列としてアサインできるようにしました。** `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` の `Export Pipelines` です。保存先は `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` で、プロジェクト共有です。
+
+  `Create Default Pipeline` を押すと、`Singles → Used Dependencies → Create ZIP` のテンプレートを `Assets/Editor/SymphonyFrameWork/Configs/` へ生成してアサインします。**同名のアセットがある場合は上書きせず別名で作ります。** 利用側が手を入れたパイプラインを、ボタンの誤操作で失わせないためです。
+
+  **Framework の起動時に自動生成はしません。** 利用側のリポジトリへ意図しないアセットを増やさないためで、Runtime の設定アセットが自動生成されるのは Framework の動作に必須だからです。パイプラインは「使う人が構成するもの」です。
+
+- **`AssetStoreToolsPackagerData.Pipelines` と `SetPipelines` を追加しました。**
+
+### Change
+
+- **Packager ウィンドウの `Export Mode` を、パイプラインを選ぶポップアップ `Export Pipeline` へ変えました。** 選択肢の表示名はアセット名です。`Create ZIP File` と `Used Dependencies` のトグルは、パイプラインの手順として表現されるため削除しました。
+
+  **パイプラインが1つもアサインされていない場合は、案内を表示して Export ボタンを出しません。** `Open Project Settings` ボタンから設定画面へ移動できます。
+
+  **移行方法**: `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` で `Create Default Pipeline` を1度押してください。3.5.0 までの `Singles` + `Used Dependencies` + `Create ZIP File` と同じ内容です。ZIP や絞り込みが不要なら、生成されたアセットの `Steps` から該当の手順を外します。
+
+  Export タブへ切り替えたとき、パイプラインの一覧を読み直します。ウィンドウを開いたまま Project Settings を変更することがあるためです。
+
+### Deprecated
+
+- **`AssetStoreToolsPackager.PackageModeEnum` を非推奨にしました。** `Combine` を除くと `Singles` と `Nothing` しか残らず、enum として意味を失うためです。**次のメジャー更新で enum ごと削除します。**
+
+  **移行方法**: `AssetStoreToolsPackagePipeline` を使用してください。`Singles` は `AssetStoreToolsSinglePackageStrategy`、`Combine` は `AssetStoreToolsCombinePackageStrategy` に対応します。
+
+- **`AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` を非推奨にしました。**
+
+  **移行方法**: `Export(string[], AssetStoreToolsPackagePipeline)` を使用してください。フラグと手順の対応は次のとおりです。
+
+  | 旧 | 新 |
+  | --- | --- |
+  | `mode` に `Singles` | `AssetStoreToolsSinglePackageStrategy` |
+  | `mode` に `Combine` | `AssetStoreToolsCombinePackageStrategy` |
+  | `usedDependencies: true` | `AssetStoreToolsUsedDependenciesStrategy` |
+  | `createZip: true` | `AssetStoreToolsCreateZipStrategy` |
+
+  **統合パッケージ出力は機能として残ります。** 非推奨にするのは enum の選択肢であって、統合パッケージそのものではありません。差分インポートの単位にならないため既定テンプレートには含めていませんが、必要な場合はパイプラインへ `AssetStoreToolsCombinePackageStrategy` を追加してください。
+
 ## [3.6.0] - 2026-08-05
 Asset Store Tools Packager の出力手順を、順序付きの Strategy 列（パイプライン）として組み替えられるようにしました。**ウィンドウの操作と出力結果は 3.5.0 と同じで、公開APIは追加だけです。**
 

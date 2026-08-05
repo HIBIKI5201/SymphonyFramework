@@ -26,7 +26,14 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 個別または統合パッケージの出力形式を表すフラグ。 </summary>
+        /// <remarks>
+        ///     <see cref="Combine" />を除くと<see cref="Singles" />と<see cref="Nothing" />しか残らず、
+        ///     enumとして意味を失うため、次のメジャー更新でenumごと削除する。
+        /// </remarks>
         [Flags]
+        [Obsolete(
+            "パイプラインへ移行しました。" + nameof(AssetStoreToolsPackagePipeline) + "を使用してください。",
+            error: false)]
         public enum PackageModeEnum : byte
         {
             /// <summary> パッケージを出力しない無効な状態。 </summary>
@@ -111,13 +118,25 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 指定ディレクトリを選択された形式で出力し、必要に応じてZIP化する。 </summary>
+        /// <remarks>
+        ///     指定を等価な手順の並びへ変換してパイプラインへ委譲する。動作は3.5.0までと同じ。
+        /// </remarks>
         /// <param name="directories"> 出力対象のディレクトリ。 </param>
         /// <param name="mode"> 個別出力と統合出力の指定。 </param>
         /// <param name="createZip"> 出力後にZIP化するか。 </param>
         /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
+#pragma warning disable CS0618
+        [Obsolete(
+            "パイプラインへ移行しました。Export(string[], "
+            + nameof(AssetStoreToolsPackagePipeline) + ")を使用してください。",
+            error: false)]
         public static void Export(string[] directories, PackageModeEnum mode, bool createZip = false, bool usedDependencies = false)
         {
-            AssetStoreToolsPackagePlan plan = CreatePlan(directories, mode, createZip, usedDependencies);
+            AssetStoreToolsPackagePlan plan = AssetStoreToolsPackagePipelineRunner.CreatePlan(
+                directories,
+                CreateStepsFromOptions(mode, createZip, usedDependencies),
+                LEGACY_PIPELINE_NAME);
+
             if (plan == null)
             {
                 return;
@@ -125,6 +144,7 @@ namespace SymphonyFrameWork.Editor
 
             Export(plan);
         }
+#pragma warning restore CS0618
 
         /// <summary>
         ///     出力内容を確定した計画を組み立てる。この時点ではファイルを出力しない。
@@ -144,26 +164,6 @@ namespace SymphonyFrameWork.Editor
 
             return AssetStoreToolsPackagePipelineRunner.CreatePlan(
                 directories, pipeline.Steps, pipeline.name);
-        }
-
-        /// <summary>
-        ///     旧来のフラグ指定から計画を組み立てる。この時点ではファイルを出力しない。
-        /// </summary>
-        /// <param name="directories"> 出力対象のディレクトリ。 </param>
-        /// <param name="mode"> 個別出力と統合出力の指定。 </param>
-        /// <param name="createZip"> 出力後にZIP化するか。 </param>
-        /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
-        /// <returns> 出力計画。対象が無い場合や設定を読み込めない場合はnull。 </returns>
-        internal static AssetStoreToolsPackagePlan CreatePlan(
-            string[] directories,
-            PackageModeEnum mode,
-            bool createZip,
-            bool usedDependencies)
-        {
-            return AssetStoreToolsPackagePipelineRunner.CreatePlan(
-                directories,
-                CreateStepsFromOptions(mode, createZip, usedDependencies),
-                LEGACY_PIPELINE_NAME);
         }
 
         /// <summary>
@@ -221,6 +221,9 @@ namespace SymphonyFrameWork.Editor
         /// <param name="createZip"> 出力後にZIP化するか。 </param>
         /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
         /// <returns> 指定に対応する手順の並び。 </returns>
+        // 非推奨のPackageModeEnumは削除まで動作を維持する必要があるため、
+        // 廃止予定の警告をここでは抑止する。利用側の指定に対しては警告が出る。
+#pragma warning disable CS0618
         private static List<AssetStoreToolsPackageStepStrategy> CreateStepsFromOptions(
             PackageModeEnum mode,
             bool createZip,
@@ -238,14 +241,10 @@ namespace SymphonyFrameWork.Editor
                 steps.Add(new AssetStoreToolsSinglePackageStrategy());
             }
 
-            // 非推奨のCombineは削除まで動作を維持する必要があるため、
-            // 廃止予定の警告をここでは抑止する。利用側の指定に対しては警告が出る。
-#pragma warning disable CS0618
             if ((mode & PackageModeEnum.Combine) != 0)
             {
                 steps.Add(new AssetStoreToolsCombinePackageStrategy());
             }
-#pragma warning restore CS0618
 
             if (createZip)
             {
@@ -254,5 +253,6 @@ namespace SymphonyFrameWork.Editor
 
             return steps;
         }
+#pragma warning restore CS0618
     }
 }

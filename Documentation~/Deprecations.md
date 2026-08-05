@@ -25,6 +25,8 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 | `SymphonyTween.TweeningCurve<T>(...)` | `Runtime/Utility/SymphonyTween.cs` | `SymphonyTween.Tweening` | 記録なし | **未定** | 同上 |
 | `EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE` | `Core/Editor/EditorSymphonyConstant.cs` | `EditorSymphonyConstant.ASSET_STORE_TOOLS_CONFIG_FILE_NAME` | 3.1.0 | 次のメジャー更新 | 削除時は `AssetStoreToolsPackagerConfigStore` の `ignore.txt` 移行処理（`IGNORE_FILE_NAME`、`ReadIgnoreFile`、`CreateConfigFile` の移行分岐）も一緒に削除する |
 | `AssetStoreToolsPackager.PackageModeEnum.Combine` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `AssetStoreToolsCombinePackageStrategy` | 3.4.0 | 次のメジャー更新 | **enum の選択肢としては消すが、統合パッケージ出力そのものは Strategy として残す。** 下記「Combineの削除手順」を参照 |
+| `AssetStoreToolsPackager.PackageModeEnum` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `AssetStoreToolsPackagePipeline` | 3.7.0 | 次のメジャー更新 | `Combine` を除くと `Singles` と `Nothing` しか残らず、enum として意味を失う。下記「Combineの削除手順」を参照 |
+| `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `Export(string[], AssetStoreToolsPackagePipeline)` | 3.7.0 | 次のメジャー更新 | `PackageModeEnum` と同時に削除する。3.7.0 以降フレームワーク内部では使用していない |
 | `AssetStoreToolsPackageContext` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackageContext.cs` | `AssetStoreToolsPackageExportContext` | 3.6.0 | 次のメジャー更新 | `ref struct` はフィールドへ保持できず、パイプラインの拡張点へ渡せない。3.6.0 以降フレームワーク内部では使用していない |
 
 ### Combineの削除手順
@@ -37,11 +39,11 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 | --- | --- |
 | `AssetStoreToolsPackager.PackageModeEnum` | 削除する |
 | `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` | 削除する。代替は `Export(string[], AssetStoreToolsPackagePipeline)`（3.6.0 で追加済み） |
-| `AssetStoreToolsPackager.CreatePlan(string[], PackageModeEnum, bool, bool)` | 削除する |
 | `AssetStoreToolsPackager.CreateStepsFromOptions` と `LEGACY_PIPELINE_NAME` | 削除する |
 | `AssetStoreToolsPackager` 内の `#pragma warning disable CS0618` | 抑止ごと削除する |
-| `AssetStoreToolsPackageWindow` | `Export Mode` の `EnumFlagsField` と `DrawCombineDeprecationHelp` を削除する（3.7.0 でパイプラインのポップアップへ置き換え予定） |
 | ワークスペースの `Documentation/DesignPhilosophy.md` | enum 命名の実例から `PackageModeEnum` を外す |
+
+`AssetStoreToolsPackageWindow` は 3.7.0 でパイプラインのポップアップへ置き換え済みのため、削除時に触る必要はありません。
 
 **旧シグネチャを `[Obsolete]` のシムとして残せません。** `PackageModeEnum` 自体が消えるため、旧シグネチャは型として成立しないためです。メジャー更新で直接削除し、CHANGELOG の `### Breaking` へ移行方法を明記します。
 
