@@ -15,7 +15,7 @@ namespace SymphonyFrameWork.Editor
     ///     順序はフレームワークが並べ替えず、パイプラインの並びをそのまま実行する。
     /// </remarks>
     [Serializable]
-    public sealed class AssetStoreToolsCreateZipStrategy : AssetStoreToolsStanderdStrategy
+    public sealed class AssetStoreToolsCreateZipStrategy : AssetStoreToolsStandardStrategy
     {
         /// <inheritdoc />
         public override string DisplayName => "Create ZIP";
