@@ -1,6 +1,7 @@
 # Changelog
 
 ## [3.7.0] - 2026-08-05
+
 Packager ウィンドウの出力形式を、3.6.0 で追加したパイプラインから選ぶ形にしました。**固定の3オプション（`Export Mode` / `Create ZIP File` / `Used Dependencies`）は無くなります。**
 
 ### Add
@@ -43,6 +44,7 @@ Packager ウィンドウの出力形式を、3.6.0 で追加したパイプラ�
   **統合パッケージ出力は機能として残ります。** 非推奨にするのは enum の選択肢であって、統合パッケージそのものではありません。差分インポートの単位にならないため既定テンプレートには含めていませんが、必要な場合はパイプラインへ `AssetStoreToolsCombinePackageStrategy` を追加してください。
 
 ## [3.6.0] - 2026-08-05
+
 Asset Store Tools Packager の出力手順を、順序付きの Strategy 列（パイプライン）として組み替えられるようにしました。**ウィンドウの操作と出力結果は 3.5.0 と同じで、公開APIは追加だけです。**
 
 ### Add
@@ -87,6 +89,7 @@ Asset Store Tools Packager の出力手順を、順序付きの Strategy 列（�
   **移行方法**: `AssetStoreToolsPackageExportContext` を使用してください。プロパティ名と意味（`PackageName`、`ExportRoot`、`ExportLocalPath`、`ExportFullPath`、`DateTime`）は同じです。`ExportDirectories` は `Plan.Entries` の `DirectoryPath` から取得できます。
 
 ## [3.5.0] - 2026-08-05
+
 Asset Store Tools Packager を2タブ構成にし、**更新されたパッケージだけを取り込む差分インポート**を追加しました。**Runtime の公開APIとセーブデータ形式は変更していません。**
 
 ### Add
@@ -115,6 +118,7 @@ Asset Store Tools Packager を2タブ構成にし、**更新されたパッケ�
   Import タブへ切り替えたとき、出力済みフォルダとリビジョンを読み直します。別プロジェクトで出力した直後に開くことがあるためです。
 
 ## [3.4.0] - 2026-08-05
+
 Asset Store Tools Packager の統合パッケージ出力（`Combine`）を非推奨にしました。**削除はしていません。** 既存の指定はこれまでどおり動作します。
 
 ### Deprecated
@@ -134,6 +138,7 @@ Asset Store Tools Packager の統合パッケージ出力（`Combine`）を非�
 - `Combine` だけで出力したときのConsole警告に、廃止予定である旨と移行先を追記しました。
 
 ## [3.3.0] - 2026-08-05
+
 Asset Store Tools Packager に、パッケージ単位のリビジョン記録を追加しました。**Runtime の公開APIとセーブデータ形式は変更していません。** 変更は Editor 専用ツールに閉じています。
 
 ### Add
@@ -165,6 +170,7 @@ Asset Store Tools Packager に、パッケージ単位のリビジョン記録�
 - **統合パッケージ（`Export Mode = Combine`）だけで出力した場合、`PackageManifest.json` を作りません。** 統合パッケージはディレクトリ単位で取り出せず、差分インポートの単位にならないためです。その場合はConsoleへ警告を出します。
 
 ## [3.2.1] - 2026-08-05
+
 Editor機能と非推奨APIのドキュメントを追加しました。**コードは変更していません。** 公開API、シリアライズ形式、挙動のいずれも 3.2.0 と同じです。
 
 ### Add
@@ -188,13 +194,14 @@ Editor機能と非推奨APIのドキュメントを追加しました。**コー
 - `AGENTS.md` の参照先表で、Editor・デバッグ機能の参照先を `EditorTools.md` へ、非推奨APIと移行方法の参照先を `Deprecations.md` へ変更しました。
 
 ## [3.2.0] - 2026-08-04
+
 Asset Store Tools Packager に、出力前の確認ウィンドウを追加しました。**Runtime の公開APIとセーブデータ形式は変更していません。**
 
 ### Add
 
 - **エクスポート前に、パッケージへ含まれるアセットを階層表示で確認できるようにしました。** Packager ウィンドウの `Export Selected Directories` を押すと、出力せずに確認ウィンドウが開きます。`Export` で実行、`Cancel` で中止します。
 
-  3.1.0 で修正した取りこぼしのように、意図したアセットが入っているかは出力後のパッケージを展開しないと分かりませんでした。出力前に気づけるようにするための追加です。
+  3.1.1 で修正した取りこぼしのように、意図したアセットが入っているかは出力後のパッケージを展開しないと分かりませんでした。出力前に気づけるようにするための追加です。
 
   ディレクトリごとにツリーを表示し、フォルダには配下のアセット数を出します。対象アセットが0件のディレクトリは「（対象アセットなし）」と表示され、出力時に警告になることが分かります。
 
@@ -204,8 +211,8 @@ Asset Store Tools Packager に、出力前の確認ウィンドウを追加し�
 
   `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` のシグネチャと挙動は変えていません。このAPIを直接呼ぶ経路は、従来どおり確認ウィンドウを通さずに出力します。
 
-## [3.1.0] - 2026-08-04
-Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依存関係だけでは拾えないアセットの取りこぼしを修正しました。**Runtime の公開APIとセーブデータ形式は変更していません。** 変更は Editor 専用ツールに閉じています。
+## [3.1.1] - 2026-08-04
+3.1.0 で入れた `PackagerConfig.json` を土台に、依存関係だけでは拾えないアセットの取りこぼしを修正しました。**Runtime の公開APIとセーブデータ形式は変更していません。** 変更は Editor 専用ツールに閉じています。
 
 ### Fix
 
@@ -218,6 +225,9 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - **除外設定ファイルが `Asset Store Tools Path` の変更に追従しない問題を修正しました。** 除外設定のパスだけが既定パスの定数から組まれており、Project Settings でパスを変更すると除外設定が読まれなくなっていました。
 
 - 除外フォルダ名の比較で大文字小文字を区別しないようにしました。Windows のファイルシステムと判定が食い違うためです。
+
+## [3.1.0] - 2026-08-04
+Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約しました。**Runtime の公開APIとセーブデータ形式は変更していません。** 変更は Editor 専用ツールに閉じています。取りこぼしの修正は 3.1.1 で行っています。
 
 ### Change
 
@@ -237,8 +247,16 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 
   **移行方法**: 設定ファイルの名前が必要な場合は `EditorSymphonyConstant.ASSET_STORE_TOOLS_CONFIG_FILE_NAME` を使ってください。パスは `Asset Store Tools Path` の設定値と連結して組み立てます。次のメジャー更新で、旧定数と `ignore.txt` からの移行処理をあわせて削除します。
 
+## [3.0.1] - 2026-08-04
+3.0.0 の確定にあわせて見つかった、保存日時の管理漏れと Editor パネルの不要なI/Oを修正しました。**公開APIとセーブデータ形式は 3.0.0 から変更していません。**
+
+### Fix
+
+- `SaveDataContent` の保存日時が `SaveDataLoaderStrategy` の管理下から外れていた経路を塞ぎました（`UpdateSaveDate()` / `ClearSaveDate()` は `internal`）。
+- Symphony Administrator の Save Data パネルが、未読み込みの型を選択しただけで保存先へI/Oを発生させないようにしました。未読み込みの場合はLoadの実行を促す表示に変わります。保存時は正本を確定させるため先にロードします。
+
 ## [3.0.0] - 2026-08-04
-**3.0.0 の確定版です。** `3.0.0-preview.1`〜`preview.3` で積み上げた Awaitable 移行（Phase 5）を Scene Load、Service Locate、Debug HUD、Component、Editor UI、Loader Strategy まで広げ、移行期間を終えた旧シムの削除と改名（Phase 6）を行いました。preview 版から更新する場合は、本項の Breaking をすべて確認してください。
+**3.0.0 の確定版です。** `3.0.0-preview.1`〜`preview.4` で積み上げた Awaitable 移行（Phase 5）を Scene Load、Service Locate、Debug HUD、Component、Editor UI、Loader Strategy まで広げ、移行期間を終えた旧シムの削除と改名（Phase 6）を行いました。preview 版から更新する場合は、本項の Breaking をすべて確認してください。
 
 `SaveDataContent` のフィールド構成、保存されるJSON、PlayerPrefsのキーは変更していないため、**既存のセーブデータはそのまま読み込めます。**
 
@@ -361,12 +379,8 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `SaveStore.IsLoaded<T>()` / `IsLoaded(Type)` を追加しました。`Get<T>()` が使用できる状態か、例外を発生させずに判定できます。
 - `Get<T>()` の新しい契約に対するPlayModeテストを2件追加しました。未読み込み時に `InvalidOperationException` になること、読み込み後は `LoadAsync<T>()` の戻り値と同一インスタンスを返すことを検証します。
 
-### Fix
+## [3.0.0-preview.4] - 2026-08-04
 
-- `SaveDataContent` の保存日時が `SaveDataLoaderStrategy` の管理下から外れていた経路を塞ぎました（`UpdateSaveDate()` / `ClearSaveDate()` は `internal`）。
-- Symphony Administrator の Save Data パネルが、未読み込みの型を選択しただけで保存先へI/Oを発生させないようにしました。未読み込みの場合はLoadの実行を促す表示に変わります。保存時は正本を確定させるため先にロードします。
-
-## [3.0.0-preview.3] - 2026-08-04
 ### Breaking
 - **`SaveStore` の非同期API6件が `ValueTask` ではなく `Awaitable` を返すようになりました。** 対象は `LoadAsync<T>` / `LoadAsync(Type)` / `SaveAsync<T>` / `SaveAsync(Type)` / `DeleteAsync<T>` / `DeleteAsync(Type)` です。
 
@@ -391,6 +405,10 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `SaveStore` の非同期APIのPlayModeテストを6件追加した。保存と読み込みの往復、削除で既定値へ戻ること、キャンセル時の例外型、不正な型の同期例外を検証する。
   - **同じ型へ続けて `LoadAsync` を呼んでも両方が完了すること**を回帰テストにした。内部は重複排除で1つの `Task` を共有するが、`Awaitable` は共有できないため呼び出しごとに別の `Awaitable` を作っている。この両立が壊れると、2回目の読み込みが返ってこなくなる。
 
+## [3.0.0-preview.3] - 2026-08-04
+### Fix
+- **`PausableDestroy` と `PausableInvoke` の引数エラーが、呼び出し元へ同期的に伝わるようになりました。** 従来は `async void` だったため、`ArgumentNullException` や `ArgumentOutOfRangeException` が非同期メソッドの中で投げられ、呼び出し側の `try/catch` では捕まえられずUnityの未処理例外ハンドラへ流れていました。検証を同期部分へ移しています。
+
 ## [3.0.0-preview.2] - 2026-08-04
 ### Breaking
 - **`PauseManager.PausableDestroy` と `PausableInvoke` が `void` ではなく `Awaitable` を返すようになりました。**
@@ -407,9 +425,6 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 
   待機せずに呼んでも、破棄と処理の実行は従来どおり行われます。
 
-### Fix
-- **`PausableDestroy` と `PausableInvoke` の引数エラーが、呼び出し元へ同期的に伝わるようになりました。** 従来は `async void` だったため、`ArgumentNullException` や `ArgumentOutOfRangeException` が非同期メソッドの中で投げられ、呼び出し側の `try/catch` では捕まえられずUnityの未処理例外ハンドラへ流れていました。検証を同期部分へ移しています。
-
 ### Add
 - `PausableInvoke` と `PausableDestroy` のPlayModeテストを5件追加した。待機した場合の実行、**待機せずに呼んでも実行されること**、引数エラーが同期的に投げられること、GameObjectの破棄を検証する。
 
@@ -417,6 +432,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `Awaitable` は完了を観測した時点でプールへ返却されます。**待機せずに呼んだ場合はプールへ戻らず、通常のGC対象になります。** 無制限に溜まるものではなく、プールの効果が失われるだけです。fire-and-forgetとして使うAPIであるため、この代償を受け入れています。
 
 ## [3.0.0-preview.1] - 2026-08-04
+
 
 **3.0.0 系の最初のプレビューです。** 破壊的変更を段階的に積み上げ、Phase 5（Awaitable移行）とPhase 6（改名とシム削除）を終えた時点で `3.0.0` として確定します。プレビュー版は「壊れることを承知で先行して試す」ためのものです。
 
@@ -454,6 +470,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
   - キャンセルの検証は `Awaitable` を直接 `await` して行う。`AsTask` で包むと `TaskCanceledException` に化け、利用側が実際に受け取る型を測れないため。
 
 ## [2.20.0] - 2026-08-04
+
 ### Add
 - セーブデータの保存先を差し替える拡張点を `SaveDataLoaderStrategy` と `PlayerPrefsSaveDataLoaderStrategy` へ改名した。DesignPhilosophy の「拡張点には役割を表すサフィックスを付ける」に従う。中身（`protected abstract` メンバー）は変更していない。
 
@@ -466,6 +483,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
   - **`SaveSystemConfig.asset` は `[SerializeReference]` で型名を保存しているため、`[MovedFrom]` を付けて旧型名から解決できるようにしている。** 既存の設定アセットはそのまま読み込まれ、ローダーの選択は失われない。
 
 ## [2.19.0] - 2026-08-04
+
 ### Add
 - `SaveStore` を追加した。`SaveDataRegistry` と同じ公開APIを持ち、シグネチャ・例外の種類と条件・シリアライズ形式のいずれも変わらない。
   - Round I1／I2 で内部を分割した結果、**この型はレジストリではなくストアになっていた**。実際のレジストリは `SaveDataEntryRegistry`（内部）であり、名前が役割と食い違っていたため改名した。
@@ -475,7 +493,12 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
   - 旧型は `SaveStore` へ転送するだけのFacadeとして残るため、既存コードはコンパイルが通り、`CS0618` の警告で移行先が案内される。
   - `SaveDataRegistryEntryInfo` と Editor の `SaveDataRegistryWindow` は本バージョンでは改名しない。`GetEntries()` の戻り値要素型を変えると `IReadOnlyList<T>` が変換できず破壊的になるため、3.0.0 でまとめて扱う。
 
-## [2.18.1] - 2026-08-04
+## [2.18.3] - 2026-08-04
+### Fix
+- **AudioMixerが未割り当ての場合に、空の `AudioManager` GameObject が `DontDestroyOnLoad` へ生成されていたのを修正した。** GameObjectの生成を最初のAudioSource生成まで遅らせたため、1つも作らない場合は生成されない。
+- **公開パラメーターが見つからないオーディオグループで、音量変更時の警告が出ていなかったのを修正した。** 初期音量へ0を代入していたため判定が常に成立せず、存在しないパラメーター名で `SetFloat` が呼ばれていた（Unity側で黙って失敗する）。従来も音量は変わっておらず、観測される差は警告が出るようになる点のみ。
+
+## [2.18.2] - 2026-08-04
 ### Change
 - Audioの内部構造をレイヤーごとに分割した。Scene Load、Service Locate、Save Data、Pauseと同じ形へ揃えている。**公開APIのシグネチャ、例外の種類と条件はいずれも変更していない。**
   - `AudioGroupEntity`（Domain）— グループ名を同一性とし、音量割合からデシベル値への変換規則を持つ
@@ -486,13 +509,14 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `AudioManager.cs` を `Runtime/System/Audio/` へ移した。名前空間は変更していないため、利用側の `using` に影響しない。
 - 音量変換に使う最小音量 `-80` dB を `AudioGroupEntity.MINIMUM_VOLUME_DECIBEL` として名前付き定数にした。変換式は従来と恒等。
 
-### Fix
-- **AudioMixerが未割り当ての場合に、空の `AudioManager` GameObject が `DontDestroyOnLoad` へ生成されていたのを修正した。** GameObjectの生成を最初のAudioSource生成まで遅らせたため、1つも作らない場合は生成されない。
-- **公開パラメーターが見つからないオーディオグループで、音量変更時の警告が出ていなかったのを修正した。** 初期音量へ0を代入していたため判定が常に成立せず、存在しないパラメーター名で `SetFloat` が呼ばれていた（Unity側で黙って失敗する）。従来も音量は変わっておらず、観測される差は警告が出るようになる点のみ。
-
 ### Add
 - `AudioGroupEntity` と `AudioGroupRegistry` のEditModeテストを14件追加した。音量変換の境界値と線形補間、初期音量が取得できない場合の扱い、構築済み記録が全消去で戻ることを検証する。
   - **全消去で構築済み記録が戻ること**を回帰テストにした。ここが戻らないとPlay Modeの2回目でAudioSourceが作られなくなる。
+
+## [2.18.1] - 2026-08-03
+### Fix
+- **`PauseManager.Pause` に現在と同じ値を代入したとき、`OnPauseChanged` を発行しないようにした。** 従来は `Pause = true` を2回続けると `IPausable.Pause()` が2回呼ばれていた。**利用側への影響**: 同じ値での再通知に依存した実装は動作が変わる。状態変更の通知としては値が変わったときだけ発行するのが正しいため、修正として扱う。
+- 管理パネルのPauseが、Play Mode外でも操作ボタンを受け付けて `SymphonyNotInitializedException` を出していたのを修正した。未初期化時はボタンを無効化する。
 
 ## [2.18.0] - 2026-08-03
 ### Add
@@ -505,20 +529,21 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - 管理パネルのPauseに `IPausable` の購読件数を表示するようにした。
 - Pauseの EditModeテストを34件追加した。同値の再通知抑止、重複登録の排除、購読者例外の扱い、Resetの後始末を検証する。
 
-### Fix
-- **`PauseManager.Pause` に現在と同じ値を代入したとき、`OnPauseChanged` を発行しないようにした。** 従来は `Pause = true` を2回続けると `IPausable.Pause()` が2回呼ばれていた。**利用側への影響**: 同じ値での再通知に依存した実装は動作が変わる。状態変更の通知としては値が変わったときだけ発行するのが正しいため、修正として扱う。
-- 管理パネルのPauseが、Play Mode外でも操作ボタンを受け付けて `SymphonyNotInitializedException` を出していたのを修正した。未初期化時はボタンを無効化する。
-
 ### Change
 - **管理パネルからEditor更新ごとのpollingを完全に除去した。** Pauseが最後の1件で、`EditorApplication.update` の購読自体が無くなっている。各パネルは状態変更eventを購読する。
 - 管理パネルのPauseがリフレクション（`typeof(PauseManager).GetField("_pause", ...)`）で内部状態を読むのをやめた。パッケージ内でinternal状態をリフレクションで読む箇所は無くなった。
 - `PauseManager.cs` を `Runtime/System/Pause/` へ移した。名前空間は変更していないため、利用側の `using` に影響しない。
 - internalアクセサ `PauseManager.IsPaused` と `PausableSubscriberCount` を削除した。MCP診断は公開Infoを使う。
 
-## [2.17.1] - 2026-08-03
+## [2.17.2] - 2026-08-03
+
 ### Change
 - ソースファイルの文字コードを規約へ揃えた。BOM が無かった17件の `.cs` へ UTF-8 BOM を付与している。**コードの挙動、公開API、シリアライズ形式はいずれも変更していない。** 各ファイルの差分は先頭行のみ。
   - BOM が無くてもコンパイルは通るため、日本語コメントを含むファイルが環境によってはシステム既定のコードページで解釈され、文字化けしうる状態だった。
+
+## [2.17.1] - 2026-08-03
+### Fix
+- 管理パネルの State 表示が、キャッシュがあるだけの型を `Loaded` と表示していたのを修正した。
 
 ## [2.17.0] - 2026-08-03
 ### Add
@@ -535,10 +560,8 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - Editorの管理パネルがEditor更新ごとの走査をやめ、状態変更の通知を購読するようになった。表示内容は従来と同じで、`SymphonyAdministrator`がSave Dataをpollingしなくなる。
 - `SaveDataEntryRegistry` のスナップショットキャッシュを廃止した。読み込み済み状態の変化で無効化されず、保存日時の変化も検出できなかったため。
 
-### Fix
-- 管理パネルの State 表示が、キャッシュがあるだけの型を `Loaded` と表示していたのを修正した。
-
 ## [2.16.0] - 2026-08-03
+
 ### Change
 - Save Dataの内部構造をレイヤーごとに分割した。`SaveDataRegistry`（420行）が公開Facade・キャッシュ保持・処理順・例外変換・ローダー解決・スナップショット生成をすべて担っていたため、Scene LoadおよびService Locateと同じ形へ揃えた。**公開APIのシグネチャ、例外の種類と条件、シリアライズ形式はいずれも変更していない。**
   - `SaveDataEntryEntity`（Domain）— セーブデータ型を同一性とし、キャッシュ内容と読み込み済み状態を保持する。状態変更は状態遷移メソッドからのみ行う
@@ -551,6 +574,10 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `SaveDataEntryEntity` と `SaveDataEntryRegistry` のEditModeテストを17件追加した。同一性、読み込み済み状態の遷移、型ごとの独立性、スナップショットのキャッシュ、全消去を検証する。
   - **同期的に完了するローダーで進行中タスクを登録しないこと**を回帰テストにした。従来はコード上のコメントでのみ説明されていたが、ここが壊れると「Loadしても保存済みデータが読み込まれない」という発見しにくい不具合になるため、テストで固定した。
 
+## [2.15.1] - 2026-08-03
+### Fix
+- Play Mode終了時にOrchestratorがService Locatorを解放した後で`SymphonyLocate.OnDisable()`が登録状態を照会し、`SymphonyNotInitializedException`を記録する問題を修正した。未初期化時は解除処理をスキップし、Domain Reload無効で2回往復して終了時エラーと登録残留がないことを確認した。
+
 ## [2.15.0] - 2026-08-03
 ### Add
 - 登録キー、payload、登録方式を取得時点の不変値として返す公開`ServiceRegistrationInfo`を追加した。`ServiceLocator.GetRegistrationInfos()`で登録一覧を型名順に取得でき、`TryGetRegistrationInfo`で既知の型を点検索できる。
@@ -561,10 +588,8 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `ServiceLocatorWindow`を`ServiceLocateViewModel`の読み取り専用ReactiveProperty購読へ変更した。Editor更新ごとの登録一覧pollingを廃止し、状態変更時だけ型名、payload名、登録方式を再描画する。Play Mode終了時に購読を解除するため、Domain Reload無効でも前回の表示状態を残さない。
 - `SymphonyMcpTools.GetServiceLocatorJson()`を公開`ServiceRegistrationInfo`から生成するようにした。既存JSONフィールドを維持し、Componentでは記録された登録方式、Component以外では従来どおりLocatorを実効値として返す。
 
-### Fix
-- Play Mode終了時にOrchestratorがService Locatorを解放した後で`SymphonyLocate.OnDisable()`が登録状態を照会し、`SymphonyNotInitializedException`を記録する問題を修正した。未初期化時は解除処理をスキップし、Domain Reload無効で2回往復して終了時エラーと登録残留がないことを確認した。
-
 ## [2.14.0] - 2026-08-02
+
 ### Add
 - 重複登録で失敗した候補の所有権を呼び出し側へ残す通常の`RegisterInstance`に加え、候補を明示的に自動解放する`RegisterInstanceWithAutoDispose`のgeneric／`Type` overloadを追加した。
 - `ServiceRegistrationEntity`の状態遷移、`ServiceLocateRegistry`の登録・検索・スナップショット・待機callback、`ServiceLocateService`の所有権と処理順を検証するEditModeテストを20件追加した。
@@ -575,6 +600,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - AdministratorのService Locator表示からprivate fieldへのリフレクションを除去し、変更不能な登録スナップショットを参照するようにした。Service Locator SampleはSingleton重複候補を自動破棄する新APIの利用例へ更新した。
 
 ## [2.13.0] - 2026-08-02
+
 ### Add
 - 追跡中Sceneの名前、状態、優先度、進捗、Active判定を取得時点の不変値として返す公開`SceneLoadInfo`を追加した。`SceneLoader.GetSceneInfos()`で既知のScene名なしに一覧を取得でき、`TryGetSceneInfo`で1件を安全に照会できる。既存の`IsExist`と`TryGetState`は互換性を維持する。
 - `SceneLoadQuery`の点検索、一覧順、Active判定、スナップショット性と、`SceneLoadViewModel`の初期値、内容同値時の通知抑制、購読解除を検証するEditModeテストを追加した。
@@ -585,6 +611,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `SymphonyMcpTools.GetSceneLoaderJson()`を公開`SceneLoadInfo`から生成するようにし、既存JSONフィールドを維持したまま`progress`と`isActive`を追加した。Scene Loader Sampleと利用者向け文書も新しい状態照会APIへ更新した。
 
 ## [2.12.0] - 2026-08-02
+
 ### Add
 - シーン名とActive Scene選択用の優先度を一体で扱う公開Value Object `SceneLoadRequest`を追加した。単一／複数ロード用の新しいoverloadへ渡せるため、複数シーンでもシーン名と優先度の対応を崩さず指定できる。
 - `SceneLoadRequest` overloadの進捗通知へC#標準の`IProgress<float>`を採用した。既存の`Action<float>` overloadは同期adapterとして維持し、ソース互換性と通知タイミングを保つ。
@@ -595,6 +622,10 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - 起動時のScene同期とリセット処理を`SceneLoadService`へ統合した。公開`SceneLoader`の既存シグネチャ、`SceneLoadState`、`SceneManagerConfig`、シリアライズ済みアセットは変更していない。
 - Scene Loader SampleのScene A経路を`SceneLoadRequest`と`IProgress<float>`の利用例へ更新した。Editor WindowとMCP診断は新しいEntity一覧へ追従し、表示するJSONの意味を維持する。
 
+## [2.11.1] - 2026-07-31
+### Fix
+- `ReactiveProperty` のメインスレッド判定が `Awaitable` を毎回生成し、await せずに破棄していた問題を修正した。Unity の `Awaitable` はプールされた型で、await されないとプールへ返却されない。値の更新ごとに呼ばれる経路であり、後続の ViewModel が高頻度に更新するとプールを圧迫する。副作用のない Unity API 読み取りでスレッドを判定する形へ変更し、メインスレッド上ではアロケーションが発生しないようにした。
+
 ## [2.11.0] - 2026-07-31
 ### Add
 - `ReactiveProperty<T>` の単体テストを21件追加した。等値比較（既定と custom comparer、配列が参照比較になること）、`notifyCurrent` の有無、購読解除と多重 Dispose、通知中に購読者が購読・解除した場合、購読者が例外を投げた場合の分離、破棄後の拒否、メインスレッド以外からの呼び出しの拒否を検証する。2.10.0 で追加した時点ではテストを持てなかったため、レビューだけが品質保証になっていた。
@@ -603,10 +634,8 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - **テストをパッケージ内へ戻した。** `Tests/Editor/` と `Tests/Runtime/` に配置し、パッケージへ同梱する。両 asmdef の `defineConstraints` に `UNITY_INCLUDE_TESTS` を指定しているため、**利用側のビルドには含まれない。**
 - `Runtime/AssemblyInfo.cs` と `Core/AssemblyInfo.cs` がテストアセンブリへ `InternalsVisibleTo` を与えるようにした。これにより `internal` な内部実装も単体テストの対象にできる。従来は公開APIの範囲でしかテストできず、`ReactiveProperty` のような内部基盤を検証できなかった。
 
-### Fix
-- `ReactiveProperty` のメインスレッド判定が `Awaitable` を毎回生成し、await せずに破棄していた問題を修正した。Unity の `Awaitable` はプールされた型で、await されないとプールへ返却されない。値の更新ごとに呼ばれる経路であり、後続の ViewModel が高頻度に更新するとプールを圧迫する。副作用のない Unity API 読み取りでスレッドを判定する形へ変更し、メインスレッド上ではアロケーションが発生しないようにした。
-
 ## [2.10.0] - 2026-07-31
+
 ### Add
 - `ReactiveProperty<T>` と `IReadOnlyReactiveProperty<T>` を `Core` へ追加した。値が変化したときだけ購読者へ通知する最小の基盤で、後続バージョンで導入する ViewModel が表示状態を View と Editor Window へ伝えるために使う。現在 Editor Window は毎フレーム内部状態をポーリングしているが、これを変更時のみの反映へ移行するための土台になる。外部ライブラリ（R3 / UniRx）は導入していない。
   - どちらも `internal` のため、**利用側の公開APIは増えていない。**
@@ -615,10 +644,11 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
   - 値の更新・購読・破棄はメインスレッドに限定し、それ以外からの呼び出しは例外にする。
   - 配列や `List` は既定では参照比較になるため、内容比較用の comparer とスナップショットの用意は利用側の責務としている。
 
-## [2.9.0] - 2026-07-31
+## [2.9.1] - 2026-07-31
 ### Fix
 - **Play Mode 終了時に解放されていなかった状態を解放するようにした。** `PauseManager` の `IPausable` 購読辞書と `OnPauseChanged` の購読、`AudioManager` が生成した GameObject と AudioSource、`SymphonyDebugHUD` の描画コンポーネントは、これまで終了処理を持っておらず残り続けていた。Enter Play Mode Options で Domain Reload を無効にしている環境では、これがゴースト参照や二重購読の原因になる。**利用側への影響**: Play Mode を繰り返したときに、前回の購読が残って通知が多重に飛ぶ問題が解消される。
 
+## [2.9.0] - 2026-07-31
 ### Change
 - Runtime の終了処理を `SymphonyOrchestrator` の1件へ集約した。従来は `SaveDataRegistry`・`SceneLoader`・`ServiceLocator` がそれぞれ `destroyCancellationToken` へ登録しており、**解放順が保証されていなかった**。今後は Orchestrator が1回だけ登録し、初期化の逆順（`SymphonyDebugHUD` → `AudioManager` → `SceneLoader` → `ServiceLocator` → `PauseManager` → `SaveSystem`）で解放する。1つの解放が失敗しても残りを解放し、例外は記録してから握り潰さずまとめて報告する。
 - サブシステムから Composition Root への逆参照を除去した。従来 `ServiceLocateData`・`AudioManager`・`SymphonyDebugHUD` が `SymphonyOrchestrator.PreserveObject()` / `CreateSystemObject()` を直接呼んでいたが、`ISystemObjectFactory` 契約を Composition が実装して注入する形へ変えた。`Runtime/` から Composition 内部への参照は0件になった。
@@ -627,6 +657,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `ServiceLocateData` が持っていた `[RuntimeInitializeOnLoadMethod]` を除去し、終了検知の初期化と解除を Orchestrator の初期化・終了フェーズへ移した。二重購読が残らなくなる。
 
 ## [2.8.0] - 2026-07-31
+
 ### Change
 - Editorの初期化を `SymphonyEditorOrchestrator` へ集約した。従来は `PackageInitializer`・`AutoEnumGenerator`・`SymphonyDebugLogFileWriter`・`TagsAndLayersPostProcessor` の4型がそれぞれ `[InitializeOnLoad]` を持ち、互いの順序を知らないまま並行して走っていた。今後は自動初期化属性を持つのはOrchestratorだけで、各モジュールは明示的に `Initialize()` / `Shutdown()` を呼ばれる。初期化順が確定し、assembly reload とEditor終了時に構築順の逆順で解放されるようになった。
   - 初期化状態（`Uninitialized` / `Initializing` / `Ready` / `ShuttingDown`）を持ち、`Ready` 以外では再初期化しない。
@@ -636,6 +667,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - `PackageInitializer` を `public static` から `internal static` へ変更した。`[InitializeOnLoad]` により自動実行される型であり、外部から呼ぶ想定のAPIではないため。**利用側への影響**: Editorアセンブリの型のため、Runtimeコードとビルド済みプレイヤーには影響しない。
 
 ## [2.7.0] - 2026-07-31
+
 ### Add
 - Editor専用の `SymphonyMcpTools` を追加。`GetServiceLocatorJson()` / `GetSceneLoaderJson()` / `GetSaveDataJson()` / `GetPauseJson()` で、各サブシステムの現在状態をJSONで取得できる。uLoopMCP の `execute-dynamic-code` など自動化されたデバッグから状態を**列挙**するための入口。従来は点検索（`IsExistInstance<T>()`、`TryGetState(name, out)`）しか無く、「何が登録されているか」を知るにはリフレクションを書くしかなかった。
   - どのメソッドも**例外を投げず、必ず有効なJSONを返す**。未初期化時は `"initialized": false`、読み取り失敗時は `"error"` を含む。
@@ -648,6 +680,7 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - 上記の実装のため、`ServiceLocator` / `SceneLoader` / `PauseManager` / `SaveDataRegistry` へ `internal` の読み取り専用アクセサを追加した。公開APIは増えていない。setterも副作用も持たない。従来Editor側がリフレクションでprivateフィールドを覗いていた経路を、型安全な参照へ置き換えるための土台になる。
 
 ## [2.6.0] - 2026-07-31
+
 ### Add
 - `SymphonyAwaitable` を追加。Unity 6 の `Awaitable` に対して、完了済み値（`Completed` / `FromResult`）、複数処理の待機（`WhenAll`）、条件待機（`WaitUntil` / `WaitWhile`）、協調的タイムアウト（`WithTimeout`）、`Task` との相互変換（`FromTask` / `AsTask`）を提供する。3.0.0 で予定している Awaitable 全面移行の基盤になる。
   - `WhenAny` は提供しない。未完了側の Awaitable と例外を安全に消費する一般契約を定められないため。具体的な利用要件が生じた時点で追加を判断する。
@@ -667,6 +700,10 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
   - `SymphonyTask.OnComplete(this Awaitable, ...)` → `SymphonyAwaitable.OnComplete`
   - `SymphonyTask.OnComplete(this Task, ...)` は以前から非推奨。`Awaitable` 版へ移行する
 
+## [2.5.1] - 2026-07-31
+### Fix
+- Runtimeコードから `UnityEditor` への参照を除去した。`ServiceLocator` と `ServiceLocateManager` が `EditorPrefs` を、`SymphonyDebugHUD` が `MenuItem` を、`SymphonyVisualElement` が `AssetDatabase` を参照しており、`#if UNITY_EDITOR` で囲まれていてもRuntimeアセンブリがEditor APIに依存していた。設定値とローダーはEditor側のCompositionから注入する形へ変更した。`LoadType.AssetDataBase` を含む公開APIは変更していない。
+
 ## [2.5.0] - 2026-07-31
 ### Add
 - Framework配下のアセット移動に対する保護の強さを、`Project Settings > SymphonyFrameWork` から「有効化／警告／無効化」の3段階で選べるようにした。従来は一律で差し戻すか警告するかの2択で、切り替えもメニューに隠れていたため、テストフォルダの移設のように意図した移動を行いたい場面で扱いにくかった。「警告」では移動を続行するか元に戻すかをその場で選べる。1回の移動操作でダイアログは1回だけ表示する。
@@ -677,20 +714,20 @@ Asset Store Tools Packager の設定を `PackagerConfig.json` へ集約し、依
 - アセット移動の判定を `OnPostprocessAllAssets` から `OnWillMoveAsset` へ変更した。従来は一度移動させてから `AssetDatabase.MoveAsset` で戻していたが、戻り値で移動そのものを止められるため、余計な移動と `AssetDatabase.Refresh()` が不要になった。あわせて判定を前方一致にし、パスに `SymphonyFrameWork` を含むだけの無関係なアセットを誤検知しないようにした。
 - `SymphonyDebugHUD.Show()` / `Hide()` の `[MenuItem]` をEditor側の型へ移した。メニューのパスと両メソッドのシグネチャは変更していない。
 
-### Fix
-- Runtimeコードから `UnityEditor` への参照を除去した。`ServiceLocator` と `ServiceLocateManager` が `EditorPrefs` を、`SymphonyDebugHUD` が `MenuItem` を、`SymphonyVisualElement` が `AssetDatabase` を参照しており、`#if UNITY_EDITOR` で囲まれていてもRuntimeアセンブリがEditor APIに依存していた。設定値とローダーはEditor側のCompositionから注入する形へ変更した。`LoadType.AssetDataBase` を含む公開APIは変更していない。
+## [2.4.4] - 2026-07-31
 
-## [2.4.3] - 2026-07-31
 ### Change
 - 本体開発向けのドキュメント（`Documentation~/CONTRIBUTING.md`、`CodeGuidelines.md`、`DesignPhilosophy.md`）を、開発用ワークスペースリポジトリ [SymphonyWorkspace](https://github.com/HIBIKI5201/SymphonyWorkspace) の `Documentation/` へ移設。本パッケージはそのワークスペースへ submodule として組み込まれて開発されるようになり、Unityプロジェクト・検証環境・開発手順はワークスペース側が持つ責務になったため。このリポジトリには**パッケージ利用者向けの内容だけ**を残し、`Documentation~/` は削除した。本体開発ドキュメントの所在は README の「ドキュメント」節が案内する。
 - `AGENTS.md` から「本体を変更する立場か、利用する立場か」を読者に判定させる前置きと、本体開発者向けの注意書きを削除。本ファイルは利用者向けの内容のみになった。記載しているAPI・作法・検証手順に変更はない。
 - `README.md` の「ドキュメント」節から設計思想・コーディングガイドライン・本体開発ガイドへのリンクを削除し、ワークスペースリポジトリへの案内に置き換え。あわせて `package.json` と乖離していたバージョン表記を修正した。
 
-## [2.4.2] - 2026-07-31
+## [2.4.3] - 2026-07-31
+
 ### Change
 - `SymphonyOrchestrator` の管理オブジェクトを、実行時に生成する専用の `SymphonySystem` シーンからUnity標準の `DontDestroyOnLoad` に変更。専用シーンの生成・待機とScene Loader側の除外処理が不要になり、`LoadSceneMode.Single` 相当の遷移でもフレームワークのランタイム状態をUnity標準の永続化機構で保持する。公開API、設定アセット、セーブデータ形式の変更はない。
 
-## [2.4.1] - 2026-07-30
+## [2.4.2] - 2026-07-30
+
 Save Systemの公開範囲を、DesignPhilosophy.mdの[公開範囲](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/main/Documentation/DesignPhilosophy.md#公開範囲)へ明記した「サブシステムの機能はすべてFacade経由で呼び出す」原則に合わせました。Facade（`SaveDataRegistry`）以外の公開型から機能を起動できた経路を塞ぎ、Facade以外の`public`をenum、基底クラス、Value Object、例外、Inspector属性だけに揃えます。
 
 `SaveDataRegistry` の `Exists`／`Get`／`LoadAsync`／`SaveAsync`／`DeleteAsync`／`GetEntries`、`SaveDataContent` の継承、`SaveDataLoader`・`PlayerPrefsSaveDataLoader` の継承、`SaveDataRegistryEntryInfo` の読み取りは、いずれもシグネチャを変更していません。README.mdとSampleに載っている使い方だけでセーブデータを扱っていたコードは、修正なしでそのまま動きます。影響を受けるのは、Facadeを介さずローダーや保存日時を直接操作していたコードと、`SaveSystem<TData, TLoader>` を使っていたコードに限られ、いずれもドキュメントで案内していた利用方法ではありません。この影響範囲からメジャーではなくパッチ更新として扱います。シリアライズ形式（`SaveDataContent` のフィールド構成、保存されるJSON、PlayerPrefsのキー）は変更していないため、既存のセーブデータはそのまま読み込めます。
@@ -705,6 +742,12 @@ Save Systemの公開範囲を、DesignPhilosophy.mdの[公開範囲](https://git
 - DesignPhilosophy.mdの「公開範囲」へ、サブシステムの機能はすべてFacade経由で呼び出し、Facade以外の`public`はenum、抽象基底クラス・interface、Value Object、例外、Inspector属性に限るという原則を明記。あわせて、契約型では利用側が実装するメンバーを`protected abstract`、フレームワークが駆動するメンバーを`internal`にすること、フレームワークが生成して返すValue Objectはコンストラクタを`internal`にすること、Editor・Composition専用のメンバーはFacade上でも`public`にしないこと、1つのサブシステムに複数の公開入口を作らないことを規約として追加した。
 - `Template/` 配下の扱いを整理。DesignPhilosophy.mdで「テンプレート実装はinternal」と「`PlayerPrefsSaveDataLoader` は拡張点としてpublic」が矛盾していたため、`Template/` は利用側が継承する抽象基底クラスを置く場所、そのまま使う具象実装は `Internal/` に置いて`internal`、と定義し直した。`PlayerPrefsSaveDataLoader` は`public`のまま変更なし。
 
+## [2.4.1] - 2026-07-30
+### Fix
+- 初期化前の `ServiceLocator`、`SceneLoader`、`AudioManager`、`PauseManager` 呼び出しが実装詳細の `NullReferenceException` になる問題を修正し、`SymphonyNotInitializedException` へ統一。
+- Service Locatorの非同期待機がタイムアウトまたはキャンセルされた後も登録待ちコールバックを保持していた問題を修正。
+- Domain Reload無効時にPause Managerの登録辞書だけが残り、再生し直した際に通知を再購読できない問題を修正。
+
 ## [2.4.0] - 2026-07-30
 ### Add
 - `ServiceLocator.GetRequiredInstance<T>()` と `ServiceNotRegisteredException` を追加。存在が必須の依存関係をnullのまま注入せず、未登録だったサービス型を呼び出し側で判定できるようにした。既存の `GetInstance<T>()`、`TryGetInstance<T>()` の契約は変更していない。
@@ -717,15 +760,11 @@ Save Systemの公開範囲を、DesignPhilosophy.mdの[公開範囲](https://git
 - null、空文字、範囲外の引数には `ArgumentNullException`、`ArgumentException`、`ArgumentOutOfRangeException` を使用するよう、Scene Loader、Audio Manager、Pause Manager、Debug HUDの公開入口を明確化。
 - Save Data Registryから伝播していたローダー固有例外を `SaveDataOperationException` でラップし、シーン初期化から伝播していた実装固有例外を `SceneInitializationException` でラップする。**移行方法:** 従来の具体的な例外を直接catchしていたコードは各専用例外をcatchし、`InnerException` を確認する。キャンセル処理のcatchは `OperationCanceledException` のままでよい。
 
-### Fix
-- 初期化前の `ServiceLocator`、`SceneLoader`、`AudioManager`、`PauseManager` 呼び出しが実装詳細の `NullReferenceException` になる問題を修正し、`SymphonyNotInitializedException` へ統一。
-- Service Locatorの非同期待機がタイムアウトまたはキャンセルされた後も登録待ちコールバックを保持していた問題を修正。
-- Domain Reload無効時にPause Managerの登録辞書だけが残り、再生し直した際に通知を再購読できない問題を修正。
-
 ## [2.3.0] - 2026-07-30
+
 2.2.0で導入した `SymphonyFrameWork.System.API` 名前空間を撤回し、公開Facadeクラスをそれぞれのサブシステムの名前空間へ戻しました。Facadeとその引数・戻り値のValue Object（`LocateType`、`SceneLoadState`）が別々の名前空間に分かれ、1つのサブシステムを使うだけで `using` が2つ必要になっていた状態を解消するためです。公開範囲の区別は名前空間ではなくフォルダ（`Internal/`）で表す方針へ変更しました。
 
-Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバー・シグネチャ・シリアライズ形式は一切変わりません。2.1.0以前の書き方（`SymphonyFrameWork.System.ServiceLocate` などを直接使うコード）はそのまま動き、`using` の修正が必要なのは2.2.0〜2.2.1の2バージョンだけに存在した `SymphonyFrameWork.System.API` を使ったコードに限られます。この影響範囲の狭さから、メジャーではなくマイナー更新として扱います。
+Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバー・シグネチャ・シリアライズ形式は一切変わりません。2.1.0以前の書き方（`SymphonyFrameWork.System.ServiceLocate` などを直接使うコード）はそのまま動き、`using` の修正が必要なのは2.2.0〜2.2.2の3バージョンだけに存在した `SymphonyFrameWork.System.API` を使ったコードに限られます。この影響範囲の狭さから、メジャーではなくマイナー更新として扱います。
 
 ### Change
 - `SymphonyFrameWork.System.API` 名前空間を削除し、Facadeクラスを2.1.0以前と同じ名前空間へ戻した。**移行方法:** `using SymphonyFrameWork.System.API;` を、使用しているFacadeに応じて次へ置き換える（クラス名とメンバーの変更はないため、`using` 以外の修正は不要）。
@@ -738,12 +777,13 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 - Runtime内の `internal` な型を、所属するフォルダ直下の `Internal/` へ移動（`Runtime/System/Internal/`、`Runtime/System/SaveSystem/Internal/`、`Runtime/System/SceneLoader/Internal/`、`Runtime/System/ServiceLocator/Internal/`、`Runtime/Configs/Internal/`、`Runtime/Debug/DebugHUD/Internal/`）。`Internal` は可視性を表すだけで責務ではないため名前空間には含めず、`Core/Internal/` と同じ扱い。フォルダを見ればそのフォルダの公開範囲が分かり、`Internal/` の外にあるのは利用側から使える型だけになる。名前空間・型名・シグネチャは変更していないため、利用側への影響はない。空になった `Runtime/Configs/ConfigData/` は削除した。
 - 上記に合わせて DesignPhilosophy.md（Facadeと内部Managerの節、公開範囲の節）、CodeGuidelines.md（ディレクトリ表、`## 名前空間`）、README.md、AGENTS.md の記述とコード例を更新。
 
+## [2.2.2] - 2026-07-29
+### Fix
+- `SymphonyDebugHUD.Initialize()` が、破棄済みのHUDに対して `MissingReferenceException` を投げていた問題を修正。Domain Reloadを無効にした状態で再生を繰り返すと、前回の再生で生成した `Lazy` がstaticに残り、`IsValueCreated` はtrueのままHUDのGameObjectだけが破棄済みになるため、`Destroy` へ渡す `gameObject` の取得で例外になっていた。
+
 ## [2.2.1] - 2026-07-29
 ### Add
 - `Samples/Runtime/DebuggerSample`: `SymphonyDebugLogger`（`LogDirect`の重要度別出力、`AddText`／`NewText`／`LogText`による複数行ログの蓄積と一括出力、`LogAndCheckComponentNull`）、`SymphonyDebugHUD`（`Show`／`Hide`、`AddText(Func<string>)`と`RemoveText`の対、時間指定の一時表示）、`SymphonyStopWatch`（`Start`／`Stop`による計測、未開始IDの警告）をPlayモードで確認できるサンプルシーンとスクリプト。`package.json`の`samples`へ`Debugger Sample`として追加。
-
-### Fix
-- `SymphonyDebugHUD.Initialize()` が、破棄済みのHUDに対して `MissingReferenceException` を投げていた問題を修正。Domain Reloadを無効にした状態で再生を繰り返すと、前回の再生で生成した `Lazy` がstaticに残り、`IsValueCreated` はtrueのままHUDのGameObjectだけが破棄済みになるため、`Destroy` へ渡す `gameObject` の取得で例外になっていた。
 
 ### Change
 - 2.2.0で残した旧namespaceの `[Obsolete]` シムを `Runtime/Obsolete/` へ集約。移行元の名前空間ごとにサブフォルダ（`System`／`SaveSystem`／`SceneLoad`／`ServiceLocate`）を分けている。名前空間・型名・シグネチャはいずれも変更していないため、利用側のコードとシリアライズ済みデータへの影響はない（.metaごと移動しているのでGUIDも維持）。綴りが誤っていた `Runtime/System/SaveSystem/Obsolute/` はこの集約で解消した。移行が完了したメジャー更新でフォルダごと削除する。
@@ -754,6 +794,7 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 公開APIの追加・変更はなく、追加したのは既存機能の利用例と上記の修正のみ。
 
 ## [2.2.0] - 2026-07-29
+
 サブシステムごとに散らばっていた公開Facadeクラスを、消費者から見て分かりやすい単一の場所へ集約しました。破壊的変更はありません。
 
 ### Add
@@ -763,11 +804,13 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 - 旧namespace（`SymphonyFrameWork.System.ServiceLocate`、`SymphonyFrameWork.System.SceneLoad`、`SymphonyFrameWork.System.SaveSystem`、無印の`SymphonyFrameWork.System`）にあった上記Facadeクラスは、`[Obsolete(error: false)]` を付けたシムとして当面残る。呼び出しは内部で新しい `SymphonyFrameWork.System.API` の同名クラスへ転送されるだけなので、既存コードはそのままコンパイル・動作するが、コンパイル時に非推奨警告（CS0618）が出る。**移行方法:** 対象クラスを使用している箇所の `using` を `SymphonyFrameWork.System.API` に張り替える。`LocateType`・`SceneLoadState` はFacade本体ではなく引数・戻り値のValue Objectのため移動しておらず、引き続き旧namespace（`SymphonyFrameWork.System.ServiceLocate` / `SymphonyFrameWork.System.SceneLoad`）から参照する。
 
 ## [2.1.0] - 2026-07-29
+
 ### Add
 - `SymphonyDebugLogger.LogDirect` 経由のログをEditor限定でファイルへキャッシュ出力する機能。5秒間隔または50件到達時にバッファをまとめて `Cache/Log.txt`（パッケージ直下）へ書き込み、`Application.quitting`／アセンブリリロード前にも強制フラッシュする（実体は新規Editor拡張 `SymphonyDebugLogFileWriter` が `SymphonyDebugLogger` の内部イベントを購読して担当し、Runtime層はファイルI/Oを持たない）
 - `SymphonyConstant.GetFrameworkAbsolutePath()`（Editor専用）: Framework自身の実配置パス（Assets直置き、またはUPM経由のPackages／Library/PackageCache）を絶対パスで解決するユーティリティ
 
 ## [2.0.0] - 2026-07-22
+
 設計思想（[`DesignPhilosophy.md`](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/main/Documentation/DesignPhilosophy.md)）の改訂に合わせて、主要サブシステムの公開範囲とアーキテクチャを再構成しました。破壊的変更を含みます。
 
 ### Add
@@ -791,518 +834,646 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 - 上記Breakingに該当しないコードは、Facade API経由の利用であれば影響を受けない
 
 ## [1.27.20] - 2026-07-12
+
 ### Update
 - SceneLoader
 
 ## [1.27.19] - 2026-07-03
+
 ### Add
 - Samples
 
 ## [1.27.18] - 2026-06-18
+
 ### Update
 - AssetStoreToolsPackager
 
 ## [1.27.17] - 2026-05-01
+
 ### Update
 - SceneLoader
 
 ## [1.27.16] - 2026-03-29
+
 ### Update
 - AssetStoreToolsPackager
 
 ## [1.27.15] - 2026-03-25
+
 ### Add
 - SceneNameSelectorAttribute
 
 ## [1.27.14] - 2026-03-19
+
 ### Fix
 - SaveSystem
 
 ## [1.27.13] - 2026-03-19
+
 ### Fix
 - AssemblyGenerator
 
 ## [1.27.12] - 2026-03-19
+
 ### Fix
 - SaveSystem
 
 ## [1.27.11] - 2026-03-19
+
 ### Fix
 - SaveSystem
 
 ## [1.27.10] - 2026-03-19
+
 ### Update
 - SaveSystem
 
 ## [1.27.9] - 2026-03-19
+
 ### Update
 - SaveSystem
 
 ## [1.27.8] - 2026-03-18
+
 ### Update
 - AssemblyGenerator
 
 ## [1.27.7] - 2026-03-14
+
 ### Update
 - SymphonyDebugHUD
 
 ## [1.27.6] - 2026-03-14
+
 ### Update
 - FolderGenerator
 
 ## [1.27.5] - 2026-03-01
+
 ### Update
 - ServiceLocator
 
 ## [1.27.4] - 2026-03-01
+
 ### Update
 - ServiceLocator
 
 ## [1.27.3] - 2026-03-01
+
 ### Update
 - SymphonyVisualElement
 
 ## [1.27.2] - 2026-02-26
+
 ### Update
 - SceneLoader
 
 ## [1.27.0] - 2025-12-05
+
 ### Add
 - SubClassSelector
 
 ## [1.26.1] - 2025-12-03
+
 ### Update
 - AssetStoreToolsPackager
 
 ## [1.26.0] - 2025-10-30
+
 ### Add
 - SymphonyStringUtil
 
 ## [1.25.4] - 2025-10-23
+
 ### Fix
 - SymphonyDebugLogger
 
 ## [1.25.3] - 2025-10-23
+
 ### Update
 - FolderGenerator
 
 ## [1.25.2] - 2025-10-21
+
 ### Fix
 - SymphonyDebugHUD
 
 ## [1.25.1] - 2025-10-19
+
 ### Add
 - SymphonyLocateObject
 
 ## [1.24.2] - 2025-10-19
+
 ### Update
 - SymphonyDebugLogger
 
 ## [1.24.1] - 2025-10-19
+
 ### Add
 - TagSelectorAttribute
 
 ## [1.23.21] - 2025-10-08
+
 ### Update
 - SymphonyDebugHUD
 
 ## [1.23.20] - 2025-10-08
+
 ### Update
 - ServiceLocator
 
 ## [1.23.19] - 2025-10-08
+
 ### Fix
 - ServiceLocator
 
 ## [1.23.18] - 2025-08-06
+
 ### Add
 - SymphonyDebugLogger
 
 ## [1.23.17] - 2025-07-19
+
 ### Fix
 - ServiceLocator
 
 ## [1.23.16] - 2025-07-17
+
 ### Fix
 - SymphonyLocate
 
 ## [1.23.15] - 2025-07-17
+
 ### Update
 - ServiceLocator
 
 ## [1.23.14] - 2025-07-17
+
 ### Update
 - ServiceLocator
 
 ## [1.23.13] - 2025-07-16
+
 ### Fix
 - ServiceLocator
 
 ## [1.23.12] - 2025-07-16
+
 ### Fix
 - SceneLoader
 
 ## [1.23.11] - 2025-07-16
+
 ### Fix
 - FolderGenerator
 
 ## [1.23.10] - 2025-07-16
+
 ### Fix
 - SymphonyLocate
 
 ## [1.23.9] - 2025-07-16
+
 ### Fix
 - SymphonyAdministrator
 
 ## [1.23.8] - 2025-07-11
+
 ### Fix
 - SymphonyLocate
 
 ## [1.23.7] - 2025-07-11
+
 ### Update
 - ServiceLocator
 
 ## [1.23.6] - 2025-07-09
+
 ### Update
 - ServiceLocator
 
 ## [1.23.5] - 2025-07-06
+
 ### Fix
 - SymphonyLocate
 
 ## [1.23.4] - 2025-07-04
+
 ### Fix
 - SceneLoader
 
 ## [1.23.3] - 2025-07-03
+
 ### Add
 - SymphonyDebugHUD
 
 ## [1.23.2] - 2025-07-03
+
 ### Fix
 - ServiceLocator
 
 ## [1.23.1] - 2025-06-23
+
 ### Update
 - SceneLoader
 
 ## [1.23.0] - 2025-06-23
+
 ### Add
 - IInitializeAsync
 
 ## [1.22.2] - 2025-06-23
+
 ### Update
 - SaveDataSystem
 
 ## [1.22.1] - 2025-06-17
+
 ### Update
 - AssemblyGenerator
 
 ## [1.22.0] - 2025-06-03
+
 ### Add
 - AssetStoreToolsPackager
 
 ## [1.21.13] - 2025-06-03
+
 ### Update
 - ServiceLocator
 
 ## [1.21.12] - 2025-05-31
+
 ### Fix
 - SceneLoader
 
 ## [1.21.11] - 2025-05-31
+
 ### Update
 - SymphonyLocate
 
 ## [1.21.10] - 2025-05-31
+
 ### Fix
 - ServiceLocator
 
 ## [1.21.9] - 2025-05-28
+
 ### Update
 - AudioManager
 
 ## [1.21.8] - 2025-05-28
+
 ### Fix
 - SceneManagerConfig
 
 ## [1.21.7] - 2025-05-19
+
 ### Fix
 - ServiceLocator
 
 ## [1.21.6] - 2025-05-19
+
 ### Fix
 - SceneLoader
 
 ## [1.21.5] - 2025-05-18
+
 ### Fix
 - SceneLoader
 
 ## [1.21.4] - 2025-05-18
+
 ### Update
 - ServiceLocator
 
 ## [1.21.3] - 2025-05-15
+
 ### Update
 - SceneLoader
 
 ## [1.21.2] - 2025-05-14
+
 ### Update
 - ServiceLocator
 
 ## [1.21.1] - 2025-05-14
+
 ### Update
 - SymphonyLocate
 
 ## [1.21.0] - 2025-05-14
+
 ### Fix
 - EditorSymphonyConstant
 
-## [1.20.18] - 2025-05-14
+## [1.20.20] - 2025-05-14
+
 ### Update
 - SceneLoader
 
-## [1.20.17] - 2025-05-06
+## [1.20.19] - 2025-05-06
+
 ### Fix
 - AssemblyGenerator
 - EnumGenerator
 
-## [1.20.16] - 2025-05-05
+## [1.20.18] - 2025-05-05
+
 ### Update
 - PauseManager
 
-## [1.20.15] - 2025-05-2
+## [1.20.17] - 2025-05-2
+
 ### Fix
 - PackageInitializer
 
-## [1.20.14] - 2025-04-29
+## [1.20.16] - 2025-04-29
+
 ### Update
 - PackageInitializer
 - SymphonyConfigManager
 
-## [1.20.13] - 2025-04-05
+## [1.20.15] - 2025-04-05
+
 ### Fix
 - AutoEnumGeneratorConfig
 - SymphonyAdministrator
 
-## [1.20.12] - 2025-04-05
+## [1.20.14] - 2025-04-05
+
 ### Update
 - SceneLoader
 
-## [1.20.11] - 2025-04-05
+## [1.20.13] - 2025-04-05
+
 ### Fix
 - PackageInitializer
 
-## [1.20.10] - 2025-04-05
+## [1.20.12] - 2025-04-05
+
 ### Update
 - AudioManager
 
-## [1.20.9] - 2025-04-05
+## [1.20.11] - 2025-04-05
+
 ### Fix
 - AutoEnumGenerator
 
-## [1.20.8] - 2025-04-05
+## [1.20.10] - 2025-04-05
+
 ### Fix
 - PackageInitializer
 
-## [1.20.7] - 2025-03-12
+## [1.20.9] - 2025-03-12
+
 ### Update
 - SymphonyAdministrator
 
-## [1.20.6] - 2025-03-12
+## [1.20.8] - 2025-03-12
+
 ### Fix
 - EnumGenerator
 
-## [1.20.5] - 2025-03-12
+## [1.20.7] - 2025-03-12
+
 ### Add
 - PackageInitializer
 
-## [1.20.4] - 2025-03-10
+## [1.20.6] - 2025-03-10
+
 ### Fix
 - SymphonyConfigLocator
 - SymphonyEditorConfigLocator
 
-## [1.20.3] - 2025-03-10
-### Add
-- AssemblyGenerator
+## [1.20.5] - 2025-03-10
 ### Fix
 - EnumGenerator
 
-## [1.20.2] - 2025-03-10
+## [1.20.4] - 2025-03-10
+### Add
+- AssemblyGenerator
+
+## [1.20.3] - 2025-03-10
+
 ### Update
 - SymphonyPackageLoader
 
-## [1.20.1] - 2025-03-08
+## [1.20.2] - 2025-03-08
+
 ### Update
 - FoldierGenerator
+
+## [1.20.1] - 2025-03-05
+### Fix
+- EnumGenerator
 
 ## [1.20.0] - 2025-03-05
 ### Update
 - AutoEnumGenerator
 - AutoEnumGeneratorConfig
-### Fix
-- EnumGenerator
 
 ## [1.19.21] - 2025-03-05
+
 ### Add
 - TagsAndLayersPostProcessor
 
 ## [1.19.20] - 2025-03-05
+
 ### Update
 - ServiceLocater
 
 ## [1.19.19] - 2025-03-05
+
 ### Add
 - AudioManager
 - AudioManagerConfig
 
 ## [1.19.18] - 2025-03-04
+
 ### Update
 - SymphonyTask
 
 ## [1.19.17] - 2025-03-04
+
 ### Update
 - SymphonyTween
 
 ## [1.19.16] - 2025-03-02
+
 ### Update
 - SymphonyDebugLog
 
 ## [1.19.15] - 2025-03-02
+
 ### Update
 - SaveDataManager
 
 ## [1.19.14] - 2025-03-02
+
 ### Add
 - FoldierGenerator
 
 ## [1.19.13] - 2025-03-01
+
 ### Add
 - SymphonyEditorConfigLocator
 
 ## [1.19.12] - 2025-03-01
+
 ### Fix
 - AutoEnumGenerator
 
 ## [1.19.11] - 2025-03-01
+
 ### Update
 - SceneLoader
 - SceneManagerConfig
 
 ## [1.19.10] - 2025-02-28
+
 ### Add
 - SymphonyConfigLocator
 
 ## [1.19.9] - 2025-02-28
+
 ### Add
 - EnumGeneratorConfig
 
 ## [1.19.8] - 2025-02-28
+
 ### Update
 - EnumGenerator
 
 ## [1.19.7] - 2025-02-27
+
 ### Update
 - SceneManagerConfig
 
 ## [1.19.6] - 2025-02-27
+
 ### Fix
 - EnumGenerator
 
 ## [1.19.5] - 2025-02-26
+
 ### Update
 - SceneManagerConfig
 
 ## [1.19.4] - 2025-02-26
+
 ### Update
 - DisplayTextAttribute
 
 ## [1.19.3] - 2025-02-26
+
 ### Update
 - SymphonyConstant
 
 ## [1.19.2] - 2025-02-25
+
 ### Update
 - EnumGenerator
 
 ## [1.19.1] - 2025-02-25
+
 ### Update
 - SymphonyAssetPostProcessor
 
 ## [1.19.0] - 2025-02-25
+
 ### Add
 - DisplayTextAttribute
 - ReadOnryAttribute
 
 ## [1.18.11] - Y2025-02-24
+
 ### Update
 - EnumGenerator
 
 ## [1.18.10] - 2025-02-24
+
 ### Add
 - SymphonyConstant
 
 ## [1.18.9] - 2025-02-24
+
 ### Update
 - EnumGenerator
 
 ## [1.18.8] - 2025-02-24
+
 ### Add
 - EnumGenerator
 
 ## [1.18.7] - 2025-02-23
+
 ### Add
 - SymphonyFrameWork-Editor assembly
 
 ## [1.18.6] - 2025-02-23
+
 ### Add
 - SceneManagerConfig
 
 ## [1.18.5] - 2025-02-22
+
 ### Add
 - SymphonyConfigManager
 
 ## [1.18.4] - 2025-02-22
+
 ### Update
 - SymphonyTween
 
 ## [1.18.3] - 2025-02-22
+
 ### Add
 - SymphonyTween
 
 ## [1.18.2] - 2025-02-21
+
 ### Update
 - SymphonyStopWatch
 
 ## [1.18.1] - 2025-02-21
+
 ### Update
 - SymphonyAdministrator
 
 ## [1.18.0] - 2025-02-21
+
 ### Add
 - SymphonyPackageLoader
 
 ## [1.17.7] - 2025-02-20
+
 ### Add
 - SymphonyLocate
 
 ## [1.17.6] - 2025-02-20
+
 ### Update
 - SymphonyAdministrator
 
 ## [1.17.5] - 2025-02-20
+
 ### Update
 - SymphonyVisualElement
 
 ## [1.17.4] - 2025-02-20
+
 ### Update
 - PauseManager
 
 ## [1.17.3] - 2025-02-20
+
 ### Update
 - SymphonyUtility
 
 ## [1.17.2] - 2025-02-20
+
 ### Fix
 - SymphonySystem
 - ServiceLocator
@@ -1311,100 +1482,124 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 - PauseManager
 
 ## [1.17.1] - 2025-02-20
+
 ### Update
 - SymphonyTask
 
 ## [1.17.0] - 2025-02-19
+
 ### Add
 - SymphoWindow
 - SymphonyAssetPostProcessor
 
-## [1.16.8] - 2025-02-19
+## [1.16.11] - 2025-02-19
+### Fix
+- ServiceLocator
+
+## [1.16.10] - 2025-02-19
 ### Add
 - SymphonySingleton
 ### Update
 - ServiceLocator
-### Fix
-- ServiceLocator
+
+## [1.16.9] - 2025-02-18
+
+### Update
+- PauseManager
+
+## [1.16.8] - 2025-02-18
+
+### Update
+- SymphonyVisualElement
 
 ## [1.16.7] - 2025-02-18
+
 ### Update
 - PauseManager
 
 ## [1.16.6] - 2025-02-18
+
 ### Update
+- ServiceLocator
+
+## [1.16.5] - 2025-02-17
+### Fix
 - SymphonyVisualElement
 
-## [1.16.5] - 2025-02-18
-### Update
-- PauseManager
-
-## [1.16.4] - 2025-02-18
+## [1.16.4] - 2025-02-17
 ### Update
 - ServiceLocator
 
 ## [1.16.3] - 2025-02-17
+
 ### Update
-- ServiceLocator
-### Fix
 - SymphonyVisualElement
 
 ## [1.16.2] - 2025-02-17
-### Update
-- SymphonyVisualElement
-
-## [1.16.1] - 2025-02-17
-### Update
-- ServiceLocator
 ### Fix
 - ServiceLocator
 - SceneLoader
 - SaveDataSystem
 - PauseManager
 
+## [1.16.1] - 2025-02-17
+### Update
+- ServiceLocator
+
 ## [1.16.0] - 2025-02-16
+
 ### Add
 - SymphonyVisualElement
 
 ## [1.15.0] - 2025-02-16
+
 ### Update
 - SceneLoader
 
 ## [1.14.0] - 2025-02-15
+
 ### Fix
 - SymphonySystem
 - SceneLoader
 
 ## [1.13.0] - 2025-02-15
+
 ### Add
 - SymphonySystem
 
 ## [1.12.0] - 2025-02-15
+
 ### Add
 - SymphonyUtility
 ### Update
 - SingletonDirector -> ServiceLocator
 
 ## [1.11.0] - 2025-02-14
+
 ### Add
 - Assembly Definition
 
 ## [1.03.0] - 2025-02-14
+
 ### Update
 - SymphonyDebugLog
 
 ## [1.02.0] - 2025-02-14
+
 ### Add
 - PauseManager
 
-## [1.01.0] - 2025-02-13
-### Update
-- SymphonyStopWatch
+## [1.01.1] - 2025-02-13
 ### Fix
 - SingletonDirector
 - SymphonyTask
 
+## [1.01.0] - 2025-02-13
+### Update
+- SymphonyStopWatch
+
 ## [1.00.0] - 2025-02-13
+
 ### Add
 - SaveDataSystem
 - SceneLoader
