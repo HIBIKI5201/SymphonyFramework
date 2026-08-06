@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -21,18 +22,24 @@ namespace SymphonyFrameWork.Editor
         /// <inheritdoc />
         protected internal override void Execute(AssetStoreToolsPackageExportContext context)
         {
+            List<AssetStoreToolsPackagePlanEntry> exported = new();
             foreach (AssetStoreToolsPackagePlanEntry entry in context.Plan.Entries)
             {
-                ExportEntry(context, entry);
+                if (ExportEntry(context, entry))
+                {
+                    exported.Add(entry);
+                }
             }
 
-            WriteManifest(context);
+            WriteManifest(context, exported);
         }
 
         /// <summary> 出力単位1件分をパッケージ化する。 </summary>
         /// <param name="context"> 出力先を保持するコンテキスト。 </param>
         /// <param name="entry"> 出力する単位。 </param>
-        private static void ExportEntry(
+        /// <returns> パッケージを出力できた場合はtrue。 </returns>
+        private static bool ExportEntry(
+
             AssetStoreToolsPackageExportContext context,
             AssetStoreToolsPackagePlanEntry entry)
         {
@@ -46,7 +53,7 @@ namespace SymphonyFrameWork.Editor
                     if (entry.AssetPaths.Count == 0)
                     {
                         Debug.LogWarning($"使用中アセットなし: {entry.DirectoryPath}");
-                        return;
+                        return false;
                     }
 
                     // 出力時バージョンは計画に含めず、ここで加える。
@@ -65,10 +72,15 @@ namespace SymphonyFrameWork.Editor
                     Path.Combine(context.ExportLocalPath, $"{entry.Name}.unitypackage"),
                     options
                 );
+
+                return true;
+
             }
             catch (Exception e)
             {
                 Debug.LogError($"パッケージの出力に失敗しました: {entry.DirectoryPath}\n{e}");
+
+                return false;
             }
         }
 
@@ -76,17 +88,27 @@ namespace SymphonyFrameWork.Editor
         ///     出力先フォルダへ、個別出力したパッケージ一覧のマニフェストを書き出す。
         /// </summary>
         /// <remarks>
-        ///     ZIPへ含めるため、ZIP化より前に書く必要がある。
-        ///     パイプラインの並び順で<see cref="AssetStoreToolsCreateZipStrategy" />より後ろに置くと、
-        ///     マニフェストがZIPへ含まれない。
+        ///     <para>
+        ///         ZIPへ含めるため、ZIP化より前に書く必要がある。
+        ///         パイプラインの並び順で<see cref="AssetStoreToolsCreateZipStrategy" />より後ろに置くと、
+        ///         マニフェストがZIPへ含まれない。
+        ///     </para>
+        ///     <para>
+        ///         <b>出力できたものだけを書く。</b>失敗した単位を載せると、インポート側が
+        ///         存在しないファイルを開こうとする。マニフェストは「出力したパッケージの一覧」であり、
+        ///         「出力しようとした一覧」ではない。
+        ///     </para>
         /// </remarks>
         /// <param name="context"> 出力先を保持するコンテキスト。 </param>
-        private static void WriteManifest(AssetStoreToolsPackageExportContext context)
+        /// <param name="exported"> パッケージを出力できた単位。 </param>
+        private static void WriteManifest(
+            AssetStoreToolsPackageExportContext context,
+            IReadOnlyList<AssetStoreToolsPackagePlanEntry> exported)
         {
             var manifest = new AssetStoreToolsPackageManifest
             {
                 ExportedAt = AssetStoreToolsVersionLog.CreateTimestamp(),
-                Packages = context.Plan.Entries
+                Packages = exported
                     .Select(entry => new AssetStoreToolsPackageManifestEntry
                     {
                         Name = entry.Name,

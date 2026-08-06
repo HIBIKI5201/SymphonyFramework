@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -171,7 +172,13 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             {
                 Directory.CreateDirectory(directory);
             }
-            catch (IOException exception)
+            // IMGUIの描画中に例外を投げるとProject Settings画面が壊れるため、
+            // CreateDirectoryが投げうるものをまとめて捕まえる。
+            catch (Exception exception) when (
+                exception is IOException
+                    or UnauthorizedAccessException
+                    or ArgumentException
+                    or NotSupportedException)
             {
                 Debug.LogError(
                     $"[{nameof(AssetStoreToolsPackagerProvider)}]\n"
