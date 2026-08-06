@@ -87,10 +87,11 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// </summary>
         /// <typeparam name="T"> 登録解除するインスタンスの型。 </typeparam>
         /// <param name="instance"> 現在の登録と同一か確認するインスタンス。 </param>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         /// <returns> 同一インスタンスの登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
-            EnsureInitialized();
+            if (!IsInitialized) { return false; }
             if (instance == null) { return false; }
             if (!_query.TryGetInstance(
                 typeof(T),
@@ -107,15 +108,19 @@ namespace SymphonyFrameWork.System.ServiceLocate
         ///     指定したタイプをロケーターから登録解除します。
         /// </summary>
         /// <param name="type"> 登録解除する実行時型。 </param>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         /// <returns> 登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance(Type type)
         {
-            EnsureInitialized();
-
+            // null引数は状態によらず呼び出し側の誤りなので、未初期化判定より先に検証する。
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
+
+            // 終了処理でOrchestratorが解放した後の解除は失敗ではない。
+            // 警告ログを出さずに返し、終了のたびにコンソールへ積まないようにする。
+            if (!IsInitialized) { return false; }
 
             bool unregistered = _service.Unregister(type);
             if (!unregistered)
@@ -137,10 +142,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
         ///     指定した型のインスタンスをロケーターから登録解除します。
         /// </summary>
         /// <typeparam name="T"> 登録解除するインスタンスの型。 </typeparam>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         /// <returns> 登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance<T>() where T : class
         {
-            EnsureInitialized();
             return UnregisterInstance(typeof(T));
         }
 
@@ -149,9 +154,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// </summary>
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
         /// <param name="instance">破棄の対象となるインスタンス。</param>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         public static bool DestroyInstance<T>(T instance) where T : class
         {
-            EnsureInitialized();
+            if (!IsInitialized) { return false; }
             if (instance == null) return false;
 
             DestroyInstance<T>();
@@ -163,9 +169,12 @@ namespace SymphonyFrameWork.System.ServiceLocate
         ///     指定した型のインスタンスを破棄します。
         /// </summary>
         /// <typeparam name="T">破棄したいインスタンスの型。</typeparam>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         public static bool DestroyInstance<T>() where T : class
         {
-            EnsureInitialized();
+            // 解除と同じく、警告ログを出さずに返す。
+            if (!IsInitialized) { return false; }
+
             Type type = typeof(T);
 
             if (!_query.Contains(type))
@@ -199,39 +208,49 @@ namespace SymphonyFrameWork.System.ServiceLocate
         }
 
         /// <summary> 実行時型のインスタンスが登録されているか確認する。 </summary>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         public static bool IsExistInstance(Type type)
         {
-            EnsureInitialized();
-
+            // null引数は状態によらず呼び出し側の誤りなので、未初期化判定より先に検証する。
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
+            if (!IsInitialized) { return false; }
+
             return _query.Contains(type);
         }
 
         /// <summary> 登録中Serviceの不変なスナップショット一覧を取得する。 </summary>
+        /// <remarks> 未初期化の場合は何も登録されていないものとして空一覧を返す。 </remarks>
         /// <returns> 型の完全名を基準にordinal昇順で並んだ登録情報一覧。 </returns>
         public static IReadOnlyList<ServiceRegistrationInfo> GetRegistrationInfos()
         {
-            EnsureInitialized();
+            if (!IsInitialized) { return _emptyRegistrationInfos; }
+
             return _query.GetInfos();
         }
 
         /// <summary> 指定した型の登録情報を不変なスナップショットとして取得する。 </summary>
         /// <param name="serviceType"> 検索する登録キー。 </param>
         /// <param name="registrationInfo"> 取得できた登録情報。 </param>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         /// <returns> 登録情報を取得できた場合はtrue。 </returns>
         public static bool TryGetRegistrationInfo(
             Type serviceType,
             out ServiceRegistrationInfo registrationInfo)
         {
-            EnsureInitialized();
-
+            // null引数は状態によらず呼び出し側の誤りなので、未初期化判定より先に検証する。
             if (serviceType == null)
             {
                 throw new ArgumentNullException(nameof(serviceType));
+            }
+
+            if (!IsInitialized)
+            {
+                registrationInfo = default;
+                return false;
             }
 
             return _query.TryGetInfo(serviceType, out registrationInfo);
@@ -242,9 +261,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// </summary>
         /// <typeparam name="T">取得したいインスタンスの型。</typeparam>
         /// <returns>指定した型のインスタンス。見つからない場合や破棄済みの場合はnull。</returns>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてnullを返す。 </remarks>
         public static T GetInstance<T>() where T : class
         {
-            EnsureInitialized();
+            if (!IsInitialized) { return default; }
 #if UNITY_EDITOR
             // ログを出力する。
             if (ServiceLocateLogOption.IsGetInstanceLogEnabled)
@@ -288,10 +308,16 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// </summary>
         /// <typeparam name="T"> 取得するインスタンスの型。 </typeparam>
         /// <param name="result"> 取得できた登録済みインスタンス。 </param>
+        /// <remarks> 未初期化の場合は何も登録されていないものとしてfalseを返す。 </remarks>
         /// <returns> インスタンスを取得できた場合はtrue。 </returns>
         public static bool TryGetInstance<T>(out T result) where T : class
         {
-            EnsureInitialized();
+            if (!IsInitialized)
+            {
+                result = default;
+                return false;
+            }
+
             result = _query.TryGetInstance(
                 typeof(T),
                 out object registeredInstance)
@@ -580,6 +606,12 @@ namespace SymphonyFrameWork.System.ServiceLocate
         }
 
         private const LocateTypeEnum DEFAULT_LOCATE_TYPE = LocateTypeEnum.Locator;
+
+        // 初期化済みのGetRegistrationInfosはServiceLocateQueryがArray.AsReadOnlyで返すため、
+        // 未初期化の空一覧も同じ具象型に揃える。状態によって戻り値の型が変わると、
+        // Countプロパティの有無のように利用側から観測できる差になる。
+        private static readonly IReadOnlyList<ServiceRegistrationInfo> _emptyRegistrationInfos =
+            Array.AsReadOnly(Array.Empty<ServiceRegistrationInfo>());
 
         private static ServiceHostComponent _host;
         private static ServiceLocateRegistry _registry;
