@@ -82,14 +82,104 @@ namespace SymphonyFrameWork.Tests
             Assert.That(entity.Progress, Is.EqualTo(1f));
         }
 
+        /// <summary> 残るSceneが無い構成でも、ロードを先に行うことで整理が成立する。 </summary>
+        [Test]
+        public async Task InitializeAfterSceneLoad_UnloadsEveryLoadedScene_LoadsBeforeUnload()
+        {
+            var registry = new SceneLoadRegistry();
+            var loader = new FakeSceneLoader();
+            var service = new SceneLoadService(registry, loader);
+
+            await service.LoadScene(new SceneLoadRequest("InGame"));
+
+            await service.InitializeAfterSceneLoad(
+                true,
+                new[] { "Persistent" },
+                null);
+
+            Assert.That(
+                loader.Operations,
+                Is.EqualTo(new[] { "Load:InGame", "Load:Persistent", "Unload:InGame" }));
+            Assert.That(
+                loader.GetLoadedSceneNames(),
+                Is.EquivalentTo(new[] { "Persistent" }));
+        }
+
+        /// <summary> 残るSceneがある構成でも同じくロードを先に行う。 </summary>
+        [Test]
+        public async Task InitializeAfterSceneLoad_KeepsIgnoredScene_LoadsBeforeUnload()
+        {
+            var registry = new SceneLoadRegistry();
+            var loader = new FakeSceneLoader();
+            var service = new SceneLoadService(registry, loader);
+
+            await service.LoadScene(new SceneLoadRequest("Persistent"));
+            await service.LoadScene(new SceneLoadRequest("InGame"));
+
+            // 準備段階のLoadもOperationsへ記録されるため、件数を控えて差分だけを比較する。
+            int arrangedOperationCount = loader.Operations.Count;
+
+            await service.InitializeAfterSceneLoad(
+                true,
+                new[] { "Title" },
+                new[] { "Persistent" });
+
+            var operations = new List<string>(loader.Operations);
+            operations.RemoveRange(0, arrangedOperationCount);
+
+            Assert.That(
+                operations,
+                Is.EqualTo(new[] { "Load:Title", "Unload:InGame" }));
+            Assert.That(
+                loader.GetLoadedSceneNames(),
+                Is.EquivalentTo(new[] { "Persistent", "Title" }));
+        }
+
+        /// <summary> 初期Sceneのロードに失敗した場合はSceneを整理しない。 </summary>
+        [Test]
+        public async Task InitializeAfterSceneLoad_InitializeSceneLoadFails_KeepsLoadedScene()
+        {
+            var registry = new SceneLoadRegistry();
+            var loader = new FakeSceneLoader();
+            var service = new SceneLoadService(registry, loader);
+            loader.FailLoad("Missing");
+
+            await service.LoadScene(new SceneLoadRequest("InGame"));
+
+            await service.InitializeAfterSceneLoad(
+                true,
+                new[] { "Missing" },
+                null);
+
+            Assert.That(
+                loader.GetLoadedSceneNames(),
+                Is.EquivalentTo(new[] { "InGame" }));
+            Assert.That(loader.Operations, Has.No.Member("Unload:InGame"));
+        }
+
         /// <summary> テスト用にUnity Scene操作をメモリ上で再現する。 </summary>
         private sealed class FakeSceneLoader : ISceneLoader
         {
             /// <inheritdoc />
             public string ActiveSceneName { get; private set; }
 
+            /// <summary> LoadとUnloadの呼び出しを発生順に記録した一覧。 </summary>
+            internal IReadOnlyList<string> Operations => _operations;
+
             private readonly HashSet<string> _loadedSceneNames =
                 new(StringComparer.Ordinal);
+
+            private readonly HashSet<string> _failingSceneNames =
+                new(StringComparer.Ordinal);
+
+            private readonly List<string> _operations = new();
+
+            /// <summary> 指定したシーンのロードを失敗させる。 </summary>
+            /// <param name="sceneName"> ロードを失敗させるシーン名。 </param>
+            internal void FailLoad(string sceneName)
+            {
+                _failingSceneNames.Add(sceneName);
+            }
 
             /// <inheritdoc />
             public IReadOnlyList<string> GetLoadedSceneNames()
@@ -123,7 +213,15 @@ namespace SymphonyFrameWork.Tests
                 CancellationToken token)
             {
                 token.ThrowIfCancellationRequested();
+                _operations.Add($"Load:{sceneName}");
                 progress?.Report(0.5f);
+
+                if (_failingSceneNames.Contains(sceneName))
+                {
+                    progress?.Report(1f);
+                    return Task.FromResult(false);
+                }
+
                 _loadedSceneNames.Add(sceneName);
                 progress?.Report(1f);
                 return Task.FromResult(true);
@@ -136,6 +234,16 @@ namespace SymphonyFrameWork.Tests
                 CancellationToken token)
             {
                 token.ThrowIfCancellationRequested();
+                _operations.Add($"Unload:{sceneName}");
+
+                // Unityは最後の1シーンをアンロードできず、AsyncOperationがnullになる。
+                // UnitySceneLoaderはその場合にfalseを返すため、同じ制約を再現する。
+                if (_loadedSceneNames.Contains(sceneName)
+                    && _loadedSceneNames.Count <= 1)
+                {
+                    return Task.FromResult(false);
+                }
+
                 progress?.Report(0.5f);
                 bool removed = _loadedSceneNames.Remove(sceneName);
                 progress?.Report(1f);

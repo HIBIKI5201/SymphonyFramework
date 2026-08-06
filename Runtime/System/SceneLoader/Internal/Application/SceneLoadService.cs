@@ -430,7 +430,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             }
         }
 
-        /// <summary> 起動時設定に従ってSceneを整理し、初期Sceneをロードする。 </summary>
+        /// <summary> 起動時設定に従って初期Sceneをロードし、対象外のSceneを整理する。 </summary>
         /// <param name="isResetAndLoadOnPlay"> Sceneの整理と初期ロードを行うか。 </param>
         /// <param name="initializeSceneNames"> 初期ロードするScene名。 </param>
         /// <param name="resetIgnoreSceneNames"> 整理時に残すScene名。 </param>
@@ -471,18 +471,27 @@ namespace SymphonyFrameWork.System.SceneLoad
                 }
             }
 
-            if (0 < unloadSceneNames.Count)
-            {
-                await UnloadScenes(unloadSceneNames.ToArray());
-            }
-
             var requests = new SceneLoadRequest[initializeSceneNames.Length];
             for (int i = 0; i < initializeSceneNames.Length; i++)
             {
                 requests[i] = new SceneLoadRequest(initializeSceneNames[i]);
             }
 
-            await LoadScenes(requests);
+            // Unityは最後の1シーンをアンロードできないため、整理対象がロード済みシーンの
+            // 全件になる構成ではアンロード先行が成立しない。ロードを先に行い、初期シーンが
+            // 残ることを保証してからアンロードする。ロード済みシーンの数で順序を変えず、
+            // どの構成でも同じ順序にする。LoadSceneMode.SingleのResetSceneとも順序が揃う。
+            if (!await LoadScenes(requests))
+            {
+                // 置き換え先が用意できていない状態で現在のシーンを捨てない。
+                // ロード失敗自体はUnitySceneLoaderがエラーログで通知済み。
+                return;
+            }
+
+            if (0 < unloadSceneNames.Count)
+            {
+                await UnloadScenes(unloadSceneNames.ToArray());
+            }
         }
 
         /// <summary> 指定したSceneだけを残し、それ以外をアンロードする。 </summary>
