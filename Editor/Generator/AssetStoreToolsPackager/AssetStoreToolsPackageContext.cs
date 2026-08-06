@@ -5,6 +5,13 @@ using UnityEngine;
 namespace SymphonyFrameWork.Editor
 {
     /// <summary> 1回のパッケージ出力で共有する名前、日時、入出力パスを保持する。 </summary>
+    /// <remarks>
+    ///     <c>ref struct</c>はフィールドへ保持できず、パイプラインの拡張点へ渡せないため、
+    ///     <see cref="AssetStoreToolsPackageExportContext" />へ置き換えた。
+    /// </remarks>
+    [Obsolete(
+        "パイプラインへ移行しました。" + nameof(AssetStoreToolsPackageExportContext) + "を使用してください。",
+        error: false)]
     public readonly ref struct AssetStoreToolsPackageContext
     {
         /// <summary> 出力元と出力先から不変のパッケージ処理コンテキストを生成する。 </summary>

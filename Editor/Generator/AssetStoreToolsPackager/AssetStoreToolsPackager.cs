@@ -2,11 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using CompressionLevel = System.IO.Compression.CompressionLevel;
 
 namespace SymphonyFrameWork.Editor
 {
@@ -29,7 +26,14 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary> 個別または統合パッケージの出力形式を表すフラグ。 </summary>
+        /// <remarks>
+        ///     <see cref="Combine" />を除くと<see cref="Singles" />と<see cref="Nothing" />しか残らず、
+        ///     enumとして意味を失うため、次のメジャー更新でenumごと削除する。
+        /// </remarks>
         [Flags]
+        [Obsolete(
+            "パイプラインへ移行しました。" + nameof(AssetStoreToolsPackagePipeline) + "を使用してください。",
+            error: false)]
         public enum PackageModeEnum : byte
         {
             /// <summary> パッケージを出力しない無効な状態。 </summary>
@@ -38,7 +42,16 @@ namespace SymphonyFrameWork.Editor
             /// <summary> 選択ディレクトリを個別のパッケージとして出力する。 </summary>
             Singles = 1 << 0,
 
-            /// <summary> 選択ディレクトリを1つの統合パッケージとして出力する。 </summary>
+            /// <summary>
+            ///     選択ディレクトリを1つの統合パッケージとして出力する。
+            /// </summary>
+            /// <remarks>
+            ///     統合パッケージはディレクトリ単位で取り出せないため、差分インポートの単位にならない。
+            ///     この形式で出力してもPackageManifest.jsonは作られない。
+            /// </remarks>
+            [Obsolete(
+                "差分インポートに対応しないため廃止予定です。" + nameof(Singles) + "を使用してください。",
+                error: false)]
             Combine = 1 << 1,
         }
 
@@ -63,8 +76,14 @@ namespace SymphonyFrameWork.Editor
                 return results;
             }
 
-            // 無視ファイルの確認と作成。
-            HashSet<string> ignoredNames = GetIgnoredNames();
+            // 設定ファイルの確認と作成。読み込めない場合は除外設定が失われるため何も返さない。
+            AssetStoreToolsPackagerConfig config = AssetStoreToolsPackagerConfigStore.Load();
+            if (config == null)
+            {
+                return results;
+            }
+
+            HashSet<string> ignoredNames = new(config.IgnoredDirectories, StringComparer.OrdinalIgnoreCase);
 
             // ディレクトリの取得と情報の生成。
             string[] dirs = Directory.GetDirectories(AssetStoreToolsPackagerData.AssetStoreToolsPath);
@@ -84,272 +103,156 @@ namespace SymphonyFrameWork.Editor
             return results;
         }
 
-        /// <summary> 指定ディレクトリを選択された形式で出力し、必要に応じてZIP化する。 </summary>
-        public static void Export(string[] directories, PackageModeEnum mode, bool createZip = false, bool usedDependencies = false)
+        /// <summary> 指定ディレクトリをパイプラインの手順どおりに出力する。 </summary>
+        /// <param name="directories"> 出力対象のディレクトリ。 </param>
+        /// <param name="pipeline"> 実行する手順を持つパイプライン。 </param>
+        public static void Export(string[] directories, AssetStoreToolsPackagePipeline pipeline)
         {
-            if (directories.Length == 0)
+            AssetStoreToolsPackagePlan plan = CreatePlan(directories, pipeline);
+            if (plan == null)
             {
-                Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
                 return;
             }
 
-            var context = new AssetStoreToolsPackageContext(
-                PACKAGE_NAME,
-                AssetStoreToolsPackagerData.ExportedPackagesPath,
-                directories
-            );
+            Export(plan);
+        }
 
-            // 出力フォルダ作成
-            if (!Directory.Exists(context.ExportFullPath))
+        /// <summary> 指定ディレクトリを選択された形式で出力し、必要に応じてZIP化する。 </summary>
+        /// <remarks>
+        ///     指定を等価な手順の並びへ変換してパイプラインへ委譲する。動作は3.5.0までと同じ。
+        /// </remarks>
+        /// <param name="directories"> 出力対象のディレクトリ。 </param>
+        /// <param name="mode"> 個別出力と統合出力の指定。 </param>
+        /// <param name="createZip"> 出力後にZIP化するか。 </param>
+        /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
+#pragma warning disable CS0618
+        [Obsolete(
+            "パイプラインへ移行しました。Export(string[], "
+            + nameof(AssetStoreToolsPackagePipeline) + ")を使用してください。",
+            error: false)]
+        public static void Export(string[] directories, PackageModeEnum mode, bool createZip = false, bool usedDependencies = false)
+        {
+            AssetStoreToolsPackagePlan plan = AssetStoreToolsPackagePipelineRunner.CreatePlan(
+                directories,
+                CreateStepsFromOptions(mode, createZip, usedDependencies),
+                LEGACY_PIPELINE_NAME);
+
+            if (plan == null)
             {
-                Directory.CreateDirectory(context.ExportFullPath);
+                return;
             }
 
+            Export(plan);
+        }
+#pragma warning restore CS0618
 
-            HashSet<string> usedAssetPaths = null;
+        /// <summary>
+        ///     出力内容を確定した計画を組み立てる。この時点ではファイルを出力しない。
+        /// </summary>
+        /// <param name="directories"> 出力対象のディレクトリ。 </param>
+        /// <param name="pipeline"> 実行する手順を持つパイプライン。 </param>
+        /// <returns> 出力計画。対象が無い場合や設定を読み込めない場合はnull。 </returns>
+        internal static AssetStoreToolsPackagePlan CreatePlan(
+            string[] directories,
+            AssetStoreToolsPackagePipeline pipeline)
+        {
+            if (pipeline == null)
+            {
+                Debug.LogError($"[{nameof(AssetStoreToolsPackager)}]\nパイプラインが指定されていません。");
+                return null;
+            }
+
+            return AssetStoreToolsPackagePipelineRunner.CreatePlan(
+                directories, pipeline.Steps, pipeline.name);
+        }
+
+        /// <summary>
+        ///     確定済みの計画に従ってパイプラインを実行する。
+        /// </summary>
+        /// <param name="plan"> 出力する計画。 </param>
+        internal static void Export(AssetStoreToolsPackagePlan plan)
+        {
+            AssetStoreToolsPackagePipelineRunner.Export(plan);
+        }
+
+        /// <summary>
+        ///     パスの拡張子が強制包含の一覧に含まれるか判定する。
+        /// </summary>
+        /// <param name="path"> 判定するアセットのパス。 </param>
+        /// <param name="forceIncludeExtensions"> 強制包含する拡張子の一覧。 </param>
+        /// <returns> 大文字小文字を無視して一致する拡張子があればtrue。 </returns>
+        internal static bool HasForceIncludeExtension(
+            string path,
+            IReadOnlyList<string> forceIncludeExtensions)
+        {
+            if (forceIncludeExtensions == null || forceIncludeExtensions.Count == 0)
+            {
+                return false;
+            }
+
+            string extension = Path.GetExtension(path);
+            if (string.IsNullOrEmpty(extension))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < forceIncludeExtensions.Count; i++)
+            {
+                if (string.Equals(extension, forceIncludeExtensions[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary> 旧来のフラグ指定で組み立てた計画に付ける名前。 </summary>
+        private const string LEGACY_PIPELINE_NAME = "Export Mode Options";
+
+        /// <summary>
+        ///     旧来のフラグ指定を、等価な手順の並びへ変換する。
+        /// </summary>
+        /// <remarks>
+        ///     並び順は3.5.0までの実行順と一致させている。
+        ///     絞り込みはPlan段階のため、Execute段階の手順より先に走る。
+        /// </remarks>
+        /// <param name="mode"> 個別出力と統合出力の指定。 </param>
+        /// <param name="createZip"> 出力後にZIP化するか。 </param>
+        /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
+        /// <returns> 指定に対応する手順の並び。 </returns>
+        // 非推奨のPackageModeEnumは削除まで動作を維持する必要があるため、
+        // 廃止予定の警告をここでは抑止する。利用側の指定に対しては警告が出る。
+#pragma warning disable CS0618
+        private static List<AssetStoreToolsPackageStepStrategy> CreateStepsFromOptions(
+            PackageModeEnum mode,
+            bool createZip,
+            bool usedDependencies)
+        {
+            List<AssetStoreToolsPackageStepStrategy> steps = new();
+
             if (usedDependencies)
             {
-                string astPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
-                usedAssetPaths = GetProjectUsedDependencies(astPath);
+                steps.Add(new AssetStoreToolsUsedDependenciesStrategy());
             }
 
             if ((mode & PackageModeEnum.Singles) != 0)
             {
-                ExportPackage(context, usedAssetPaths);
+                steps.Add(new AssetStoreToolsSinglePackageStrategy());
             }
 
             if ((mode & PackageModeEnum.Combine) != 0)
             {
-                CreateCombinedPackage(context, usedAssetPaths);
+                steps.Add(new AssetStoreToolsCombinePackageStrategy());
             }
 
             if (createZip)
             {
-                CreateZip(context);
+                steps.Add(new AssetStoreToolsCreateZipStrategy());
             }
 
-            Debug.Log($"[{nameof(AssetStoreToolsPackager)}]\nパッケージを出力しました\npath : {context.ExportLocalPath}");
+            return steps;
         }
-
-
-        private const string PACKAGE_NAME = "AssetStoreToolsPackage";
-
-        /// <summary>
-        ///     個別のパッケージ生成。
-        /// </summary>
-        /// <param name="context"> 出力対象と出力先を保持するパッケージコンテキスト。 </param>
-        /// <param name="usedAssetPaths"> 使用中アセットだけを出力する場合のパス集合。 </param>
-        private static void ExportPackage(
-            AssetStoreToolsPackageContext context,
-            HashSet<string> usedAssetPaths = null)
-        {
-            foreach (string dir in context.ExportDirectories)
-            {
-                try
-                {
-                    string[] exportFiles;
-                    ExportPackageOptions options;
-
-                    if (usedAssetPaths != null)
-                    {
-                        exportFiles = GetUsedAssetsInDirectory(dir, usedAssetPaths);
-                        options = ExportPackageOptions.Default;
-
-                        if (exportFiles.Length == 0)
-                        {
-                            Debug.LogWarning($"使用中アセットなし: {dir}");
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        exportFiles = new[] { dir };
-                        options = ExportPackageOptions.Recurse;
-                    }
-
-                    AssetDatabase.ExportPackage(
-                        exportFiles,
-                        Path.Combine(
-                            context.ExportLocalPath,
-                            $"{Path.GetFileName(dir)}.unitypackage"),
-                        options
-                    );
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"パッケージの出力に失敗しました: {dir}\n{e}");
-                }
-            }
-        }
-
-        /// <summary>
-        ///     連結されたパッケージ生成。
-        /// </summary>
-        /// <param name="context"> 出力対象と出力先を保持するパッケージコンテキスト。 </param>
-        /// <param name="usedAssetPaths"> 使用中アセットだけを出力する場合のパス集合。 </param>
-        private static void CreateCombinedPackage(
-            in AssetStoreToolsPackageContext context,
-            HashSet<string> usedAssetPaths = null)
-        {
-            try
-            {
-                string combinedName =
-                    $"AllPackages_{context.DateTime:yyyyMMdd_HHmmss}.unitypackage";
-
-                string[] exportFiles;
-                ExportPackageOptions options;
-
-                if (usedAssetPaths != null)
-                {
-                    exportFiles = context.ExportDirectories
-                        .SelectMany(dir => GetUsedAssetsInDirectory(dir, usedAssetPaths))
-                        .Distinct()
-                        .ToArray();
-                    options = ExportPackageOptions.Default;
-
-                    if (exportFiles.Length == 0)
-                    {
-                        Debug.LogWarning("使用中アセットが存在しないため統合パッケージを作成しませんでした。");
-                        return;
-                    }
-                }
-                else
-                {
-                    exportFiles = context.ExportDirectories;
-                    options = ExportPackageOptions.Recurse;
-                }
-
-                AssetDatabase.ExportPackage(
-                    exportFiles,
-                    Path.Combine(context.ExportLocalPath, combinedName),
-                    options
-                );
-
-                Debug.Log($"合成パッケージ作成: {combinedName}");
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"合計パッケージの出力に失敗\n{e}");
-            }
-        }
-
-        /// <summary>
-        ///     指定フォルダをZIP化する
-        /// </summary>
-        /// <param name="context"> 圧縮対象と出力先を保持するパッケージコンテキスト。 </param>
-        private static void CreateZip(in AssetStoreToolsPackageContext context)
-        {
-            try
-            {
-                string zipFullPath = Path.Combine(context.ExportRoot, $"{context.PackageName}.zip");
-
-                if (!Directory.Exists(context.ExportFullPath))
-                {
-                    Debug.LogError($"ZIP対象フォルダが存在しません: {context.ExportFullPath}");
-                    return;
-                }
-
-                if (File.Exists(zipFullPath))
-                {
-                    File.Delete(zipFullPath);
-                }
-
-                ZipFile.CreateFromDirectory(
-                    context.ExportFullPath,
-                    zipFullPath,
-                    CompressionLevel.Optimal,
-                    true
-                );
-
-                Debug.Log($"ZIP作成完了: {zipFullPath}");
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"ZIP作成失敗\n{e}");
-            }
-        }
-
-        /// <summary> 除外設定ファイルを保証し、コメントと空行を除いたフォルダ名を取得する。 </summary>
-        private static HashSet<string> GetIgnoredNames()
-        {
-            HashSet<string> ignoredNames = new HashSet<string>();
-            if (!File.Exists(EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE))
-            {
-                File.WriteAllText(EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE, "# Write folder names to ignore (one per line)\n");
-                AssetDatabase.Refresh();
-            }
-            else
-            {
-                string[] lines = File.ReadAllLines(EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE);
-                foreach (string line in lines)
-                {
-                    string trimmed = line.Trim();
-                    if (!string.IsNullOrEmpty(trimmed) && !trimmed.StartsWith("#"))
-                    {
-                        ignoredNames.Add(trimmed);
-                    }
-                }
-            }
-            return ignoredNames;
-        }
-
-        /// <summary>
-        /// プロジェクト内の全アセット内で一つでも依存している（＝使用している）アセットのパス一覧を取得する
-        /// </summary>
-        private static HashSet<string> GetProjectUsedDependencies(string excludedRootPath)
-        {
-            HashSet<string> usedPaths = new();
-
-            // プロジェクト内のすべての一般アセット（Assetsフォルダ以下）を検索
-            string[] allAssetGuids = AssetDatabase.FindAssets("", new[] { "Assets" });
-
-            string normalizedExcludedRootPath = excludedRootPath
-                ?.Replace("\\", "/")
-                .TrimEnd('/');
-
-            foreach (string guid in allAssetGuids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-
-                // AssetStoreToolsは除外して依存関係を追う
-                if (!string.IsNullOrEmpty(normalizedExcludedRootPath)
-                    && (path.Equals(normalizedExcludedRootPath, StringComparison.Ordinal)
-                        || path.StartsWith(normalizedExcludedRootPath + "/", StringComparison.Ordinal)))
-                {
-                    continue;
-                }
-
-                // そのアセットが依存しているリソースをすべて取得
-                string[] dependencies = AssetDatabase.GetDependencies(path, recursive: true);
-
-                foreach (string dependency in dependencies)
-                {
-                    usedPaths.Add(dependency);
-                }
-            }
-
-            return usedPaths;
-        }
-
-        /// <summary>
-        /// 指定ディレクトリ内で実際に使用されているアセットのみ取得する
-        /// </summary>
-        private static string[] GetUsedAssetsInDirectory(
-            string dir,
-            HashSet<string> usedAssetPaths)
-        {
-            string[] allFiles = Directory.GetFiles(
-                    dir,
-                    "*.*",
-                    SearchOption.AllDirectories)
-                .Select(p => p.Replace("\\", "/"))
-                .Where(p => !p.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-
-            return allFiles
-                .Where(files => usedAssetPaths.Contains(files)
-                                || files.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-        }
+#pragma warning restore CS0618
     }
 }

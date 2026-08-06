@@ -71,4 +71,4 @@
 
 ## 非推奨APIと移行
 
-非推奨APIの期限と移行先は[CHANGELOG.md](../CHANGELOG.md)を正本とします。古いコードを修正するときは、現在のバージョンのソースとCHANGELOGを確認し、過去バージョンのnamespaceやAPI一覧をこの文書へ固定しないでください。
+非推奨APIの移行先と削除予定は[Deprecations.md](./Deprecations.md)を正本とします。非推奨化した経緯と時期は[CHANGELOG.md](../CHANGELOG.md)を参照してください。古いコードを修正するときは、現在のバージョンのソースとこの2つを確認し、過去バージョンのnamespaceやAPI一覧をこの文書へ固定しないでください。

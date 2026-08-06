@@ -11,9 +11,10 @@
 | 機能、インストール、初期設定を知る | [README.md](./README.md)の「主な機能」「インストール」「初期設定」 |
 | Service Locator、Scene Loader、Save Data、Audio、Pauseを使う | [README.md](./README.md)の該当クイックスタート → [AgentUsage.md](./Documentation~/AgentUsage.md)の該当モジュール |
 | アセンブリ、フォルダ、初期化順、公開型の関係を調べる | [Architecture.md](./Documentation~/Architecture.md) |
-| Editor・デバッグ機能を使う | [README.md `Editor・デバッグ支援`](./README.md#editorデバッグ支援) |
+| Editor・デバッグ機能を使う | [EditorTools.md](./Documentation~/EditorTools.md)。索引だけなら[README.md `Editor・デバッグ支援`](./README.md#editorデバッグ支援) |
 | 利用コードをコンパイル・Play Mode・ビルドで確認する | [AgentVerification.md](./Documentation~/AgentVerification.md) |
-| バージョン差分、非推奨化、移行方法を調べる | [CHANGELOG.md](./CHANGELOG.md) |
+| 非推奨APIと移行方法、削除予定を調べる | [Deprecations.md](./Documentation~/Deprecations.md) |
+| バージョン差分の経緯を調べる | [CHANGELOG.md](./CHANGELOG.md) |
 | フレームワーク本体を開発・変更する | [SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md) |
 
 ## 1. 常に守ること

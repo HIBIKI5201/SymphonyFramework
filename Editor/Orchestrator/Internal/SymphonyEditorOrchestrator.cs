@@ -40,6 +40,8 @@ namespace SymphonyFrameWork.Editor
             SymphonyAssetProtector.OnHostChangesPending += HostChangesPendingHandler;
             TagsAndLayersPostProcessor.OnHostChangesPending -= HostChangesPendingHandler;
             TagsAndLayersPostProcessor.OnHostChangesPending += HostChangesPendingHandler;
+            AssetStoreToolsVersionPostProcessor.OnHostChangesPending -= HostChangesPendingHandler;
+            AssetStoreToolsVersionPostProcessor.OnHostChangesPending += HostChangesPendingHandler;
         }
 
         /// <summary> Unity Editorのhost callbackとAssetPostprocessor通知を解除する。 </summary>
@@ -50,6 +52,7 @@ namespace SymphonyFrameWork.Editor
             EditorApplication.playModeStateChanged -= PlayModeStateChangedHandler;
             SymphonyAssetProtector.OnHostChangesPending -= HostChangesPendingHandler;
             TagsAndLayersPostProcessor.OnHostChangesPending -= HostChangesPendingHandler;
+            AssetStoreToolsVersionPostProcessor.OnHostChangesPending -= HostChangesPendingHandler;
         }
 
         /// <summary> assembly reload前にEditorモジュールを終了する。 </summary>
@@ -119,6 +122,12 @@ namespace SymphonyFrameWork.Editor
                 initializingModuleName = nameof(AutoEnumGenerator);
                 AutoEnumGenerator.Initialize();
                 RecordInitializedModule(nameof(AutoEnumGenerator), AutoEnumGenerator.Shutdown);
+
+                initializingModuleName = nameof(AssetStoreToolsVersionPostProcessor);
+                AssetStoreToolsVersionPostProcessor.Initialize();
+                RecordInitializedModule(
+                    nameof(AssetStoreToolsVersionPostProcessor),
+                    AssetStoreToolsVersionPostProcessor.Shutdown);
 
                 initializingModuleName = nameof(SymphonyDebugLogFileWriter);
                 SymphonyDebugLogFileWriter.Initialize();
@@ -198,6 +207,8 @@ namespace SymphonyFrameWork.Editor
             {
                 TagsAndLayersPostProcessor.ProcessPendingChanges();
                 _requiresAssetDatabaseRefresh |= AutoEnumGenerator.ConsumeAssetChanges();
+                _requiresAssetDatabaseRefresh |=
+                    AssetStoreToolsVersionPostProcessor.ProcessPendingChanges();
                 SymphonyAssetProtector.ProcessPendingChanges();
                 RefreshAssetDatabaseIfRequired();
                 SymphonyAssetProtector.ProcessPendingChanges();
