@@ -41,19 +41,22 @@ namespace SymphonyFrameWork.Editor
                 return false;
             }
 
-            // 先に消費する。書き出しに失敗しても同じ変更で再入し続けないようにする。
-            string[] directoryNames = new string[_pendingDirectoryNames.Count];
-            _pendingDirectoryNames.CopyTo(directoryNames);
-            _pendingDirectoryNames.Clear();
-
             AssetStoreToolsVersionLog log = AssetStoreToolsVersionLogStore.Load();
 
             // 壊れたバージョンログを読み込めなかった場合は加算しない。
             // 巻き戻したリビジョンで上書きすると、インポート先が更新を見落とす。
+            //
+            // 保留は消費せずに残す。読み込み失敗はファイルロックのように一過性のことがあり、
+            // ここで捨てると次に同じディレクトリが変更されるまでリビジョンが進まない。
             if (log == null)
             {
                 return false;
             }
+
+            // 読み込めた後で消費する。書き出しに失敗しても同じ変更で再入し続けないようにする。
+            string[] directoryNames = new string[_pendingDirectoryNames.Count];
+            _pendingDirectoryNames.CopyTo(directoryNames);
+            _pendingDirectoryNames.Clear();
 
             foreach (string directoryName in directoryNames)
             {

@@ -95,17 +95,22 @@ namespace SymphonyFrameWork.Tests
             CollectionAssert.AreEqual(new[] { "cs", string.Empty }, config.ForceIncludeExtensions);
         }
 
-        /// <summary> 既定値は除外フォルダが空で、強制包含拡張子を11件持つ。 </summary>
+        /// <summary> 既定値は除外フォルダが空で、強制包含拡張子は既定の11件と完全に一致する。 </summary>
         [Test]
-        public void CreateDefault_HasElevenExtensions()
+        public void CreateDefault_HasExpectedExtensions()
         {
             AssetStoreToolsPackagerConfig config = AssetStoreToolsPackagerConfig.CreateDefault();
 
             Assert.That(config.IgnoredDirectories, Is.Empty);
-            Assert.That(config.ForceIncludeExtensions.Count, Is.EqualTo(11));
-            Assert.That(config.ForceIncludeExtensions, Contains.Item(".cs"));
-            Assert.That(config.ForceIncludeExtensions, Contains.Item(".asmdef"));
-            Assert.That(config.ForceIncludeExtensions, Contains.Item(".asmref"));
+
+            // 件数だけの検証では、既定値が別の拡張子へ置き換わっても気づけない。
+            CollectionAssert.AreEquivalent(
+                new[]
+                {
+                    ".cs", ".asmdef", ".asmref",
+                    ".dll", ".so", ".a", ".dylib", ".aar", ".bundle", ".framework", ".jslib",
+                },
+                config.ForceIncludeExtensions);
         }
 
         /// <summary> 一覧に含まれる拡張子で一致する。 </summary>

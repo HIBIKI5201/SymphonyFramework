@@ -76,23 +76,24 @@ namespace SymphonyFrameWork.Editor
         ///     設定をJSONへ保存する。
         /// </summary>
         /// <param name="config"> 保存する設定。正規化してから書き出す。 </param>
-        internal static void Save(AssetStoreToolsPackagerConfig config)
+        /// <returns> 書き出せた場合はtrue。 </returns>
+        internal static bool Save(AssetStoreToolsPackagerConfig config)
         {
             if (config == null)
             {
-                return;
+                return false;
             }
 
             string configPath = GetConfigFilePath();
             if (string.IsNullOrEmpty(configPath))
             {
                 Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
-                return;
+                return false;
             }
 
             if (!TryEnsureDirectory(configPath))
             {
-                return;
+                return false;
             }
 
             try
@@ -100,10 +101,12 @@ namespace SymphonyFrameWork.Editor
                 string json = JsonConvert.SerializeObject(config.Normalize(), Formatting.Indented);
                 File.WriteAllText(configPath, json);
                 AssetDatabase.Refresh();
+                return true;
             }
             catch (IOException e)
             {
                 Debug.LogError($"{LOG_PREFIX}\n設定ファイルの保存に失敗しました: {configPath}\n{e.Message}");
+                return false;
             }
         }
 
@@ -145,7 +148,12 @@ namespace SymphonyFrameWork.Editor
                 }
             }
 
-            Save(config);
+            // 生成できなかった設定を返さない。返すと、除外設定が保存されていないまま
+            // パッケージ出力へ進み、次回の読み込みでも同じ状態が繰り返される。
+            if (!Save(config))
+            {
+                return null;
+            }
 
             if (isMigrated)
             {

@@ -22,7 +22,7 @@ namespace SymphonyFrameWork.Editor
     ///     </para>
     /// </remarks>
     [Serializable]
-    public sealed class AssetStoreToolsCombinePackageStrategy : AssetStoreToolsStanderdStrategy
+    public sealed class AssetStoreToolsCombinePackageStrategy : AssetStoreToolsStandardStrategy
     {
         /// <inheritdoc />
         public override string DisplayName => "Combine";
@@ -69,11 +69,11 @@ namespace SymphonyFrameWork.Editor
                     options
                 );
 
-                Debug.Log($"合成パッケージ作成: {combinedName}");
+                Debug.Log($"統合パッケージ作成: {combinedName}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"合計パッケージの出力に失敗\n{e}");
+                Debug.LogError($"統合パッケージの出力に失敗\n{e}");
             }
         }
 

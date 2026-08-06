@@ -85,6 +85,35 @@ namespace SymphonyFrameWork.Editor
         {
             RefreshDirectories();
             RefreshPipelines();
+
+            AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
+        }
+
+        /// <summary> ウィンドウ無効化時に取り込み完了の購読を解除する。 </summary>
+        private void OnDisable()
+        {
+            AssetDatabase.importPackageCompleted -= OnImportPackageCompleted;
+        }
+
+        /// <summary>
+        ///     パッケージの取り込みが完了したら、候補を読み直す。
+        /// </summary>
+        /// <remarks>
+        ///     <c>AssetDatabase.ImportPackage</c> は <c>interactive: false</c> でも
+        ///     取り込みの反映が非同期で、呼び出し直後は同梱の<c>ExportedVersion.json</c>が
+        ///     まだ更新されていない。そのまま読むと、取り込んだはずのパッケージが
+        ///     <c>Updated</c> のまま残る。
+        /// </remarks>
+        /// <param name="packageName"> 取り込みが完了したパッケージ名。 </param>
+        private void OnImportPackageCompleted(string packageName)
+        {
+            if (_tab != PackagerTabEnum.Import)
+            {
+                return;
+            }
+
+            RefreshImportCandidates(keepSelectedIndex: true);
+            Repaint();
         }
 
         /// <summary> タブを描画し、選択中のタブの内容へ委譲する。 </summary>
@@ -227,9 +256,11 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private void DrawImportTab()
         {
+            // 選択中の出力先を維持する。読み直しのたびに先頭へ戻ると、
+            // 別プロジェクトの出力を確認している最中に選択が失われる。
             if (GUILayout.Button("Refresh", GUILayout.Width(100)))
             {
-                RefreshImportCandidates();
+                RefreshImportCandidates(keepSelectedIndex: true);
             }
 
             EditorGUILayout.Space();
@@ -302,6 +333,9 @@ namespace SymphonyFrameWork.Editor
                 {
                     AssetStoreToolsPackageImporter.Import(
                         _exportDirectories[_selectedExportIndex], _importCandidates);
+
+                    // ここでは選択状態を戻すだけ。リビジョンの反映は非同期なので、
+                    // 最終的な状態は importPackageCompleted の購読側で読み直す。
                     RefreshImportCandidates(keepSelectedIndex: true);
                 }
             }
@@ -325,7 +359,9 @@ namespace SymphonyFrameWork.Editor
         ///     出力済みフォルダの一覧とインポート候補を読み直す。
         /// </summary>
         /// <param name="keepSelectedIndex">
-        ///     選択中の出力済みフォルダを維持するか。折りたたみ以外の操作で呼ぶ場合はtrue。
+        ///     選択中の出力済みフォルダを維持するか。
+        ///     利用者が選択を持っている状態からの読み直しではtrueにする。
+        ///     falseにしてよいのは、タブへ入り直したときのように選択が無い場合だけ。
         /// </param>
         private void RefreshImportCandidates(bool keepSelectedIndex = false)
         {
