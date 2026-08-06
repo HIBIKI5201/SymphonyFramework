@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.8.3] - 2026-08-07
+Play Mode終了時の解除でService Locatorが例外になる問題の修正です。**公開APIのシグネチャとシリアライズ形式は 3.8.2 から変更していません。**
+
+### Fix
+
+- **Play Mode終了時、利用側の `OnDestroy` / `OnDisable` からの `ServiceLocator.UnregisterInstance` が `SymphonyNotInitializedException` になる問題を修正しました。** `SymphonyOrchestrator` がService Locatorを解放した後にUnityがシーンオブジェクトを破棄するため、解除処理は未初期化のLocatorを叩きます。
+
+  **`AGENTS.md` と `Documentation~/AgentUsage.md` が勧めている「`OnEnable` で `RegisterInstance`、`OnDisable` で `UnregisterInstance`」という基本形そのものが落ちていました。** 2.15.1 で `ServiceLocateComponent` に同じガードを入れていますが、判定に使う `IsInitialized` は `internal` のため、利用側には同じ手段がありませんでした。
+
+  **未初期化を「何も登録されていない」として扱う操作を、戻り値で表現するように変えました。** `UnregisterInstance`（3種）、`DestroyInstance`（2種）、`IsExistInstance`（3種）、`GetInstance<T>`、`TryGetInstance<T>`、`GetRegistrationInfos`、`TryGetRegistrationInfo` が、未初期化時に例外を投げず `false` ／ `null` ／空一覧を返します。**破棄処理で初期化状態を確認する必要はありません。**
+
+  **解除だけでなく照会も含めたのは、`ServiceLocateComponent` 自身が `IsExistInstance` → `UnregisterInstance` の順で呼んでいるためです。** 解除系だけ直すと、そのパターンを真似た利用側は1つ手前で同じ例外を踏みます。
+
+  `RegisterInstance` 系、`GetRequiredInstance`、`GetInstanceAsync` / `TryGetInstanceAsync` / `RegisterAfterLocate` は**これまでどおり `SymphonyNotInitializedException` を投げます。** 登録は状態を足す操作なので黙って落とすと不具合を隠し、待機系は未初期化では永久に発火しないためです。
+
+  **`null` 引数の検証は未初期化判定より先に行います。** `UnregisterInstance(null)`、`IsExistInstance(null)`、`TryGetRegistrationInfo(null, out _)` は状態によらず `ArgumentNullException` です。
+
+  **未初期化時に例外を捕捉して分岐していた場合、その `catch` は動かなくなります。** 戻り値を見る形へ書き換えてください。
+
 ## [3.8.2] - 2026-08-07
 起動時のシーン整理でロードとアンロードの順序を入れ替えた修正です。**公開APIとシリアライズ形式は 3.8.1 から変更していません。**
 
