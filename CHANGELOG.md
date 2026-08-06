@@ -1220,7 +1220,7 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 ### Update
 - PauseManager
 
-## [1.20.17] - 2025-05-2
+## [1.20.17] - 2025-05-02
 
 ### Fix
 - PackageInitializer
@@ -1299,7 +1299,7 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 ## [1.20.2] - 2025-03-08
 
 ### Update
-- FoldierGenerator
+- FolderGenerator
 
 ## [1.20.1] - 2025-03-05
 ### Fix
@@ -1318,7 +1318,7 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 ## [1.19.20] - 2025-03-05
 
 ### Update
-- ServiceLocater
+- ServiceLocator
 
 ## [1.19.19] - 2025-03-05
 
@@ -1349,7 +1349,7 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 ## [1.19.14] - 2025-03-02
 
 ### Add
-- FoldierGenerator
+- FolderGenerator
 
 ## [1.19.13] - 2025-03-01
 
@@ -1421,9 +1421,9 @@ Facadeの名前空間が2.1.0以前へ戻るだけで、クラス名・メンバ
 
 ### Add
 - DisplayTextAttribute
-- ReadOnryAttribute
+- ReadOnlyAttribute
 
-## [1.18.11] - Y2025-02-24
+## [1.18.11] - 2025-02-24
 
 ### Update
 - EnumGenerator
