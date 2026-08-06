@@ -27,6 +27,7 @@
 ## Service Locator
 
 - 登録と解除を同じライフサイクルの対として書く。基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。
+- 解除と照会（`UnregisterInstance`、`DestroyInstance`、`IsExistInstance`、`GetInstance`、`TryGetInstance`、`GetRegistrationInfos`、`TryGetRegistrationInfo`）は、Play Mode終了でLocatorが解放された後でも安全なno-opとして`false`／`null`／空一覧を返す。`OnDestroy`や`OnDisable`で初期化状態を確認する必要はない。登録（`RegisterInstance`系）、`GetRequiredInstance`、待機（`GetInstanceAsync`、`TryGetInstanceAsync`、`RegisterAfterLocate`）は未初期化で`SymphonyNotInitializedException`を投げる。
 - 通常の`RegisterInstance`がfalseの場合も候補の所有権は呼び出し側に残る。型重複時に候補を自動解放してよい場合だけ`RegisterInstanceWithAutoDispose`へ所有権を移す。
 - `LocateTypeEnum.Locator`は参照だけを登録する。`LocateTypeEnum.Singleton`はComponentを管理オブジェクト配下へ移動するため、シーンローカルなオブジェクトには使わない。
 - 任意依存は`TryGetInstance<T>`、nullを許容する既存コードは`GetInstance<T>`、必須依存は`GetRequiredInstance<T>`を使う。
