@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.8.4] - 2026-08-08
+Symphony AdministratorのUXML名前空間解決を修正しました。公開APIとシリアライズ形式は3.8.3から変更していません。
+
+### Fix
+
+- **`Symphony Administrator` を開くたび、5つの管理パネルに `UxmlElementAttribute` または登録済みfactoryが無いという警告が出る問題を修正しました。** 各パネル型には既に `[UxmlElement]` と生成済み `UxmlSerializedData` がありましたが、親の `SymphonyWindow.uxml` が `SymphonyFrameWork.Editor` 名前空間を宣言せず、完全修飾名を名前空間なしのタグとして記述していました。
+
+  **UXMLのルートで名前空間prefixを宣言し、5つの要素をprefix付きの型名で参照するようにしました。** Pause / Service Locate / Scene Load / Save Data / Auto Enum Generator の各パネルが登録済みカスタム要素として生成されます。公開API、メニューパス、設定保存先、シリアライズ形式への変更はありません。
+
+  **親UXMLを実際にインスタンス化し、5型すべてを取得できることを確認するEditModeテストを追加しました。** 名前空間宣言やタグの記述が再び崩れた場合はテストで検出されます。
+
 ## [3.8.3] - 2026-08-07
 Play Mode終了時の解除でService Locatorが例外になる問題の修正です。**公開APIのシグネチャとシリアライズ形式は 3.8.2 から変更していません。**
 
