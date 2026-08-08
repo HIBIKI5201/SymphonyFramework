@@ -60,7 +60,7 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
         }
 
         /// <summary> ログをファイル出力用のバッファへ蓄積する。 </summary>
-        private static void EnqueueLog(string text, SymphonyDebugLogger.LogKindEnum kind)
+        private static void EnqueueLog(string text, LogKindEnum kind)
         {
             if (!IsFileLoggingEnabled) return;
 

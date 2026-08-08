@@ -217,6 +217,7 @@ namespace SymphonyFrameWork.Utility
             action?.Invoke();
         }
 
+        // TODO:サマリーにある通り、OperationCanceledExceptionが返されることを明示すべきでは？
         /// <summary>
         ///     条件がtrueになるまで、次のフレームまで待機する。
         ///     <see cref="WaitWhile"/>へ条件の否定を渡す処理と同等であり、
@@ -241,6 +242,7 @@ namespace SymphonyFrameWork.Utility
             return WaitWhile(() => !predicate.Invoke(), token);
         }
 
+        // TODO:サマリーにある通り、OperationCanceledExceptionが返されることを明示すべきでは？
         /// <summary>
         ///     条件がtrueの間、次のフレームまで待機する。
         ///     <see cref="WaitUntil"/>へ条件の否定を渡す処理と同等である。

@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.Orchestrator
 
             try
             {
-                var systemGameObject = new GameObject(nameof(SymphonyOrchestrator));
+                GameObject systemGameObject = new(nameof(SymphonyOrchestrator));
                 _systemObject = systemGameObject.AddComponent<SymphonyLifetimeComponent>();
                 UnityEngine.Object.DontDestroyOnLoad(systemGameObject);
 

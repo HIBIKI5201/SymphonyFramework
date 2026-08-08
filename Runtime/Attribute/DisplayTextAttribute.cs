@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace SymphonyFrameWork.Attribute
 {
     /// <summary>
     ///     インスペクターに文字を表示する
     /// </summary>
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
     public sealed class DisplayTextAttribute : PropertyAttribute
     {
         /// <summary>
