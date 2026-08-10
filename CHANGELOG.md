@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.9.2] - 2026-08-11
+Symphony AdministratorのUXMLが参照するUSSのパスを修正しました。公開APIとシリアライズ形式は3.9.1から変更していません。
+
+### Fix
+
+- **`PauseWindow.uxml` と `AutoEnumGeneratorWindow.uxml` の `<Style src>` が、実在しないフォルダのパスを指していた問題を修正しました。** それぞれ `Assets/Scripts/SymphonyFrameWork/SymphonyEditor/...` と `Assets/SymphonyFrameWork/SymphonyEditor/...` を指しており、どちらも過去のフォルダ構成の名残です。残る4つのUXMLと同じ `Assets/SymphonyFrameWork/Editor/Administrator/UITK/SymphonyWIndow.uss` へ揃えました。
+
+  **表示は修正前も壊れていません。** `src` のクエリ文字列に含まれるGUIDでUnityがUSSを解決するためです。**壊れるのはGUIDが失われた場合と、パス側で解決する経路を通った場合**で、それまでは誤ったパスだけが残り、読む人に存在しないフォルダがあるかのような誤解を与えていました。表示、公開API、シリアライズ形式への影響はありません。
+
+  **管理パネルの全UXMLについて、`<Style src>` のパスとGUIDが同じアセットを指すことを検証するEditModeテストを追加しました。** パスだけが古くなっても表示が壊れないため、テストが無いと同じ食い違いが再発しても気づけません。
+
 ## [3.9.1] - 2026-08-11
 Symphony Administratorの各パネルからドキュメントを開けるようにしました。**公開APIとシリアライズ形式は3.9.0から変更していません。**
 
