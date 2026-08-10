@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **3.8.5**
+- 現在のバージョン: **3.8.6**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -114,12 +114,16 @@ asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してくだ�
 
 ## Editor・デバッグ支援
 
-各機能の入口、設定の保存先、注意点は[Editor機能](./Documentation~/EditorTools.md)にあります。
+索引、設定ファイルの置き場、アセット保護、Editorの初期化は[Editor機能](./Documentation~/EditorTools.md)にあります。
 
-- `Symphony Administrator`: Service Locator、Scene Loader、Save Data、Pauseの状態確認
-- `AutoEnumGenerator`: Scene、Tag、Layer、Audio Groupのenum生成
-- `FolderGenerator`: Markdownからプロジェクトフォルダを生成
-- `AssemblyGenerator`: asmdefの作成と参照追加
+| 機能 | 内容 |
+| --- | --- |
+| [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Service Locator、Scene Loader、Save Data、Pauseの状態確認 |
+| [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md) | Scene、Tag、Layer、Audio Groupのenum生成 |
+| [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md) | Asset Store Toolsの出力、差分インポート、出力パイプライン |
+| [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md) | FolderGenerator、AssemblyGenerator、SymphonyPackageLoader |
+
+Runtimeモジュールに紐づくEditor機能（Save System設定、Service Locatorのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
 
 ## サンプル
 
@@ -147,6 +151,9 @@ Package Managerから[`Samples/Runtime`](./Samples/Runtime)の各サンプルを
   - [Debug](./Documentation~/Modules/Debug.md)
   - [Utility](./Documentation~/Modules/Utility.md)
   - [Inspector属性](./Documentation~/Modules/InspectorAttributes.md)
+  - [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md)
+  - [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)
+  - [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md)
 - [AGENTS.md（AIエージェント向けの導線と常時ルール）](./AGENTS.md)
   - [利用コードを書くときの注意事項](./Documentation~/AgentUsage.md)
   - [利用コードの検証手順](./Documentation~/AgentVerification.md)

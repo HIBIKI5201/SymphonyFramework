@@ -18,7 +18,10 @@
 | Awaitable、Tween、文字列、Componentの補助を使う | [Utility.md](./Documentation~/Modules/Utility.md) |
 | Inspector属性を使う | [InspectorAttributes.md](./Documentation~/Modules/InspectorAttributes.md) |
 | アセンブリ、フォルダ、初期化順、公開型の関係を調べる | [Architecture.md](./Documentation~/Architecture.md) |
-| Editor・デバッグ機能を使う | [EditorTools.md](./Documentation~/EditorTools.md)。索引だけなら[README.md `Editor・デバッグ支援`](./README.md#editorデバッグ支援) |
+| AutoEnumGeneratorを使う | [AutoEnumGenerator.md](./Documentation~/Modules/AutoEnumGenerator.md) |
+| Asset Store Tools Packagerを使う | [AssetStoreToolsPackager.md](./Documentation~/Modules/AssetStoreToolsPackager.md) |
+| FolderGenerator、AssemblyGenerator、SymphonyPackageLoaderを使う | [ProjectStructureTools.md](./Documentation~/Modules/ProjectStructureTools.md) |
+| Symphony Administrator、アセット保護、Editorの初期化を調べる | [EditorTools.md](./Documentation~/EditorTools.md) |
 | 利用コードをコンパイル・Play Mode・ビルドで確認する | [AgentVerification.md](./Documentation~/AgentVerification.md) |
 | 非推奨APIと移行方法、削除予定を調べる | [Deprecations.md](./Documentation~/Deprecations.md) |
 | バージョン差分の経緯を調べる | [CHANGELOG.md](./CHANGELOG.md) |

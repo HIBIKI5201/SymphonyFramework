@@ -41,7 +41,7 @@ SymphonyFrameWork/
 ├─ Editor/                  Editor専用UI、Drawer、Generator
 ├─ Samples/Runtime/         Package Managerから導入する利用例
 ├─ Tests/                   EditMode／PlayModeテスト
-└─ Documentation~/         Asset Importされない利用者向け詳細文書
+└─ Documentation~/         Asset Importされない利用者向け詳細文書（Modules/にモジュール別文書）
 ```
 
 各機能の`Internal/`は公開APIではありません。利用側コードとSampleは`Internal/`の型へ依存しません。

@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.8.6] - 2026-08-11
+Editor機能のドキュメントをモジュールごとに分離しました。**公開APIとシリアライズ形式は3.8.5から変更していません。**
+
+### Change
+
+- **Editorモジュールごとの文書を `Documentation~/Modules/` へ追加しました。** `AutoEnumGenerator.md` / `AssetStoreToolsPackager.md` / `ProjectStructureTools.md` の3本です。`ProjectStructureTools.md` には `FolderGenerator` / `AssemblyGenerator` / `SymphonyPackageLoader` をまとめています。
+
+- **`Documentation~/EditorTools.md` を、単一モジュールへ属さない横断的な内容だけに縮めました（458行 → 154行）。** 残るのは索引、設定ファイルの置き場、Symphony Administrator、Framework設定、アセット保護、設定アセットの自動生成、Editorの初期化です。**索引表の行は消さず、移送先のモジュール文書へのリンクへ張り替えています。** どこに何があるかはこの1ファイルで引き続き分かります。
+
+- **3.8.5 でモジュール文書へ移した節（Save System設定、Service Locatorのログ設定、`SymphonyDebugHUD`、ログのファイル出力、`SymphonyMcpTools`、Inspector属性）を `EditorTools.md` から削除しました。** 3.8.5 の時点では両方へ載っており、片方だけが更新される状態でした。
+
+- **README.md の「Editor・デバッグ支援」を索引表へ置き換えました。** Runtimeモジュールに紐づくEditor機能は「機能ごとの使い方」の各モジュール文書側にあることを明記しています。
+
 ## [3.8.5] - 2026-08-11
 利用者向けドキュメントをRuntimeモジュールごとに分離しました。**公開APIとシリアライズ形式は3.8.4から変更していません。**
 
