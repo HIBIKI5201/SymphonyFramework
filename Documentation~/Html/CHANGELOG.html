@@ -94,9 +94,15 @@ th { background: var(--code-bg); white-space: nowrap; }
 <body>
 <nav class="doc-nav"><a href="index.html">Symphony Framework Documentation</a></nav>
 <h1 id="changelog">Changelog</h1>
+<h2 id="390---2026-08-11">[3.9.0] - 2026-08-11</h2>
+<p>Editorからドキュメントをブラウザで開けるようにしました。<strong>既存の公開APIとシリアライズ形式は3.8.7から変更していません。</strong></p>
+<h3 id="add">Add</h3>
+<ul><li><strong><code>Window &gt; SymphonyFrameWork &gt; Documentation</code> を追加しました。</strong> 同梱ドキュメントの索引がブラウザで開きます。ドキュメントの在り処を知らないと読めない状態を解消するためです。</li><li><strong><code>Project Settings &gt; SymphonyFrameWork</code> の各画面へ <code>ドキュメントを開く</code> ボタンを追加しました。</strong> 設定画面から、その設定を説明している文書へ直接移動できます。<code>SymphonyFrameWork</code> は<a href="EditorTools.html">Editor機能</a>、<code>Save System</code> は<a href="Modules/SaveDataSystem.html">Save Data System</a>、<code>Asset Store Tools Packager</code> は<a href="Modules/AssetStoreToolsPackager.html">Asset Store Tools Packager</a>を開きます。</li><li><p><strong>Editor専用の公開API <code>SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)</code> を追加しました。</strong> 利用側のEditor拡張からも同じ経路でドキュメントを開けます。</p>
+<pre><code class="language-csharp">SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);</code></pre>
+<p><strong><code>Open</code> は例外を投げません。</strong> Editorの補助機能であり、ドキュメントを開けないことで利用側の作業を止めないためです。同梱HTMLが見つからない場合は、Consoleへ警告を出したうえでGitHub上の正本Markdownを開きます。<strong>フォールバック先は <code>main</code> ブランチです。</strong> リポジトリにバージョンタグが無いため、導入バージョンでは固定できません。</p></li></ul>
 <h2 id="387---2026-08-11">[3.8.7] - 2026-08-11</h2>
 <p>ドキュメントをブラウザで読めるHTMLをパッケージへ同梱しました。<strong>公開APIとシリアライズ形式は3.8.6から変更していません。</strong></p>
-<h3 id="add">Add</h3>
+<h3 id="add-1">Add</h3>
 <ul><li><p><strong><code>Documentation~/Html/</code> に、README・CHANGELOG・<code>Documentation~</code> 配下の全Markdownと同じ内容のHTMLを同梱しました。</strong> <code>Documentation~/Html/index.html</code> が入口です。Markdownのままではブラウザで読みにくく、レンダリングのために外部サービスへ頼る必要がありました。</p>
 <p><strong>正本はMarkdownで、HTMLは生成物です。</strong> 内容の修正はMarkdown側へ行ってください。生成は開発用リポジトリの <code>scripts/build_module_docs.py</code> が行い、正本との乖離はリリース前の検証で検出されます。</p>
 <p>各HTMLは1ファイルで完結し、外部のCSS・フォント・スクリプトを読み込みません。<code>file://</code> で開けるようにするためで、ライトとダークの両方の配色に対応しています。<strong>既知の制限として、mermaidの図はレンダリングされずコードブロックとして表示されます。</strong></p></li></ul>
@@ -142,14 +148,14 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>そのディレクトリのリビジョンは次に変更があるまで進まず、取り込み側が更新を見落とします。<strong>ログを読み込めた後で保留を消費するようにしました。</strong></p></li><li><strong>設定ファイルを生成できなくてもパッケージ出力が続行する問題を修正しました。</strong> <code>PackagerConfig.json</code> の書き込みに失敗してもログを出すだけで、既定値の設定をそのまま返していました。除外フォルダが空のまま出力へ進みます。<strong>生成に失敗した場合は設定を返さず、出力を中止します。</strong> 読み込みに失敗した場合と同じ扱いです。</li><li><strong>Import タブの <code>Refresh</code> が、選択中の出力済みフォルダを先頭へ戻す問題を修正しました。</strong> 別プロジェクトの出力を確認している最中に選択が失われていました。</li><li><strong>パッケージの取り込み直後に、候補一覧が古い状態のままになる問題を修正しました。</strong> <code>AssetDatabase.ImportPackage</code> は <code>interactive: false</code> でも反映が非同期のため、呼び出し直後に読むと同梱の <code>ExportedVersion.json</code> が更新前のままでした。取り込んだはずのパッケージが <code>Updated</code> のまま残ります。<strong><code>AssetDatabase.importPackageCompleted</code> を購読し、完了後に読み直します。</strong></li><li><strong>Project Settings の <code>Create Default Pipeline</code> が、書き込み権限の無いフォルダで Project Settings 画面の描画を壊す問題を修正しました。</strong> <code>Directory.CreateDirectory</code> の例外捕捉が <code>IOException</code> だけで、<code>UnauthorizedAccessException</code> などが IMGUI の描画中へ伝播していました。</li><li>README の「現在のバージョン」の表示が 3.2.0 のままだったのを修正しました。</li></ul>
 <h2 id="380---2026-08-05">[3.8.0] - 2026-08-05</h2>
 <p>パイプラインの標準手順に基底型を設けました。<strong>既存の手順の動作は変わりません。</strong></p>
-<h3 id="add-1">Add</h3>
+<h3 id="add-2">Add</h3>
 <ul><li><p><strong><code>AssetStoreToolsStandardStrategy</code> を追加しました。</strong> フレームワークが標準で用意する4つの手順（Singles / Combine / Used Dependencies / Create ZIP）の基底型です。</p>
 <p>サブクラスセレクターは、中間クラスを持つ派生型を「基底型名/型名」の階層で表示します。標準の手順をこの型の下へまとめることで、<strong>利用側が追加した手順と選択肢の上で区別できます。</strong> 利用側が自作する手順は、これまでどおり <code>AssetStoreToolsPackageStepStrategy</code> を直接継承してください。</p></li></ul>
 <h3 id="change-2">Change</h3>
 <ul><li>統合パッケージのログ用語を「統合パッケージ」へ統一しました。同じ処理に「合成パッケージ」「合計パッケージ」の3つの表記が混在しており、ログを読む側が別の処理と取り違えます。</li></ul>
 <h2 id="370---2026-08-05">[3.7.0] - 2026-08-05</h2>
 <p>Packager ウィンドウの出力形式を、3.6.0 で追加したパイプラインから選ぶ形にしました。<strong>固定の3オプション（<code>Export Mode</code> / <code>Create ZIP File</code> / <code>Used Dependencies</code>）は無くなります。</strong></p>
-<h3 id="add-2">Add</h3>
+<h3 id="add-3">Add</h3>
 <ul><li><p><strong>Project Settings で出力パイプラインを配列としてアサインできるようにしました。</strong> <code>Project Settings &gt; SymphonyFrameWork &gt; Asset Store Tools Packager</code> の <code>Export Pipelines</code> です。保存先は <code>ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset</code> で、プロジェクト共有です。</p>
 <p><code>Create Default Pipeline</code> を押すと、<code>Singles → Used Dependencies → Create ZIP</code> のテンプレートを <code>Assets/Editor/SymphonyFrameWork/Configs/</code> へ生成してアサインします。<strong>同名のアセットがある場合は上書きせず別名で作ります。</strong> 利用側が手を入れたパイプラインを、ボタンの誤操作で失わせないためです。</p>
 <p><strong>Framework の起動時に自動生成はしません。</strong> 利用側のリポジトリへ意図しないアセットを増やさないためで、Runtime の設定アセットが自動生成されるのは Framework の動作に必須だからです。パイプラインは「使う人が構成するもの」です。</p></li><li><strong><code>AssetStoreToolsPackagerData.Pipelines</code> と <code>SetPipelines</code> を追加しました。</strong></li></ul>
@@ -166,7 +172,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p><strong>統合パッケージ出力は機能として残ります。</strong> 非推奨にするのは enum の選択肢であって、統合パッケージそのものではありません。差分インポートの単位にならないため既定テンプレートには含めていませんが、必要な場合はパイプラインへ <code>AssetStoreToolsCombinePackageStrategy</code> を追加してください。</p></li></ul>
 <h2 id="360---2026-08-05">[3.6.0] - 2026-08-05</h2>
 <p>Asset Store Tools Packager の出力手順を、順序付きの Strategy 列（パイプライン）として組み替えられるようにしました。<strong>ウィンドウの操作と出力結果は 3.5.0 と同じで、公開APIは追加だけです。</strong></p>
-<h3 id="add-3">Add</h3>
+<h3 id="add-4">Add</h3>
 <ul><li><p><strong>パッケージ出力の手順を表す拡張点 <code>AssetStoreToolsPackageStepStrategy</code> を追加しました。</strong> 利用側でこれを継承すると、独自の手順をパッケージ出力へ差し込めます。</p>
 <p>これまでの出力内容は <code>Export Mode</code> / <code>Create ZIP File</code> / <code>Used Dependencies</code> の 3 つの固定オプションでしか表現できず、<strong>ZIP の代わりに独自の圧縮をかける、出力後に社内ツールへ通知する、といった要求へフレームワークを書き換えずに応える手段がありませんでした。</strong></p>
 <p>手順は <code>Plan</code> と <code>Execute</code> の 2 段階を持ちます。パイプライン全体で「全手順の <code>Plan</code>」→「全手順の <code>Execute</code>」の順に走り、各段階の中では並び順どおりに実行されます。<strong>2 段階にしているのは、出力前に確認ウィンドウへ内容を提示するためです。</strong> 絞り込みが <code>Execute</code> の中で起きると、提示した一覧と実物が食い違います。</p>
@@ -181,7 +187,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p><strong>移行方法</strong>: <code>AssetStoreToolsPackageExportContext</code> を使用してください。プロパティ名と意味（<code>PackageName</code>、<code>ExportRoot</code>、<code>ExportLocalPath</code>、<code>ExportFullPath</code>、<code>DateTime</code>）は同じです。<code>ExportDirectories</code> は <code>Plan.Entries</code> の <code>DirectoryPath</code> から取得できます。</p></li></ul>
 <h2 id="350---2026-08-05">[3.5.0] - 2026-08-05</h2>
 <p>Asset Store Tools Packager を2タブ構成にし、<strong>更新されたパッケージだけを取り込む差分インポート</strong>を追加しました。<strong>Runtime の公開APIとセーブデータ形式は変更していません。</strong></p>
-<h3 id="add-4">Add</h3>
+<h3 id="add-5">Add</h3>
 <ul><li><p><strong>Packager ウィンドウへ Import タブを追加しました。</strong> 出力済みパッケージのうち、このプロジェクトで更新されたものだけを取り込めます。</p>
 <p>出力した <code>.unitypackage</code> を別プロジェクトへ取り込むとき、<strong>どれが前回から変わったのかを判断する手段がありませんでした。</strong> 変更の無いパッケージまで毎回インポートすると、ネイティブプラグインや大量のテクスチャを含むディレクトリでは1件あたり数十秒かかります。</p>
 <p>取り込み元の出力済みフォルダを選ぶと、各パッケージが次のいずれかに分類されます。</p>
@@ -202,7 +208,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <ul><li><strong>Packager ウィンドウで <code>Combine</code> を選ぶと、廃止予定である旨を表示するようにしました。</strong> 選択自体は禁止していません。既存の運用を突然壊さず、移行期間を設けるためです。</li><li><code>Combine</code> だけで出力したときのConsole警告に、廃止予定である旨と移行先を追記しました。</li></ul>
 <h2 id="330---2026-08-05">[3.3.0] - 2026-08-05</h2>
 <p>Asset Store Tools Packager に、パッケージ単位のリビジョン記録を追加しました。<strong>Runtime の公開APIとセーブデータ形式は変更していません。</strong> 変更は Editor 専用ツールに閉じています。</p>
-<h3 id="add-5">Add</h3>
+<h3 id="add-6">Add</h3>
 <ul><li><p><strong>パッケージ対象ディレクトリごとにリビジョン番号を記録するようにしました。</strong> 出力した <code>.unitypackage</code> を別プロジェクトへ取り込むとき、どのパッケージが前回から変わったのかを判定する手段がありませんでした。出力日時は「出力した日時」であって「中身が変わった日時」ではないため、判断材料になりません。</p>
 <p>記録するファイルは3種類です。</p>
 <div class="table-scroll"><table><thead><tr><th>ファイル</th><th>置き場</th><th>意味</th></tr></thead><tbody><tr><td><code>PackageVersions.json</code></td><td><code>Asset Store Tools Path</code> 直下</td><td>このプロジェクトでの各ディレクトリの現在リビジョン</td></tr><tr><td><code>ExportedVersion.json</code></td><td>各ディレクトリ直下</td><td>そのパッケージを出力した時点のリビジョン</td></tr><tr><td><code>PackageManifest.json</code></td><td>出力先フォルダ</td><td>その回に出力したパッケージ名とリビジョンの一覧</td></tr></tbody></table></div>
@@ -213,7 +219,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>リビジョンは「実際には変わっていないのに増える」ことがあります。Unityが再インポートしただけでも加算されるためです。これは<strong>不要なインポートが1回余分に起きる方向</strong>の誤りであり、「変わったのに増えない」という逆方向の誤りは起きません。</p></li><li><strong><code>AssetStoreToolsPackager.Export</code> が出力時に <code>ExportedVersion.json</code> と <code>PackageManifest.json</code> を書くようになりました。</strong> シグネチャと戻り値、および出力パッケージの既存の中身は変わりません。パッケージへ <code>ExportedVersion.json</code> が1ファイル増えます。</li><li><strong>統合パッケージ（<code>Export Mode = Combine</code>）だけで出力した場合、<code>PackageManifest.json</code> を作りません。</strong> 統合パッケージはディレクトリ単位で取り出せず、差分インポートの単位にならないためです。その場合はConsoleへ警告を出します。</li></ul>
 <h2 id="321---2026-08-05">[3.2.1] - 2026-08-05</h2>
 <p>Editor機能と非推奨APIのドキュメントを追加しました。<strong>コードは変更していません。</strong> 公開API、シリアライズ形式、挙動のいずれも 3.2.0 と同じです。</p>
-<h3 id="add-6">Add</h3>
+<h3 id="add-7">Add</h3>
 <ul><li><p><strong><code>Documentation~/EditorTools.md</code> を追加しました。</strong> Editor機能の正本です。</p>
 <p>これまでEditor機能の説明は README の <code>Editor・デバッグ支援</code> にある10行の箇条書きだけで、<strong><code>AssetStoreToolsPackager</code>、<code>SymphonyPackageLoader</code>、<code>SymphonyAssetProtector</code>、<code>SymphonyMcpTools</code>、Project Settings の各設定項目は1行も書かれていませんでした。</strong> Runtime の各サブシステムには README のクイックスタートがあるのに、Editor機能には対応する正本がありませんでした。</p>
 <p><code>Editor/</code> 配下の全モジュールについて、何をするものか、どのメニューやProject Settingsから開くか、設定がどこへ保存されるか、版管理へ含めるべきかを記載しています。README の箇条書きは索引として残し、詳細はこちらへ委譲します。</p></li><li><p><strong><code>Documentation~/Deprecations.md</code> を追加しました。</strong> 非推奨APIと削除予定の正本です。</p>
@@ -223,7 +229,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <ul><li><code>Documentation~/AgentUsage.md</code> の「非推奨APIの期限と移行先は CHANGELOG.md を正本とします」を、<code>Deprecations.md</code> を正本とする記述へ変更しました。正本が2つになることを避けるためです。非推奨化の経緯と時期は引き続き CHANGELOG を参照します。</li><li><code>AGENTS.md</code> の参照先表で、Editor・デバッグ機能の参照先を <code>EditorTools.md</code> へ、非推奨APIと移行方法の参照先を <code>Deprecations.md</code> へ変更しました。</li></ul>
 <h2 id="320---2026-08-04">[3.2.0] - 2026-08-04</h2>
 <p>Asset Store Tools Packager に、出力前の確認ウィンドウを追加しました。<strong>Runtime の公開APIとセーブデータ形式は変更していません。</strong></p>
-<h3 id="add-7">Add</h3>
+<h3 id="add-8">Add</h3>
 <ul><li><p><strong>エクスポート前に、パッケージへ含まれるアセットを階層表示で確認できるようにしました。</strong> Packager ウィンドウの <code>Export Selected Directories</code> を押すと、出力せずに確認ウィンドウが開きます。<code>Export</code> で実行、<code>Cancel</code> で中止します。</p>
 <p>3.1.1 で修正した取りこぼしのように、意図したアセットが入っているかは出力後のパッケージを展開しないと分かりませんでした。出力前に気づけるようにするための追加です。</p>
 <p>ディレクトリごとにツリーを表示し、フォルダには配下のアセット数を出します。対象アセットが0件のディレクトリは「（対象アセットなし）」と表示され、出力時に警告になることが分かります。</p></li></ul>
@@ -295,7 +301,7 @@ protected override Awaitable SaveJsonAsync(Type dataType, string json, Cancellat
 <div class="table-scroll"><table><thead><tr><th>削除した型</th><th>代替</th></tr></thead><tbody><tr><td><code>SaveDataRegistry</code></td><td><code>SaveStore</code></td></tr><tr><td><code>SaveDataLoader</code></td><td><code>SaveDataLoaderStrategy</code></td></tr><tr><td><code>PlayerPrefsSaveDataLoader</code></td><td><code>PlayerPrefsSaveDataLoaderStrategy</code></td></tr><tr><td><code>SymphonyTask</code></td><td><code>SymphonyAwaitable</code></td></tr><tr><td><code>ISaveDataLoader&lt;T&gt;</code>、<code>JsonUtilityDataLoader&lt;T&gt;</code>、<code>NugetDataLoader&lt;T&gt;</code>（<code>Runtime/Obsolete/</code>）</td><td><code>SaveDataLoaderStrategy</code></td></tr></tbody></table></div></li><li><strong>Editorの管理パネル3件を改名しました。</strong> <code>SaveDataRegistryWindow</code> → <code>SaveDataWindow</code>、<code>ServiceLocatorWindow</code> → <code>ServiceLocateWindow</code>、<code>SceneLoaderWindow</code> → <code>SceneLoadWindow</code>。UXMLも同名へ改名しています。サブシステム名へ揃える規則です。</li><li>内部型 <code>SaveSystem</code> を <code>SaveDataInitializer</code> へ、<code>SymphonyOrchestratorObject</code> を <code>SymphonyLifetimeComponent</code> へ改名しました。いずれも <code>internal</code> のため利用側への影響はありません。名前空間 <code>SymphonyFrameWork.System.SaveSystem</code> は変更していません。</li></ul>
 <h3 id="change-11">Change</h3>
 <ul><li><code>SceneLoader</code> と <code>ServiceLocator</code> の内部レイヤーは <code>Task</code> のままです。公開面だけ <code>Awaitable</code> へ変換します。<code>SceneLoadService</code> の複数シーン待機と <code>ServiceLocator</code> の登録待機は、いずれも1つの待機を複数箇所で共有するため、<code>Awaitable</code> では表現できません。</li><li><code>SceneLoadService.LoadScenes</code> / <code>UnloadScenes</code> が、各シーンの結果を <code>Task.Result</code> ではなく <code>await</code> で取り出すようにしました。<code>Result</code> は例外を <code>AggregateException</code> へ包むため、2.x の <code>ValueTask</code> と例外の伝播が変わってしまいます。<strong>利用側から見える例外の型は2.xと同じです。</strong></li><li><code>IInitializeAsync</code> は <code>Task</code> を維持します。<code>InitializeTask</code> は完了状態を保持して <code>IsDone</code> から参照するため、保存も共有もできない <code>Awaitable</code> へ移行できません。</li></ul>
-<h3 id="add-8">Add</h3>
+<h3 id="add-9">Add</h3>
 <ul><li><code>SaveStore.IsLoaded&lt;T&gt;()</code> / <code>IsLoaded(Type)</code> を追加しました。<code>Get&lt;T&gt;()</code> が使用できる状態か、例外を発生させずに判定できます。</li><li><code>Get&lt;T&gt;()</code> の新しい契約に対するPlayModeテストを2件追加しました。未読み込み時に <code>InvalidOperationException</code> になること、読み込み後は <code>LoadAsync&lt;T&gt;()</code> の戻り値と同一インスタンスを返すことを検証します。</li></ul>
 <h2 id="300-preview4---2026-08-04">[3.0.0-preview.4] - 2026-08-04</h2>
 <h3 id="breaking-1">Breaking</h3>
@@ -308,7 +314,7 @@ PlayerData data = await SaveStore.LoadAsync&lt;PlayerData&gt;();</code></pre>
 <p>非推奨の <code>SaveDataRegistry</code> も同じ戻り値型になります。</p></li><li><strong><code>SaveStore</code> の同期取得 <code>Get&lt;T&gt;()</code> の挙動は変わりません。</strong> 内部の読み込み経路は <code>Task</code> のままです。</li></ul>
 <h3 id="change-12">Change</h3>
 <ul><li><strong>Symphony Administrator の Save Data パネルが Load / Save / Delete を非同期で実行するようになりました。</strong> 従来は完了まで Editor のメインスレッドを止めていました。<code>Awaitable</code> を同期待機すると完了の伝播にメインスレッドが必要なためデッドロックするため、この変更は <code>Awaitable</code> 化と不可分です。</li></ul>
-<h3 id="add-9">Add</h3>
+<h3 id="add-10">Add</h3>
 <ul><li><p><code>SaveStore</code> の非同期APIのPlayModeテストを6件追加した。保存と読み込みの往復、削除で既定値へ戻ること、キャンセル時の例外型、不正な型の同期例外を検証する。</p>
 <ul><li><strong>同じ型へ続けて <code>LoadAsync</code> を呼んでも両方が完了すること</strong>を回帰テストにした。内部は重複排除で1つの <code>Task</code> を共有するが、<code>Awaitable</code> は共有できないため呼び出しごとに別の <code>Awaitable</code> を作っている。この両立が壊れると、2回目の読み込みが返ってこなくなる。</li></ul></li></ul>
 <h2 id="300-preview3---2026-08-04">[3.0.0-preview.3] - 2026-08-04</h2>
@@ -324,7 +330,7 @@ PauseManager.PausableDestroy(gameObject, 1.0f);
 // 3.0.0 では完了を待機できる
 await PauseManager.PausableDestroy(gameObject, 1.0f);</code></pre>
 <p>待機せずに呼んでも、破棄と処理の実行は従来どおり行われます。</p></li></ul>
-<h3 id="add-10">Add</h3>
+<h3 id="add-11">Add</h3>
 <ul><li><code>PausableInvoke</code> と <code>PausableDestroy</code> のPlayModeテストを5件追加した。待機した場合の実行、<strong>待機せずに呼んでも実行されること</strong>、引数エラーが同期的に投げられること、GameObjectの破棄を検証する。</li></ul>
 <h3 id="既知の代償">既知の代償</h3>
 <ul><li><code>Awaitable</code> は完了を観測した時点でプールへ返却されます。<strong>待機せずに呼んだ場合はプールへ戻らず、通常のGC対象になります。</strong> 無制限に溜まるものではなく、プールの効果が失われるだけです。fire-and-forgetとして使うAPIであるため、この代償を受け入れています。</li></ul>
@@ -347,11 +353,11 @@ await SymphonyAwaitable.WhenAll(
 <p><strong><code>Awaitable</code> は1回しか <code>await</code> できず、保存や共有ができません。</strong> フィールドへ持たず、その場で待機してください。<code>Task</code> と混ぜる必要がある場合は <code>SymphonyAwaitable.AsTask</code> で変換します。</p>
 <p>引数、例外の種類と条件、キャンセルの扱いは変更していません。キャンセル時は従来どおり <code>OperationCanceledException</code> です。</p>
 <p><code>PausableWaitForSecond</code>（Coroutine用の <code>IEnumerator</code> 版）、<code>PausableDestroy</code>、<code>PausableInvoke</code> は変更していません。<code>async void</code> の2つは、戻り値を持たせると await されなかった例外が観測できなくなるため据え置きます。</p></li></ul>
-<h3 id="add-11">Add</h3>
+<h3 id="add-12">Add</h3>
 <ul><li><p>Pauseの非同期APIのPlayModeテストを5件追加した。フレーム進行、指定秒の経過、<strong>ポーズ中に待機が進まないこと</strong>、キャンセル時の例外型、条件待機を検証する。</p>
 <ul><li>キャンセルの検証は <code>Awaitable</code> を直接 <code>await</code> して行う。<code>AsTask</code> で包むと <code>TaskCanceledException</code> に化け、利用側が実際に受け取る型を測れないため。</li></ul></li></ul>
 <h2 id="2200---2026-08-04">[2.20.0] - 2026-08-04</h2>
-<h3 id="add-12">Add</h3>
+<h3 id="add-13">Add</h3>
 <ul><li>セーブデータの保存先を差し替える拡張点を <code>SaveDataLoaderStrategy</code> と <code>PlayerPrefsSaveDataLoaderStrategy</code> へ改名した。DesignPhilosophy の「拡張点には役割を表すサフィックスを付ける」に従う。中身（<code>protected abstract</code> メンバー）は変更していない。</li></ul>
 <h3 id="deprecated-4">Deprecated</h3>
 <ul><li><p><code>SaveDataLoader</code> と <code>PlayerPrefsSaveDataLoader</code> を非推奨にした。<strong>移行方法</strong>: 継承元を <code>SaveDataLoaderStrategy</code> / <code>PlayerPrefsSaveDataLoaderStrategy</code> へ置換する。それ以外の変更は不要。<strong>3.0.0 で削除する。</strong></p>
@@ -360,7 +366,7 @@ await SymphonyAwaitable.WhenAll(
 <ul><li><p>内部ローダー <code>JsonUtilitySaveDataLoader</code> / <code>NewtonsoftSaveDataLoader</code> を <code>...Strategy</code> へ改名した。<code>internal</code> のため利用側のコードには影響しない。</p>
 <ul><li><strong><code>SaveSystemConfig.asset</code> は <code>[SerializeReference]</code> で型名を保存しているため、<code>[MovedFrom]</code> を付けて旧型名から解決できるようにしている。</strong> 既存の設定アセットはそのまま読み込まれ、ローダーの選択は失われない。</li></ul></li></ul>
 <h2 id="2190---2026-08-04">[2.19.0] - 2026-08-04</h2>
-<h3 id="add-13">Add</h3>
+<h3 id="add-14">Add</h3>
 <ul><li><p><code>SaveStore</code> を追加した。<code>SaveDataRegistry</code> と同じ公開APIを持ち、シグネチャ・例外の種類と条件・シリアライズ形式のいずれも変わらない。</p>
 <ul><li>Round I1／I2 で内部を分割した結果、<strong>この型はレジストリではなくストアになっていた</strong>。実際のレジストリは <code>SaveDataEntryRegistry</code>（内部）であり、名前が役割と食い違っていたため改名した。</li></ul></li></ul>
 <h3 id="deprecated-5">Deprecated</h3>
@@ -373,14 +379,14 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="change-14">Change</h3>
 <ul><li><p>Audioの内部構造をレイヤーごとに分割した。Scene Load、Service Locate、Save Data、Pauseと同じ形へ揃えている。<strong>公開APIのシグネチャ、例外の種類と条件はいずれも変更していない。</strong></p>
 <ul><li><code>AudioGroupEntity</code>（Domain）— グループ名を同一性とし、音量割合からデシベル値への変換規則を持つ</li><li><code>AudioGroupRegistry</code>（Application）— グループの保持と、構築処理を実行済みかどうかの記録</li><li><code>AudioService</code>（Application）— Configの解釈、AudioSourceの遅延構築、AudioMixerへの反映</li><li><code>IAudioSourceHost</code> / <code>AudioSourceHost</code>（Infrastructure）— AudioSourceを載せるGameObjectの所有</li><li><code>AudioManager</code> は引数検証と転送だけを行い、状態を持たなくなった</li></ul></li><li><code>AudioManager.cs</code> を <code>Runtime/System/Audio/</code> へ移した。名前空間は変更していないため、利用側の <code>using</code> に影響しない。</li><li>音量変換に使う最小音量 <code>-80</code> dB を <code>AudioGroupEntity.MINIMUM_VOLUME_DECIBEL</code> として名前付き定数にした。変換式は従来と恒等。</li></ul>
-<h3 id="add-14">Add</h3>
+<h3 id="add-15">Add</h3>
 <ul><li><p><code>AudioGroupEntity</code> と <code>AudioGroupRegistry</code> のEditModeテストを14件追加した。音量変換の境界値と線形補間、初期音量が取得できない場合の扱い、構築済み記録が全消去で戻ることを検証する。</p>
 <ul><li><strong>全消去で構築済み記録が戻ること</strong>を回帰テストにした。ここが戻らないとPlay Modeの2回目でAudioSourceが作られなくなる。</li></ul></li></ul>
 <h2 id="2181---2026-08-03">[2.18.1] - 2026-08-03</h2>
 <h3 id="fix-8">Fix</h3>
 <ul><li><strong><code>PauseManager.Pause</code> に現在と同じ値を代入したとき、<code>OnPauseChanged</code> を発行しないようにした。</strong> 従来は <code>Pause = true</code> を2回続けると <code>IPausable.Pause()</code> が2回呼ばれていた。<strong>利用側への影響</strong>: 同じ値での再通知に依存した実装は動作が変わる。状態変更の通知としては値が変わったときだけ発行するのが正しいため、修正として扱う。</li><li>管理パネルのPauseが、Play Mode外でも操作ボタンを受け付けて <code>SymphonyNotInitializedException</code> を出していたのを修正した。未初期化時はボタンを無効化する。</li></ul>
 <h2 id="2180---2026-08-03">[2.18.0] - 2026-08-03</h2>
-<h3 id="add-15">Add</h3>
+<h3 id="add-16">Add</h3>
 <ul><li>ポーズ機構の管理状態を取得時点の不変値として返す公開 <code>PauseInfo</code> を追加した。<code>PauseManager.GetPauseInfo()</code> でポーズ状態と <code>IPausable</code> の購読件数を取得できる。購読件数は解除し忘れが積み上がっていないかの確認に使う。</li><li><p>Pauseの内部構造をレイヤーごとに分割した。Scene Load、Service Locate、Save Dataと同じ形へ揃えている。</p>
 <ul><li><code>PauseStateEntity</code>（Domain）— ポーズ状態と、状態が実際に変化したかどうかの判定を保持する</li><li><code>PausableRegistry</code>（Application）— <code>IPausable</code> と通知処理の対応表を所有する</li><li><code>PauseService</code>（Application）— 状態変更と通知を担当する</li><li><code>PauseQuery</code> / <code>PauseDto</code>（Adaptor）、<code>PauseViewModel</code>（View）</li></ul></li><li>管理パネルのPauseに <code>IPausable</code> の購読件数を表示するようにした。</li><li>Pauseの EditModeテストを34件追加した。同値の再通知抑止、重複登録の排除、購読者例外の扱い、Resetの後始末を検証する。</li></ul>
 <h3 id="change-15">Change</h3>
@@ -393,7 +399,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-9">Fix</h3>
 <ul><li>管理パネルの State 表示が、キャッシュがあるだけの型を <code>Loaded</code> と表示していたのを修正した。</li></ul>
 <h2 id="2170---2026-08-03">[2.17.0] - 2026-08-03</h2>
-<h3 id="add-16">Add</h3>
+<h3 id="add-17">Add</h3>
 <ul><li><code>SaveDataRegistryEntryInfo.IsLoaded</code> を追加した。<strong><code>Data != null</code> は「読み込み済み」を意味しない。</strong> キャッシュは初回アクセス時に既定値で作られるため、キャッシュの有無と永続化データを読み込んだかどうかは別の状態である。Editorの管理パネルは従来この2つを取り違えて表示していた。</li><li><p>Save Dataの読み取り経路をAdaptorへ集約した。Scene LoadおよびService Locateと同じ形へ揃えている。</p>
 <ul><li><code>SaveDataQuery</code>（Adaptor）— Entityを公開Infoと表示用Dtoへ変換する。永続化データの存在確認（<code>Exists</code>）は、状態が変わるたびに全型分のI/Oが走るため含めない</li><li><code>SaveDataDto</code>（Adaptor）— 表示に必要な値だけを持つ不変値</li><li><code>SaveDataViewModel</code>（View）— Serviceの状態変更を<code>ReactiveProperty</code>へ変換する</li></ul></li><li><p><code>SaveDataQuery</code> と <code>SaveDataViewModel</code> のEditModeテストを14件追加した。並び順、キャッシュの有無と読み込み済み状態の区別、通知の発生条件、購読解除を検証する。</p>
 <ul><li><strong>保存では版番号が変わらない</strong>ことを回帰テストにした。保存で変わるのは保存日時だけでレジストリの構造は変わらないため、版番号ベースの変更検出では取りこぼす。</li></ul></li></ul>
@@ -403,29 +409,29 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="change-18">Change</h3>
 <ul><li><p>Save Dataの内部構造をレイヤーごとに分割した。<code>SaveDataRegistry</code>（420行）が公開Facade・キャッシュ保持・処理順・例外変換・ローダー解決・スナップショット生成をすべて担っていたため、Scene LoadおよびService Locateと同じ形へ揃えた。<strong>公開APIのシグネチャ、例外の種類と条件、シリアライズ形式はいずれも変更していない。</strong></p>
 <ul><li><code>SaveDataEntryEntity</code>（Domain）— セーブデータ型を同一性とし、キャッシュ内容と読み込み済み状態を保持する。状態変更は状態遷移メソッドからのみ行う</li><li><code>SaveDataEntryRegistry</code>（Application）— 型をキーにEntityを所有・検索する。排他制御をこの型へ集約し、Service側はロックを意識しない</li><li><code>SaveDataService</code>（Application）— 処理順、重複ロードの排除、<code>SaveDataOperationException</code> への変換、ローダー解決を担当する</li><li><code>SaveDataRegistry</code> は引数検証と転送だけを行い、状態を持たなくなった</li></ul></li><li><code>JsonUtilitySaveDataLoader</code> と <code>NewtonsoftSaveDataLoader</code> を <code>Internal/Infrastructure/</code> へ移した。GUIDは維持しているため、既存の参照は切れない。</li></ul>
-<h3 id="add-17">Add</h3>
+<h3 id="add-18">Add</h3>
 <ul><li><p><code>SaveDataEntryEntity</code> と <code>SaveDataEntryRegistry</code> のEditModeテストを17件追加した。同一性、読み込み済み状態の遷移、型ごとの独立性、スナップショットのキャッシュ、全消去を検証する。</p>
 <ul><li><strong>同期的に完了するローダーで進行中タスクを登録しないこと</strong>を回帰テストにした。従来はコード上のコメントでのみ説明されていたが、ここが壊れると「Loadしても保存済みデータが読み込まれない」という発見しにくい不具合になるため、テストで固定した。</li></ul></li></ul>
 <h2 id="2151---2026-08-03">[2.15.1] - 2026-08-03</h2>
 <h3 id="fix-10">Fix</h3>
 <ul><li>Play Mode終了時にOrchestratorがService Locatorを解放した後で<code>SymphonyLocate.OnDisable()</code>が登録状態を照会し、<code>SymphonyNotInitializedException</code>を記録する問題を修正した。未初期化時は解除処理をスキップし、Domain Reload無効で2回往復して終了時エラーと登録残留がないことを確認した。</li></ul>
 <h2 id="2150---2026-08-03">[2.15.0] - 2026-08-03</h2>
-<h3 id="add-18">Add</h3>
+<h3 id="add-19">Add</h3>
 <ul><li>登録キー、payload、登録方式を取得時点の不変値として返す公開<code>ServiceRegistrationInfo</code>を追加した。<code>ServiceLocator.GetRegistrationInfos()</code>で登録一覧を型名順に取得でき、<code>TryGetRegistrationInfo</code>で既知の型を点検索できる。</li><li><code>ServiceLocateQuery</code>の点検索、一覧順、表示名、スナップショット性と、<code>ServiceLocateViewModel</code>の初期値、状態変更通知、通知抑制、購読解除を検証するEditModeテストを追加した。</li></ul>
 <h3 id="change-19">Change</h3>
 <ul><li>Service Locatorの読み取り経路を内部<code>ServiceLocateQuery</code>へ集約し、公開API向け<code>ServiceRegistrationInfo</code>とView向け<code>ServiceLocateDto</code>を分離した。<code>ServiceLocator</code>はRegistry／Entityを直接読まず、状態照会をQueryへ転送する。</li><li><code>ServiceLocatorWindow</code>を<code>ServiceLocateViewModel</code>の読み取り専用ReactiveProperty購読へ変更した。Editor更新ごとの登録一覧pollingを廃止し、状態変更時だけ型名、payload名、登録方式を再描画する。Play Mode終了時に購読を解除するため、Domain Reload無効でも前回の表示状態を残さない。</li><li><code>SymphonyMcpTools.GetServiceLocatorJson()</code>を公開<code>ServiceRegistrationInfo</code>から生成するようにした。既存JSONフィールドを維持し、Componentでは記録された登録方式、Component以外では従来どおりLocatorを実効値として返す。</li></ul>
 <h2 id="2140---2026-08-02">[2.14.0] - 2026-08-02</h2>
-<h3 id="add-19">Add</h3>
+<h3 id="add-20">Add</h3>
 <ul><li>重複登録で失敗した候補の所有権を呼び出し側へ残す通常の<code>RegisterInstance</code>に加え、候補を明示的に自動解放する<code>RegisterInstanceWithAutoDispose</code>のgeneric／<code>Type</code> overloadを追加した。</li><li><code>ServiceRegistrationEntity</code>の状態遷移、<code>ServiceLocateRegistry</code>の登録・検索・スナップショット・待機callback、<code>ServiceLocateService</code>の所有権と処理順を検証するEditModeテストを20件追加した。</li></ul>
 <h3 id="change-20">Change</h3>
 <ul><li>Service LocatorのRuntime内部をDomainの<code>ServiceRegistrationEntity</code>、Applicationの<code>ServiceLocateRegistry</code>／<code>ServiceLocateService</code>、Infrastructureの<code>ServiceHostComponent</code>へ分割した。登録状態、Command、Unity Componentの所有・解放をそれぞれ独立した責務にした。</li><li>通常の<code>RegisterInstance</code>が型重複で失敗したとき、渡された候補を暗黙に<code>Dispose</code>／破棄しないよう変更した。既存登録は維持され、失敗した候補の所有権は呼び出し側に残る。</li><li>AdministratorのService Locator表示からprivate fieldへのリフレクションを除去し、変更不能な登録スナップショットを参照するようにした。Service Locator SampleはSingleton重複候補を自動破棄する新APIの利用例へ更新した。</li></ul>
 <h2 id="2130---2026-08-02">[2.13.0] - 2026-08-02</h2>
-<h3 id="add-20">Add</h3>
+<h3 id="add-21">Add</h3>
 <ul><li>追跡中Sceneの名前、状態、優先度、進捗、Active判定を取得時点の不変値として返す公開<code>SceneLoadInfo</code>を追加した。<code>SceneLoader.GetSceneInfos()</code>で既知のScene名なしに一覧を取得でき、<code>TryGetSceneInfo</code>で1件を安全に照会できる。既存の<code>IsExist</code>と<code>TryGetState</code>は互換性を維持する。</li><li><code>SceneLoadQuery</code>の点検索、一覧順、Active判定、スナップショット性と、<code>SceneLoadViewModel</code>の初期値、内容同値時の通知抑制、購読解除を検証するEditModeテストを追加した。</li></ul>
 <h3 id="change-21">Change</h3>
 <ul><li>Scene Loadの読み取り経路を内部<code>SceneLoadQuery</code>へ集約し、公開API向け<code>SceneLoadInfo</code>とView向け<code>SceneLoadDto</code>を分離した。<code>SceneLoader</code>はRegistry／Entityを直接読まず、状態照会をQueryへ転送する。</li><li><code>SceneLoaderWindow</code>を<code>SceneLoadViewModel</code>の読み取り専用ReactiveProperty購読へ変更した。private fieldのリフレクションとEditor更新ごとのDictionary再取得を廃止し、状態変更時だけScene名、状態、優先度、進捗、Active判定を再描画する。Play Mode終了時には購読を解除するため、Domain Reload無効でも前回の表示状態を残さない。</li><li><code>SymphonyMcpTools.GetSceneLoaderJson()</code>を公開<code>SceneLoadInfo</code>から生成するようにし、既存JSONフィールドを維持したまま<code>progress</code>と<code>isActive</code>を追加した。Scene Loader Sampleと利用者向け文書も新しい状態照会APIへ更新した。</li></ul>
 <h2 id="2120---2026-08-02">[2.12.0] - 2026-08-02</h2>
-<h3 id="add-21">Add</h3>
+<h3 id="add-22">Add</h3>
 <ul><li>シーン名とActive Scene選択用の優先度を一体で扱う公開Value Object <code>SceneLoadRequest</code>を追加した。単一／複数ロード用の新しいoverloadへ渡せるため、複数シーンでもシーン名と優先度の対応を崩さず指定できる。</li><li><code>SceneLoadRequest</code> overloadの進捗通知へC#標準の<code>IProgress&lt;float&gt;</code>を採用した。既存の<code>Action&lt;float&gt;</code> overloadは同期adapterとして維持し、ソース互換性と通知タイミングを保つ。</li><li><code>SceneLoadRequest</code>、シーン単位の状態遷移、Registry、Serviceの優先度判断と進捗伝播を検証するEditModeテストを追加した。</li></ul>
 <h3 id="change-22">Change</h3>
 <ul><li>Scene LoadのRuntime内部を<code>SceneLoadEntity</code>、<code>SceneLoadRegistry</code>、<code>SceneLoadService</code>、<code>ISceneLoader</code>、<code>UnitySceneLoader</code>へ分割した。状態と優先度の判断をUnityの<code>SceneManager</code>／<code>AsyncOperation</code>境界から切り離し、<code>SceneLoadManager</code>、<code>SceneLoadData</code>、<code>SceneResetter</code>を置き換えた。</li><li>起動時のScene同期とリセット処理を<code>SceneLoadService</code>へ統合した。公開<code>SceneLoader</code>の既存シグネチャ、<code>SceneLoadState</code>、<code>SceneManagerConfig</code>、シリアライズ済みアセットは変更していない。</li><li>Scene Loader SampleのScene A経路を<code>SceneLoadRequest</code>と<code>IProgress&lt;float&gt;</code>の利用例へ更新した。Editor WindowとMCP診断は新しいEntity一覧へ追従し、表示するJSONの意味を維持する。</li></ul>
@@ -433,12 +439,12 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-11">Fix</h3>
 <ul><li><code>ReactiveProperty</code> のメインスレッド判定が <code>Awaitable</code> を毎回生成し、await せずに破棄していた問題を修正した。Unity の <code>Awaitable</code> はプールされた型で、await されないとプールへ返却されない。値の更新ごとに呼ばれる経路であり、後続の ViewModel が高頻度に更新するとプールを圧迫する。副作用のない Unity API 読み取りでスレッドを判定する形へ変更し、メインスレッド上ではアロケーションが発生しないようにした。</li></ul>
 <h2 id="2110---2026-07-31">[2.11.0] - 2026-07-31</h2>
-<h3 id="add-22">Add</h3>
+<h3 id="add-23">Add</h3>
 <ul><li><code>ReactiveProperty&lt;T&gt;</code> の単体テストを21件追加した。等値比較（既定と custom comparer、配列が参照比較になること）、<code>notifyCurrent</code> の有無、購読解除と多重 Dispose、通知中に購読者が購読・解除した場合、購読者が例外を投げた場合の分離、破棄後の拒否、メインスレッド以外からの呼び出しの拒否を検証する。2.10.0 で追加した時点ではテストを持てなかったため、レビューだけが品質保証になっていた。</li></ul>
 <h3 id="change-23">Change</h3>
 <ul><li><strong>テストをパッケージ内へ戻した。</strong> <code>Tests/Editor/</code> と <code>Tests/Runtime/</code> に配置し、パッケージへ同梱する。両 asmdef の <code>defineConstraints</code> に <code>UNITY_INCLUDE_TESTS</code> を指定しているため、<strong>利用側のビルドには含まれない。</strong></li><li><code>Runtime/AssemblyInfo.cs</code> と <code>Core/AssemblyInfo.cs</code> がテストアセンブリへ <code>InternalsVisibleTo</code> を与えるようにした。これにより <code>internal</code> な内部実装も単体テストの対象にできる。従来は公開APIの範囲でしかテストできず、<code>ReactiveProperty</code> のような内部基盤を検証できなかった。</li></ul>
 <h2 id="2100---2026-07-31">[2.10.0] - 2026-07-31</h2>
-<h3 id="add-23">Add</h3>
+<h3 id="add-24">Add</h3>
 <ul><li><p><code>ReactiveProperty&lt;T&gt;</code> と <code>IReadOnlyReactiveProperty&lt;T&gt;</code> を <code>Core</code> へ追加した。値が変化したときだけ購読者へ通知する最小の基盤で、後続バージョンで導入する ViewModel が表示状態を View と Editor Window へ伝えるために使う。現在 Editor Window は毎フレーム内部状態をポーリングしているが、これを変更時のみの反映へ移行するための土台になる。外部ライブラリ（R3 / UniRx）は導入していない。</p>
 <ul><li>どちらも <code>internal</code> のため、<strong>利用側の公開APIは増えていない。</strong></li><li>通知は購読者リストのスナップショットに対して行うため、通知中に購読者が購読・解除しても壊れない。</li><li>1人の購読者が例外を投げても残りへの通知は続き、例外はまとめて1回記録する。</li><li>値の更新・購読・破棄はメインスレッドに限定し、それ以外からの呼び出しは例外にする。</li><li>配列や <code>List</code> は既定では参照比較になるため、内容比較用の comparer とスナップショットの用意は利用側の責務としている。</li></ul></li></ul>
 <h2 id="291---2026-07-31">[2.9.1] - 2026-07-31</h2>
@@ -453,13 +459,13 @@ await SymphonyAwaitable.WhenAll(
 <ul><li><p>Editorの初期化を <code>SymphonyEditorOrchestrator</code> へ集約した。従来は <code>PackageInitializer</code>・<code>AutoEnumGenerator</code>・<code>SymphonyDebugLogFileWriter</code>・<code>TagsAndLayersPostProcessor</code> の4型がそれぞれ <code>[InitializeOnLoad]</code> を持ち、互いの順序を知らないまま並行して走っていた。今後は自動初期化属性を持つのはOrchestratorだけで、各モジュールは明示的に <code>Initialize()</code> / <code>Shutdown()</code> を呼ばれる。初期化順が確定し、assembly reload とEditor終了時に構築順の逆順で解放されるようになった。</p>
 <ul><li>初期化状態（<code>Uninitialized</code> / <code>Initializing</code> / <code>Ready</code> / <code>ShuttingDown</code>）を持ち、<code>Ready</code> 以外では再初期化しない。</li><li><code>Shutdown</code> は多重呼び出しを無害にし、同期的かつ非ブロッキングで動く。1モジュールの終了処理が失敗しても残りを解放する。</li><li><code>AssetPostprocessor</code> が <code>Ready</code> 前に受け取った変更は、その場で処理せず <code>Ready</code> 後に1回だけ処理する。</li></ul></li><li>起動時の <code>AssetDatabase.Refresh()</code> を、最大5回からOrchestratorでの1回へ集約した。実際にアセット変更があった場合だけ実行する。メニューや設定変更を起点とするRefresh（<code>AssetStoreToolsPackager</code>・<code>FolderGenerator</code>・<code>SaveSystemSettingProvider</code>・enum生成のメニュー経路）は従来どおり残している。</li><li><code>PackageInitializer</code> を <code>public static</code> から <code>internal static</code> へ変更した。<code>[InitializeOnLoad]</code> により自動実行される型であり、外部から呼ぶ想定のAPIではないため。<strong>利用側への影響</strong>: Editorアセンブリの型のため、Runtimeコードとビルド済みプレイヤーには影響しない。</li></ul>
 <h2 id="270---2026-07-31">[2.7.0] - 2026-07-31</h2>
-<h3 id="add-24">Add</h3>
+<h3 id="add-25">Add</h3>
 <ul><li><p>Editor専用の <code>SymphonyMcpTools</code> を追加。<code>GetServiceLocatorJson()</code> / <code>GetSceneLoaderJson()</code> / <code>GetSaveDataJson()</code> / <code>GetPauseJson()</code> で、各サブシステムの現在状態をJSONで取得できる。uLoopMCP の <code>execute-dynamic-code</code> など自動化されたデバッグから状態を<strong>列挙</strong>するための入口。従来は点検索（<code>IsExistInstance&lt;T&gt;()</code>、<code>TryGetState(name, out)</code>）しか無く、「何が登録されているか」を知るにはリフレクションを書くしかなかった。</p>
 <ul><li>どのメソッドも<strong>例外を投げず、必ず有効なJSONを返す</strong>。未初期化時は <code>&quot;initialized&quot;: false</code>、読み取り失敗時は <code>&quot;error&quot;</code> を含む。</li><li>Save Dataの出力は型名・保存日時・ロード済み状態だけで、<strong><code>SaveDataContent</code> の内容は含まない</strong>（セーブデータに機微な値が入りうるため）。</li><li>Service Locatorの <code>effectiveLocateType</code> は登録時に渡された値ではなく、現在の状態から導いた実効値。Service Locatorは <code>LocateType</code> を保持しないため。</li><li>Editorアセンブリ専用であり、Runtimeコードからは参照できない。Playerビルドにも含まれない。</li><li><strong>Architecture Revision Phase 3 までの暫定手段</strong>であり、将来は Adaptor の Query と Info による状態照会へ置き換える。</li></ul></li></ul>
 <h3 id="change-26">Change</h3>
 <ul><li>上記の実装のため、<code>ServiceLocator</code> / <code>SceneLoader</code> / <code>PauseManager</code> / <code>SaveDataRegistry</code> へ <code>internal</code> の読み取り専用アクセサを追加した。公開APIは増えていない。setterも副作用も持たない。従来Editor側がリフレクションでprivateフィールドを覗いていた経路を、型安全な参照へ置き換えるための土台になる。</li></ul>
 <h2 id="260---2026-07-31">[2.6.0] - 2026-07-31</h2>
-<h3 id="add-25">Add</h3>
+<h3 id="add-26">Add</h3>
 <ul><li><p><code>SymphonyAwaitable</code> を追加。Unity 6 の <code>Awaitable</code> に対して、完了済み値（<code>Completed</code> / <code>FromResult</code>）、複数処理の待機（<code>WhenAll</code>）、条件待機（<code>WaitUntil</code> / <code>WaitWhile</code>）、協調的タイムアウト（<code>WithTimeout</code>）、<code>Task</code> との相互変換（<code>FromTask</code> / <code>AsTask</code>）を提供する。3.0.0 で予定している Awaitable 全面移行の基盤になる。</p>
 <ul><li><code>WhenAny</code> は提供しない。未完了側の Awaitable と例外を安全に消費する一般契約を定められないため。具体的な利用要件が生じた時点で追加を判断する。</li><li><code>WhenAll</code> へ渡した Awaitable は、このメソッドが唯一の消費者になる。呼び出し側で別途awaitしてはならない。</li><li><code>FromTask</code> は元 Task がどのスレッドで完了しても、await 側が必ずメインスレッドで再開する。待機をキャンセルした後も元 Task の完了と例外を観測し続けるため、未観測例外を作らない。</li><li><code>WithTimeout</code> は開始済みの Awaitable ではなく、linked token を受け取る factory を取る。token を無視する処理は強制停止できない協調的なタイムアウトである。</li></ul></li></ul>
 <h3 id="change-27">Change</h3>
@@ -471,7 +477,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-13">Fix</h3>
 <ul><li>Runtimeコードから <code>UnityEditor</code> への参照を除去した。<code>ServiceLocator</code> と <code>ServiceLocateManager</code> が <code>EditorPrefs</code> を、<code>SymphonyDebugHUD</code> が <code>MenuItem</code> を、<code>SymphonyVisualElement</code> が <code>AssetDatabase</code> を参照しており、<code>#if UNITY_EDITOR</code> で囲まれていてもRuntimeアセンブリがEditor APIに依存していた。設定値とローダーはEditor側のCompositionから注入する形へ変更した。<code>LoadType.AssetDataBase</code> を含む公開APIは変更していない。</li></ul>
 <h2 id="250---2026-07-31">[2.5.0] - 2026-07-31</h2>
-<h3 id="add-26">Add</h3>
+<h3 id="add-27">Add</h3>
 <ul><li>Framework配下のアセット移動に対する保護の強さを、<code>Project Settings &gt; SymphonyFrameWork</code> から「有効化／警告／無効化」の3段階で選べるようにした。従来は一律で差し戻すか警告するかの2択で、切り替えもメニューに隠れていたため、テストフォルダの移設のように意図した移動を行いたい場面で扱いにくかった。「警告」では移動を続行するか元に戻すかをその場で選べる。1回の移動操作でダイアログは1回だけ表示する。</li></ul>
 <h3 id="change-28">Change</h3>
 <ul><li>Editor設定の保存先を <code>EditorPrefs</code> から <code>UserSettings/SymphonyFrameWork/</code> 配下の設定アセットへ移した。<code>EditorPrefs</code> はレジストリに入るため値の確認・リセット・削除ができず、設定の所在が不透明だった。<strong>利用側への影響</strong>: 既存の <code>EditorPrefs</code> の値は引き継がれず、アセット保護モードとService Locatorのログ設定はいずれも既定値から始まる。<code>UserSettings/</code> は <code>.gitignore</code> 対象のため、従来どおり開発者ごとの設定として扱われる。</li><li><code>Tools/SymphonyFrameWork/Settings/Symphony Asset Lock</code> メニューを廃止し、<code>Project Settings &gt; SymphonyFrameWork</code> へ統合した。</li><li>アセット移動の判定を <code>OnPostprocessAllAssets</code> から <code>OnWillMoveAsset</code> へ変更した。従来は一度移動させてから <code>AssetDatabase.MoveAsset</code> で戻していたが、戻り値で移動そのものを止められるため、余計な移動と <code>AssetDatabase.Refresh()</code> が不要になった。あわせて判定を前方一致にし、パスに <code>SymphonyFrameWork</code> を含むだけの無関係なアセットを誤検知しないようにした。</li><li><code>SymphonyDebugHUD.Show()</code> / <code>Hide()</code> の <code>[MenuItem]</code> をEditor側の型へ移した。メニューのパスと両メソッドのシグネチャは変更していない。</li></ul>
@@ -490,7 +496,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-14">Fix</h3>
 <ul><li>初期化前の <code>ServiceLocator</code>、<code>SceneLoader</code>、<code>AudioManager</code>、<code>PauseManager</code> 呼び出しが実装詳細の <code>NullReferenceException</code> になる問題を修正し、<code>SymphonyNotInitializedException</code> へ統一。</li><li>Service Locatorの非同期待機がタイムアウトまたはキャンセルされた後も登録待ちコールバックを保持していた問題を修正。</li><li>Domain Reload無効時にPause Managerの登録辞書だけが残り、再生し直した際に通知を再購読できない問題を修正。</li></ul>
 <h2 id="240---2026-07-30">[2.4.0] - 2026-07-30</h2>
-<h3 id="add-27">Add</h3>
+<h3 id="add-28">Add</h3>
 <ul><li><code>ServiceLocator.GetRequiredInstance&lt;T&gt;()</code> と <code>ServiceNotRegisteredException</code> を追加。存在が必須の依存関係をnullのまま注入せず、未登録だったサービス型を呼び出し側で判定できるようにした。既存の <code>GetInstance&lt;T&gt;()</code>、<code>TryGetInstance&lt;T&gt;()</code> の契約は変更していない。</li><li>セーブデータの存在確認、読み込み、保存、削除に失敗した際、操作種別、データ型、ローダー型、原因例外を保持する <code>SaveDataOperationException</code> と <code>SaveDataOperation</code> を追加。</li><li>シーンロード後の依存注入または <code>IInitializeAsync</code> に失敗した際、シーン名、ルートGameObject名、初期化型、原因例外を保持する <code>SceneInitializationException</code> を追加。</li></ul>
 <h3 id="change-32">Change</h3>
 <ul><li><code>ServiceInjector.Inject(...)</code> とScene Loaderの自動注入は必須サービス取得を使用する。依存が未登録の場合はnullを渡さず、<code>ServiceNotRegisteredException</code> を原因として通知する。</li><li><code>GetInstanceAsync&lt;T&gt;()</code> の待機期限超過を <code>TimeoutException</code>、呼び出し側キャンセルを <code>OperationCanceledException</code> として区別した。<code>TryGetInstanceAsync&lt;T&gt;()</code> は期限超過だけをfalseへ変換し、キャンセルを握りつぶさない。</li><li>null、空文字、範囲外の引数には <code>ArgumentNullException</code>、<code>ArgumentException</code>、<code>ArgumentOutOfRangeException</code> を使用するよう、Scene Loader、Audio Manager、Pause Manager、Debug HUDの公開入口を明確化。</li><li>Save Data Registryから伝播していたローダー固有例外を <code>SaveDataOperationException</code> でラップし、シーン初期化から伝播していた実装固有例外を <code>SceneInitializationException</code> でラップする。<strong>移行方法:</strong> 従来の具体的な例外を直接catchしていたコードは各専用例外をcatchし、<code>InnerException</code> を確認する。キャンセル処理のcatchは <code>OperationCanceledException</code> のままでよい。</li></ul>
@@ -504,23 +510,23 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-15">Fix</h3>
 <ul><li><code>SymphonyDebugHUD.Initialize()</code> が、破棄済みのHUDに対して <code>MissingReferenceException</code> を投げていた問題を修正。Domain Reloadを無効にした状態で再生を繰り返すと、前回の再生で生成した <code>Lazy</code> がstaticに残り、<code>IsValueCreated</code> はtrueのままHUDのGameObjectだけが破棄済みになるため、<code>Destroy</code> へ渡す <code>gameObject</code> の取得で例外になっていた。</li></ul>
 <h2 id="221---2026-07-29">[2.2.1] - 2026-07-29</h2>
-<h3 id="add-28">Add</h3>
+<h3 id="add-29">Add</h3>
 <ul><li><code>Samples/Runtime/DebuggerSample</code>: <code>SymphonyDebugLogger</code>（<code>LogDirect</code>の重要度別出力、<code>AddText</code>／<code>NewText</code>／<code>LogText</code>による複数行ログの蓄積と一括出力、<code>LogAndCheckComponentNull</code>）、<code>SymphonyDebugHUD</code>（<code>Show</code>／<code>Hide</code>、<code>AddText(Func&lt;string&gt;)</code>と<code>RemoveText</code>の対、時間指定の一時表示）、<code>SymphonyStopWatch</code>（<code>Start</code>／<code>Stop</code>による計測、未開始IDの警告）をPlayモードで確認できるサンプルシーンとスクリプト。<code>package.json</code>の<code>samples</code>へ<code>Debugger Sample</code>として追加。</li></ul>
 <h3 id="change-34">Change</h3>
 <ul><li>2.2.0で残した旧namespaceの <code>[Obsolete]</code> シムを <code>Runtime/Obsolete/</code> へ集約。移行元の名前空間ごとにサブフォルダ（<code>System</code>／<code>SaveSystem</code>／<code>SceneLoad</code>／<code>ServiceLocate</code>）を分けている。名前空間・型名・シグネチャはいずれも変更していないため、利用側のコードとシリアライズ済みデータへの影響はない（.metaごと移動しているのでGUIDも維持）。綴りが誤っていた <code>Runtime/System/SaveSystem/Obsolute/</code> はこの集約で解消した。移行が完了したメジャー更新でフォルダごと削除する。</li><li>現役のinternal実装と非推奨シムが同居していた <code>Runtime/System/SaveSystem/SaveSystem.cs</code> を分割。<code>internal static class SaveSystem</code>（CoreSystemがライフタイムを紐付ける実装）は元の位置に残し、<code>[Obsolete]</code> な <code>SaveSystem&lt;TData, TLoader&gt;</code> のみ <code>Runtime/Obsolete/SaveSystem/SaveSystem.cs</code> へ移した。</li><li>UnityEngine.Objectの遅延生成を担う内部ユーティリティ <code>SymphonyLazyObject&lt;T&gt;</code>（internal、<code>Core/Internal/</code>、名前空間は <code>SymphonyFrameWork.Core</code>）を追加し、<code>SymphonyDebugHUD</code> の遅延生成を <code>System.Lazy&lt;T&gt;</code> から移行。<code>System.Lazy&lt;T&gt;</code> はUnity側での破棄を検知できないため、破棄済みなら生成し直す判定と破棄処理をこのクラスへ集約する。フレームワーク内でUnityEngine.Objectを遅延生成する箇所は今後これを使用する。</li><li><code>Core/AssemblyInfo.cs</code> を追加し、<code>SymphonyFrameWork.Core</code> の <code>internal</code> 型をRuntime（<code>SymphonyFrameWork</code>）とEditor（<code>SymphonyFrameWork.Editor</code>）へ <code>InternalsVisibleTo</code> で公開。どのサブシステムにも属さない内部ヘルパーの置き場を <code>Core/Internal/</code> に定め、利用側アセンブリからは引き続き参照できない状態を保つ。</li></ul>
 <p>公開APIの追加・変更はなく、追加したのは既存機能の利用例と上記の修正のみ。</p>
 <h2 id="220---2026-07-29">[2.2.0] - 2026-07-29</h2>
 <p>サブシステムごとに散らばっていた公開Facadeクラスを、消費者から見て分かりやすい単一の場所へ集約しました。破壊的変更はありません。</p>
-<h3 id="add-29">Add</h3>
+<h3 id="add-30">Add</h3>
 <ul><li><code>SymphonyFrameWork.System.API</code> 名前空間（<code>Runtime/System/API/</code>）を新設し、全サブシステムのFacadeクラス（<code>ServiceLocator</code>、<code>ServiceInjector</code>、<code>SaveDataRegistry</code>、<code>SaveSystem&lt;TData, TLoader&gt;</code>、<code>SceneLoader</code>、<code>AudioManager</code>、<code>PauseManager</code>）をここへ集約。内部実装（Manager、Data等）は従来どおり各サブシステムのフォルダ・名前空間に残る。</li></ul>
 <h3 id="deprecated-7">Deprecated</h3>
 <ul><li>旧namespace（<code>SymphonyFrameWork.System.ServiceLocate</code>、<code>SymphonyFrameWork.System.SceneLoad</code>、<code>SymphonyFrameWork.System.SaveSystem</code>、無印の<code>SymphonyFrameWork.System</code>）にあった上記Facadeクラスは、<code>[Obsolete(error: false)]</code> を付けたシムとして当面残る。呼び出しは内部で新しい <code>SymphonyFrameWork.System.API</code> の同名クラスへ転送されるだけなので、既存コードはそのままコンパイル・動作するが、コンパイル時に非推奨警告（CS0618）が出る。<strong>移行方法:</strong> 対象クラスを使用している箇所の <code>using</code> を <code>SymphonyFrameWork.System.API</code> に張り替える。<code>LocateType</code>・<code>SceneLoadState</code> はFacade本体ではなく引数・戻り値のValue Objectのため移動しておらず、引き続き旧namespace（<code>SymphonyFrameWork.System.ServiceLocate</code> / <code>SymphonyFrameWork.System.SceneLoad</code>）から参照する。</li></ul>
 <h2 id="210---2026-07-29">[2.1.0] - 2026-07-29</h2>
-<h3 id="add-30">Add</h3>
+<h3 id="add-31">Add</h3>
 <ul><li><code>SymphonyDebugLogger.LogDirect</code> 経由のログをEditor限定でファイルへキャッシュ出力する機能。5秒間隔または50件到達時にバッファをまとめて <code>Cache/Log.txt</code>（パッケージ直下）へ書き込み、<code>Application.quitting</code>／アセンブリリロード前にも強制フラッシュする（実体は新規Editor拡張 <code>SymphonyDebugLogFileWriter</code> が <code>SymphonyDebugLogger</code> の内部イベントを購読して担当し、Runtime層はファイルI/Oを持たない）</li><li><code>SymphonyConstant.GetFrameworkAbsolutePath()</code>（Editor専用）: Framework自身の実配置パス（Assets直置き、またはUPM経由のPackages／Library/PackageCache）を絶対パスで解決するユーティリティ</li></ul>
 <h2 id="200---2026-07-22">[2.0.0] - 2026-07-22</h2>
 <p>設計思想（<a href="https://github.com/HIBIKI5201/SymphonyWorkspace/blob/main/Documentation/DesignPhilosophy.md"><code>DesignPhilosophy.md</code></a>）の改訂に合わせて、主要サブシステムの公開範囲とアーキテクチャを再構成しました。破壊的変更を含みます。</p>
-<h3 id="add-31">Add</h3>
+<h3 id="add-32">Add</h3>
 <ul><li><code>IInjectable&lt;T...&gt;</code> を実装したシーンのルートオブジェクトへ、<code>SceneLoader</code> がロード完了時に自動注入する機能</li></ul>
 <h3 id="breaking-4">Breaking</h3>
 <ul><li><code>SaveSystem&lt;TData, TLoader&gt;</code> のローダー制約を <code>where TLoader : ISaveDataLoader&lt;TData&gt;, new()</code> から <code>where TLoader : SaveDataLoader, new()</code> へ変更。旧 <code>ISaveDataLoader&lt;T&gt;</code> 実装（Obsoleteの <code>NugetDataLoader&lt;T&gt;</code>、<code>JsonUtilityDataLoader&lt;T&gt;</code> など）は <code>TLoader</code> に指定できなくなる。<strong>移行方法:</strong> <code>SaveSystem&lt;TData, TLoader&gt;</code> の利用箇所を <code>SaveDataRegistry.Get&lt;T&gt;()</code>／<code>SaveAsync&lt;T&gt;()</code>／<code>LoadAsync&lt;T&gt;()</code> へ置き換える（ローダー選択は <code>SaveSystemConfig</code> のProject Settingsに委ねる）。</li><li>次の型を <code>public</code> から <code>internal</code> へ変更。型名を直接参照しているコードはコンパイルできなくなる: <code>ServiceLocateManager</code>、<code>ServiceLocateData</code>、<code>SceneLoadManager</code>、<code>SceneLoadData</code>（<code>SceneInfo</code>含む）、<code>SceneResetter</code>、<code>SymphonyCoreSystem</code>（<code>MoveObjectToSymphonySystem</code>含む）、<code>JsonUtilitySaveDataLoader</code>、<code>NewtonsoftSaveDataLoader</code>、<code>AudioManagerConfig</code>、<code>SaveSystemConfig</code>、<code>SceneManagerConfig</code>、<code>SymphonyHUDDrawer</code>。</li><li><code>SymphonyLocate</code> を含む、継承を前提としない具象クラスを <code>sealed</code> 化。既存のサブクラスはコンパイルできなくなる。</li></ul>
@@ -532,7 +538,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update">Update</h3>
 <ul><li>SceneLoader</li></ul>
 <h2 id="12719---2026-07-03">[1.27.19] - 2026-07-03</h2>
-<h3 id="add-32">Add</h3>
+<h3 id="add-33">Add</h3>
 <ul><li>Samples</li></ul>
 <h2 id="12718---2026-06-18">[1.27.18] - 2026-06-18</h2>
 <h3 id="update-1">Update</h3>
@@ -544,7 +550,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-3">Update</h3>
 <ul><li>AssetStoreToolsPackager</li></ul>
 <h2 id="12715---2026-03-25">[1.27.15] - 2026-03-25</h2>
-<h3 id="add-33">Add</h3>
+<h3 id="add-34">Add</h3>
 <ul><li>SceneNameSelectorAttribute</li></ul>
 <h2 id="12714---2026-03-19">[1.27.14] - 2026-03-19</h2>
 <h3 id="fix-16">Fix</h3>
@@ -586,13 +592,13 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-12">Update</h3>
 <ul><li>SceneLoader</li></ul>
 <h2 id="1270---2025-12-05">[1.27.0] - 2025-12-05</h2>
-<h3 id="add-34">Add</h3>
+<h3 id="add-35">Add</h3>
 <ul><li>SubClassSelector</li></ul>
 <h2 id="1261---2025-12-03">[1.26.1] - 2025-12-03</h2>
 <h3 id="update-13">Update</h3>
 <ul><li>AssetStoreToolsPackager</li></ul>
 <h2 id="1260---2025-10-30">[1.26.0] - 2025-10-30</h2>
-<h3 id="add-35">Add</h3>
+<h3 id="add-36">Add</h3>
 <ul><li>SymphonyStringUtil</li></ul>
 <h2 id="1254---2025-10-23">[1.25.4] - 2025-10-23</h2>
 <h3 id="fix-20">Fix</h3>
@@ -604,13 +610,13 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-21">Fix</h3>
 <ul><li>SymphonyDebugHUD</li></ul>
 <h2 id="1251---2025-10-19">[1.25.1] - 2025-10-19</h2>
-<h3 id="add-36">Add</h3>
+<h3 id="add-37">Add</h3>
 <ul><li>SymphonyLocateObject</li></ul>
 <h2 id="1242---2025-10-19">[1.24.2] - 2025-10-19</h2>
 <h3 id="update-15">Update</h3>
 <ul><li>SymphonyDebugLogger</li></ul>
 <h2 id="1241---2025-10-19">[1.24.1] - 2025-10-19</h2>
-<h3 id="add-37">Add</h3>
+<h3 id="add-38">Add</h3>
 <ul><li>TagSelectorAttribute</li></ul>
 <h2 id="12321---2025-10-08">[1.23.21] - 2025-10-08</h2>
 <h3 id="update-16">Update</h3>
@@ -622,7 +628,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-22">Fix</h3>
 <ul><li>ServiceLocator</li></ul>
 <h2 id="12318---2025-08-06">[1.23.18] - 2025-08-06</h2>
-<h3 id="add-38">Add</h3>
+<h3 id="add-39">Add</h3>
 <ul><li>SymphonyDebugLogger</li></ul>
 <h2 id="12317---2025-07-19">[1.23.17] - 2025-07-19</h2>
 <h3 id="fix-23">Fix</h3>
@@ -667,7 +673,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-32">Fix</h3>
 <ul><li>SceneLoader</li></ul>
 <h2 id="1233---2025-07-03">[1.23.3] - 2025-07-03</h2>
-<h3 id="add-39">Add</h3>
+<h3 id="add-40">Add</h3>
 <ul><li>SymphonyDebugHUD</li></ul>
 <h2 id="1232---2025-07-03">[1.23.2] - 2025-07-03</h2>
 <h3 id="fix-33">Fix</h3>
@@ -676,7 +682,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-22">Update</h3>
 <ul><li>SceneLoader</li></ul>
 <h2 id="1230---2025-06-23">[1.23.0] - 2025-06-23</h2>
-<h3 id="add-40">Add</h3>
+<h3 id="add-41">Add</h3>
 <ul><li>IInitializeAsync</li></ul>
 <h2 id="1222---2025-06-23">[1.22.2] - 2025-06-23</h2>
 <h3 id="update-23">Update</h3>
@@ -685,7 +691,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-24">Update</h3>
 <ul><li>AssemblyGenerator</li></ul>
 <h2 id="1220---2025-06-03">[1.22.0] - 2025-06-03</h2>
-<h3 id="add-41">Add</h3>
+<h3 id="add-42">Add</h3>
 <ul><li>AssetStoreToolsPackager</li></ul>
 <h2 id="12113---2025-06-03">[1.21.13] - 2025-06-03</h2>
 <h3 id="update-25">Update</h3>
@@ -769,7 +775,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-47">Fix</h3>
 <ul><li>EnumGenerator</li></ul>
 <h2 id="1207---2025-03-12">[1.20.7] - 2025-03-12</h2>
-<h3 id="add-42">Add</h3>
+<h3 id="add-43">Add</h3>
 <ul><li>PackageInitializer</li></ul>
 <h2 id="1206---2025-03-10">[1.20.6] - 2025-03-10</h2>
 <h3 id="fix-48">Fix</h3>
@@ -778,7 +784,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-49">Fix</h3>
 <ul><li>EnumGenerator</li></ul>
 <h2 id="1204---2025-03-10">[1.20.4] - 2025-03-10</h2>
-<h3 id="add-43">Add</h3>
+<h3 id="add-44">Add</h3>
 <ul><li>AssemblyGenerator</li></ul>
 <h2 id="1203---2025-03-10">[1.20.3] - 2025-03-10</h2>
 <h3 id="update-38">Update</h3>
@@ -793,13 +799,13 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-40">Update</h3>
 <ul><li>AutoEnumGenerator</li><li>AutoEnumGeneratorConfig</li></ul>
 <h2 id="11921---2025-03-05">[1.19.21] - 2025-03-05</h2>
-<h3 id="add-44">Add</h3>
+<h3 id="add-45">Add</h3>
 <ul><li>TagsAndLayersPostProcessor</li></ul>
 <h2 id="11920---2025-03-05">[1.19.20] - 2025-03-05</h2>
 <h3 id="update-41">Update</h3>
 <ul><li>ServiceLocator</li></ul>
 <h2 id="11919---2025-03-05">[1.19.19] - 2025-03-05</h2>
-<h3 id="add-45">Add</h3>
+<h3 id="add-46">Add</h3>
 <ul><li>AudioManager</li><li>AudioManagerConfig</li></ul>
 <h2 id="11918---2025-03-04">[1.19.18] - 2025-03-04</h2>
 <h3 id="update-42">Update</h3>
@@ -814,10 +820,10 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-45">Update</h3>
 <ul><li>SaveDataManager</li></ul>
 <h2 id="11914---2025-03-02">[1.19.14] - 2025-03-02</h2>
-<h3 id="add-46">Add</h3>
+<h3 id="add-47">Add</h3>
 <ul><li>FolderGenerator</li></ul>
 <h2 id="11913---2025-03-01">[1.19.13] - 2025-03-01</h2>
-<h3 id="add-47">Add</h3>
+<h3 id="add-48">Add</h3>
 <ul><li>SymphonyEditorConfigLocator</li></ul>
 <h2 id="11912---2025-03-01">[1.19.12] - 2025-03-01</h2>
 <h3 id="fix-51">Fix</h3>
@@ -826,10 +832,10 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-46">Update</h3>
 <ul><li>SceneLoader</li><li>SceneManagerConfig</li></ul>
 <h2 id="11910---2025-02-28">[1.19.10] - 2025-02-28</h2>
-<h3 id="add-48">Add</h3>
+<h3 id="add-49">Add</h3>
 <ul><li>SymphonyConfigLocator</li></ul>
 <h2 id="1199---2025-02-28">[1.19.9] - 2025-02-28</h2>
-<h3 id="add-49">Add</h3>
+<h3 id="add-50">Add</h3>
 <ul><li>EnumGeneratorConfig</li></ul>
 <h2 id="1198---2025-02-28">[1.19.8] - 2025-02-28</h2>
 <h3 id="update-47">Update</h3>
@@ -856,34 +862,34 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-53">Update</h3>
 <ul><li>SymphonyAssetPostProcessor</li></ul>
 <h2 id="1190---2025-02-25">[1.19.0] - 2025-02-25</h2>
-<h3 id="add-50">Add</h3>
+<h3 id="add-51">Add</h3>
 <ul><li>DisplayTextAttribute</li><li>ReadOnlyAttribute</li></ul>
 <h2 id="11811---2025-02-24">[1.18.11] - 2025-02-24</h2>
 <h3 id="update-54">Update</h3>
 <ul><li>EnumGenerator</li></ul>
 <h2 id="11810---2025-02-24">[1.18.10] - 2025-02-24</h2>
-<h3 id="add-51">Add</h3>
+<h3 id="add-52">Add</h3>
 <ul><li>SymphonyConstant</li></ul>
 <h2 id="1189---2025-02-24">[1.18.9] - 2025-02-24</h2>
 <h3 id="update-55">Update</h3>
 <ul><li>EnumGenerator</li></ul>
 <h2 id="1188---2025-02-24">[1.18.8] - 2025-02-24</h2>
-<h3 id="add-52">Add</h3>
+<h3 id="add-53">Add</h3>
 <ul><li>EnumGenerator</li></ul>
 <h2 id="1187---2025-02-23">[1.18.7] - 2025-02-23</h2>
-<h3 id="add-53">Add</h3>
+<h3 id="add-54">Add</h3>
 <ul><li>SymphonyFrameWork-Editor assembly</li></ul>
 <h2 id="1186---2025-02-23">[1.18.6] - 2025-02-23</h2>
-<h3 id="add-54">Add</h3>
+<h3 id="add-55">Add</h3>
 <ul><li>SceneManagerConfig</li></ul>
 <h2 id="1185---2025-02-22">[1.18.5] - 2025-02-22</h2>
-<h3 id="add-55">Add</h3>
+<h3 id="add-56">Add</h3>
 <ul><li>SymphonyConfigManager</li></ul>
 <h2 id="1184---2025-02-22">[1.18.4] - 2025-02-22</h2>
 <h3 id="update-56">Update</h3>
 <ul><li>SymphonyTween</li></ul>
 <h2 id="1183---2025-02-22">[1.18.3] - 2025-02-22</h2>
-<h3 id="add-56">Add</h3>
+<h3 id="add-57">Add</h3>
 <ul><li>SymphonyTween</li></ul>
 <h2 id="1182---2025-02-21">[1.18.2] - 2025-02-21</h2>
 <h3 id="update-57">Update</h3>
@@ -892,10 +898,10 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-58">Update</h3>
 <ul><li>SymphonyAdministrator</li></ul>
 <h2 id="1180---2025-02-21">[1.18.0] - 2025-02-21</h2>
-<h3 id="add-57">Add</h3>
+<h3 id="add-58">Add</h3>
 <ul><li>SymphonyPackageLoader</li></ul>
 <h2 id="1177---2025-02-20">[1.17.7] - 2025-02-20</h2>
-<h3 id="add-58">Add</h3>
+<h3 id="add-59">Add</h3>
 <ul><li>SymphonyLocate</li></ul>
 <h2 id="1176---2025-02-20">[1.17.6] - 2025-02-20</h2>
 <h3 id="update-59">Update</h3>
@@ -916,13 +922,13 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-63">Update</h3>
 <ul><li>SymphonyTask</li></ul>
 <h2 id="1170---2025-02-19">[1.17.0] - 2025-02-19</h2>
-<h3 id="add-59">Add</h3>
+<h3 id="add-60">Add</h3>
 <ul><li>SymphoWindow</li><li>SymphonyAssetPostProcessor</li></ul>
 <h2 id="11611---2025-02-19">[1.16.11] - 2025-02-19</h2>
 <h3 id="fix-54">Fix</h3>
 <ul><li>ServiceLocator</li></ul>
 <h2 id="11610---2025-02-19">[1.16.10] - 2025-02-19</h2>
-<h3 id="add-60">Add</h3>
+<h3 id="add-61">Add</h3>
 <ul><li>SymphonySingleton</li></ul>
 <h3 id="update-64">Update</h3>
 <ul><li>ServiceLocator</li></ul>
@@ -954,7 +960,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-71">Update</h3>
 <ul><li>ServiceLocator</li></ul>
 <h2 id="1160---2025-02-16">[1.16.0] - 2025-02-16</h2>
-<h3 id="add-61">Add</h3>
+<h3 id="add-62">Add</h3>
 <ul><li>SymphonyVisualElement</li></ul>
 <h2 id="1150---2025-02-16">[1.15.0] - 2025-02-16</h2>
 <h3 id="update-72">Update</h3>
@@ -963,21 +969,21 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="fix-57">Fix</h3>
 <ul><li>SymphonySystem</li><li>SceneLoader</li></ul>
 <h2 id="1130---2025-02-15">[1.13.0] - 2025-02-15</h2>
-<h3 id="add-62">Add</h3>
+<h3 id="add-63">Add</h3>
 <ul><li>SymphonySystem</li></ul>
 <h2 id="1120---2025-02-15">[1.12.0] - 2025-02-15</h2>
-<h3 id="add-63">Add</h3>
+<h3 id="add-64">Add</h3>
 <ul><li>SymphonyUtility</li></ul>
 <h3 id="update-73">Update</h3>
 <ul><li>SingletonDirector -&gt; ServiceLocator</li></ul>
 <h2 id="1110---2025-02-14">[1.11.0] - 2025-02-14</h2>
-<h3 id="add-64">Add</h3>
+<h3 id="add-65">Add</h3>
 <ul><li>Assembly Definition</li></ul>
 <h2 id="1030---2025-02-14">[1.03.0] - 2025-02-14</h2>
 <h3 id="update-74">Update</h3>
 <ul><li>SymphonyDebugLog</li></ul>
 <h2 id="1020---2025-02-14">[1.02.0] - 2025-02-14</h2>
-<h3 id="add-65">Add</h3>
+<h3 id="add-66">Add</h3>
 <ul><li>PauseManager</li></ul>
 <h2 id="1011---2025-02-13">[1.01.1] - 2025-02-13</h2>
 <h3 id="fix-58">Fix</h3>
@@ -986,7 +992,7 @@ await SymphonyAwaitable.WhenAll(
 <h3 id="update-75">Update</h3>
 <ul><li>SymphonyStopWatch</li></ul>
 <h2 id="1000---2025-02-13">[1.00.0] - 2025-02-13</h2>
-<h3 id="add-66">Add</h3>
+<h3 id="add-67">Add</h3>
 <ul><li>SaveDataSystem</li><li>SceneLoader</li><li>SingletonDirector</li><li>SymphonyDebugLog</li><li>SymphonyStopWatch</li><li>SymphonyTask</li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/CHANGELOG.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>

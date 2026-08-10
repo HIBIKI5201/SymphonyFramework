@@ -29,6 +29,8 @@
 
 **モジュール文書は1ファイルで完結します。** クイックスタート、実装時の注意、対応するEditor機能、内部構造がそろっているため、1つのモジュールを使うために複数の文書を読む必要はありません。
 
+人が読む場合は、Unityから`Window > SymphonyFrameWork > Documentation`でブラウザ版（`Documentation~/Html/`）を開けます。**AIエージェントはMarkdownの正本を読んでください。** HTMLは同じ内容の生成物です。
+
 ## 1. 常に守ること
 
 1. `Packages/manifest.json`またはパッケージの`package.json`で、実際の導入バージョンを確認する。

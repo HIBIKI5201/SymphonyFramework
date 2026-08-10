@@ -13,6 +13,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | 機能 | 入口 |
 | --- | --- |
 | [Symphony Administrator](#symphony-administrator) | `Window > SymphonyFrameWork > Symphony Administrator` |
+| [ドキュメント表示](#ドキュメント表示) | `Window > SymphonyFrameWork > Documentation`、各Project Settings画面の `ドキュメントを開く` |
 | [Framework設定](#framework設定) | `Project Settings > SymphonyFrameWork` |
 | [Save System設定](./Modules/SaveDataSystem.md#editor機能) | `Project Settings > SymphonyFrameWork > Save System` |
 | [Asset Store Tools Packager設定](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager設定) | `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` |
@@ -68,6 +69,33 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 - 5つのパネルは `SymphonyFrameWork.Editor` 名前空間の登録済みUXMLカスタム要素として構築されます。
 - Runtimeの状態を表示するパネルは、Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
 - 表示はViewModelの変更通知で更新されます。ウィンドウを開いている間のポーリングは行いません。
+
+---
+
+## ドキュメント表示
+
+パッケージへ同梱したドキュメントをブラウザで開きます。オフラインで読めます。
+
+**入口**:
+
+| 操作 | 開く文書 |
+| --- | --- |
+| `Window > SymphonyFrameWork > Documentation` | 索引（`Documentation~/Html/index.html`） |
+| `Project Settings > SymphonyFrameWork` の `ドキュメントを開く` | この文書（Editor機能） |
+| `Project Settings > SymphonyFrameWork > Save System` の `ドキュメントを開く` | [Save Data System](./Modules/SaveDataSystem.md) |
+| `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` の `ドキュメントを開く` | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md) |
+
+**コードから開く**: `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)`。Editor専用の公開APIです。
+
+```csharp
+SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
+```
+
+**注意点**:
+
+- **同梱HTMLが見つからない場合は、GitHub上の正本Markdownを開き、Consoleへ警告を出します。** 開けないことで作業を止めないためで、`Open` は例外を投げません。
+- **フォールバック先は `main` ブランチです。** リポジトリにバージョンタグが無いため、導入バージョンで固定できません。
+- HTMLは生成物です。内容の修正は `Documentation~/` のMarkdownへ行い、開発用リポジトリの `scripts/build_module_docs.py` で再生成してください。
 
 ---
 

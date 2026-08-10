@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.9.0] - 2026-08-11
+Editorからドキュメントをブラウザで開けるようにしました。**既存の公開APIとシリアライズ形式は3.8.7から変更していません。**
+
+### Add
+
+- **`Window > SymphonyFrameWork > Documentation` を追加しました。** 同梱ドキュメントの索引がブラウザで開きます。ドキュメントの在り処を知らないと読めない状態を解消するためです。
+
+- **`Project Settings > SymphonyFrameWork` の各画面へ `ドキュメントを開く` ボタンを追加しました。** 設定画面から、その設定を説明している文書へ直接移動できます。`SymphonyFrameWork` は[Editor機能](./Documentation~/EditorTools.md)、`Save System` は[Save Data System](./Documentation~/Modules/SaveDataSystem.md)、`Asset Store Tools Packager` は[Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)を開きます。
+
+- **Editor専用の公開API `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)` を追加しました。** 利用側のEditor拡張からも同じ経路でドキュメントを開けます。
+
+  ```csharp
+  SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
+  ```
+
+  **`Open` は例外を投げません。** Editorの補助機能であり、ドキュメントを開けないことで利用側の作業を止めないためです。同梱HTMLが見つからない場合は、Consoleへ警告を出したうえでGitHub上の正本Markdownを開きます。**フォールバック先は `main` ブランチです。** リポジトリにバージョンタグが無いため、導入バージョンでは固定できません。
+
 ## [3.8.7] - 2026-08-11
 ドキュメントをブラウザで読めるHTMLをパッケージへ同梱しました。**公開APIとシリアライズ形式は3.8.6から変更していません。**
 
