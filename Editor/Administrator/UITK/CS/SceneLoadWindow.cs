@@ -51,6 +51,8 @@ namespace SymphonyFrameWork.Editor
                 return SymphonyAwaitable.Completed();
             }
 
+            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.SceneLoader);
+
             _sceneList = container.Q<ListView>("scene-list");
             _sceneList.makeItem = () => new Label();
             _sceneList.bindItem = (element, index) =>

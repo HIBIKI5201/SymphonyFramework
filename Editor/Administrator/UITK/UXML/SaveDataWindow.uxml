@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/SymphonyFrameWork/Editor/Administrator/UITK/SymphonyWIndow.uss?fileID=7433441132597879392&amp;guid=16c3f611d15eda644b63e276b16e6925&amp;type=3#SymphonyWIndow"/>
     <ui:VisualElement class="base">
+        <ui:Button text="ドキュメント" name="button-document" class="document-button" />
         <ui:Label text="Save Data Registry" class="title"/>
         <ui:Label name="save-current-loader" text="Current Loader:" class="text" style="margin-top: 6px;"/>
         <ui:Label name="save-loaded-entries" text="Loaded Entries:" class="text" style="margin-bottom: 8px;"/>

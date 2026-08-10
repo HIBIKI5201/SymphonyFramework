@@ -45,6 +45,8 @@ namespace SymphonyFrameWork.Editor
                 return SymphonyAwaitable.Completed();
             }
 
+            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.PauseManager);
+
             _pauseVisual = container.Q<VisualElement>("pause");
             _pauseText = container.Q<Label>("pause-text");
             _subscriberText = container.Q<Label>("pausable-subscribers");

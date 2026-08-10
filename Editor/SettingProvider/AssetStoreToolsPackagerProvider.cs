@@ -54,6 +54,8 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         /// <summary> Packagerが使用する入出力パスと、パッケージ化設定を描画する。 </summary>
         private static void IMGUI(string searchContext)
         {
+            SymphonyDocumentationGUI.DrawOpenButton(SymphonyDocumentPageEnum.AssetStoreToolsPackager);
+
             string assetStoreToolsPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
             assetStoreToolsPath = EditorGUILayout.TextField("Asset Store Tools Path", assetStoreToolsPath);
             if (assetStoreToolsPath != AssetStoreToolsPackagerData.AssetStoreToolsPath)

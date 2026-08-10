@@ -49,6 +49,8 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         /// <summary> Frameworkのアセット保護とService Locatorログ設定を描画する。 </summary>
         private static void IMGUI(string searchContext)
         {
+            SymphonyDocumentationGUI.DrawOpenButton(SymphonyDocumentPageEnum.EditorTools);
+
             SymphonyUserSettingConfig config =
                 SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
 

@@ -1,8 +1,8 @@
 # AIエージェント向け利用上の注意
 
-この文書は、Symphony Frameworkを導入したプロジェクトの`Assets/`配下へ利用コードを書くAIエージェント向けです。APIの説明とコード例は[README.md](../README.md)を正本とし、ここでは実装時に誤りやすい判断だけを扱います。
+この文書は、Symphony Frameworkを導入したプロジェクトの`Assets/`配下へ利用コードを書くAIエージェント向けです。APIの説明、コード例、実装時に誤りやすい判断は各モジュール文書を正本とします。
 
-必要なモジュールの節だけを読んでください。パッケージ本体を開発する場合はこの文書ではなく、[SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md)に従います。
+必要なモジュール文書だけを読んでください。パッケージ本体を開発する場合はこの文書ではなく、[SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md)に従います。
 
 ## 共通の前提
 
@@ -16,59 +16,13 @@
 
 ## APIの参照先
 
-| 機能 | namespace | 主な入口 | README |
+| 機能 | namespace | 主な入口 | モジュール文書 |
 | --- | --- | --- | --- |
-| Service Locator | `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](../README.md#service-locator) |
-| Scene Loader | `SymphonyFrameWork.System.SceneLoad` | `SceneLoader` | [Scene Loader](../README.md#scene-loader) |
-| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](../README.md#save-data-system) |
-| Audio Manager | `SymphonyFrameWork.System` | `AudioManager` | [Audio Manager](../README.md#audio-manager) |
-| Pause Manager | `SymphonyFrameWork.System` | `PauseManager` | [Pause Manager](../README.md#pause-manager) |
-
-## Service Locator
-
-- 登録と解除を同じライフサイクルの対として書く。基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。
-- 解除と照会（`UnregisterInstance`、`DestroyInstance`、`IsExistInstance`、`GetInstance`、`TryGetInstance`、`GetRegistrationInfos`、`TryGetRegistrationInfo`）は、Play Mode終了でLocatorが解放された後でも安全なno-opとして`false`／`null`／空一覧を返す。`OnDestroy`や`OnDisable`で初期化状態を確認する必要はない。登録（`RegisterInstance`系）、`GetRequiredInstance`、待機（`GetInstanceAsync`、`TryGetInstanceAsync`、`RegisterAfterLocate`）は未初期化で`SymphonyNotInitializedException`を投げる。
-- 通常の`RegisterInstance`がfalseの場合も候補の所有権は呼び出し側に残る。型重複時に候補を自動解放してよい場合だけ`RegisterInstanceWithAutoDispose`へ所有権を移す。
-- `LocateTypeEnum.Locator`は参照だけを登録する。`LocateTypeEnum.Singleton`はComponentを管理オブジェクト配下へ移動するため、シーンローカルなオブジェクトには使わない。
-- 任意依存は`TryGetInstance<T>`、nullを許容する既存コードは`GetInstance<T>`、必須依存は`GetRequiredInstance<T>`を使う。
-- 登録中の型と登録方式を一覧で調べる場合は`GetRegistrationInfos()`、既知の型だけを調べる場合は`TryGetRegistrationInfo(Type, out ...)`を使う。返る`ServiceRegistrationInfo`は取得時点のスナップショットとして扱う。
-- `GetInstanceAsync<T>`の期限超過は`TimeoutException`、呼び出し側キャンセルは`OperationCanceledException`。`TryGetInstanceAsync<T>`がfalseへ変換するのは期限超過だけ。
-- `SceneLoader`が自動注入するのはロードしたシーンのルートにある`IInjectable<T...>`。実行時`Instantiate`したオブジェクトには`ServiceInjector.Inject(...)`を手動で呼ぶ。
-
-## Scene Loader
-
-- 対象シーンがBuild SettingsのScene Listにあることを、シーン名をコードへ書く前に確認する。
-- シーン遷移は原則`SceneLoader`を使う。`SceneManager.LoadScene`を直接使うと、優先度管理、依存注入、`IInitializeAsync`が働かない。
-- `LoadSceneMode.Single`は対象をAdditiveでロードした後、他の追跡シーンをアンロードする。現在のシーンを残す場合は`Additive`を使う。
-- 依存注入または`IInitializeAsync`の失敗は`SceneInitializationException`。Build Settings未登録など通常のロード失敗はfalseで返る。
-- 追跡中のScene名が分からない状態で一覧を調べる場合は`SceneLoader.GetSceneInfos()`を使う。既知のScene名だけを調べる場合は`TryGetSceneInfo`を使い、戻る`SceneLoadInfo`を取得時点のスナップショットとして扱う。
-
-## Save Data System
-
-- 保存型は`SaveDataContent`を継承した、デフォルトコンストラクタを持つ具象classにする。
-- **旧`SaveDataRegistry`は3.0.0で削除済みである。** `SaveStore`を使う。
-- **初回取得は`await SaveStore.LoadAsync<T>()`を使い、戻り値でインスタンスを受け取る。** `Get<T>()`は読み込み済みの値だけを返し、未読み込みなら`InvalidOperationException`を投げる。暗黙の同期読み込みは3.0.0で廃止した。
-- `Get<T>()`を使う前に読み込み済みか分からない場合は`SaveStore.IsLoaded<T>()`で確認する。
-- `SaveStore`が保持する型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
-- 保存先の失敗は`SaveDataOperationException`の`Operation`、`DataType`、`LoaderType`、`InnerException`で診断する。キャンセルは`OperationCanceledException`のまま伝播する。
-- 独自`SaveDataLoaderStrategy`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
-- 独自ローダーが実装する`LoadJsonAsync`／`SaveJsonAsync`／`DeleteCoreAsync`は`Awaitable`を返す。同期的に完了する場合は`SymphonyAwaitable.Completed()`と`SymphonyAwaitable.FromResult(json)`を使い、`null`を返さない。
-- キャッシュ済みの一覧は`SaveStore.GetEntries()`で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。
-- **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは`SaveDataEntryInfo.IsLoaded`で判定する。
-
-## Audio Manager
-
-- `GetAudioSource`で使うグループ名が`AudioConfig.asset`へ登録済みか確認する。
-- `VolumeSliderChanged`へ渡す値はdBではなく0〜1の比率。
-
-## Pause Manager
-
-- ポーズ中も止める待機には`PausableWaitForSecondAsync`、`PausableWaitForSecond`、`PausableNextFrameAsync`を使う。`Task.Delay`や通常の`WaitForSeconds`では代用しない。
-- **非同期の待機APIは`Awaitable`を返す。** `Awaitable`は1回しか`await`できず、保存も共有もできない。フィールドへ持たず、その場で待機する。複数待機は`SymphonyAwaitable.WhenAll`、`Task`と混ぜる場合は`SymphonyAwaitable.AsTask`を使う。
-- `PauseManager.IPausable`は有効化時に登録し、無効化時に解除する。同じ対象を重複登録しても通知は1回だけ届く。
-- **`OnPauseChanged`は値が変わったときだけ発行される。** `Pause = true`を2回続けても`IPausable.Pause()`は1回しか呼ばれない。同じ値の再設定を通知の起点にしない。
-- ポーズ状態と`IPausable`の購読件数をまとめて調べる場合は`PauseManager.GetPauseInfo()`を使い、戻る`PauseInfo`を取得時点のスナップショットとして扱う。購読件数は解除し忘れの検出に使える。
-- `OnPauseChanged`の購読者が投げた例外は握り潰されず、`Pause`を設定した側へ伝播する。購読側で処理する。
+| Service Locator | `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](./Modules/ServiceLocator.md) |
+| Scene Loader | `SymphonyFrameWork.System.SceneLoad` | `SceneLoader` | [Scene Loader](./Modules/SceneLoader.md) |
+| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](./Modules/SaveDataSystem.md) |
+| Audio Manager | `SymphonyFrameWork.System` | `AudioManager` | [Audio Manager](./Modules/AudioManager.md) |
+| Pause Manager | `SymphonyFrameWork.System` | `PauseManager` | [Pause Manager](./Modules/PauseManager.md) |
 
 ## 非推奨APIと移行
 

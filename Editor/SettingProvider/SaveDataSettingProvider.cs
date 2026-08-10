@@ -30,6 +30,8 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         /// <summary> ローダー選択と現在のローダー情報を描画する。 </summary>
         private static void IMGUI(string searchContext)
         {
+            SymphonyDocumentationGUI.DrawOpenButton(SymphonyDocumentPageEnum.SaveDataSystem);
+
             SaveDataConfig config = GetOrCreateConfig();
             if (config == null)
             {

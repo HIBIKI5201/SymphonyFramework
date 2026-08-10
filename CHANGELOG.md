@@ -1,5 +1,72 @@
 # Changelog
 
+## [3.9.1] - 2026-08-11
+Symphony Administratorの各パネルからドキュメントを開けるようにしました。**公開APIとシリアライズ形式は3.9.0から変更していません。**
+
+### Add
+
+- **`Symphony Administrator` の5つのパネルへ、右上に `ドキュメント` ボタンを追加しました。** Service Locate / Scene Load / Save Data / Pause / Auto Enum Generator のそれぞれから、対応するモジュール文書がブラウザで開きます。状態を見ている画面から、その機能の説明へ直接移動できます。
+
+  ボタンは `SymphonyWIndow.uss` の `document-button` で装飾し、パネルの表示領域を圧迫しない大きさにしています。**Play Modeの開始・終了を繰り返してもボタンは機能し続けます。** 購読先のButtonはパネルと寿命を共にするためです。
+
+## [3.9.0] - 2026-08-11
+Editorからドキュメントをブラウザで開けるようにしました。**既存の公開APIとシリアライズ形式は3.8.7から変更していません。**
+
+### Add
+
+- **`Window > SymphonyFrameWork > Documentation` を追加しました。** 同梱ドキュメントの索引がブラウザで開きます。ドキュメントの在り処を知らないと読めない状態を解消するためです。
+
+- **`Project Settings > SymphonyFrameWork` の各画面へ `ドキュメントを開く` ボタンを追加しました。** 設定画面から、その設定を説明している文書へ直接移動できます。`SymphonyFrameWork` は[Editor機能](./Documentation~/EditorTools.md)、`Save System` は[Save Data System](./Documentation~/Modules/SaveDataSystem.md)、`Asset Store Tools Packager` は[Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)を開きます。
+
+- **Editor専用の公開API `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)` を追加しました。** 利用側のEditor拡張からも同じ経路でドキュメントを開けます。
+
+  ```csharp
+  SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
+  ```
+
+  **`Open` は例外を投げません。** Editorの補助機能であり、ドキュメントを開けないことで利用側の作業を止めないためです。同梱HTMLが見つからない場合は、Consoleへ警告を出したうえでGitHub上の正本Markdownを開きます。**フォールバック先は `main` ブランチです。** リポジトリにバージョンタグが無いため、導入バージョンでは固定できません。
+
+## [3.8.7] - 2026-08-11
+ドキュメントをブラウザで読めるHTMLをパッケージへ同梱しました。**公開APIとシリアライズ形式は3.8.6から変更していません。**
+
+### Add
+
+- **`Documentation~/Html/` に、README・CHANGELOG・`Documentation~` 配下の全Markdownと同じ内容のHTMLを同梱しました。** `Documentation~/Html/index.html` が入口です。Markdownのままではブラウザで読みにくく、レンダリングのために外部サービスへ頼る必要がありました。
+
+  **正本はMarkdownで、HTMLは生成物です。** 内容の修正はMarkdown側へ行ってください。生成は開発用リポジトリの `scripts/build_module_docs.py` が行い、正本との乖離はリリース前の検証で検出されます。
+
+  各HTMLは1ファイルで完結し、外部のCSS・フォント・スクリプトを読み込みません。`file://` で開けるようにするためで、ライトとダークの両方の配色に対応しています。**既知の制限として、mermaidの図はレンダリングされずコードブロックとして表示されます。**
+
+## [3.8.6] - 2026-08-11
+Editor機能のドキュメントをモジュールごとに分離しました。**公開APIとシリアライズ形式は3.8.5から変更していません。**
+
+### Change
+
+- **Editorモジュールごとの文書を `Documentation~/Modules/` へ追加しました。** `AutoEnumGenerator.md` / `AssetStoreToolsPackager.md` / `ProjectStructureTools.md` の3本です。`ProjectStructureTools.md` には `FolderGenerator` / `AssemblyGenerator` / `SymphonyPackageLoader` をまとめています。
+
+- **`Documentation~/EditorTools.md` を、単一モジュールへ属さない横断的な内容だけに縮めました（458行 → 154行）。** 残るのは索引、設定ファイルの置き場、Symphony Administrator、Framework設定、アセット保護、設定アセットの自動生成、Editorの初期化です。**索引表の行は消さず、移送先のモジュール文書へのリンクへ張り替えています。** どこに何があるかはこの1ファイルで引き続き分かります。
+
+- **3.8.5 でモジュール文書へ移した節（Save System設定、Service Locatorのログ設定、`SymphonyDebugHUD`、ログのファイル出力、`SymphonyMcpTools`、Inspector属性）を `EditorTools.md` から削除しました。** 3.8.5 の時点では両方へ載っており、片方だけが更新される状態でした。
+
+- **README.md の「Editor・デバッグ支援」を索引表へ置き換えました。** Runtimeモジュールに紐づくEditor機能は「機能ごとの使い方」の各モジュール文書側にあることを明記しています。
+
+## [3.8.5] - 2026-08-11
+利用者向けドキュメントをRuntimeモジュールごとに分離しました。**公開APIとシリアライズ形式は3.8.4から変更していません。**
+
+### Change
+
+- **Runtimeモジュールごとの文書を `Documentation~/Modules/` へ追加し、1モジュールを使うために1ファイルだけ読めばよい形にしました。** これまでは1つのモジュールを理解するのに、README.mdのクイックスタート、`Documentation~/AgentUsage.md`の実装時の注意、`Documentation~/EditorTools.md`のEditor入口、`Documentation~/Architecture.md`の内部構造という4ファイルを開く必要がありました。AIが参照するときのコンテキスト効率と、読む人の負担がどちらも悪化していたためです。
+
+  追加した文書は `ServiceLocator.md` / `SceneLoader.md` / `SaveDataSystem.md` / `AudioManager.md` / `PauseManager.md` / `Debug.md` / `Utility.md` / `InspectorAttributes.md` の8本です。各文書は「入口」「クイックスタート」「実装時の注意」「Editor機能」「内部構造」「関連」の構成で統一しています。
+
+- **README.md の「機能ごとの使い方」を索引へ置き換えました。** コード例は各モジュール文書へ移しています。READMEのアンカー（`#service-locator` など）を参照していた場合は、対応するモジュール文書へのリンクへ変更してください。
+
+- **`Documentation~/AgentUsage.md` からモジュール別の節を、`Documentation~/Architecture.md` からサブシステム個別の内部構成図5点を、それぞれ対応するモジュール文書へ移しました。** AgentUsage.mdには共通の前提とAPIの参照先だけが、Architecture.mdにはアセンブリ構成、ディレクトリ構成、起動と終了、公開Facade全体のclass図だけが残ります。
+
+- **`SymphonyStopWatch` と `SymphonyDebugLogger` の使い方を `Debug.md` へ、Utilityの各型の用途を `Utility.md` へ書き起こしました。** どちらもこれまでREADMEの箇条書き1行しか説明がありませんでした。
+
+- **`Project Settings > SymphonyFrameWork` のService Locatorログ設定に、`Destroy Instance` の項目があることを明記しました。** `Documentation~/EditorTools.md` には登録ログと取得ログの2つしか書かれていませんでした。
+
 ## [3.8.4] - 2026-08-08
 Symphony AdministratorのUXML名前空間解決を修正しました。公開APIとシリアライズ形式は3.8.3から変更していません。
 

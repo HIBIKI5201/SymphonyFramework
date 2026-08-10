@@ -53,6 +53,8 @@ namespace SymphonyFrameWork.Editor
                 return SymphonyAwaitable.Completed();
             }
 
+            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.ServiceLocator);
+
             _locateList = container.Q<ListView>("locate-list");
             _locateList.makeItem = () => new Label();
             _locateList.bindItem = (element, index) =>

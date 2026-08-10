@@ -83,6 +83,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary> レジストリ操作ボタン、一覧、データInspectorを構成する。 </summary>
         protected override Awaitable Initialize_S(VisualElement root)
         {
+            SymphonyDocumentationGUI.BindOpenButton(root, SymphonyDocumentPageEnum.SaveDataSystem);
+
             _currentLoaderLabel = root.Q<Label>("save-current-loader");
             _loadedEntriesCountLabel = root.Q<Label>("save-loaded-entries");
             _statusLabel = root.Q<Label>("save-status");

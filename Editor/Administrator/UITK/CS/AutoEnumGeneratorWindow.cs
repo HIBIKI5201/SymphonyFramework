@@ -18,6 +18,8 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 自動生成設定のToggleと手動生成Buttonを構成する。 </summary>
         protected override Awaitable Initialize_S(VisualElement container)
         {
+            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.AutoEnumGenerator);
+
             //コンフィグデータを取得
             var config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
 
