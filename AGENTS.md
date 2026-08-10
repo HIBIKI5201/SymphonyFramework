@@ -9,13 +9,22 @@
 | やること | 読むもの |
 | --- | --- |
 | 機能、インストール、初期設定を知る | [README.md](./README.md)の「主な機能」「インストール」「初期設定」 |
-| Service Locator、Scene Loader、Save Data、Audio、Pauseを使う | [README.md](./README.md)の該当クイックスタート → [AgentUsage.md](./Documentation~/AgentUsage.md)の該当モジュール |
+| Service Locatorを使う | [ServiceLocator.md](./Documentation~/Modules/ServiceLocator.md) |
+| Scene Loaderを使う | [SceneLoader.md](./Documentation~/Modules/SceneLoader.md) |
+| Save Data Systemを使う | [SaveDataSystem.md](./Documentation~/Modules/SaveDataSystem.md) |
+| Audio Managerを使う | [AudioManager.md](./Documentation~/Modules/AudioManager.md) |
+| Pause Managerを使う | [PauseManager.md](./Documentation~/Modules/PauseManager.md) |
+| HUD、ログ、処理時間計測を使う | [Debug.md](./Documentation~/Modules/Debug.md) |
+| Awaitable、Tween、文字列、Componentの補助を使う | [Utility.md](./Documentation~/Modules/Utility.md) |
+| Inspector属性を使う | [InspectorAttributes.md](./Documentation~/Modules/InspectorAttributes.md) |
 | アセンブリ、フォルダ、初期化順、公開型の関係を調べる | [Architecture.md](./Documentation~/Architecture.md) |
 | Editor・デバッグ機能を使う | [EditorTools.md](./Documentation~/EditorTools.md)。索引だけなら[README.md `Editor・デバッグ支援`](./README.md#editorデバッグ支援) |
 | 利用コードをコンパイル・Play Mode・ビルドで確認する | [AgentVerification.md](./Documentation~/AgentVerification.md) |
 | 非推奨APIと移行方法、削除予定を調べる | [Deprecations.md](./Documentation~/Deprecations.md) |
 | バージョン差分の経緯を調べる | [CHANGELOG.md](./CHANGELOG.md) |
 | フレームワーク本体を開発・変更する | [SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md) |
+
+**モジュール文書は1ファイルで完結します。** クイックスタート、実装時の注意、対応するEditor機能、内部構造がそろっているため、1つのモジュールを使うために複数の文書を読む必要はありません。
 
 ## 1. 常に守ること
 
@@ -30,8 +39,8 @@
 
 ## 2. 文書の読み方
 
-- READMEのクイックスタートをAPI利用例の正本とする。コード例をAGENTS.mdや他の案内文書へ複製しない。
-- 実装前は[AgentUsage.md](./Documentation~/AgentUsage.md)から対象モジュールの節だけを読む。
+- モジュール文書を、API利用例、実装時の注意、対応するEditor機能、内部構造の正本とする。コード例をAGENTS.mdや他の案内文書へ複製しない。
+- 実装前は[Documentation~/Modules/](./Documentation~/Modules/)から対象モジュールの文書だけを読む。
 - 検証時だけ[AgentVerification.md](./Documentation~/AgentVerification.md)を読む。
 - 文書と導入済みコードが食い違う場合は、現在のバージョンの公開シグネチャ、XMLドキュメント、CHANGELOGを確認する。推測で古いAPIへ合わせない。
 

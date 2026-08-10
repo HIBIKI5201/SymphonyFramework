@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.8.5] - 2026-08-11
+利用者向けドキュメントをRuntimeモジュールごとに分離しました。**公開APIとシリアライズ形式は3.8.4から変更していません。**
+
+### Change
+
+- **Runtimeモジュールごとの文書を `Documentation~/Modules/` へ追加し、1モジュールを使うために1ファイルだけ読めばよい形にしました。** これまでは1つのモジュールを理解するのに、README.mdのクイックスタート、`Documentation~/AgentUsage.md`の実装時の注意、`Documentation~/EditorTools.md`のEditor入口、`Documentation~/Architecture.md`の内部構造という4ファイルを開く必要がありました。AIが参照するときのコンテキスト効率と、読む人の負担がどちらも悪化していたためです。
+
+  追加した文書は `ServiceLocator.md` / `SceneLoader.md` / `SaveDataSystem.md` / `AudioManager.md` / `PauseManager.md` / `Debug.md` / `Utility.md` / `InspectorAttributes.md` の8本です。各文書は「入口」「クイックスタート」「実装時の注意」「Editor機能」「内部構造」「関連」の構成で統一しています。
+
+- **README.md の「機能ごとの使い方」を索引へ置き換えました。** コード例は各モジュール文書へ移しています。READMEのアンカー（`#service-locator` など）を参照していた場合は、対応するモジュール文書へのリンクへ変更してください。
+
+- **`Documentation~/AgentUsage.md` からモジュール別の節を、`Documentation~/Architecture.md` からサブシステム個別の内部構成図5点を、それぞれ対応するモジュール文書へ移しました。** AgentUsage.mdには共通の前提とAPIの参照先だけが、Architecture.mdにはアセンブリ構成、ディレクトリ構成、起動と終了、公開Facade全体のclass図だけが残ります。
+
+- **`SymphonyStopWatch` と `SymphonyDebugLogger` の使い方を `Debug.md` へ、Utilityの各型の用途を `Utility.md` へ書き起こしました。** どちらもこれまでREADMEの箇条書き1行しか説明がありませんでした。
+
+- **`Project Settings > SymphonyFrameWork` のService Locatorログ設定に、`Destroy Instance` の項目があることを明記しました。** `Documentation~/EditorTools.md` には登録ログと取得ログの2つしか書かれていませんでした。
+
 ## [3.8.4] - 2026-08-08
 Symphony AdministratorのUXML名前空間解決を修正しました。公開APIとシリアライズ形式は3.8.3から変更していません。
 
