@@ -62,7 +62,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | Pause | ポーズ状態の確認と切り替え |
 | Auto Enum Generator | enumの手動生成ボタンと自動生成の有効・無効 |
 
-各パネルの詳細は、対応する[モジュール文書](./Modules/)にあります。
+各パネルの詳細は、対応する[モジュール文書](./Modules/)にあります。**各パネルの右上にある `ドキュメント` を押すと、そのモジュールの文書がブラウザで開きます。**
 
 **注意点**:
 
@@ -81,6 +81,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | 操作 | 開く文書 |
 | --- | --- |
 | `Window > SymphonyFrameWork > Documentation` | 索引（`Documentation~/Html/index.html`） |
+| Symphony Administrator の各パネル右上の `ドキュメント` | そのパネルに対応するモジュール文書 |
 | `Project Settings > SymphonyFrameWork` の `ドキュメントを開く` | この文書（Editor機能） |
 | `Project Settings > SymphonyFrameWork > Save System` の `ドキュメントを開く` | [Save Data System](./Modules/SaveDataSystem.md) |
 | `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` の `ドキュメントを開く` | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md) |

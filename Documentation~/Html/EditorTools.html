@@ -108,14 +108,14 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
 <p><strong>パネル</strong>:</p>
 <div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Service Locate</td><td>登録済みインスタンスの一覧と登録状態</td></tr><tr><td>Scene Load</td><td>ロード済みシーンと進行中のロード</td></tr><tr><td>Save Data</td><td>セーブデータの登録内容</td></tr><tr><td>Pause</td><td>ポーズ状態の確認と切り替え</td></tr><tr><td>Auto Enum Generator</td><td>enumの手動生成ボタンと自動生成の有効・無効</td></tr></tbody></table></div>
-<p>各パネルの詳細は、対応する<a href="index.html">モジュール文書</a>にあります。</p>
+<p>各パネルの詳細は、対応する<a href="index.html">モジュール文書</a>にあります。<strong>各パネルの右上にある <code>ドキュメント</code> を押すと、そのモジュールの文書がブラウザで開きます。</strong></p>
 <p><strong>注意点</strong>:</p>
 <ul><li>5つのパネルは <code>SymphonyFrameWork.Editor</code> 名前空間の登録済みUXMLカスタム要素として構築されます。</li><li>Runtimeの状態を表示するパネルは、Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</li><li>表示はViewModelの変更通知で更新されます。ウィンドウを開いている間のポーリングは行いません。</li></ul>
 <hr />
 <h2 id="ドキュメント表示">ドキュメント表示</h2>
 <p>パッケージへ同梱したドキュメントをブラウザで開きます。オフラインで読めます。</p>
 <p><strong>入口</strong>:</p>
-<div class="table-scroll"><table><thead><tr><th>操作</th><th>開く文書</th></tr></thead><tbody><tr><td><code>Window &gt; SymphonyFrameWork &gt; Documentation</code></td><td>索引（<code>Documentation~/Html/index.html</code>）</td></tr><tr><td><code>Project Settings &gt; SymphonyFrameWork</code> の <code>ドキュメントを開く</code></td><td>この文書（Editor機能）</td></tr><tr><td><code>Project Settings &gt; SymphonyFrameWork &gt; Save System</code> の <code>ドキュメントを開く</code></td><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td></tr><tr><td><code>Project Settings &gt; SymphonyFrameWork &gt; Asset Store Tools Packager</code> の <code>ドキュメントを開く</code></td><td><a href="Modules/AssetStoreToolsPackager.html">Asset Store Tools Packager</a></td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>操作</th><th>開く文書</th></tr></thead><tbody><tr><td><code>Window &gt; SymphonyFrameWork &gt; Documentation</code></td><td>索引（<code>Documentation~/Html/index.html</code>）</td></tr><tr><td>Symphony Administrator の各パネル右上の <code>ドキュメント</code></td><td>そのパネルに対応するモジュール文書</td></tr><tr><td><code>Project Settings &gt; SymphonyFrameWork</code> の <code>ドキュメントを開く</code></td><td>この文書（Editor機能）</td></tr><tr><td><code>Project Settings &gt; SymphonyFrameWork &gt; Save System</code> の <code>ドキュメントを開く</code></td><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td></tr><tr><td><code>Project Settings &gt; SymphonyFrameWork &gt; Asset Store Tools Packager</code> の <code>ドキュメントを開く</code></td><td><a href="Modules/AssetStoreToolsPackager.html">Asset Store Tools Packager</a></td></tr></tbody></table></div>
 <p><strong>コードから開く</strong>: <code>SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)</code>。Editor専用の公開APIです。</p>
 <pre><code class="language-csharp">SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);</code></pre>
 <p><strong>注意点</strong>:</p>

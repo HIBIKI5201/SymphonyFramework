@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.9.1] - 2026-08-11
+Symphony Administratorの各パネルからドキュメントを開けるようにしました。**公開APIとシリアライズ形式は3.9.0から変更していません。**
+
+### Add
+
+- **`Symphony Administrator` の5つのパネルへ、右上に `ドキュメント` ボタンを追加しました。** Service Locate / Scene Load / Save Data / Pause / Auto Enum Generator のそれぞれから、対応するモジュール文書がブラウザで開きます。状態を見ている画面から、その機能の説明へ直接移動できます。
+
+  ボタンは `SymphonyWIndow.uss` の `document-button` で装飾し、パネルの表示領域を圧迫しない大きさにしています。**Play Modeの開始・終了を繰り返してもボタンは機能し続けます。** 購読先のButtonはパネルと寿命を共にするためです。
+
 ## [3.9.0] - 2026-08-11
 Editorからドキュメントをブラウザで開けるようにしました。**既存の公開APIとシリアライズ形式は3.8.7から変更していません。**
 

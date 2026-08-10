@@ -1,16 +1,41 @@
 ﻿using UnityEditor;
 
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
     /// <summary>
-    ///     Project Settings画面へ、対応するドキュメントを開くボタンを描画する。
+    ///     Project Settings画面と管理パネルへ、対応するドキュメントを開くボタンを配置する。
     /// </summary>
     internal static class SymphonyDocumentationGUI
     {
+        /// <summary> 管理パネルのUXMLが持つ、ドキュメントを開くボタンの要素名。 </summary>
+        internal const string DOCUMENT_BUTTON_NAME = "button-document";
+
         private const string BUTTON_LABEL = "ドキュメントを開く";
         private const float BUTTON_WIDTH = 160f;
+
+        /// <summary>
+        ///     UXMLから生成された管理パネルのボタンへ、ドキュメントを開く操作を結び付ける。
+        /// </summary>
+        /// <param name="container"> UXMLから生成されたルート要素。 </param>
+        /// <param name="page"> ボタンから開くドキュメントページ。 </param>
+        /// <remarks>
+        ///     購読先のButtonはパネルと寿命を共にするため、匿名ラムダで購読してよい。
+        ///     UXMLが差し替わってボタンが無くなっても、パネルの初期化を落とさない。
+        /// </remarks>
+        internal static void BindOpenButton(VisualElement container, SymphonyDocumentPageEnum page)
+        {
+            Button button = container?.Q<Button>(DOCUMENT_BUTTON_NAME);
+
+            if (button == null)
+            {
+                return;
+            }
+
+            button.clicked += () => SymphonyDocumentation.Open(page);
+        }
 
         /// <summary>
         ///     ドキュメントを開くボタンを右寄せで描画する。
