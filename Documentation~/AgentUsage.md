@@ -1,18 +1,11 @@
-# AIエージェント向け利用上の注意
+# AIエージェント向けAPI索引
 
-この文書は、Symphony Frameworkを導入したプロジェクトの`Assets/`配下へ利用コードを書くAIエージェント向けです。APIの説明、コード例、実装時に誤りやすい判断は各モジュール文書を正本とします。
+この文書は、Symphony Frameworkを導入したプロジェクトの`Assets/`配下へ利用コードを書くAIエージェントが、**目的のnamespaceと入口の型から読むべきモジュール文書を引く**ための索引です。
 
-必要なモジュール文書だけを読んでください。パッケージ本体を開発する場合はこの文書ではなく、[SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md)に従います。
+APIの説明、コード例、実装時に誤りやすい判断は各モジュール文書を正本とします。必要なモジュール文書だけを読んでください。
 
-## 共通の前提
-
-- `Packages/manifest.json`またはパッケージの`package.json`で導入バージョンを確認し、移行情報が必要なら[CHANGELOG.md](../CHANGELOG.md)を読む。
-- asmdefを使う利用側コードは`SymphonyFrameWork`を参照する。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も参照する。
-- `ServiceLocator`、`SceneLoader`、`SaveStore`、`AudioManager`、`PauseManager`はstatic Facadeである。`new`や`.Instance`は使わない。
-- `SymphonyOrchestrator`が最初のシーンより前に自動初期化する。Bootstrap用GameObjectや専用シーンを作らない。
-- `SceneLoadConfig`、`AudioConfig`、`SaveDataConfig`は`internal`である。型として参照せず、InspectorまたはProject Settingsから設定する。
-- `SymphonyFrameWork.Editor`はEditor専用である。Runtime asmdefやPlayerビルド対象コードから参照しない。
-- パッケージ直下の`Cache/Log.txt`はEditor用の生成キャッシュである。編集・コミットせず、不要なら削除してよい。
+- 常時守るルールは[AGENTS.md](../AGENTS.md)の`## 1. 常に守ること`にあります。この文書には複製しません。
+- パッケージ本体を開発する場合は、[SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md)に従います。
 
 ## APIの参照先
 

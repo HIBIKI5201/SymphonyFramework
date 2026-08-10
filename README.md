@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **3.9.2**
+- 現在のバージョン: **3.9.3**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -155,7 +155,7 @@ Package Managerから[`Samples/Runtime`](./Samples/Runtime)の各サンプルを
   - [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)
   - [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md)
 - [AGENTS.md（AIエージェント向けの導線と常時ルール）](./AGENTS.md)
-  - [利用コードを書くときの注意事項](./Documentation~/AgentUsage.md)
+  - [AIエージェント向けAPI索引](./Documentation~/AgentUsage.md)
   - [利用コードの検証手順](./Documentation~/AgentVerification.md)
 - [Symphony Framework Document](https://lying-foxglove-81a.notion.site/Symphony-Framework-Document-19b7c2c6cc02806b9b97cb8a97c9f11a?pvs=74)
 
