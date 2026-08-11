@@ -6,16 +6,14 @@ using UnityEngine.Audio;
 namespace SymphonyFrameWork.System
 {
     /// <summary>
-    ///     AudioMixerグループ単位の再生設定。
-    ///     グループ名を同一性とし、再生元と音量変換の規則を保持する。
-    ///     GameObjectの生成や破棄には関与しない。
+    ///     AudioMixerグループ単位の再生設定と音量変換規則を保持する。
     /// </summary>
+    /// <remarks> グループ名を同一性とし、GameObjectの生成や破棄には関与しない。 </remarks>
     internal sealed class AudioGroupEntity
     {
-        /// <summary>
-        ///     AudioMixerが扱える最小音量。
-        ///     割合0を指定したときのデシベル値であり、Unityの仕様に由来する。
-        /// </summary>
+        #region 外部向けAPI
+
+        /// <summary> AudioMixerが扱う最小音量のdB値。 </summary>
         internal const float MINIMUM_VOLUME_DECIBEL = -80f;
 
         /// <summary>
@@ -35,11 +33,13 @@ namespace SymphonyFrameWork.System
             string exposedVolumeParameterName,
             float? originalVolumeDecibel)
         {
+            // AudioMixer内でグループを一意に識別できないEntityは生成させない。
             if (string.IsNullOrEmpty(groupName))
             {
                 throw new ArgumentException("オーディオグループ名を指定してください。", nameof(groupName));
             }
 
+            // Mixerのグループ、Source、公開パラメーター名、初期dB値の対応を固定する。
             GroupName = groupName;
             Group = group;
             Source = source;
@@ -63,23 +63,27 @@ namespace SymphonyFrameWork.System
         internal float? OriginalVolumeDecibel { get; }
 
         /// <summary>
-        ///     音量の割合を、AudioMixerへ設定するデシベル値へ変換する。
-        ///     割合0で<see cref="MINIMUM_VOLUME_DECIBEL"/>、割合1で初期音量になるよう線形に補間する。
+        ///     音量割合をAudioMixerへ設定するdB値へ変換する。
         /// </summary>
+        /// <remarks> 割合0を<see cref="MINIMUM_VOLUME_DECIBEL"/>、割合1を初期dB値として線形補間する。 </remarks>
         /// <param name="ratio"> 0から1までの音量割合。 </param>
         /// <param name="decibel"> 変換したデシベル値。 </param>
         /// <returns> 変換できた場合はtrue。公開パラメーターが無い場合はfalse。 </returns>
         internal bool TryGetVolumeDecibel(float ratio, out float decibel)
         {
+            // 公開パラメーターの初期dB値を取得できなかったグループは変換できない。
             if (OriginalVolumeDecibel == null)
             {
                 decibel = default;
                 return false;
             }
 
+            // 公開APIの0-1割合を、AudioMixer.SetFloatが要求するdB単位へ変換する。
             decibel = (ratio * (OriginalVolumeDecibel.Value - MINIMUM_VOLUME_DECIBEL))
                 + MINIMUM_VOLUME_DECIBEL;
             return true;
         }
+
+        #endregion
     }
 }

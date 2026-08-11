@@ -2,9 +2,13 @@
 
 namespace SymphonyFrameWork.System
 {
-    /// <summary> ポーズ機構の表示用更新値。 </summary>
+    /// <summary>
+    ///     ポーズ機構の表示用更新値を表す。
+    /// </summary>
     internal readonly struct PauseDto : IEquatable<PauseDto>
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     表示に必要な値を指定して生成する。
         /// </summary>
@@ -22,19 +26,25 @@ namespace SymphonyFrameWork.System
         /// <summary> ポーズ通知を購読している対象の件数。 </summary>
         internal int PausableSubscriberCount { get; }
 
-        /// <summary> 表示値が等しいか判定する。 </summary>
+        /// <summary>
+        ///     表示値が等しいか判定する。
+        /// </summary>
         /// <param name="other"> 比較対象。 </param>
         /// <returns> 全ての表示値が等しい場合はtrue。 </returns>
         public bool Equals(PauseDto other) =>
             IsPaused == other.IsPaused
             && PausableSubscriberCount == other.PausableSubscriberCount;
 
-        /// <summary> 表示値が等しいか判定する。 </summary>
+        /// <summary>
+        ///     表示値が等しいか判定する。
+        /// </summary>
         /// <param name="obj"> 比較対象。 </param>
         /// <returns> 同じ型で表示値が等しい場合はtrue。 </returns>
         public override bool Equals(object obj) => obj is PauseDto other && Equals(other);
 
-        /// <summary> 表示値に基づくハッシュコードを返す。 </summary>
+        /// <summary>
+        ///     表示値に基づくハッシュコードを返す。
+        /// </summary>
         /// <returns> ハッシュコード。 </returns>
         public override int GetHashCode()
         {
@@ -44,16 +54,22 @@ namespace SymphonyFrameWork.System
             }
         }
 
-        /// <summary> 2つの表示値が等しいか判定する。 </summary>
+        /// <summary>
+        ///     2つの表示値が等しいか判定する。
+        /// </summary>
         /// <param name="left"> 左辺。 </param>
         /// <param name="right"> 右辺。 </param>
         /// <returns> 等しい場合はtrue。 </returns>
         public static bool operator ==(PauseDto left, PauseDto right) => left.Equals(right);
 
-        /// <summary> 2つの表示値が異なるか判定する。 </summary>
+        /// <summary>
+        ///     2つの表示値が異なるか判定する。
+        /// </summary>
         /// <param name="left"> 左辺。 </param>
         /// <param name="right"> 右辺。 </param>
         /// <returns> 異なる場合はtrue。 </returns>
         public static bool operator !=(PauseDto left, PauseDto right) => !left.Equals(right);
+
+        #endregion
     }
 }
