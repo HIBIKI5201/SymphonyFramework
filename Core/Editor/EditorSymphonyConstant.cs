@@ -8,6 +8,8 @@ namespace SymphonyFrameWork.Core
     /// </summary>
     public static class EditorSymphonyConstant
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     パッケージか開発中か判定する。
         /// </summary>
@@ -16,27 +18,20 @@ namespace SymphonyFrameWork.Core
         public static bool IsPackage([CallerFilePath] string sourceFilePath = "") =>
             !sourceFilePath.Replace('\\', '/').Contains("/Assets/");
 
-        /// <summary>
-        /// アセットかパッケージのルートパスを返す。
-        /// </summary>
+        /// <summary> アセットまたはパッケージのルートパス。 </summary>
         /// <returns> Package導入時またはAssets直置き時のFrameworkルートパス。 </returns>
         public static string FRAMEWORK_PATH
         {
             get
             {
-                if (IsPackage())
-                {
-                    return "Packages/" + SymphonyConstant.SYMPHONY_PACKAGE;
-                }
-                else
-                {
-                    return "Assets/" + SymphonyConstant.SYMPHONY_FRAMEWORK;
-                }
-
+                // Package配下ならPackage Managerの仮想パス、Assets直置きなら実配置を返す。
+                if (IsPackage()) { return "Packages/" + SymphonyConstant.SYMPHONY_PACKAGE; }
+                else { return "Assets/" + SymphonyConstant.SYMPHONY_FRAMEWORK; }
             }
         }
 
-        #region 自動生成物のパス
+        // 自動生成物のパス。
+
         /// <summary> Editor用設定アセットの出力ディレクトリ。 </summary>
         public static string RESOURCES_EDITOR_PATH = "Assets/Editor/" + SymphonyConstant.SYMPHONY_FRAMEWORK + "/Configs";
 
@@ -61,12 +56,12 @@ namespace SymphonyFrameWork.Core
 
         /// <summary> 出力したパッケージ名とリビジョンの一覧の名前。出力先フォルダに置かれる。 </summary>
         public const string ASSET_STORE_TOOLS_MANIFEST_FILE_NAME = "PackageManifest.json";
-        #endregion
 
         /// <summary> 管理ウィンドウ用UI Toolkitアセットの基準パス。 </summary>
         public static string UITK_PATH = FRAMEWORK_PATH + "/Editor/Administrator/UITK/";
 
-        #region Setting Provider
+        // Setting Provider。
+
         /// <summary> パッケージ固有のProjectSettingsファイルを保存する基準パス。 </summary>
         public const string PROJCET_SETTING_FILE_PATH = "ProjectSettings/Packages/" + SymphonyConstant.SYMPHONY_PACKAGE + "/";
 
@@ -75,9 +70,9 @@ namespace SymphonyFrameWork.Core
 
         /// <summary> Unity Project Settings内の設定項目基準パス。 </summary>
         public const string PROJECT_SETTING_PATH = "Project/";
-        #endregion
 
-        #region Enumの名前
+        // Enumの名前。
+
         /// <summary> オーディオグループenumの基底ファイル名。 </summary>
         public const string AudioGroupTypeEnumName = "AudioGroupType";
 
@@ -89,6 +84,7 @@ namespace SymphonyFrameWork.Core
 
         /// <summary> レイヤーenumの基底ファイル名。 </summary>
         public const string LayersEnumFileName = "Layers";
+
         #endregion
     }
 }

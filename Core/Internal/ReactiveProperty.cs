@@ -6,15 +6,17 @@ using UnityEngine;
 namespace SymphonyFrameWork.Core
 {
     /// <summary>
-    ///     ViewModelが所有する値を保持し、値が変化したときに購読者へ通知する。
-    ///     一時的な表示状態の通知だけに使用し、Unityのシリアライズ、永続化、
-    ///     グローバルなEvent Busとして使用しない。
-    ///     配列やListは既定のEqualityComparerでは参照比較になるため、利用側が
-    ///     内容比較用のcomparerと通知後に変化しないスナップショットを用意する。
+    ///     ViewModelの値を保持し、変更を購読者へ通知する。
     /// </summary>
+    /// <remarks>
+    ///     一時的な表示状態の通知に限り、シリアライズ、永続化、Event Busには使用しない。
+    ///     配列やListでは、利用側が内容比較と通知後も不変なスナップショットを用意する。
+    /// </remarks>
     /// <typeparam name="T"> 保持する値の型。 </typeparam>
     internal sealed class ReactiveProperty<T> : IReadOnlyReactiveProperty<T>, IDisposable
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     初期値と値の比較方法を指定して初期化する。
         /// </summary>
@@ -24,6 +26,7 @@ namespace SymphonyFrameWork.Core
         /// </param>
         public ReactiveProperty(T initialValue, IEqualityComparer<T> comparer = null)
         {
+            // 初期値を保持し、比較方法が未指定の場合は型の標準比較へ統一する。
             _value = initialValue;
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
@@ -44,18 +47,19 @@ namespace SymphonyFrameWork.Core
         /// </exception>
         public bool SetValue(T value)
         {
+            // Unityの状態と購読一覧を安全に扱えるスレッドとライフサイクルに限定する。
             EnsureMainThread();
             ThrowIfDisposed();
 
-            if (_comparer.Equals(_value, value))
-            {
-                return false;
-            }
+            // 比較上同じ値なら、不要な通知と購読者側の副作用を発生させない。
+            if (_comparer.Equals(_value, value)) { return false; }
 
+            // 通知中の購読解除で列挙状態が変わらないよう、現在の購読一覧を固定する。
             _value = value;
             Subscription[] subscriptions = _subscriptions.ToArray();
             List<Exception> exceptions = null;
 
+            // 一部の購読者が失敗しても、残りの購読者への通知を継続する。
             foreach (Subscription subscription in subscriptions)
             {
                 try
@@ -69,6 +73,7 @@ namespace SymphonyFrameWork.Core
                 }
             }
 
+            // 購読者の例外は全通知の完了後にまとめ、更新自体は成功として扱う。
             LogObserverExceptions(exceptions);
             return true;
         }
@@ -90,17 +95,18 @@ namespace SymphonyFrameWork.Core
         /// </exception>
         public IDisposable Subscribe(Action<T> observer, bool notifyCurrent = true)
         {
+            // 購読一覧を安全に扱えるスレッドとライフサイクルに限定する。
             EnsureMainThread();
             ThrowIfDisposed();
 
-            if (observer == null)
-            {
-                throw new ArgumentNullException(nameof(observer));
-            }
+            // 通知時まで失敗を遅らせないよう、nullの購読者は登録前に拒否する。
+            if (observer == null) { throw new ArgumentNullException(nameof(observer)); }
 
-            var subscription = new Subscription(this, observer);
+            // 現在値の通知中でも購読者自身が解除できるよう、通知前に一覧へ追加する。
+            Subscription subscription = new(this, observer);
             _subscriptions.Add(subscription);
 
+            // 購読開始時点の状態も必要な購読者にだけ、現在値を即時通知する。
             if (notifyCurrent)
             {
                 try
@@ -109,6 +115,7 @@ namespace SymphonyFrameWork.Core
                 }
                 catch (Exception exception)
                 {
+                    // 初回通知の失敗でも購読自体は維持し、他の通知と同じ方法で記録する。
                     LogObserverExceptions(new List<Exception> { exception });
                 }
             }
@@ -124,22 +131,23 @@ namespace SymphonyFrameWork.Core
         /// </exception>
         public void Dispose()
         {
+            // 購読一覧を安全に破棄できるスレッドに限定する。
             EnsureMainThread();
 
-            if (_isDisposed)
-            {
-                return;
-            }
+            // 破棄済みの場合は、複数回の破棄を同じ結果にする。
+            if (_isDisposed) { return; }
 
+            // 再入された操作を拒否してから、各ハンドルの所有者参照を切り離す。
             _isDisposed = true;
 
-            foreach (Subscription subscription in _subscriptions)
-            {
-                subscription.Detach();
-            }
+            foreach (Subscription subscription in _subscriptions) { subscription.Detach(); }
 
             _subscriptions.Clear();
         }
+
+        #endregion
+
+        #region 内部処理
 
         private readonly IEqualityComparer<T> _comparer;
         private readonly List<Subscription> _subscriptions = new();
@@ -152,10 +160,8 @@ namespace SymphonyFrameWork.Core
         /// </summary>
         private void ThrowIfDisposed()
         {
-            if (_isDisposed)
-            {
-                throw new ObjectDisposedException(nameof(ReactiveProperty<T>));
-            }
+            // 破棄後は値と購読一覧の整合性を保証できないため、操作を拒否する。
+            if (_isDisposed) { throw new ObjectDisposedException(nameof(ReactiveProperty<T>)); }
         }
 
         /// <summary>
@@ -167,12 +173,14 @@ namespace SymphonyFrameWork.Core
         /// </summary>
         private static void EnsureMainThread()
         {
+            // awaitされずプールへ戻らないAwaitableを生成せず、Unity APIへのアクセス可否で判定する。
             try
             {
                 _ = Time.frameCount;
             }
             catch (UnityException exception)
             {
+                // Unity APIが拒否した場合は、呼び出し側へスレッド制約を明示する。
                 throw new InvalidOperationException(
                     $"[{nameof(ReactiveProperty<T>)}] 操作はメインスレッドで実行してください。",
                     exception);
@@ -185,11 +193,10 @@ namespace SymphonyFrameWork.Core
         /// <param name="exceptions"> 記録する例外。 </param>
         private static void LogObserverExceptions(List<Exception> exceptions)
         {
-            if (exceptions == null)
-            {
-                return;
-            }
+            // 例外が発生していない通知ではログを出さない。
+            if (exceptions == null) { return; }
 
+            // 複数の購読者例外を1件に集約し、通知失敗の全体像を保持する。
             Debug.LogException(new AggregateException(
                 $"[{nameof(ReactiveProperty<T>)}] 購読者への通知で例外が発生しました。",
                 exceptions));
@@ -201,7 +208,10 @@ namespace SymphonyFrameWork.Core
         /// <param name="subscription"> 解除する購読。 </param>
         private void Unsubscribe(Subscription subscription)
         {
+            // 購読一覧とハンドルの状態変更をメインスレッドへ限定する。
             EnsureMainThread();
+
+            // 一覧から先に除外し、以後の通知対象にならない状態で所有者参照を切る。
             _subscriptions.Remove(subscription);
             subscription.Detach();
         }
@@ -211,6 +221,8 @@ namespace SymphonyFrameWork.Core
         /// </summary>
         private sealed class Subscription : IDisposable
         {
+            #region 外部向けAPI
+
             /// <summary>
             ///     所有者と購読者を指定して初期化する。
             /// </summary>
@@ -218,6 +230,7 @@ namespace SymphonyFrameWork.Core
             /// <param name="observer"> 値を受け取る購読者。 </param>
             public Subscription(ReactiveProperty<T> owner, Action<T> observer)
             {
+                // 解除先と通知先を同じ購読単位へ保持する。
                 _owner = owner;
                 Observer = observer;
             }
@@ -226,14 +239,13 @@ namespace SymphonyFrameWork.Core
             public Action<T> Observer { get; }
 
             /// <summary>
-            ///     購読を解除する。解除済みの場合は何もしない。
+            ///     購読を解除する。
             /// </summary>
+            /// <remarks> 解除済みの場合は何もしない。 </remarks>
             public void Dispose()
             {
-                if (_owner == null)
-                {
-                    return;
-                }
+                // 所有者との関連が既に切れている場合は、重複解除を避ける。
+                if (_owner == null) { return; }
 
                 _owner.Unsubscribe(this);
             }
@@ -246,7 +258,15 @@ namespace SymphonyFrameWork.Core
                 _owner = null;
             }
 
+            #endregion
+
+            #region 内部処理
+
             private ReactiveProperty<T> _owner;
+
+            #endregion
         }
+
+        #endregion
     }
 }
