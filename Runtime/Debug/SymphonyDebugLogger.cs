@@ -206,6 +206,10 @@ namespace SymphonyFrameWork.Debugger.Logger
         {
 #if UNITY_EDITOR
             // 旧APIの既存動作を維持するため、Editor限定のUnity標準警告を直接使用する。
+            // TODO(#160): componentがnullの分岐でcomponent.nameを参照している。
+            //             UnityEngine.Objectの==nullは破棄済みと真のnullの両方でtrueになり、
+            //             後者ではNullReferenceExceptionになる。警告を出す関数が落ちるため、
+            //             破棄済みと真のnullを分けて扱う。
             if (component == null) { Debug.LogWarning($"The component {typeof(T).Name} of {component.name} is null."); }
 #endif
         }

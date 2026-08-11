@@ -68,6 +68,9 @@ namespace SymphonyFrameWork.Editor
                     }
 
                     // 予約語は既存の生成結果を変えず、問題のある候補として警告する。
+                    // TODO(#161): 「除外しました」と警告しながらreturn trueで候補に残している。
+                    //             シーン名やタグ名に予約語があると、生成した.csがコンパイルエラーになる。
+                    //             除外するか@を前置してエスケープするかを決め、警告文を実際の挙動へ揃える。
                     if (ReservedWords.Contains(s))
                     {
                         Debug.LogWarning($"無効な文字列'{s}'を除外しました");

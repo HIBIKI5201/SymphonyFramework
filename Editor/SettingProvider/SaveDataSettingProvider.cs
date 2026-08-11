@@ -93,6 +93,11 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             if (config != null) { return config; }
 
             // PackageInitializer以外の生成入口として全設定を確認し、AssetDatabase更新後に保存先から直接読み直す。
+            // TODO(#162): SettingsProviderのcallbackからpackage-wideな初期化とAsset生成を開始している。
+            //             規約は発見用属性のcallbackから初期化を始めることを禁じており、
+            //             Editor起動時のAsset変更はOrchestratorが集約してRefreshを1回に抑える設計になっている。
+            //             生成の開始をSymphonyEditorOrchestrator側の入口へ委譲し、
+            //             ここは未生成である旨の表示に留める。
             SymphonyConfigManager.AllConfigCheck();
             AssetDatabase.Refresh();
             return AssetDatabase.LoadAssetAtPath<SaveDataConfig>(
