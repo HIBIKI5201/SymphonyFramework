@@ -13,55 +13,40 @@ using static SymphonyFrameWork.Editor.AssetStoreToolsPackager;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> Asset Store Toolsの出力対象とパッケージ形式を選択するEditorWindow。 </summary>
+    /// <summary>
+    ///     Asset Store Toolsの出力対象とパッケージ形式を選択するEditorWindow。
+    /// </summary>
     public sealed class AssetStoreToolsPackageWindow : EditorWindow
     {
-        /// <summary> 設定済みパスを検証してPackagerウィンドウを表示する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     設定済みパスを検証してPackagerウィンドウを表示する。
+        /// </summary>
         public static void ShowWindow()
         {
             string assetStoreToolsPath = AssetStoreToolsPackagerData.AssetStoreToolsPath;
 
+            // 対象パスが未設定なら、操作不能なウィンドウを開かず設定不足を通知する。
             if (string.IsNullOrEmpty(assetStoreToolsPath))
             {
                 Debug.LogError("AssetStoreToolsフォルダのパスが設定されていません。");
                 return;
             }
 
-            // パッケージ対象ディレクトリをバリデーションチェック。
+            // 設定済みでもUnityが認識できないフォルダなら、出力処理へ進ませない。
             if (!AssetDatabase.IsValidFolder(assetStoreToolsPath))
             {
                 Debug.LogError($"AssetStoreToolsフォルダが存在しません: {assetStoreToolsPath}");
                 return;
             }
-
-
+            // 同じ種類のウィンドウを再利用し、複数画面から設定状態が分岐することを防ぐ。
             GetWindow<AssetStoreToolsPackageWindow>(false, "Asset Store Tools Packager", true);
         }
 
-        private sealed class DirectoryItem
-        {
-            /// <summary> パッケージ対象ディレクトリのパス。 </summary>
-            public string Path;
+        #endregion
 
-            /// <summary> UIへ表示するディレクトリ名。 </summary>
-            public string Name;
-
-            /// <summary> ユーザーが出力対象として選択しているかを示す。 </summary>
-            public bool IsSelected;
-
-            /// <summary> 除外設定により選択できないかを示す。 </summary>
-            public bool IsIgnored;
-        }
-
-        /// <summary> ウィンドウが持つタブ。 </summary>
-        private enum PackagerTabEnum
-        {
-            /// <summary> パッケージを出力する。 </summary>
-            Export,
-
-            /// <summary> 出力済みパッケージのうち更新されたものを取り込む。 </summary>
-            Import,
-        }
+        #region 内部処理
 
         private static readonly string[] TAB_LABELS = { "Export", "Import" };
 
@@ -80,16 +65,22 @@ namespace SymphonyFrameWork.Editor
         private Vector2 _importScrollPosition;
         private bool _hasManifest;
 
-        /// <summary> ウィンドウ有効化時に出力対象ディレクトリとパイプラインを読み込む。 </summary>
+        /// <summary>
+        ///     ウィンドウ有効化時に出力対象ディレクトリとパイプラインを読み込む。
+        /// </summary>
         private void OnEnable()
         {
+            // 表示前にProject Settingsと対象フォルダの現在値を反映する。
             RefreshDirectories();
             RefreshPipelines();
 
+            // Windowの有効期間だけ購読し、無効化後に破棄済みUIを更新しない。
             AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
         }
 
-        /// <summary> ウィンドウ無効化時に取り込み完了の購読を解除する。 </summary>
+        /// <summary>
+        ///     ウィンドウ無効化時に取り込み完了の購読を解除する。
+        /// </summary>
         private void OnDisable()
         {
             AssetDatabase.importPackageCompleted -= OnImportPackageCompleted;
@@ -107,16 +98,16 @@ namespace SymphonyFrameWork.Editor
         /// <param name="packageName"> 取り込みが完了したパッケージ名。 </param>
         private void OnImportPackageCompleted(string packageName)
         {
-            if (_tab != PackagerTabEnum.Import)
-            {
-                return;
-            }
+            // Export表示中はインポート候補を描画しないため、不要な再読込を避ける。
+            if (_tab != PackagerTabEnum.Import) { return; }
 
             RefreshImportCandidates(keepSelectedIndex: true);
             Repaint();
         }
 
-        /// <summary> タブを描画し、選択中のタブの内容へ委譲する。 </summary>
+        /// <summary>
+        ///     タブを描画し、選択中のタブの内容へ委譲する。
+        /// </summary>
         private void OnGUI()
         {
             GUILayout.Label("Asset Store Tools Packager", EditorStyles.boldLabel);
@@ -154,9 +145,12 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
-        /// <summary> ディレクトリ選択、出力形式、エクスポート操作を描画する。 </summary>
+        /// <summary>
+        ///     ディレクトリ選択、出力形式、エクスポート操作を描画する。
+        /// </summary>
         private void DrawExportTab()
         {
+            // 明示的な更新操作では、対象ディレクトリとパイプラインを同時に読み直す。
             if (GUILayout.Button("Refresh", GUILayout.Width(100)))
             {
                 RefreshDirectories();
@@ -165,7 +159,7 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
 
-            // 一括選択・解除。
+            // 除外対象を再選択しない範囲で、一括操作を提供する。
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Select All", GUILayout.Width(100)))
             {
@@ -179,25 +173,25 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
 
-            // ディレクトリ一覧。
+            // 除外対象は設定を示したまま、個別選択だけを無効化する。
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, EditorStyles.helpBox);
             foreach (DirectoryItem item in _directoryItems)
             {
                 using (new EditorGUI.DisabledGroupScope(item.IsIgnored))
                 {
-                    item.IsSelected = EditorGUILayout.ToggleLeft(item.IsIgnored ? $"{item.Name} (Ignored)" : item.Name, item.IsSelected);
+                    item.IsSelected = EditorGUILayout.ToggleLeft(
+                        item.IsIgnored ? $"{item.Name} (Ignored)" : item.Name,
+                        item.IsSelected);
                 }
             }
             EditorGUILayout.EndScrollView();
 
             EditorGUILayout.Space();
 
-            if (!DrawPipelineSelection())
-            {
-                return;
-            }
+            // 実行可能なパイプラインが無ければ、出力操作を描画しない。
+            if (!DrawPipelineSelection()) { return; }
 
-            // エクスポートボタン。
+            // 出力対象が1件も選ばれていない間は、空の計画を作らせない。
             using (new EditorGUI.DisabledGroupScope(_directoryItems.All(d => !d.IsSelected)))
             {
                 if (GUILayout.Button("Export Selected Directories", GUILayout.Height(30)))
@@ -212,10 +206,8 @@ namespace SymphonyFrameWork.Editor
                         selectedDirs,
                         _pipelines[_selectedPipelineIndex]);
 
-                    if (plan != null)
-                    {
-                        AssetStoreToolsPackageConfirmWindow.Open(plan, () => Export(plan));
-                    }
+                    // 有効な計画だけを確認画面へ渡し、承認された同一インスタンスを出力する。
+                    if (plan != null) { AssetStoreToolsPackageConfirmWindow.Open(plan, () => Export(plan)); }
                 }
             }
         }
@@ -229,6 +221,7 @@ namespace SymphonyFrameWork.Editor
         /// <returns> 選択できるパイプラインがあり、出力へ進める場合はtrue。 </returns>
         private bool DrawPipelineSelection()
         {
+            // 利用可能なパイプラインが無ければ、設定案内を表示して出力を停止する。
             if (_pipelines.Count == 0)
             {
                 EditorGUILayout.HelpBox(
@@ -237,6 +230,7 @@ namespace SymphonyFrameWork.Editor
                     + "アサインしてください。",
                     MessageType.Info);
 
+                // 設定不足をその場で解消できるよう、該当するProject Settingsへ案内する。
                 if (GUILayout.Button("Open Project Settings", GUILayout.Width(180)))
                 {
                     SettingsService.OpenProjectSettings(AssetStoreToolsPackagerProvider.SELF_PATH);
@@ -258,13 +252,11 @@ namespace SymphonyFrameWork.Editor
         {
             // 選択中の出力先を維持する。読み直しのたびに先頭へ戻ると、
             // 別プロジェクトの出力を確認している最中に選択が失われる。
-            if (GUILayout.Button("Refresh", GUILayout.Width(100)))
-            {
-                RefreshImportCandidates(keepSelectedIndex: true);
-            }
+            if (GUILayout.Button("Refresh", GUILayout.Width(100))) { RefreshImportCandidates(keepSelectedIndex: true); }
 
             EditorGUILayout.Space();
 
+            // 出力履歴が無ければ選択肢を描画できないため、案内だけを表示する。
             if (_exportDirectories.Length == 0)
             {
                 EditorGUILayout.HelpBox(
@@ -276,6 +268,7 @@ namespace SymphonyFrameWork.Editor
 
             int selectedIndex = EditorGUILayout.Popup(
                 "Exported Packages", _selectedExportIndex, _exportDirectoryLabels);
+            // 利用者が別の出力履歴を選んだ場合は、そのマニフェストから候補を作り直す。
             if (selectedIndex != _selectedExportIndex)
             {
                 _selectedExportIndex = selectedIndex;
@@ -284,6 +277,7 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
 
+            // 統合パッケージだけの出力は差分単位を持たないため、インポート操作を表示しない。
             if (!_hasManifest)
             {
                 EditorGUILayout.HelpBox(
@@ -296,9 +290,12 @@ namespace SymphonyFrameWork.Editor
             DrawImportCandidates();
         }
 
-        /// <summary> インポート候補の一覧と、一括選択・実行の操作を描画する。 </summary>
+        /// <summary>
+        ///     インポート候補の一覧と、一括選択・実行の操作を描画する。
+        /// </summary>
         private void DrawImportCandidates()
         {
+            // 更新が必要な項目だけの再選択と、全解除を一括操作として提供する。
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Select Updated", GUILayout.Width(120)))
             {
@@ -316,6 +313,7 @@ namespace SymphonyFrameWork.Editor
 
             _importScrollPosition = EditorGUILayout.BeginScrollView(
                 _importScrollPosition, EditorStyles.helpBox);
+            // マニフェストの順序を維持して、候補ごとの選択状態を描画する。
             foreach (AssetStoreToolsImportCandidate candidate in _importCandidates)
             {
                 candidate.IsSelected = EditorGUILayout.ToggleLeft(
@@ -325,6 +323,7 @@ namespace SymphonyFrameWork.Editor
 
             EditorGUILayout.Space();
 
+            // 選択が空の間は、件数0のインポート要求を発生させない。
             int selectedCount = _importCandidates.Count(candidate => candidate.IsSelected);
             using (new EditorGUI.DisabledGroupScope(selectedCount == 0))
             {
@@ -370,18 +369,14 @@ namespace SymphonyFrameWork.Editor
                 .Select(Path.GetFileName)
                 .ToArray();
 
-            if (!keepSelectedIndex || _selectedExportIndex >= _exportDirectories.Length)
-            {
-                _selectedExportIndex = 0;
-            }
+            // 選択維持を求められていない場合か、履歴削除で範囲外になった場合は先頭へ戻す。
+            if (!keepSelectedIndex || _selectedExportIndex >= _exportDirectories.Length) { _selectedExportIndex = 0; }
 
             _importCandidates.Clear();
             _hasManifest = false;
 
-            if (_exportDirectories.Length == 0)
-            {
-                return;
-            }
+            // 出力履歴が無ければ、配列を参照せず空の候補表示を維持する。
+            if (_exportDirectories.Length == 0) { return; }
 
             string exportDirectory = _exportDirectories[_selectedExportIndex];
             _hasManifest = AssetStoreToolsVersionLogStore.LoadManifest(exportDirectory) != null;
@@ -406,10 +401,8 @@ namespace SymphonyFrameWork.Editor
                 .Select(pipeline => pipeline.name)
                 .ToArray();
 
-            if (_selectedPipelineIndex >= _pipelines.Count)
-            {
-                _selectedPipelineIndex = 0;
-            }
+            // 削除されたパイプラインを指す選択位置は、利用可能な先頭へ戻す。
+            if (_selectedPipelineIndex >= _pipelines.Count) { _selectedPipelineIndex = 0; }
         }
 
         /// <summary>
@@ -419,8 +412,9 @@ namespace SymphonyFrameWork.Editor
         {
             _directoryItems.Clear();
 
-            var infos = GetPackageDirectories();
-            foreach (var info in infos)
+            // 設定の除外状態をUI項目へ写し、除外対象を既定選択から外す。
+            IReadOnlyList<PackageDirectoryInfo> infos = GetPackageDirectories();
+            foreach (PackageDirectoryInfo info in infos)
             {
                 _directoryItems.Add(new DirectoryItem
                 {
@@ -431,5 +425,45 @@ namespace SymphonyFrameWork.Editor
                 });
             }
         }
+
+        /// <summary>
+        ///     ウィンドウが持つタブを表す。
+        /// </summary>
+        private enum PackagerTabEnum
+        {
+            #region 外部向けAPI
+
+            /// <summary> パッケージを出力する。 </summary>
+            Export,
+
+            /// <summary> 出力済みパッケージのうち更新されたものを取り込む。 </summary>
+            Import,
+
+            #endregion
+        }
+
+        /// <summary>
+        ///     パッケージ候補ディレクトリ1件分の表示状態を保持する。
+        /// </summary>
+        private sealed class DirectoryItem
+        {
+            #region 外部向けAPI
+
+            /// <summary> パッケージ対象ディレクトリのパス。 </summary>
+            public string Path;
+
+            /// <summary> UIへ表示するディレクトリ名。 </summary>
+            public string Name;
+
+            /// <summary> ユーザーが出力対象として選択しているかを示す。 </summary>
+            public bool IsSelected;
+
+            /// <summary> 除外設定により選択できないかを示す。 </summary>
+            public bool IsIgnored;
+
+            #endregion
+        }
+
+        #endregion
     }
 }

@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> 1回のパッケージ出力で共有する名前、日時、入出力パスを保持する。 </summary>
+    /// <summary>
+    ///     1回のパッケージ出力で共有する名前、日時、入出力パスを保持する。
+    /// </summary>
     /// <remarks>
     ///     <c>ref struct</c>はフィールドへ保持できず、パイプラインの拡張点へ渡せないため、
     ///     <see cref="AssetStoreToolsPackageExportContext" />へ置き換えた。
@@ -14,16 +16,22 @@ namespace SymphonyFrameWork.Editor
         error: false)]
     public readonly ref struct AssetStoreToolsPackageContext
     {
-        /// <summary> 出力元と出力先から不変のパッケージ処理コンテキストを生成する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     出力元と出力先から不変のパッケージ処理コンテキストを生成する。
+        /// </summary>
         public AssetStoreToolsPackageContext(
             string basePackageName,
             string exportRoot,
             string[] exportDirectories)
         {
+            // 出力開始時刻を1回だけ取得し、表示名と記録日時のずれを防ぐ。
             ExportDirectories = exportDirectories;
             this.DateTime = DateTime.Now;
             PackageName = GeneratePackageName(basePackageName, DateTime);
 
+            // ファイルI/O用の絶対パスとAssetDatabase用のローカルパスを同じ設定値から組み立てる。
             ExportRoot = Path.Combine(Application.dataPath, "..", exportRoot);
             ExportLocalPath = Path.Combine(exportRoot, PackageName);
             ExportFullPath = Path.Combine(ExportRoot, PackageName);
@@ -47,8 +55,16 @@ namespace SymphonyFrameWork.Editor
         /// <summary> パッケージ処理を開始した日時。 </summary>
         public readonly DateTime DateTime;
 
-        /// <summary> 基本名と実行日時から重複しにくい出力パッケージ名を生成する。 </summary>
+        #endregion
+
+        #region 内部処理
+
+        /// <summary>
+        ///     基本名と実行日時から重複しにくい出力パッケージ名を生成する。
+        /// </summary>
         private static string GeneratePackageName(string baseName, DateTime dateTime)
             => $"Export_{baseName}_{dateTime:yyyyMMdd_HHmmss}";
+
+        #endregion
     }
 }

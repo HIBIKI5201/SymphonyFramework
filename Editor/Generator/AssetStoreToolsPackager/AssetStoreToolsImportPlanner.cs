@@ -12,6 +12,8 @@ namespace SymphonyFrameWork.Editor
     /// </remarks>
     internal static class AssetStoreToolsImportPlanner
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     マニフェストとローカルのリビジョンからインポート候補を組み立てる。
         /// </summary>
@@ -26,11 +28,10 @@ namespace SymphonyFrameWork.Editor
         {
             List<AssetStoreToolsImportCandidate> candidates = new();
 
-            if (manifest?.Packages == null)
-            {
-                return candidates;
-            }
+            // マニフェストか一覧が無ければ、インポートできる情報が無いため空で返す。
+            if (manifest?.Packages == null) { return candidates; }
 
+            // マニフェストの順序をUI表示とインポート順へそのまま引き継ぐ。
             foreach (AssetStoreToolsPackageManifestEntry entry in manifest.Packages)
             {
                 // 名前かファイル名が欠けたエントリはインポート先を特定できない。
@@ -68,20 +69,14 @@ namespace SymphonyFrameWork.Editor
             int manifestVersion,
             int? localVersion)
         {
-            if (localVersion == null)
-            {
-                return AssetStoreToolsImportStateEnum.New;
-            }
+            // ローカルに記録が無いパッケージは未導入として扱う。
+            if (localVersion == null) { return AssetStoreToolsImportStateEnum.New; }
 
-            if (localVersion.Value < manifestVersion)
-            {
-                return AssetStoreToolsImportStateEnum.Updated;
-            }
+            // 出力側のリビジョンが進んでいれば更新対象とする。
+            if (localVersion.Value < manifestVersion) { return AssetStoreToolsImportStateEnum.Updated; }
 
-            if (localVersion.Value > manifestVersion)
-            {
-                return AssetStoreToolsImportStateEnum.Newer;
-            }
+            // ローカルの方が新しければ、意図しない巻き戻しを区別できる状態にする。
+            if (localVersion.Value > manifestVersion) { return AssetStoreToolsImportStateEnum.Newer; }
 
             return AssetStoreToolsImportStateEnum.UpToDate;
         }
@@ -99,7 +94,13 @@ namespace SymphonyFrameWork.Editor
             => state == AssetStoreToolsImportStateEnum.New
                || state == AssetStoreToolsImportStateEnum.Updated;
 
-        /// <summary> ディレクトリ名からローカルのリビジョンを探す。大文字小文字は区別しない。 </summary>
+        #endregion
+
+        #region 内部処理
+
+        /// <summary>
+        ///     ディレクトリ名からローカルのリビジョンを探す。
+        /// </summary>
         /// <param name="localVersions"> ディレクトリ名からリビジョンへの対応。 </param>
         /// <param name="name"> 探すディレクトリ名。 </param>
         /// <returns> 見つかったリビジョン。未導入の場合はnull。 </returns>
@@ -107,21 +108,19 @@ namespace SymphonyFrameWork.Editor
             IReadOnlyDictionary<string, int> localVersions,
             string name)
         {
-            if (localVersions == null)
-            {
-                return null;
-            }
+            // ローカルの記録が無ければ未導入として扱う。
+            if (localVersions == null) { return null; }
 
             string trimmedName = name.Trim();
+            // ファイルシステム上の名前として比較するため、大文字小文字を区別しない。
             foreach (KeyValuePair<string, int> pair in localVersions)
             {
-                if (string.Equals(pair.Key, trimmedName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return pair.Value;
-                }
+                if (string.Equals(pair.Key, trimmedName, StringComparison.OrdinalIgnoreCase)) { return pair.Value; }
             }
 
             return null;
         }
+
+        #endregion
     }
 }
