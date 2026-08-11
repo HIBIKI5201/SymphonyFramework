@@ -2,9 +2,13 @@
 
 namespace SymphonyFrameWork.System.SceneLoad
 {
-    /// <summary> 追跡中シーンのロードおよびアンロード状態を表す。 </summary>
+    /// <summary>
+    ///     追跡中シーンのロードおよびアンロード状態を表す。
+    /// </summary>
     public enum SceneLoadStateEnum : int
     {
+        #region 外部向けAPI
+
         /// <summary> 追跡されていない状態。 </summary>
         None = -1,
 
@@ -16,5 +20,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         /// <summary> シーンをアンロードしている状態。 </summary>
         Unloading = 2
+
+        #endregion
     }
 }
