@@ -74,15 +74,18 @@ pre {
   line-height: 1.55;
 }
 pre code { padding: 0; background: none; font-size: 0.85rem; }
-pre.mermaid-source::before {
-  content: "mermaid";
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+figure.mermaid-diagram {
+  margin: 1rem 0;
+  padding: 1rem;
+  /* mermaidの既定テーマは濃い文字色を持つ。ダークテーマでも読めるよう、
+     図の下地だけは常に白へ固定する。 */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
 }
+figure.mermaid-diagram img { max-width: 100%; height: auto; }
 .table-scroll { margin: 1rem 0; overflow-x: auto; }
 table { border-collapse: collapse; min-width: 100%; }
 th, td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
@@ -96,15 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="symphony-frameworkの構成">Symphony Frameworkの構成</h1>
 <p>この文書は、パッケージ内を移動するときや、公開型どうしの関係を確認するときの構成図です。モジュールごとのAPI使用例、実装時の注意、Editor機能、内部構造は<a href="index.html">Modules/</a>を参照してください。</p>
 <h2 id="アセンブリ">アセンブリ</h2>
-<pre class="mermaid-source"><code class="language-mermaid">flowchart LR
-    Consumer[&quot;利用側アセンブリ&quot;] --&gt; Runtime[&quot;SymphonyFrameWork&quot;]
-    Consumer -. &quot;自動生成enumを使う場合&quot; .-&gt; Enum[&quot;SymphonyFrameWork.Enum&quot;]
-    Editor[&quot;SymphonyFrameWork.Editor&quot;] --&gt; Runtime
-    Editor --&gt; Core[&quot;SymphonyFrameWork.Core&quot;]
-    Runtime --&gt; Core
-    Runtime --&gt; Addressables[&quot;Unity.Addressables&quot;]
-    Runtime --&gt; ResourceManager[&quot;Unity.ResourceManager&quot;]
-    Runtime --&gt; Enum</code></pre>
+<figure class="mermaid-diagram"><img src="Diagrams/7bbcde6e604775c7.svg" alt="flowchart の図" /></figure>
 <ul><li><code>SymphonyFrameWork</code>: Runtime API、Component、設定型、Utilityを含むメインアセンブリ。</li><li><code>SymphonyFrameWork.Core</code>: RuntimeとEditorが共有する定数・基盤。利用側が通常直接参照する必要はない。</li><li><code>SymphonyFrameWork.Editor</code>: Editor専用の設定画面、管理ウィンドウ、Drawer、Generator。Playerビルドには含まれない。</li><li><code>SymphonyFrameWork.Enum</code>: 利用プロジェクトのScene、Tag、Layer、Audio Groupから生成されるアセンブリ。利用する場合だけ消費者側asmdefから参照する。</li></ul>
 <p>参照方向は<code>Editor → Runtime → Core</code>です。RuntimeまたはCoreからEditorへ逆参照しません。</p>
 <h2 id="パッケージのディレクトリ">パッケージのディレクトリ</h2>
@@ -127,131 +122,15 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>各機能の<code>Internal/</code>は公開APIではありません。利用側コードとSampleは<code>Internal/</code>の型へ依存しません。</p>
 <h2 id="起動と終了">起動と終了</h2>
 <p><code>SymphonyOrchestrator</code>がComposition Rootです。利用側でBootstrapを作る必要はありません。</p>
-<pre class="mermaid-source"><code class="language-mermaid">sequenceDiagram
-    participant Unity
-    participant Orchestrator as SymphonyOrchestrator
-    participant Systems as Subsystems
-    participant Scene as Initial Scene
-
-    Unity-&gt;&gt;Orchestrator: BeforeSceneLoad
-    Orchestrator-&gt;&gt;Orchestrator: 前回の状態をShutdown
-    Orchestrator-&gt;&gt;Orchestrator: DontDestroyOnLoadオブジェクト生成
-    Orchestrator-&gt;&gt;Systems: Save → Pause → Service → Scene → Audio → HUDを初期化
-    Unity-&gt;&gt;Scene: 最初のシーンをロード
-    Unity-&gt;&gt;Orchestrator: AfterSceneLoad
-    Orchestrator-&gt;&gt;Systems: SceneLoadConfigを渡してシーン管理開始
-    Note over Orchestrator,Systems: 終了時は初期化と逆順にResetRuntimeState</code></pre>
+<figure class="mermaid-diagram"><img src="Diagrams/52b4b9bb4fe5c13b.svg" alt="sequenceDiagram の図" /></figure>
 <p>Play ModeのDomain Reloadが無効でも状態を持ち越さないよう、開始時に既存状態を破棄し、終了時は初期化済みサブシステムを逆順で解放します。</p>
 <h2 id="公開facadeと拡張点">公開Facadeと拡張点</h2>
-<pre class="mermaid-source"><code class="language-mermaid">classDiagram
-    class ServiceLocator {
-        &lt;&lt;static&gt;&gt;
-        RegisterInstance()
-        RegisterInstanceWithAutoDispose()
-        UnregisterInstance()
-        GetRequiredInstance()
-        GetRegistrationInfos()
-        TryGetRegistrationInfo()
-    }
-    class ServiceRegistrationInfo {
-        &lt;&lt;readonly struct&gt;&gt;
-        ServiceType
-        Instance
-        LocateTypeEnum
-    }
-    class ServiceInjector {
-        &lt;&lt;static&gt;&gt;
-        Inject()
-    }
-    class IInjectable {
-        &lt;&lt;interface&gt;&gt;
-        Inject()
-    }
-    class SceneLoader {
-        &lt;&lt;static&gt;&gt;
-        LoadScene()
-        UnloadScene()
-        SetActiveScene()
-        GetSceneInfos()
-        TryGetSceneInfo()
-    }
-    class SceneLoadRequest {
-        &lt;&lt;readonly struct&gt;&gt;
-        SceneName
-        Priority
-    }
-    class SceneLoadInfo {
-        &lt;&lt;readonly struct&gt;&gt;
-        SceneName
-        State
-        Priority
-        Progress
-        IsActive
-    }
-    class IInitializeAsync {
-        &lt;&lt;interface&gt;&gt;
-        InitializeAsync()
-    }
-    class SaveStore {
-        &lt;&lt;static&gt;&gt;
-        Get()
-        LoadAsync()
-        SaveAsync()
-        DeleteAsync()
-    }
-    class SaveDataContent {
-        &lt;&lt;abstract&gt;&gt;
-    }
-    class SaveDataLoaderStrategy {
-        &lt;&lt;abstract&gt;&gt;
-        LoadJsonAsync()
-        SaveJsonAsync()
-        DeleteCoreAsync()
-        SerializeToJson()
-        OverwriteFromJson()
-    }
-    class AudioManager {
-        &lt;&lt;static&gt;&gt;
-        GetAudioSource()
-        VolumeSliderChanged()
-    }
-    class PauseManager {
-        &lt;&lt;static&gt;&gt;
-        Pause
-        PausableWaitForSecondAsync()
-    }
-    class IPausable {
-        &lt;&lt;interface&gt;&gt;
-        OnPause()
-        OnResume()
-    }
-
-    ServiceInjector ..&gt; ServiceLocator : 登録済み依存を取得
-    ServiceLocator --&gt; ServiceRegistrationInfo : 登録状態のスナップショット
-    ServiceInjector --&gt; IInjectable : 注入
-    SceneLoader --&gt; SceneLoadRequest : ロード対象と優先度
-    SceneLoader --&gt; SceneLoadInfo : 追跡状態のスナップショット
-    SceneLoader ..&gt; ServiceInjector : ルートへ自動注入
-    SceneLoader --&gt; IInitializeAsync : 完了を待機
-    SaveStore --&gt; SaveDataContent : 型単位でキャッシュ
-    SaveStore --&gt; SaveDataLoaderStrategy : 永続化を委譲
-    PauseManager --&gt; IPausable : 状態を通知</code></pre>
+<figure class="mermaid-diagram"><img src="Diagrams/3d676ed20553d7a6.svg" alt="classDiagram の図" /></figure>
 <p>Facadeは利用側の入口、interfaceと抽象classは利用側が実装する拡張点です。ConfigとManagerの内部実装はFacadeの背後に隠し、利用側へ公開しません。</p>
 <p>サブシステム個別の内部構造は、各モジュール文書を参照してください。</p>
 <ul><li><a href="Modules/SceneLoader.html#内部構造">Scene Load</a></li><li><a href="Modules/ServiceLocator.html#内部構造">Service Locate</a></li><li><a href="Modules/SaveDataSystem.html#内部構造">Save Data</a></li><li><a href="Modules/PauseManager.html#内部構造">Pause</a></li><li><a href="Modules/AudioManager.html#内部構造">Audio</a></li></ul>
 <h2 id="シーンロード時の連携">シーンロード時の連携</h2>
-<pre class="mermaid-source"><code class="language-mermaid">flowchart TD
-    Request[&quot;SceneLoader.LoadScene&quot;] --&gt; Load[&quot;シーンを非同期ロード&quot;]
-    Load --&gt; Roots[&quot;ルートGameObjectを走査&quot;]
-    Roots --&gt; Inject{&quot;IInjectableを実装?&quot;}
-    Inject -- Yes --&gt; Resolve[&quot;ServiceLocatorから依存を解決して注入&quot;]
-    Inject -- No --&gt; Initialize
-    Resolve --&gt; Initialize{&quot;IInitializeAsyncを実装?&quot;}
-    Initialize -- Yes --&gt; Await[&quot;InitializeAsyncの完了を待機&quot;]
-    Initialize -- No --&gt; Complete[&quot;優先度を評価してロード完了&quot;]
-    Await --&gt; Complete
-    Resolve -. &quot;失敗&quot; .-&gt; Exception[&quot;SceneInitializationException&quot;]
-    Await -. &quot;失敗&quot; .-&gt; Exception</code></pre>
+<figure class="mermaid-diagram"><img src="Diagrams/7930a518feca6893.svg" alt="flowchart の図" /></figure>
 <p>この連携が必要なシーンではUnity標準の<code>SceneManager.LoadScene</code>を直接使わず、<code>SceneLoader</code>を入口にします。</p>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Architecture.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>

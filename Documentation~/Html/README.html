@@ -74,15 +74,18 @@ pre {
   line-height: 1.55;
 }
 pre code { padding: 0; background: none; font-size: 0.85rem; }
-pre.mermaid-source::before {
-  content: "mermaid";
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+figure.mermaid-diagram {
+  margin: 1rem 0;
+  padding: 1rem;
+  /* mermaidの既定テーマは濃い文字色を持つ。ダークテーマでも読めるよう、
+     図の下地だけは常に白へ固定する。 */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
 }
+figure.mermaid-diagram img { max-width: 100%; height: auto; }
 .table-scroll { margin: 1rem 0; overflow-x: auto; }
 table { border-collapse: collapse; min-width: 100%; }
 th, td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
@@ -96,7 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="symphony-framework">Symphony Framework</h1>
 <p>Symphony Frameworkは、Unityゲームで何度も作ることになる「シーン遷移」「サービス共有」「セーブ」「オーディオ」「ポーズ」を、同じ使い方で扱えるようにまとめたフレームワークです。</p>
 <p>最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。</p>
-<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>3.9.3</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
+<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>3.9.4</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
 <h2 id="symphony-frameworkでできること">Symphony Frameworkでできること</h2>
 <div class="table-scroll"><table><thead><tr><th>やりたいこと</th><th>使う機能</th></tr></thead><tbody><tr><td>シーンを非同期で読み込み、進捗やActive Sceneを管理したい</td><td><a href="Modules/SceneLoader.html">Scene Loader</a></td></tr><tr><td>シーンを跨いでサービスやComponentを共有したい</td><td><a href="Modules/ServiceLocator.html">Service Locator</a></td></tr><tr><td>データ型ごとに保存・読み込み・削除したい</td><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td></tr><tr><td>AudioMixerGroupごとの再生元と音量をまとめたい</td><td><a href="Modules/AudioManager.html">Audio Manager</a></td></tr><tr><td>ゲーム全体を止め、待機やTweenもポーズへ追従させたい</td><td><a href="Modules/PauseManager.html">Pause Manager</a></td></tr><tr><td>実行中の状態、FPS、ログ、処理時間を確認したい</td><td><a href="Modules/Debug.html">Debug</a></td></tr><tr><td>Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい</td><td><a href="EditorTools.html">Editor機能</a></td></tr></tbody></table></div>
 <p>すべてを導入時に設定する必要はありません。使いたい機能のモジュール文書とサンプルから始められます。</p>

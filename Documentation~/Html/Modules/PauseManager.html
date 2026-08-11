@@ -74,15 +74,18 @@ pre {
   line-height: 1.55;
 }
 pre code { padding: 0; background: none; font-size: 0.85rem; }
-pre.mermaid-source::before {
-  content: "mermaid";
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+figure.mermaid-diagram {
+  margin: 1rem 0;
+  padding: 1rem;
+  /* mermaidの既定テーマは濃い文字色を持つ。ダークテーマでも読めるよう、
+     図の下地だけは常に白へ固定する。 */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
 }
+figure.mermaid-diagram img { max-width: 100%; height: auto; }
 .table-scroll { margin: 1rem 0; overflow-x: auto; }
 table { border-collapse: collapse; min-width: 100%; }
 th, td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
@@ -134,17 +137,7 @@ private async void RunAfterOneActiveSecond()
 <p>Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
 <h2 id="内部構造">内部構造</h2>
 <p>Pauseも同じ形で、状態の保持、購読の管理、表示状態を分離しています。</p>
-<pre class="mermaid-source"><code class="language-mermaid">flowchart LR
-    Facade[&quot;PauseManager&quot;] --&gt;|Command| Service[&quot;PauseService&quot;]
-    Service --&gt; State[&quot;PauseStateEntity&quot;]
-    Service --&gt; Registry[&quot;PausableRegistry&quot;]
-    Facade --&gt;|Query| Query[&quot;PauseQuery&quot;]
-    Query --&gt; State
-    Query --&gt; Registry
-    Query --&gt; Info[&quot;PauseInfo&quot;]
-    Query --&gt; Dto[&quot;PauseDto&quot;]
-    Service --&gt;|状態変更event| ViewModel[&quot;PauseViewModel&quot;]
-    ViewModel --&gt;|ReactiveProperty| Window[&quot;PauseWindow&quot;]</code></pre>
+<figure class="mermaid-diagram"><img src="../Diagrams/f776a8aef961c0f6.svg" alt="flowchart の図" /></figure>
 <p><code>PauseStateEntity</code>が「状態が実際に変化したか」を判定するため、同じ値の再設定では<code>OnPauseChanged</code>を発行しません。</p>
 <p><code>OnPauseChanged</code>（利用側が購読する公開event）の購読者例外は握りません。<code>OnStateChanged</code>（表示専用）だけは発行側で捕捉してログへ出し、ViewModelの失敗をゲーム側のポーズ処理へ波及させません。</p>
 <h2 id="関連">関連</h2>
