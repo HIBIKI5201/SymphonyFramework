@@ -4,10 +4,14 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> プロジェクト設定変更時のenum自動生成可否を保持する。 </summary>
+    /// <summary>
+    ///     プロジェクト設定変更時のenum自動生成可否を保持する。
+    /// </summary>
     [FilePath(EditorSymphonyConstant.PROJCET_SETTING_FILE_PATH + nameof(AutoEnumGeneratorConfig) + ".asset", FilePathAttribute.Location.ProjectFolder)]
     public sealed class AutoEnumGeneratorConfig : ScriptableSingleton<AutoEnumGeneratorConfig>
     {
+        #region 外部向けAPI
+
         /// <summary> Build Settings変更時にシーンenumを自動更新するかを示す。 </summary>
         public bool AutoSceneListUpdate
         {
@@ -41,6 +45,10 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        #endregion
+
+        #region 内部処理
+
         [SerializeField, Tooltip("Build Settings変更時にシーンenumを自動更新するか。")]
         private bool _autoSceneListUpdate = true;
 
@@ -50,7 +58,11 @@ namespace SymphonyFrameWork.Editor
         [SerializeField, Tooltip("レイヤー変更時にレイヤーenumを自動更新するか。")]
         private bool _autoLayersUpdate = false;
 
-        /// <summary> 現在の設定値をProjectSettingsへ保存する。 </summary>
+        /// <summary>
+        ///     現在の設定値をProjectSettingsへ保存する。
+        /// </summary>
         private void Save() => Save(true);
+
+        #endregion
     }
 }

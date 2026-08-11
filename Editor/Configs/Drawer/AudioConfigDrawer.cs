@@ -5,23 +5,28 @@ using SymphonyFrameWork.Config;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> AudioConfigとオーディオグループenumの再生成操作を描画する。 </summary>
+    /// <summary>
+    ///     AudioConfigとオーディオグループenumの再生成操作を描画する。
+    /// </summary>
     [CustomEditor(typeof(AudioConfig))]
     public sealed class AudioConfigDrawer : UnityEditor.Editor
     {
+        #region 外部向けAPI
+
         /// <summary>
-        /// InspectorのGUIを上書きします。
+        ///     AudioConfigのInspectorを描画する。
         /// </summary>
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
 
-            // AudioGroupTypeEnumを再生成するボタン。
+            // AudioMixerGroupの構成変更を利用者が明示的にenumへ反映できるようにする。
             if (GUILayout.Button($"{EditorSymphonyConstant.AudioGroupTypeEnumName}Enumを再生成"))
             {
                 AutoEnumGenerator.AudioEnumGenerate();
             }
         }
 
+        #endregion
     }
 }
