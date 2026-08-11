@@ -2,10 +2,16 @@
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
-    /// <summary> Service Locatorの表示に必要な不変の更新値。 </summary>
+    /// <summary>
+    ///     Service Locatorの表示に必要な不変の更新値。
+    /// </summary>
     internal readonly struct ServiceLocateDto : IEquatable<ServiceLocateDto>
     {
-        /// <summary> 表示に必要な値を指定して更新値を生成する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     表示に必要な値を指定して更新値を生成する。
+        /// </summary>
         /// <param name="serviceTypeName"> 登録キーの短い型名。 </param>
         /// <param name="instanceName"> 登録payloadの表示名。 </param>
         /// <param name="locateType"> 登録時に指定された登録方式。 </param>
@@ -14,6 +20,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             string instanceName,
             LocateTypeEnum locateType)
         {
+            // 表示更新の比較単位となる3つの値を固定する。
             ServiceTypeName = serviceTypeName;
             InstanceName = instanceName;
             LocateType = locateType;
@@ -28,7 +35,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <summary> 登録時に指定された登録方式。 </summary>
         internal LocateTypeEnum LocateType { get; }
 
-        /// <summary> 指定した更新値と同値か判定する。 </summary>
+        /// <summary>
+        ///     指定した更新値と同値か判定する。
+        /// </summary>
         /// <param name="other"> 比較対象。 </param>
         /// <returns> すべての値が一致する場合はtrue。 </returns>
         public bool Equals(ServiceLocateDto other) =>
@@ -42,16 +51,21 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 StringComparison.Ordinal)
             && LocateType == other.LocateType;
 
-        /// <summary> 指定したオブジェクトと同値か判定する。 </summary>
+        /// <summary>
+        ///     指定したオブジェクトと同値か判定する。
+        /// </summary>
         /// <param name="obj"> 比較対象。 </param>
         /// <returns> 同値のServiceLocateDtoの場合はtrue。 </returns>
         public override bool Equals(object obj) =>
             obj is ServiceLocateDto other && Equals(other);
 
-        /// <summary> 更新値の全値に基づくハッシュコードを返す。 </summary>
+        /// <summary>
+        ///     更新値の全値に基づくハッシュコードを返す。
+        /// </summary>
         /// <returns> ハッシュコード。 </returns>
         public override int GetHashCode()
         {
+            // Equalsで比較する全値を同じ順序でハッシュへ反映する。
             unchecked
             {
                 int hashCode = ServiceTypeName != null
@@ -65,5 +79,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 return hashCode;
             }
         }
+
+        #endregion
     }
 }
