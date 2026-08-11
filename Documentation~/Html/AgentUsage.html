@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AIエージェント向け利用上の注意 — Symphony Framework</title>
+<title>AIエージェント向けAPI索引 — Symphony Framework</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -93,11 +93,10 @@ th { background: var(--code-bg); white-space: nowrap; }
 </head>
 <body>
 <nav class="doc-nav"><a href="index.html">Symphony Framework Documentation</a></nav>
-<h1 id="aiエージェント向け利用上の注意">AIエージェント向け利用上の注意</h1>
-<p>この文書は、Symphony Frameworkを導入したプロジェクトの<code>Assets/</code>配下へ利用コードを書くAIエージェント向けです。APIの説明、コード例、実装時に誤りやすい判断は各モジュール文書を正本とします。</p>
-<p>必要なモジュール文書だけを読んでください。パッケージ本体を開発する場合はこの文書ではなく、<a href="https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md">SymphonyWorkspaceのCONTRIBUTING.md</a>に従います。</p>
-<h2 id="共通の前提">共通の前提</h2>
-<ul><li><code>Packages/manifest.json</code>またはパッケージの<code>package.json</code>で導入バージョンを確認し、移行情報が必要なら<a href="CHANGELOG.html">CHANGELOG.md</a>を読む。</li><li>asmdefを使う利用側コードは<code>SymphonyFrameWork</code>を参照する。自動生成enumを直接使う場合だけ<code>SymphonyFrameWork.Enum</code>も参照する。</li><li><code>ServiceLocator</code>、<code>SceneLoader</code>、<code>SaveStore</code>、<code>AudioManager</code>、<code>PauseManager</code>はstatic Facadeである。<code>new</code>や<code>.Instance</code>は使わない。</li><li><code>SymphonyOrchestrator</code>が最初のシーンより前に自動初期化する。Bootstrap用GameObjectや専用シーンを作らない。</li><li><code>SceneLoadConfig</code>、<code>AudioConfig</code>、<code>SaveDataConfig</code>は<code>internal</code>である。型として参照せず、InspectorまたはProject Settingsから設定する。</li><li><code>SymphonyFrameWork.Editor</code>はEditor専用である。Runtime asmdefやPlayerビルド対象コードから参照しない。</li><li>パッケージ直下の<code>Cache/Log.txt</code>はEditor用の生成キャッシュである。編集・コミットせず、不要なら削除してよい。</li></ul>
+<h1 id="aiエージェント向けapi索引">AIエージェント向けAPI索引</h1>
+<p>この文書は、Symphony Frameworkを導入したプロジェクトの<code>Assets/</code>配下へ利用コードを書くAIエージェントが、<strong>目的のnamespaceと入口の型から読むべきモジュール文書を引く</strong>ための索引です。</p>
+<p>APIの説明、コード例、実装時に誤りやすい判断は各モジュール文書を正本とします。必要なモジュール文書だけを読んでください。</p>
+<ul><li>常時守るルールは<a href="../../AGENTS.md">AGENTS.md</a>の<code>## 1. 常に守ること</code>にあります。この文書には複製しません。</li><li>パッケージ本体を開発する場合は、<a href="https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md">SymphonyWorkspaceのCONTRIBUTING.md</a>に従います。</li></ul>
 <h2 id="apiの参照先">APIの参照先</h2>
 <div class="table-scroll"><table><thead><tr><th>機能</th><th>namespace</th><th>主な入口</th><th>モジュール文書</th></tr></thead><tbody><tr><td>Service Locator</td><td><code>SymphonyFrameWork.System.ServiceLocate</code></td><td><code>ServiceLocator</code>, <code>ServiceInjector</code></td><td><a href="Modules/ServiceLocator.html">Service Locator</a></td></tr><tr><td>Scene Loader</td><td><code>SymphonyFrameWork.System.SceneLoad</code></td><td><code>SceneLoader</code></td><td><a href="Modules/SceneLoader.html">Scene Loader</a></td></tr><tr><td>Save Data System</td><td><code>SymphonyFrameWork.System.SaveSystem</code></td><td><code>SaveStore</code>, <code>SaveDataContent</code>, <code>SaveDataLoaderStrategy</code></td><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td></tr><tr><td>Audio Manager</td><td><code>SymphonyFrameWork.System</code></td><td><code>AudioManager</code></td><td><a href="Modules/AudioManager.html">Audio Manager</a></td></tr><tr><td>Pause Manager</td><td><code>SymphonyFrameWork.System</code></td><td><code>PauseManager</code></td><td><a href="Modules/PauseManager.html">Pause Manager</a></td></tr></tbody></table></div>
 <h2 id="非推奨apiと移行">非推奨APIと移行</h2>
