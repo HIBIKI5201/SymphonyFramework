@@ -17,6 +17,8 @@ namespace SymphonyFrameWork.Editor
     /// </remarks>
     internal static class AssetStoreToolsPackagePipelineRunner
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     出力内容を確定した計画を組み立てる。この時点ではファイルを出力しない。
         /// </summary>
@@ -29,6 +31,7 @@ namespace SymphonyFrameWork.Editor
             IReadOnlyList<AssetStoreToolsPackageStepStrategy> steps,
             string pipelineName)
         {
+            // 出力元が指定されていない場合は、空の計画を確認画面へ渡さない。
             if (directories == null || directories.Length == 0)
             {
                 Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
@@ -36,6 +39,7 @@ namespace SymphonyFrameWork.Editor
             }
 
             AssetStoreToolsPackagerConfig config = AssetStoreToolsPackagerConfigStore.Load();
+            // 強制包含規則を確定できない場合は、提示内容と出力内容の一致を保証できないため中断する。
             if (config == null)
             {
                 Debug.LogError($"{LOG_PREFIX}\n設定を読み込めなかったためパッケージを出力しませんでした。");
@@ -46,6 +50,7 @@ namespace SymphonyFrameWork.Editor
             // 差分インポート側で常に新規と判定されるだけで、既存の出力機能は損なわれない。
             AssetStoreToolsVersionLog versionLog = AssetStoreToolsVersionLogStore.Load();
 
+            // 入力順を保ったまま各ディレクトリの候補と現在のリビジョンを計画へ固定する。
             List<AssetStoreToolsPackagePlanEntry> entries = new();
             foreach (string dir in directories)
             {
@@ -58,12 +63,13 @@ namespace SymphonyFrameWork.Editor
                     CollectAssets(dir, config.ForceIncludeExtensions)));
             }
 
-            var plan = new AssetStoreToolsPackagePlan(
+            AssetStoreToolsPackagePlan plan = new(
                 pipelineName,
                 SelectValidSteps(steps),
                 entries,
                 config.ForceIncludeExtensions);
 
+            // 確認ウィンドウには全手順の絞り込みを反映した最終計画を提示する。
             RunPlanSteps(plan);
 
             return plan;
@@ -80,6 +86,7 @@ namespace SymphonyFrameWork.Editor
         internal static AssetStoreToolsPackageStepStrategy[] SelectValidSteps(
             IReadOnlyList<AssetStoreToolsPackageStepStrategy> steps)
         {
+            // サブクラスセレクター由来のnullだけを除き、手順の相対順序は変えない。
             return steps == null
                 ? Array.Empty<AssetStoreToolsPackageStepStrategy>()
                 : steps.Where(step => step != null).ToArray();
@@ -95,6 +102,7 @@ namespace SymphonyFrameWork.Editor
         /// <param name="plan"> 組み立て中の出力計画。 </param>
         internal static void RunPlanSteps(AssetStoreToolsPackagePlan plan)
         {
+            // 手順の順序が絞り込み結果へ影響するため、パイプラインの定義順に実行する。
             foreach (AssetStoreToolsPackageStepStrategy step in plan.Steps)
             {
                 try
@@ -103,6 +111,7 @@ namespace SymphonyFrameWork.Editor
                 }
                 catch (Exception e)
                 {
+                    // 失敗した手順だけを記録し、残りの手順で確認可能な計画を組み立てる。
                     Debug.LogError($"{LOG_PREFIX}\n手順の計画に失敗しました: {step.DisplayName}\n{e}");
                 }
             }
@@ -117,6 +126,7 @@ namespace SymphonyFrameWork.Editor
         /// <param name="context"> 出力先と確定済みの計画を保持するコンテキスト。 </param>
         internal static void RunExecuteSteps(AssetStoreToolsPackageExportContext context)
         {
+            // 出力やZIP化の前後関係を守るため、確認済みの手順順をそのまま使用する。
             foreach (AssetStoreToolsPackageStepStrategy step in context.Plan.Steps)
             {
                 try
@@ -125,6 +135,7 @@ namespace SymphonyFrameWork.Editor
                 }
                 catch (Exception e)
                 {
+                    // 1手順の失敗で、独立して出力できる後続手順を巻き添えにしない。
                     Debug.LogError($"{LOG_PREFIX}\n手順の実行に失敗しました: {step.DisplayName}\n{e}");
                 }
             }
@@ -136,22 +147,20 @@ namespace SymphonyFrameWork.Editor
         /// <param name="plan"> 出力する計画。 </param>
         internal static void Export(AssetStoreToolsPackagePlan plan)
         {
+            // 確認後に対象が無くなった場合も、空の出力フォルダは作らない。
             if (plan == null || plan.Entries.Count == 0)
             {
                 Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
                 return;
             }
 
-            var context = new AssetStoreToolsPackageExportContext(
+            AssetStoreToolsPackageExportContext context = new(
                 plan,
                 PACKAGE_NAME,
                 AssetStoreToolsPackagerData.ExportedPackagesPath);
 
-            // 出力フォルダ作成
-            if (!Directory.Exists(context.ExportFullPath))
-            {
-                Directory.CreateDirectory(context.ExportFullPath);
-            }
+            // 全手順が同じ出力先を前提にできるよう、個別の実行より先にフォルダを用意する。
+            if (!Directory.Exists(context.ExportFullPath)) { Directory.CreateDirectory(context.ExportFullPath); }
 
             // 出力時バージョンを先に書き、AssetDatabaseへ載せてからパッケージ化する。
             // Refreshを省くと新規ファイルがAssetDatabaseに載らず、Recurseでも明示指定でも出力されない。
@@ -159,6 +168,7 @@ namespace SymphonyFrameWork.Editor
             WriteExportedVersions(plan);
             AssetDatabase.Refresh();
 
+            // バージョン記録だけでも完了したことを明示し、設定漏れを正常出力と誤認させない。
             if (plan.Steps.Count == 0)
             {
                 Debug.LogWarning(
@@ -182,6 +192,7 @@ namespace SymphonyFrameWork.Editor
         /// <returns> パスの昇順で並んだ出力対象アセットのパス。 </returns>
         internal static string[] BuildExportFiles(AssetStoreToolsPackagePlanEntry entry)
         {
+            // 出力時バージョンを加えた後で重複を除き、再現可能な順序へ揃える。
             return entry.AssetPaths
                 .Append(BuildExportedVersionPath(entry.DirectoryPath))
                 .Distinct(StringComparer.Ordinal)
@@ -204,6 +215,7 @@ namespace SymphonyFrameWork.Editor
             string dir,
             IReadOnlyList<string> forceIncludeExtensions)
         {
+            // Unityが単一アセットとして認識する単位を保ったまま、再現可能な順序で候補を返す。
             return AssetDatabase.FindAssets(string.Empty, new[] { dir })
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .Where(path => !string.IsNullOrEmpty(path))
@@ -212,6 +224,10 @@ namespace SymphonyFrameWork.Editor
                 .OrderBy(path => path, StringComparer.Ordinal)
                 .ToArray();
         }
+
+        #endregion
+
+        #region 内部処理
 
         private const string LOG_PREFIX = "[" + nameof(AssetStoreToolsPackager) + "]";
 
@@ -231,15 +247,15 @@ namespace SymphonyFrameWork.Editor
             string path,
             IReadOnlyList<string> forceIncludeExtensions)
         {
-            if (AssetStoreToolsPackager.HasForceIncludeExtension(path, forceIncludeExtensions))
-            {
-                return true;
-            }
+            // フォルダ形式アセットは通常のフォルダ判定より拡張子の強制包含を優先する。
+            if (AssetStoreToolsPackager.HasForceIncludeExtension(path, forceIncludeExtensions)) { return true; }
 
             return !AssetDatabase.IsValidFolder(path);
         }
 
-        /// <summary> ディレクトリ直下の出力時バージョンファイルのパスを組み立てる。 </summary>
+        /// <summary>
+        ///     ディレクトリ直下の出力時バージョンファイルのパスを組み立てる。
+        /// </summary>
         /// <param name="directoryPath"> 出力単位となるディレクトリのパス。 </param>
         /// <returns> スラッシュ区切りのアセットパス。 </returns>
         private static string BuildExportedVersionPath(string directoryPath)
@@ -256,6 +272,7 @@ namespace SymphonyFrameWork.Editor
         /// <param name="plan"> 出力する計画。 </param>
         private static void WriteExportedVersions(AssetStoreToolsPackagePlan plan)
         {
+            // 各出力単位のバージョンをパッケージ内へ含め、インポート側の差分判定に使用する。
             foreach (AssetStoreToolsPackagePlanEntry entry in plan.Entries)
             {
                 AssetStoreToolsVersionLogStore.TryWriteExportedVersion(
@@ -264,5 +281,7 @@ namespace SymphonyFrameWork.Editor
                     entry.Version);
             }
         }
+
+        #endregion
     }
 }

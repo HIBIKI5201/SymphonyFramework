@@ -23,8 +23,14 @@ namespace SymphonyFrameWork.Editor
         menuName = "SymphonyFrameWork/Asset Store Tools Package Pipeline")]
     public sealed class AssetStoreToolsPackagePipeline : ScriptableObject
     {
+        #region 外部向けAPI
+
         /// <summary> 実行する手順。 </summary>
         public IReadOnlyList<AssetStoreToolsPackageStepStrategy> Steps => _steps;
+
+        #endregion
+
+        #region 内部処理
 
         [SerializeReference]
         [SubclassSelector]
@@ -42,7 +48,9 @@ namespace SymphonyFrameWork.Editor
         /// <returns> Singles → Used Dependencies → Create ZIP を持つ未保存のインスタンス。 </returns>
         internal static AssetStoreToolsPackagePipeline CreateTemplate()
         {
-            var pipeline = CreateInstance<AssetStoreToolsPackagePipeline>();
+            AssetStoreToolsPackagePipeline pipeline = CreateInstance<AssetStoreToolsPackagePipeline>();
+
+            // Plan段階で使用中アセットへ絞り、Execute段階で個別出力とマニフェストを作ってからZIP化する。
             pipeline._steps = new List<AssetStoreToolsPackageStepStrategy>
             {
                 new AssetStoreToolsSinglePackageStrategy(),
@@ -52,5 +60,7 @@ namespace SymphonyFrameWork.Editor
 
             return pipeline;
         }
+
+        #endregion
     }
 }
