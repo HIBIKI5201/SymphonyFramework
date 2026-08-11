@@ -74,15 +74,18 @@ pre {
   line-height: 1.55;
 }
 pre code { padding: 0; background: none; font-size: 0.85rem; }
-pre.mermaid-source::before {
-  content: "mermaid";
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+figure.mermaid-diagram {
+  margin: 1rem 0;
+  padding: 1rem;
+  /* mermaidの既定テーマは濃い文字色を持つ。ダークテーマでも読めるよう、
+     図の下地だけは常に白へ固定する。 */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
 }
+figure.mermaid-diagram img { max-width: 100%; height: auto; }
 .table-scroll { margin: 1rem 0; overflow-x: auto; }
 table { border-collapse: collapse; min-width: 100%; }
 th, td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
@@ -145,20 +148,7 @@ GameSession awaited = await ServiceLocator.GetInstanceAsync&lt;GameSession&gt;(
 <ul><li><code>UserSettings/</code> は開発者ごとの設定です。<strong>版管理へ含めないでください。</strong> 他の開発者のログ設定を上書きします。</li></ul>
 <h2 id="内部構造">内部構造</h2>
 <p>Service LocateのRuntime内部では、登録Command、読み取り変換、表示状態、Unity所有処理を分離しています。</p>
-<pre class="mermaid-source"><code class="language-mermaid">flowchart LR
-    Locator[&quot;ServiceLocator&quot;] --&gt;|Command| Service[&quot;ServiceLocateService&quot;]
-    Service --&gt; Registry[&quot;ServiceLocateRegistry&quot;]
-    Registry --&gt; Entity[&quot;ServiceRegistrationEntity&quot;]
-    Locator --&gt;|Query| Query[&quot;ServiceLocateQuery&quot;]
-    Query --&gt; Registry
-    Query --&gt; Info[&quot;ServiceRegistrationInfo&quot;]
-    Query --&gt; Dto[&quot;ServiceLocateDto&quot;]
-    Service --&gt;|状態変更event| ViewModel[&quot;ServiceLocateViewModel&quot;]
-    ViewModel --&gt;|ReactiveProperty| Window[&quot;ServiceLocateWindow&quot;]
-    Service --&gt; HostContract[&quot;IServiceHost&quot;]
-    Host[&quot;ServiceHostComponent&quot;] --&gt; HostContract
-    Host --&gt; Unity[&quot;Component / Transform / Destroy&quot;]
-    Orchestrator[&quot;SymphonyOrchestrator&quot;] --&gt;|生成・注入| Host</code></pre>
+<figure class="mermaid-diagram"><img src="../Diagrams/310e47d8b07b8736.svg" alt="flowchart の図" /></figure>
 <p><code>ServiceLocateQuery</code>だけがRegistry／Entityを読み取り、利用側には<code>ServiceRegistrationInfo</code>、Viewには内部Dtoを返します。<code>ServiceLocateWindow</code>はViewModelを購読し、登録状態が変わったときだけ再描画します。</p>
 <p>通常登録が型重複で失敗しても候補payloadを解放しません。<code>RegisterInstanceWithAutoDispose</code>を選んだ場合だけ、失敗した候補を<code>ServiceHostComponent</code>が<code>IDisposable</code>またはComponentとして解放します。RegistryとEntityはUnity APIを参照しません。</p>
 <h2 id="関連">関連</h2>

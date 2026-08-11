@@ -74,15 +74,18 @@ pre {
   line-height: 1.55;
 }
 pre code { padding: 0; background: none; font-size: 0.85rem; }
-pre.mermaid-source::before {
-  content: "mermaid";
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+figure.mermaid-diagram {
+  margin: 1rem 0;
+  padding: 1rem;
+  /* mermaidの既定テーマは濃い文字色を持つ。ダークテーマでも読めるよう、
+     図の下地だけは常に白へ固定する。 */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
 }
+figure.mermaid-diagram img { max-width: 100%; height: auto; }
 .table-scroll { margin: 1rem 0; overflow-x: auto; }
 table { border-collapse: collapse; min-width: 100%; }
 th, td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
@@ -136,17 +139,7 @@ await SaveStore.DeleteAsync&lt;PlayerData&gt;();</code></pre>
 <p>Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
 <h2 id="内部構造">内部構造</h2>
 <p>Save DataのRuntime内部も同じ形で、処理順、読み取り変換、表示状態を分離しています。</p>
-<pre class="mermaid-source"><code class="language-mermaid">flowchart LR
-    Facade[&quot;SaveStore&quot;] --&gt;|Command| Service[&quot;SaveDataService&quot;]
-    Service --&gt; Registry[&quot;SaveDataEntryRegistry&quot;]
-    Registry --&gt; Entity[&quot;SaveDataEntryEntity&quot;]
-    Facade --&gt;|Query| Query[&quot;SaveDataQuery&quot;]
-    Query --&gt; Registry
-    Query --&gt; Info[&quot;SaveDataEntryInfo&quot;]
-    Query --&gt; Dto[&quot;SaveDataDto&quot;]
-    Service --&gt; Loader[&quot;SaveDataLoaderStrategy&quot;]
-    Service --&gt;|状態変更event| ViewModel[&quot;SaveDataViewModel&quot;]
-    ViewModel --&gt;|ReactiveProperty| Window[&quot;SaveDataWindow&quot;]</code></pre>
+<figure class="mermaid-diagram"><img src="../Diagrams/65c4db80239f59f8.svg" alt="flowchart の図" /></figure>
 <p><code>SaveDataQuery</code>だけがRegistry／Entityを読み取り、利用側には<code>SaveDataEntryInfo</code>、Viewには内部Dtoを返します。<code>SaveDataWindow</code>はViewModelを購読し、状態が変わったときだけ再描画します。</p>
 <p>永続化データが存在するかどうか（<code>Exists</code>）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。</p>
 <h2 id="関連">関連</h2>

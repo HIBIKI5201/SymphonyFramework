@@ -74,15 +74,18 @@ pre {
   line-height: 1.55;
 }
 pre code { padding: 0; background: none; font-size: 0.85rem; }
-pre.mermaid-source::before {
-  content: "mermaid";
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+figure.mermaid-diagram {
+  margin: 1rem 0;
+  padding: 1rem;
+  /* mermaidの既定テーマは濃い文字色を持つ。ダークテーマでも読めるよう、
+     図の下地だけは常に白へ固定する。 */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
 }
+figure.mermaid-diagram img { max-width: 100%; height: auto; }
 .table-scroll { margin: 1rem 0; overflow-x: auto; }
 table { border-collapse: collapse; min-width: 100%; }
 th, td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
@@ -112,14 +115,7 @@ AudioManager.VolumeSliderChanged(&quot;BGM&quot;, 0.5f);</code></pre>
 <ul><li><code>GetAudioSource</code>で使うグループ名が<code>AudioConfig.asset</code>へ登録済みか確認する。</li><li><code>VolumeSliderChanged</code>へ渡す値はdBではなく0〜1の比率。</li></ul>
 <h2 id="内部構造">内部構造</h2>
 <p>Audioは読み取り経路の利用者（Editor WindowとMCP診断）が無いため、QueryとViewModelを持ちません。</p>
-<pre class="mermaid-source"><code class="language-mermaid">flowchart LR
-    Facade[&quot;AudioManager&quot;] --&gt;|Command| Service[&quot;AudioService&quot;]
-    Service --&gt; Registry[&quot;AudioGroupRegistry&quot;]
-    Registry --&gt; Entity[&quot;AudioGroupEntity&quot;]
-    Service --&gt; HostContract[&quot;IAudioSourceHost&quot;]
-    Host[&quot;AudioSourceHost&quot;] --&gt; HostContract
-    Host --&gt; Factory[&quot;ISystemObjectFactory&quot;]
-    Service --&gt; Config[&quot;AudioConfig / AudioMixer&quot;]</code></pre>
+<figure class="mermaid-diagram"><img src="../Diagrams/3d977d49a2d42b6e.svg" alt="flowchart の図" /></figure>
 <p><code>AudioSourceHost</code>は<strong>最初にAudioSourceを求められた時点で初めてGameObjectを生成します。</strong> AudioMixerが未割り当てなどでAudioSourceを1つも作らない場合、GameObjectも作られません。</p>
 <h2 id="関連">関連</h2>
 <ul><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
