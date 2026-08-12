@@ -81,4 +81,4 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 
 - [CHANGELOG.md](../CHANGELOG.md) — 変更履歴。非推奨化・削除の時系列
 - [README.md](../README.md) — 現行APIのクイックスタート
-- [AgentUsage.md](./AgentUsage.md) — AIエージェントが利用コードを書くときの注意事項
+- [AgentUsage.md](./AgentUsage.md) — namespaceと入口の型から引くAPI索引

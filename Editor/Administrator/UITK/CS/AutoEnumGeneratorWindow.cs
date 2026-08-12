@@ -5,45 +5,68 @@ using UnityEngine.UIElements;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> enum自動更新設定と手動生成操作を提供する管理パネル。 </summary>
+    /// <summary>
+    ///     enum自動更新設定と手動生成操作を提供する。
+    /// </summary>
     [UxmlElement]
     public sealed partial class AutoEnumGeneratorWindow : SymphonyVisualElement
     {
-        /// <summary> 管理パネル用UXMLの非同期初期化を開始する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     管理パネル用UXMLの非同期初期化を開始する。
+        /// </summary>
+        /// <remarks>
+        ///     UXMLの基準パスはパッケージ導入とAssets直置きの双方を解決する。
+        /// </remarks>
         public AutoEnumGeneratorWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "AutoEnumGeneratorWindow.uxml",
             InitializeTypeEnum.None,
             LoadTypeEnum.AssetDataBase)
         { }
-        /// <summary> 自動生成設定のToggleと手動生成Buttonを構成する。 </summary>
+
+        #endregion
+
+        #region 内部処理
+
+        /// <summary>
+        ///     自動生成設定のToggleと手動生成Buttonを構成する。
+        /// </summary>
         protected override Awaitable Initialize_S(VisualElement container)
         {
-            //コンフィグデータを取得
-            var config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
+            // パネルから対応する利用者向けドキュメントを開けるようにする。
+            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.AutoEnumGenerator);
 
-            var sceneList = GetElement("scene");
+            // すべてのToggleを同じ設定アセットへ接続し、変更を即時反映する。
+            AutoEnumGeneratorConfig config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
+
+            (Toggle toggle, Button button) sceneList = GetElement("scene");
             sceneList.toggle.value = config.AutoSceneListUpdate;
             sceneList.toggle.RegisterValueChangedCallback(
                 evt => config.AutoSceneListUpdate = evt.newValue);
             sceneList.button.clicked += () => AutoEnumGenerator.SceneListEnumGenerate();
 
-            var tags = GetElement("tags");
+            (Toggle toggle, Button button) tags = GetElement("tags");
             tags.toggle.value = config.AutoTagsUpdate;
             tags.toggle.RegisterValueChangedCallback(
                 evt => config.AutoTagsUpdate = evt.newValue);
             tags.button.clicked += () => AutoEnumGenerator.TagsEnumGenerate();
 
-            var layers = GetElement("layers");
+            (Toggle toggle, Button button) layers = GetElement("layers");
             layers.toggle.value = config.AutoLayerUpdate;
             layers.toggle.RegisterValueChangedCallback(
                 evt => config.AutoLayerUpdate = evt.newValue);
             layers.button.clicked += () => AutoEnumGenerator.LayersEnumGenerate();
 
+            // VisualElementと同じ寿命の匿名ラムダは、Window破棄時に要素ごと解放される。
             return SymphonyAwaitable.Completed();
 
+            // UXML内で同じ名前を持つ操作単位からToggleとButtonを取得する。
             (Toggle toggle, Button button) GetElement(string name) =>
                 container.Q<VisualElement>(name) switch
                     { VisualElement ve => (ve.Q<Toggle>(), ve.Q<Button>()) };
         }
+
+        #endregion
     }
 }

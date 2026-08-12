@@ -92,3 +92,37 @@
     transition-duration: 0.05s;
     transition-timing-function: ease-in-circ;
 }
+
+.document-button {
+    align-self: flex-end;
+    width: auto;
+    height: auto;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 1px;
+    padding-right: 8px;
+    padding-bottom: 1px;
+    padding-left: 8px;
+    background-color: rgb(56, 56, 56);
+    color: rgb(200, 200, 200);
+    font-size: 11px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.document-button:hover {
+    color: rgb(255, 255, 255);
+    background-color: rgb(70, 70, 70);
+}

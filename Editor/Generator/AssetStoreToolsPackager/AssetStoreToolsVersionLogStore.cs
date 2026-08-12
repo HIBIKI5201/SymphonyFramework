@@ -15,6 +15,8 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     internal static class AssetStoreToolsVersionLogStore
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     現在の対象フォルダ設定からバージョンログのパスを組み立てる。
         /// </summary>
@@ -22,18 +24,17 @@ namespace SymphonyFrameWork.Editor
         internal static string GetVersionLogFilePath()
         {
             string root = AssetStoreToolsPackagerData.AssetStoreToolsPath;
-            if (string.IsNullOrEmpty(root))
-            {
-                return string.Empty;
-            }
+            // 未設定のルートを有効な相対パスとして扱わない。
+            if (string.IsNullOrEmpty(root)) { return string.Empty; }
 
             return CombinePath(root, EditorSymphonyConstant.ASSET_STORE_TOOLS_VERSION_LOG_FILE_NAME);
         }
 
         /// <summary>
-        ///     バージョンログを読み込む。ファイルが存在しない場合は現在のディレクトリ一覧から生成する。
+        ///     バージョンログを読み込む。
         /// </summary>
         /// <remarks>
+        ///     ファイルが存在しない場合は現在のディレクトリ一覧から生成する。
         ///     壊れたファイルを既定値へフォールバックさせない。全ディレクトリのリビジョンが巻き戻り、
         ///     インポート先が「更新なし」と誤判定するため。
         /// </remarks>
@@ -41,22 +42,23 @@ namespace SymphonyFrameWork.Editor
         internal static AssetStoreToolsVersionLog Load()
         {
             string logPath = GetVersionLogFilePath();
+            // 対象フォルダが未設定なら、バージョンログの読み込み先を決められない。
             if (string.IsNullOrEmpty(logPath))
             {
                 Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
                 return null;
             }
 
-            if (!File.Exists(logPath))
-            {
-                return CreateVersionLogFile(logPath);
-            }
+            // 初回利用時は、現在存在するディレクトリから初期ログを生成する。
+            if (!File.Exists(logPath)) { return CreateVersionLogFile(logPath); }
 
             try
             {
                 string json = File.ReadAllText(logPath);
-                var log = JsonConvert.DeserializeObject<AssetStoreToolsVersionLog>(json);
+                AssetStoreToolsVersionLog log =
+                    JsonConvert.DeserializeObject<AssetStoreToolsVersionLog>(json);
 
+                // 空ファイルやnullリテラルから既定値を生成すると、既存リビジョンが巻き戻る。
                 if (log == null)
                 {
                     Debug.LogError($"{LOG_PREFIX}\nバージョンログの内容が空です: {logPath}");
@@ -84,12 +86,11 @@ namespace SymphonyFrameWork.Editor
         /// <returns> 書き込みに成功した場合はtrue。 </returns>
         internal static bool Save(AssetStoreToolsVersionLog log)
         {
-            if (log == null)
-            {
-                return false;
-            }
+            // 保存対象が無ければ既存ログを上書きしない。
+            if (log == null) { return false; }
 
             string logPath = GetVersionLogFilePath();
+            // 対象フォルダが未設定なら、バージョンログの保存先を決められない。
             if (string.IsNullOrEmpty(logPath))
             {
                 Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
@@ -108,12 +109,11 @@ namespace SymphonyFrameWork.Editor
         /// <returns> 書き込みに成功した場合はtrue。 </returns>
         internal static bool TryWriteExportedVersion(string directoryPath, string name, int version)
         {
-            if (string.IsNullOrEmpty(directoryPath))
-            {
-                return false;
-            }
+            // 出力先が無ければバージョンファイルの配置先を決められない。
+            if (string.IsNullOrEmpty(directoryPath)) { return false; }
 
-            var exportedVersion = new AssetStoreToolsExportedVersion
+            // パッケージへ同梱する時点のリビジョンと記録時刻を固定する。
+            AssetStoreToolsExportedVersion exportedVersion = new()
             {
                 Name = name,
                 Version = version,
@@ -141,26 +141,23 @@ namespace SymphonyFrameWork.Editor
         {
             version = 0;
 
-            if (string.IsNullOrEmpty(directoryPath))
-            {
-                return false;
-            }
+            // 読み込み元が無ければ未導入として扱う。
+            if (string.IsNullOrEmpty(directoryPath)) { return false; }
 
             string path = CombinePath(
                 directoryPath,
                 EditorSymphonyConstant.ASSET_STORE_TOOLS_EXPORTED_VERSION_FILE_NAME);
 
-            if (!File.Exists(path))
-            {
-                return false;
-            }
+            // バージョンファイルが無いパッケージは未導入として扱う。
+            if (!File.Exists(path)) { return false; }
 
             try
             {
-                var exportedVersion =
+                AssetStoreToolsExportedVersion exportedVersion =
                     JsonConvert.DeserializeObject<AssetStoreToolsExportedVersion>(
                         File.ReadAllText(path));
 
+                // 空ファイルやnullリテラルは、導入済みリビジョンとして扱えない。
                 if (exportedVersion == null)
                 {
                     Debug.LogError($"{LOG_PREFIX}\n出力時バージョンの内容が空です: {path}");
@@ -189,29 +186,24 @@ namespace SymphonyFrameWork.Editor
         /// <returns> 読み込んだマニフェスト。読み込めない場合はnull。 </returns>
         internal static AssetStoreToolsPackageManifest LoadManifest(string exportDirectoryPath)
         {
-            if (string.IsNullOrEmpty(exportDirectoryPath))
-            {
-                return null;
-            }
+            // 出力済みフォルダが未指定なら、マニフェストを特定できない。
+            if (string.IsNullOrEmpty(exportDirectoryPath)) { return null; }
 
             string path = Path.Combine(
                 exportDirectoryPath,
                 EditorSymphonyConstant.ASSET_STORE_TOOLS_MANIFEST_FILE_NAME);
 
-            if (!File.Exists(path))
-            {
-                return null;
-            }
+            // 統合パッケージだけの出力ではマニフェストを作らないため、未検出は正常系とする。
+            if (!File.Exists(path)) { return null; }
 
             try
             {
-                var manifest = JsonConvert.DeserializeObject<AssetStoreToolsPackageManifest>(
-                    File.ReadAllText(path));
+                AssetStoreToolsPackageManifest manifest =
+                    JsonConvert.DeserializeObject<AssetStoreToolsPackageManifest>(
+                        File.ReadAllText(path));
 
-                if (manifest == null)
-                {
-                    Debug.LogError($"{LOG_PREFIX}\nマニフェストの内容が空です: {path}");
-                }
+                // ファイルは存在しても内容が無ければ、候補を構築できないことを記録する。
+                if (manifest == null) { Debug.LogError($"{LOG_PREFIX}\nマニフェストの内容が空です: {path}"); }
 
                 return manifest;
             }
@@ -237,10 +229,8 @@ namespace SymphonyFrameWork.Editor
             string exportFullPath,
             AssetStoreToolsPackageManifest manifest)
         {
-            if (string.IsNullOrEmpty(exportFullPath) || manifest == null)
-            {
-                return false;
-            }
+            // 出力先か内容が無ければ、意味のないマニフェストを生成しない。
+            if (string.IsNullOrEmpty(exportFullPath) || manifest == null) { return false; }
 
             string path = Path.Combine(
                 exportFullPath,
@@ -249,16 +239,22 @@ namespace SymphonyFrameWork.Editor
             return TryWriteJson(path, manifest, "パッケージマニフェスト");
         }
 
+        #endregion
+
+        #region 内部処理
+
         private const string LOG_PREFIX = "[" + nameof(AssetStoreToolsVersionLogStore) + "]";
 
         /// <summary>
-        ///     バージョンログを新規生成する。現在存在するディレクトリをリビジョン1で登録する。
+        ///     バージョンログを新規生成する。
         /// </summary>
+        /// <remarks> 現在存在するディレクトリをリビジョン1で登録する。 </remarks>
         /// <param name="logPath"> 生成するバージョンログのパス。 </param>
         /// <returns> 生成した正規化済みのバージョンログ。生成に失敗した場合はnull。 </returns>
         private static AssetStoreToolsVersionLog CreateVersionLogFile(string logPath)
         {
             string root = AssetStoreToolsPackagerData.AssetStoreToolsPath;
+            // 初期値の列挙元が存在しなければ、空ログを生成して設定誤りを隠さない。
             if (!Directory.Exists(root))
             {
                 Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダが存在しません: {root}");
@@ -271,10 +267,8 @@ namespace SymphonyFrameWork.Editor
 
             AssetStoreToolsVersionLog log = AssetStoreToolsVersionLog.CreateDefault(directoryNames);
 
-            if (!TryWriteJson(logPath, log.Normalize(), "バージョンログ"))
-            {
-                return null;
-            }
+            // 永続化できなかったログを返すと、メモリ上だけでリビジョン管理が始まるため失敗とする。
+            if (!TryWriteJson(logPath, log.Normalize(), "バージョンログ")) { return null; }
 
             Debug.Log($"{LOG_PREFIX}\nバージョンログを生成しました: {logPath}");
             return log.Normalize();
@@ -290,6 +284,7 @@ namespace SymphonyFrameWork.Editor
         private static bool TryWriteJson(string path, object value, string displayName)
         {
             string directory = Path.GetDirectoryName(path);
+            // 保存先が無い場合は、親ディレクトリを暗黙に生成せず設定誤りとして扱う。
             if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
             {
                 Debug.LogError($"{LOG_PREFIX}\n{displayName}の書き出し先が存在しません: {directory}");
@@ -309,8 +304,12 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
-        /// <summary> ディレクトリとファイル名をスラッシュ区切りで連結する。 </summary>
+        /// <summary>
+        ///     ディレクトリとファイル名をスラッシュ区切りで連結する。
+        /// </summary>
         private static string CombinePath(string directory, string fileName)
             => directory.Replace("\\", "/").TrimEnd('/') + "/" + fileName;
+
+        #endregion
     }
 }

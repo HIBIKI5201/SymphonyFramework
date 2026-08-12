@@ -13,15 +13,23 @@ namespace SymphonyFrameWork.Editor
     [Serializable]
     public sealed class AssetStoreToolsUsedDependenciesStrategy : AssetStoreToolsStandardStrategy
     {
+        #region 外部向けAPI
+
         /// <inheritdoc />
         public override string DisplayName => "Used Dependencies";
+
+        #endregion
+
+        #region 内部処理
 
         /// <inheritdoc />
         protected internal override void Plan(AssetStoreToolsPackagePlan plan)
         {
+            // 出力元自身を依存元から除外し、プロジェクト側から実際に参照されるアセットを確定する。
             HashSet<string> usedAssetPaths =
                 CollectProjectUsedDependencies(AssetStoreToolsPackagerData.AssetStoreToolsPath);
 
+            // 各出力単位を同じ依存関係集合で絞り込み、確認内容と実際の出力対象を一致させる。
             foreach (AssetStoreToolsPackagePlanEntry entry in plan.Entries)
             {
                 entry.FilterAssetPaths(
@@ -41,10 +49,8 @@ namespace SymphonyFrameWork.Editor
             HashSet<string> usedAssetPaths,
             IReadOnlyList<string> forceIncludeExtensions)
         {
-            if (AssetStoreToolsPackager.HasForceIncludeExtension(path, forceIncludeExtensions))
-            {
-                return true;
-            }
+            // ネイティブプラグイン等は依存関係だけでは欠落するため、指定拡張子を必ず残す。
+            if (AssetStoreToolsPackager.HasForceIncludeExtension(path, forceIncludeExtensions)) { return true; }
 
             return usedAssetPaths != null && usedAssetPaths.Contains(path);
         }
@@ -58,7 +64,7 @@ namespace SymphonyFrameWork.Editor
         {
             HashSet<string> usedPaths = new();
 
-            // プロジェクト内のすべての一般アセット（Assetsフォルダ以下）を検索
+            // Packagesを依存元に含めず、利用側プロジェクトのAssetsだけを走査する。
             string[] allAssetGuids = AssetDatabase.FindAssets(string.Empty, new[] { "Assets" });
 
             string normalizedExcludedRootPath = excludedRootPath
@@ -69,7 +75,7 @@ namespace SymphonyFrameWork.Editor
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
 
-                // AssetStoreToolsは除外して依存関係を追う
+                // 出力元自身からの参照で全候補が使用中になることを避ける。
                 if (!string.IsNullOrEmpty(normalizedExcludedRootPath)
                     && (path.Equals(normalizedExcludedRootPath, StringComparison.Ordinal)
                         || path.StartsWith(normalizedExcludedRootPath + "/", StringComparison.Ordinal)))
@@ -77,7 +83,7 @@ namespace SymphonyFrameWork.Editor
                     continue;
                 }
 
-                // そのアセットが依存しているリソースをすべて取得
+                // 間接参照も使用中として残すため、依存関係を再帰的に取得する。
                 string[] dependencies = AssetDatabase.GetDependencies(path, recursive: true);
 
                 foreach (string dependency in dependencies)
@@ -88,5 +94,7 @@ namespace SymphonyFrameWork.Editor
 
             return usedPaths;
         }
+
+        #endregion
     }
 }

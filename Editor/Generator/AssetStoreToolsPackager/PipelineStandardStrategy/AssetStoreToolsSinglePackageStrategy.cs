@@ -16,25 +16,32 @@ namespace SymphonyFrameWork.Editor
     [Serializable]
     public sealed class AssetStoreToolsSinglePackageStrategy : AssetStoreToolsStandardStrategy
     {
+        #region 外部向けAPI
+
         /// <inheritdoc />
         public override string DisplayName => "Singles";
+
+        #endregion
+
+        #region 内部処理
 
         /// <inheritdoc />
         protected internal override void Execute(AssetStoreToolsPackageExportContext context)
         {
+            // マニフェストへ成功分だけを記録できるよう、個別出力の成否を先に収集する。
             List<AssetStoreToolsPackagePlanEntry> exported = new();
             foreach (AssetStoreToolsPackagePlanEntry entry in context.Plan.Entries)
             {
-                if (ExportEntry(context, entry))
-                {
-                    exported.Add(entry);
-                }
+                if (ExportEntry(context, entry)) { exported.Add(entry); }
             }
 
+            // ZIP化より前に一覧を書き、後続手順が出力一式へ含められるようにする。
             WriteManifest(context, exported);
         }
 
-        /// <summary> 出力単位1件分をパッケージ化する。 </summary>
+        /// <summary>
+        ///     出力単位1件分をパッケージ化する。
+        /// </summary>
         /// <param name="context"> 出力先を保持するコンテキスト。 </param>
         /// <param name="entry"> 出力する単位。 </param>
         /// <returns> パッケージを出力できた場合はtrue。 </returns>
@@ -47,8 +54,10 @@ namespace SymphonyFrameWork.Editor
                 string[] exportFiles;
                 ExportPackageOptions options;
 
+                // 絞り込み済みなら確定済みのアセットだけを使い、未絞り込みならディレクトリ全体を出力する。
                 if (entry.IsFiltered)
                 {
+                    // 出力時バージョンを加える前の計画が空なら、実体のないパッケージを作らない。
                     if (entry.AssetPaths.Count == 0)
                     {
                         Debug.LogWarning($"使用中アセットなし: {entry.DirectoryPath}");
@@ -66,6 +75,7 @@ namespace SymphonyFrameWork.Editor
                     options = ExportPackageOptions.Recurse;
                 }
 
+                // 出力先と内容を確定した後に、同名の個別パッケージへ書き出す。
                 AssetDatabase.ExportPackage(
                     exportFiles,
                     Path.Combine(context.ExportLocalPath, $"{entry.Name}.unitypackage"),
@@ -76,6 +86,7 @@ namespace SymphonyFrameWork.Editor
             }
             catch (Exception e)
             {
+                // 失敗した単位をマニフェストから除けるよう、例外を成否へ変換する。
                 Debug.LogError($"パッケージの出力に失敗しました: {entry.DirectoryPath}\n{e}");
                 return false;
             }
@@ -102,7 +113,8 @@ namespace SymphonyFrameWork.Editor
             AssetStoreToolsPackageExportContext context,
             IReadOnlyList<AssetStoreToolsPackagePlanEntry> exported)
         {
-            var manifest = new AssetStoreToolsPackageManifest
+            // 出力できたパッケージだけを記録し、存在しないファイルをインポート側へ提示しない。
+            AssetStoreToolsPackageManifest manifest = new()
             {
                 ExportedAt = AssetStoreToolsVersionLog.CreateTimestamp(),
                 Packages = exported
@@ -117,5 +129,7 @@ namespace SymphonyFrameWork.Editor
 
             AssetStoreToolsVersionLogStore.TryWriteManifest(context.ExportFullPath, manifest);
         }
+
+        #endregion
     }
 }

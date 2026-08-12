@@ -15,36 +15,11 @@ namespace SymphonyFrameWork.Editor
     /// </remarks>
     public sealed class AssetStoreToolsPackagePlan
     {
-        /// <summary> 計画を組み立てたパイプラインの名前。 </summary>
-        public string PipelineName { get; }
-
-        /// <summary> 実行する手順。null要素は除去済み。 </summary>
-        public IReadOnlyList<AssetStoreToolsPackageStepStrategy> Steps { get; }
-
-        /// <summary> ディレクトリごとの出力内容。 </summary>
-        public IReadOnlyList<AssetStoreToolsPackagePlanEntry> Entries { get; }
-
-        /// <summary> 依存関係に含まれなくても強制的にパッケージへ含める拡張子。 </summary>
-        public IReadOnlyList<string> ForceIncludeExtensions { get; }
-
-        /// <summary> 出力に含まれるアセットの総数。ディレクトリ間の重複は数えない。 </summary>
-        public int TotalAssetCount => Entries
-            .SelectMany(entry => entry.AssetPaths)
-            .Distinct(StringComparer.Ordinal)
-            .Count();
+        #region 外部向けAPI
 
         /// <summary>
-        ///     いずれかのディレクトリでPlan段階の絞り込みが行われたかを示す。
+        ///     ランナーが確定した内容から計画を生成する。
         /// </summary>
-        /// <remarks>
-        ///     ディレクトリ単位ではなく計画全体で1つの出力を作るStrategyが、
-        ///     ディレクトリ丸ごとの出力と明示指定の出力を切り替えるために使う。
-        ///     1件でも絞り込まれていれば明示指定を選ぶ。丸ごと出力を選ぶと、
-        ///     確認ウィンドウで提示した内容より多くのアセットが出力され得るため。
-        /// </remarks>
-        public bool IsFiltered => Entries.Any(entry => entry.IsFiltered);
-
-        /// <summary> ランナーが確定した内容から計画を生成する。 </summary>
         /// <param name="pipelineName"> 計画を組み立てたパイプラインの名前。 </param>
         /// <param name="steps"> 実行する手順。null要素は呼び出し側で除去しておく。 </param>
         /// <param name="entries"> ディレクトリごとの出力内容。 </param>
@@ -55,23 +30,80 @@ namespace SymphonyFrameWork.Editor
             IReadOnlyList<AssetStoreToolsPackagePlanEntry> entries,
             IReadOnlyList<string> forceIncludeExtensions)
         {
+            // nullを空の値へ統一し、確認画面と各Strategyが個別にnull判定しなくてよい形へ固定する。
             PipelineName = pipelineName ?? string.Empty;
             Steps = steps ?? Array.Empty<AssetStoreToolsPackageStepStrategy>();
             Entries = entries ?? Array.Empty<AssetStoreToolsPackagePlanEntry>();
             ForceIncludeExtensions = forceIncludeExtensions ?? Array.Empty<string>();
         }
+
+        /// <summary> 計画を組み立てたパイプラインの名前。 </summary>
+        public string PipelineName { get; }
+
+        /// <summary> 実行する手順。 </summary>
+        /// <remarks> null要素は除去済み。 </remarks>
+        public IReadOnlyList<AssetStoreToolsPackageStepStrategy> Steps { get; }
+
+        /// <summary> ディレクトリごとの出力内容。 </summary>
+        public IReadOnlyList<AssetStoreToolsPackagePlanEntry> Entries { get; }
+
+        /// <summary> 依存関係に含まれなくても強制的にパッケージへ含める拡張子。 </summary>
+        public IReadOnlyList<string> ForceIncludeExtensions { get; }
+
+        /// <summary> 出力に含まれるアセットの総数。 </summary>
+        /// <remarks> ディレクトリ間の重複は数えない。 </remarks>
+        public int TotalAssetCount => Entries
+            .SelectMany(entry => entry.AssetPaths)
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+
+        /// <summary> いずれかのディレクトリでPlan段階の絞り込みが行われたかを示す。 </summary>
+        /// <remarks>
+        ///     ディレクトリ単位ではなく計画全体で1つの出力を作るStrategyが、
+        ///     ディレクトリ丸ごとの出力と明示指定の出力を切り替えるために使う。
+        ///     1件でも絞り込まれていれば明示指定を選ぶ。丸ごと出力を選ぶと、
+        ///     確認ウィンドウで提示した内容より多くのアセットが出力され得るため。
+        /// </remarks>
+        public bool IsFiltered => Entries.Any(entry => entry.IsFiltered);
+
+        #endregion
     }
 
-    /// <summary> 出力単位となるディレクトリ1件分の内容。 </summary>
+    /// <summary>
+    ///     出力ディレクトリ1件を保持する。
+    /// </summary>
     public sealed class AssetStoreToolsPackagePlanEntry
     {
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     ランナーが収集した内容から出力単位を生成する。
+        /// </summary>
+        /// <param name="directoryPath"> 出力単位となるディレクトリのパス。 </param>
+        /// <param name="name"> パッケージ名と表示に使うディレクトリ名。 </param>
+        /// <param name="version"> 計画を組んだ時点のリビジョン。 </param>
+        /// <param name="assetPaths"> 絞り込み前の出力対象アセット。 </param>
+        internal AssetStoreToolsPackagePlanEntry(
+            string directoryPath,
+            string name,
+            int version,
+            IReadOnlyList<string> assetPaths)
+        {
+            // ランナーが収集した値を固定し、アセット一覧が未設定の場合だけ空の一覧へ統一する。
+            DirectoryPath = directoryPath;
+            Name = name;
+            Version = version;
+            AssetPaths = assetPaths ?? Array.Empty<string>();
+        }
+
         /// <summary> 出力単位となるディレクトリのパス。 </summary>
         public string DirectoryPath { get; }
 
         /// <summary> パッケージ名と表示に使うディレクトリ名。 </summary>
         public string Name { get; }
 
-        /// <summary> 計画を組んだ時点のリビジョン。出力時バージョンとマニフェストへ記録する。 </summary>
+        /// <summary> 計画を組んだ時点のリビジョン。 </summary>
+        /// <remarks> 出力時バージョンとマニフェストへ記録する。 </remarks>
         public int Version { get; }
 
         /// <summary> このディレクトリから出力されるアセットのパス一覧。 </summary>
@@ -91,32 +123,16 @@ namespace SymphonyFrameWork.Editor
         /// <exception cref="ArgumentNullException"> <paramref name="predicate" />がnullの場合。 </exception>
         public void FilterAssetPaths(Func<string, bool> predicate)
         {
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
+            // 判定を遅延実行すると失敗位置が不明瞭になるため、呼び出し時に拒否する。
+            if (predicate == null) { throw new ArgumentNullException(nameof(predicate)); }
 
+            // 既存の計画から除外する方向だけを許可し、確認画面より対象が増えることを防ぐ。
             AssetPaths = AssetPaths
                 .Where(path => predicate(path))
                 .ToArray();
             IsFiltered = true;
         }
 
-        /// <summary> ランナーが収集した内容から出力単位を生成する。 </summary>
-        /// <param name="directoryPath"> 出力単位となるディレクトリのパス。 </param>
-        /// <param name="name"> パッケージ名と表示に使うディレクトリ名。 </param>
-        /// <param name="version"> 計画を組んだ時点のリビジョン。 </param>
-        /// <param name="assetPaths"> 絞り込み前の出力対象アセット。 </param>
-        internal AssetStoreToolsPackagePlanEntry(
-            string directoryPath,
-            string name,
-            int version,
-            IReadOnlyList<string> assetPaths)
-        {
-            DirectoryPath = directoryPath;
-            Name = name;
-            Version = version;
-            AssetPaths = assetPaths ?? Array.Empty<string>();
-        }
+        #endregion
     }
 }

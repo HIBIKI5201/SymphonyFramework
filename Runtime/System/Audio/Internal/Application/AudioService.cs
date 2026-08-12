@@ -10,12 +10,15 @@ using UnityEngine.Audio;
 namespace SymphonyFrameWork.System
 {
     /// <summary>
-    ///     Configの解釈、AudioSourceの遅延構築、音量のAudioMixerへの反映を担当する。
-    ///     グループの保持は<see cref="AudioGroupRegistry"/>、AudioSourceを載せる
-    ///     オブジェクトの寿命は<see cref="IAudioSourceHost"/>へ委譲する。
+    ///     ConfigからAudioSourceを構築し、音量をAudioMixerへ反映する。
     /// </summary>
+    /// <remarks>
+    ///     グループは<see cref="AudioGroupRegistry"/>、所有オブジェクトは<see cref="IAudioSourceHost"/>へ委譲する。
+    /// </remarks>
     internal sealed class AudioService
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     Config、グループの保持先、AudioSourceの生成先を指定して生成する。
         /// </summary>
@@ -27,6 +30,7 @@ namespace SymphonyFrameWork.System
             AudioGroupRegistry registry,
             IAudioSourceHost audioSourceHost)
         {
+            // Configは未割り当て状態の診断に使うため許容し、必須の協調先だけを生成時に検証する。
             _config = config;
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _audioSourceHost = audioSourceHost ?? throw new ArgumentNullException(nameof(audioSourceHost));
@@ -39,6 +43,7 @@ namespace SymphonyFrameWork.System
         /// <returns> 対応するAudioSource。未登録の場合はnull。 </returns>
         internal AudioSource GetAudioSource(string groupName)
         {
+            // AudioSourceはAudioMixerの構成が必要になった最初のアクセスまで生成しない。
             EnsureGroupsBuilt();
 
             return _registry.TryGet(groupName, out AudioGroupEntity entity)
@@ -53,44 +58,56 @@ namespace SymphonyFrameWork.System
         /// <param name="ratio"> 0から1までの音量割合。 </param>
         internal void SetVolumeRatio(string groupName, float ratio)
         {
+            // 音量変更だけが先に呼ばれても対象グループを解決できるよう遅延構築する。
             EnsureGroupsBuilt();
 
-            if (!_registry.TryGet(groupName, out AudioGroupEntity entity))
-            {
-                return;
-            }
+            // Configに存在しないグループは反映先が無いため何も変更しない。
+            if (!_registry.TryGet(groupName, out AudioGroupEntity entity)) { return; }
 
+            // 公開パラメーターが無いグループはdB値へ変換できないため、診断して終了する。
             if (!entity.TryGetVolumeDecibel(ratio, out float decibel))
             {
                 Debug.LogWarning($"{groupName}のボリュームがありません");
                 return;
             }
 
+            // SetFloatのキーにはMixerで公開したパラメーター名を、値には0-1ではなくdBを渡す。
             _config?.AudioMixer.SetFloat(entity.ExposedVolumeParameterName, decibel);
         }
 
-        /// <summary> 生成済みAudioSourceと登録を解放する。 </summary>
+        /// <summary>
+        ///     生成済みAudioSourceと登録を解放する。
+        /// </summary>
         internal void Reset()
         {
+            // AudioSourceを所有するGameObjectを破棄してから、対応するグループ登録を消去する。
             _audioSourceHost.Release();
             _registry.Clear();
         }
 
+        #endregion
+
+        #region 内部処理
+
+        private readonly AudioConfig _config;
+        private readonly AudioGroupRegistry _registry;
+        private readonly IAudioSourceHost _audioSourceHost;
+
         /// <summary>
-        ///     Configに定義されたミキサーグループごとのAudioSourceを一度だけ構築する。
-        ///     AudioMixerが未割り当ての場合も構築済みとして記録し、警告を繰り返さない。
+        ///     Configに定義されたAudioMixerグループを構築する。
         /// </summary>
+        /// <remarks> AudioMixerが未割り当ての場合も、警告を繰り返さないため構築済みとして記録する。 </remarks>
         private void EnsureGroupsBuilt()
         {
-            if (_registry.IsBuilt)
-            {
-                return;
-            }
+            // 生成済みAudioSourceを重複させないため、構築はServiceの状態につき一度だけ行う。
+            if (_registry.IsBuilt) { return; }
 
+            // Mixer未割り当てでも次回呼び出しで同じ警告を繰り返さないよう先に記録する。
             _registry.MarkBuilt();
 
             AudioMixer mixer = _config?.AudioMixer;
 
+            // ConfigまたはAudioMixerが無い場合はAudioSourceの所有オブジェクトも生成しない。
             if (!mixer)
             {
                 Debug.LogWarning("オーディオミキサーがアサインされていません");
@@ -99,15 +116,15 @@ namespace SymphonyFrameWork.System
 
             SymphonyDebugLogger.AddText("Audio Managerを初期化しました。");
 
-            foreach (AudioConfig.AudioGroupConfig settings in GetGroupSettings())
-            {
-                BuildGroup(mixer, settings);
-            }
+            // Configで名前を指定された各グループをAudioMixerの構成へ結び付ける。
+            foreach (AudioConfig.AudioGroupConfig settings in GetGroupSettings()) { BuildGroup(mixer, settings); }
 
             SymphonyDebugLogger.LogText();
         }
 
-        /// <summary> Configから有効なグループ設定を列挙する。 </summary>
+        /// <summary>
+        ///     Configから有効なグループ設定を列挙する。
+        /// </summary>
         /// <returns> グループ名が設定されている設定の一覧。 </returns>
         private IEnumerable<AudioConfig.AudioGroupConfig> GetGroupSettings()
         {
@@ -125,6 +142,7 @@ namespace SymphonyFrameWork.System
         {
             string groupName = settings.AudioGroupName;
 
+            // Configの名前と一致するAudioMixerGroupが無ければ、誤った出力先を持つSourceを作らない。
             AudioMixerGroup group = mixer.FindMatchingGroups(groupName).FirstOrDefault();
             if (!group)
             {
@@ -132,16 +150,18 @@ namespace SymphonyFrameWork.System
                 return;
             }
 
+            // グループごとに専用のAudioSourceを生成し、Mixerの出力先と再生設定を反映する。
             AudioSource source = _audioSourceHost.CreateAudioSource();
             source.outputAudioMixerGroup = group;
             source.playOnAwake = false;
-            if (settings.IsLoop) source.loop = true;
+            if (settings.IsLoop) { source.loop = true; }
 
             // 初期音量が取得できない場合はnullのまま保持する。
             // 旧実装は `volume ?? 0` としており、そのせいで「ボリュームがありません」の
             // 分岐が到達不能になっていた。
             float? volume = ResolveOriginalVolume(mixer, settings, groupName);
 
+            // 音量の公開パラメーター名と初期dB値を、割合指定の変換規則と一緒に保持する。
             _registry.TryAdd(new AudioGroupEntity(
                 groupName,
                 group,
@@ -162,6 +182,7 @@ namespace SymphonyFrameWork.System
             AudioConfig.AudioGroupConfig settings,
             string groupName)
         {
+            // GetFloatにはAudioMixerGroup名ではなく、Mixerで公開したパラメーター名を渡す。
             if (!string.IsNullOrEmpty(settings.ExposedVolumeParameterName)
                 && mixer.GetFloat(settings.ExposedVolumeParameterName, out float value))
             {
@@ -173,8 +194,6 @@ namespace SymphonyFrameWork.System
             return null;
         }
 
-        private readonly AudioConfig _config;
-        private readonly AudioGroupRegistry _registry;
-        private readonly IAudioSourceHost _audioSourceHost;
+        #endregion
     }
 }

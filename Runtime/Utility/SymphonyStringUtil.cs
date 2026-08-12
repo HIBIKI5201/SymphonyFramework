@@ -8,6 +8,8 @@ namespace SymphonyFrameWork
     /// </summary>
     public static class SymphonyStringUtil
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     リッチテキストにカラータグを挿入する。
         /// </summary>
@@ -16,28 +18,24 @@ namespace SymphonyFrameWork
         /// <returns> colorタグで囲んだ文字列。 </returns>
         public static string AddRichTextColor(this string text, Color color)
         {
-            // ColorをRGBに変換する。
+            // alphaを含めない既存契約に合わせ、RGBだけをRich Textの色指定へ埋め込む。
             string htmlColor = ColorUtility.ToHtmlStringRGB(color);
-            return $"<color=#{htmlColor}>{text}</color>"; // タグに入れて返す。
+            return $"<color=#{htmlColor}>{text}</color>";
         }
 
         /// <summary>
-        ///     一番外側の &lt;color&gt; タグを削除する。
-        ///     多重の場合は最外層のみ。
+        ///     最外層の&lt;color&gt;タグを削除する。
         /// </summary>
         public static string RemoveRichTextColor(this string text)
         {
-            // 正規表現でカラーのタグを検索。
-            Regex outerColorRegex = new Regex(@"^<color=[^>]+>(.*)</color>$", RegexOptions.Singleline);
-            var match = outerColorRegex.Match(text);
+            // 文字列全体を囲むタグだけを対象とし、内側の入れ子は保持する。
+            Regex outerColorRegex = new(@"^<color=[^>]+>(.*)</color>$", RegexOptions.Singleline);
+            Match match = outerColorRegex.Match(text);
 
-            if (match.Success)
-            {
-                // キャプチャされた中身を返す（外側のタグ除去）
-                return match.Groups[1].Value;
-            }
+            // 最外層が一致した場合だけ、キャプチャした内側の文字列へ置き換える。
+            if (match.Success) { return match.Groups[1].Value; }
 
-            // colorタグで囲まれていなければそのまま返す
+            // 文字列全体がcolorタグで囲まれていない場合は入力を維持する。
             return text;
         }
 
@@ -49,24 +47,20 @@ namespace SymphonyFrameWork
         public static string AddRichTextBold(this string text) => $"<b>{text}</b>";
 
         /// <summary>
-        ///     一番外側の &lt;b&gt; タグを削除する。
-        ///     多重の場合は最外層のみ。
+        ///     最外層の&lt;b&gt;タグを削除する。
         /// </summary>
         /// <param name="text"> 最外層のbタグを除去する文字列。 </param>
         /// <returns> 最外層のbタグを除去した文字列。 </returns>
         public static string RemoveRichTextBold(this string text)
         {
-            // 正規表現で太文字のタグを検索。
-            Regex outerBoldRegex = new Regex(@"^<b>(.*)</b>$", RegexOptions.Singleline);
-            var match = outerBoldRegex.Match(text);
+            // 文字列全体を囲むタグだけを対象とし、内側の入れ子は保持する。
+            Regex outerBoldRegex = new(@"^<b>(.*)</b>$", RegexOptions.Singleline);
+            Match match = outerBoldRegex.Match(text);
 
-            if (match.Success)
-            {
-                // キャプチャされた中身を返す（外側のタグ除去）
-                return match.Groups[1].Value;
-            }
+            // 最外層が一致した場合だけ、キャプチャした内側の文字列へ置き換える。
+            if (match.Success) { return match.Groups[1].Value; }
 
-            // bタグで囲まれていなければそのまま返す
+            // 文字列全体がbタグで囲まれていない場合は入力を維持する。
             return text;
         }
 
@@ -78,25 +72,23 @@ namespace SymphonyFrameWork
         public static string AddRichTextUnderline(this string text) => $"<u>{text}</u>";
 
         /// <summary>
-        ///     一番外側の &lt;u&gt; タグを削除する。
-        ///     多重の場合は最外層のみ。
+        ///     最外層の&lt;u&gt;タグを削除する。
         /// </summary>
         /// <param name="text"> 最外層のuタグを除去する文字列。 </param>
         /// <returns> 最外層のuタグを除去した文字列。 </returns>
         public static string RemoveRichTextUnderline(this string text)
         {
-            // 正規表現で下線のタグを検索。
-            Regex outerUnderlineRegex = new Regex(@"^<u>(.*)</u>$", RegexOptions.Singleline);
-            var match = outerUnderlineRegex.Match(text);
+            // 文字列全体を囲むタグだけを対象とし、内側の入れ子は保持する。
+            Regex outerUnderlineRegex = new(@"^<u>(.*)</u>$", RegexOptions.Singleline);
+            Match match = outerUnderlineRegex.Match(text);
 
-            if (match.Success)
-            {
-                // キャプチャされた中身を返す（外側のタグ除去）
-                return match.Groups[1].Value;
-            }
+            // 最外層が一致した場合だけ、キャプチャした内側の文字列へ置き換える。
+            if (match.Success) { return match.Groups[1].Value; }
 
-            // uタグで囲まれていなければそのまま返す
+            // 文字列全体がuタグで囲まれていない場合は入力を維持する。
             return text;
         }
+
+        #endregion
     }
 }

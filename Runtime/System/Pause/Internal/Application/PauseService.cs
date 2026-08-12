@@ -5,12 +5,13 @@ using UnityEngine;
 namespace SymphonyFrameWork.System
 {
     /// <summary>
-    ///     ポーズ状態の変更と、<see cref="PauseManager.IPausable"/>への通知を担当する。
-    ///     状態の保持は<see cref="PauseStateEntity"/>、購読の管理は
-    ///     <see cref="PausableRegistry"/>へ委譲する。
+    ///     ポーズ状態を変更し、登録された対象へ通知する。
     /// </summary>
+    /// <remarks> 状態は<see cref="PauseStateEntity"/>、購読は<see cref="PausableRegistry"/>へ委譲する。 </remarks>
     internal sealed class PauseService
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     状態と購読の保持先を指定して生成する。
         /// </summary>
@@ -18,20 +19,16 @@ namespace SymphonyFrameWork.System
         /// <param name="registry"> ポーズ通知の購読を所有するレジストリ。 </param>
         public PauseService(PauseStateEntity state, PausableRegistry registry)
         {
+            // 状態と購読のどちらが欠けても通知の整合を保てないため、生成時に拒否する。
             _state = state ?? throw new ArgumentNullException(nameof(state));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }
 
-        /// <summary>
-        ///     ポーズ状態が変化したときに新しい状態を通知する。
-        ///     これは利用側のゲームロジックが購読する公開eventの実体であり、
-        ///     **購読者の例外は握らずそのまま伝播させる。**
-        /// </summary>
+        /// <summary> ポーズ状態が変化したときに新しい状態を通知する。 </summary>
+        /// <remarks> ゲームロジックの購読者例外はそのまま伝播する。 </remarks>
         public event Action<bool> OnPauseChanged;
 
-        /// <summary>
-        ///     表示内容が変わりうる変更を通知する。ポーズ状態と購読件数の変化で発行する。
-        /// </summary>
+        /// <summary> ポーズ状態または購読件数が変化したときに通知する。 </summary>
         public event Action OnStateChanged;
 
         /// <summary> 現在ポーズ中かどうか。 </summary>
@@ -46,23 +43,26 @@ namespace SymphonyFrameWork.System
         /// <param name="isPaused"> 設定するポーズ状態。 </param>
         public void SetPaused(bool isPaused)
         {
-            if (!_state.SetPaused(isPaused))
-            {
-                return;
-            }
+            // 同じ状態の再設定ではゲームロジックと表示へ重複通知しない。
+            if (!_state.SetPaused(isPaused)) { return; }
 
+            // 表示状態を先に同期し、確定したポーズ状態をゲームロジックへ通知する。
             RaiseStateChanged();
             OnPauseChanged?.Invoke(isPaused);
         }
 
-        /// <summary> ポーズ通知の購読者を追加する。 </summary>
+        /// <summary>
+        ///     ポーズ通知の購読者を追加する。
+        /// </summary>
         /// <param name="handler"> 追加する処理。 </param>
         public void AddPauseChangedHandler(Action<bool> handler)
         {
             OnPauseChanged += handler;
         }
 
-        /// <summary> ポーズ通知の購読者を除去する。 </summary>
+        /// <summary>
+        ///     ポーズ通知の購読者を除去する。
+        /// </summary>
         /// <param name="handler"> 除去する処理。 </param>
         public void RemovePauseChangedHandler(Action<bool> handler)
         {
@@ -75,28 +75,20 @@ namespace SymphonyFrameWork.System
         /// <param name="pausable"> ポーズ通知を受け取る対象。 </param>
         public void Register(PauseManager.IPausable pausable)
         {
-            if (pausable == null)
-            {
-                throw new ArgumentNullException(nameof(pausable));
-            }
+            // 通知先を持たない購読は登録できないため、呼び出し元の誤りとして拒否する。
+            if (pausable == null) { throw new ArgumentNullException(nameof(pausable)); }
 
             void PauseEventHandler(bool paused)
             {
-                if (paused)
-                {
-                    pausable.Pause();
-                }
-                else
-                {
-                    pausable.Resume();
-                }
+                // 新しい状態に応じて、対象の停止と再開のどちらか一方だけを通知する。
+                if (paused) { pausable.Pause(); }
+                else { pausable.Resume(); }
             }
 
-            if (!_registry.TryRegister(pausable, PauseEventHandler))
-            {
-                return;
-            }
+            // 同じ対象の二重購読はPauseとResumeを重複実行するため追加しない。
+            if (!_registry.TryRegister(pausable, PauseEventHandler)) { return; }
 
+            // Registryへ保持した同一Delegateをeventへ登録し、購読件数の変化を表示へ通知する。
             OnPauseChanged += PauseEventHandler;
             RaiseStateChanged();
         }
@@ -107,47 +99,54 @@ namespace SymphonyFrameWork.System
         /// <param name="pausable"> ポーズ通知を解除する対象。 </param>
         public void Unregister(PauseManager.IPausable pausable)
         {
-            if (pausable == null)
-            {
-                throw new ArgumentNullException(nameof(pausable));
-            }
+            // 通知先を特定できない解除要求は、呼び出し元の誤りとして拒否する。
+            if (pausable == null) { throw new ArgumentNullException(nameof(pausable)); }
 
-            if (!_registry.TryUnregister(pausable, out Action<bool> pauseEvent))
-            {
-                return;
-            }
+            // 未登録ならeventから除去すべきDelegateも存在しないため何もしない。
+            if (!_registry.TryUnregister(pausable, out Action<bool> pauseEvent)) { return; }
 
+            // 登録時と同一のDelegateをeventから外し、購読件数の変化を表示へ通知する。
             OnPauseChanged -= pauseEvent;
             RaiseStateChanged();
         }
 
-        /// <summary> ポーズ状態と購読を消去する。 </summary>
+        /// <summary>
+        ///     ポーズ状態と購読を消去する。
+        /// </summary>
         public void Reset()
         {
+            // Domain Reloadなしの再初期化へ前回の状態やゲームロジックの購読を残さない。
             _state.Reset();
             _registry.Clear();
             OnPauseChanged = null;
             RaiseStateChanged();
         }
 
+        #endregion
+
+        #region 内部処理
+
+        private readonly PauseStateEntity _state;
+        private readonly PausableRegistry _registry;
+
         /// <summary>
-        ///     表示向けの状態変更を通知する。購読側の例外はここで止める。
-        ///     購読しているのは表示専用のViewModelであり、その失敗をゲーム側の
-        ///     ポーズ処理の失敗にしない。
+        ///     表示向けの状態変更を通知する。
         /// </summary>
+        /// <remarks> 表示専用ViewModelの失敗をゲーム側のポーズ処理へ伝播させない。 </remarks>
         private void RaiseStateChanged()
         {
             try
             {
+                // 表示をポーズ状態と購読件数の確定後に同期する。
                 OnStateChanged?.Invoke();
             }
             catch (Exception exception)
             {
+                // 表示側の失敗はゲームロジックのポーズ処理へ逆流させず、診断ログだけを残す。
                 Debug.LogException(exception);
             }
         }
 
-        private readonly PauseStateEntity _state;
-        private readonly PausableRegistry _registry;
+        #endregion
     }
 }

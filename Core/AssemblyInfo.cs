@@ -1,11 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 
-// Core/Internal/ のヘルパーはフレームワーク専用のため internal のままにするが、
-// アセンブリが分かれているRuntimeとEditorから利用できるようフレンド指定する。
+// フレームワーク専用の内部実装を、別アセンブリのRuntimeとEditorから利用できるようにする。
 [assembly: InternalsVisibleTo("SymphonyFrameWork")]
 [assembly: InternalsVisibleTo("SymphonyFrameWork.Editor")]
 
-// テストアセンブリはパッケージ同梱（Tests/）であり、UNITY_INCLUDE_TESTS が
-// 定義された環境でのみコンパイルされる。内部実装の単体テストのために公開する。
+// UNITY_INCLUDE_TESTSが定義された環境に限り、内部実装をパッケージ同梱テストから検証できるようにする。
 [assembly: InternalsVisibleTo("SymphonyFrameWork.Tests.Editor")]
 [assembly: InternalsVisibleTo("SymphonyFrameWork.Tests.Runtime")]

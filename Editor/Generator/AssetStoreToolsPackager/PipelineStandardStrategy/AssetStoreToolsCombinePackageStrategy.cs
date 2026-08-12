@@ -24,12 +24,19 @@ namespace SymphonyFrameWork.Editor
     [Serializable]
     public sealed class AssetStoreToolsCombinePackageStrategy : AssetStoreToolsStandardStrategy
     {
+        #region 外部向けAPI
+
         /// <inheritdoc />
         public override string DisplayName => "Combine";
+
+        #endregion
+
+        #region 内部処理
 
         /// <inheritdoc />
         protected internal override void Execute(AssetStoreToolsPackageExportContext context)
         {
+            // 個別パッケージが無い構成では差分インポートできないことを出力前に通知する。
             WarnIfNotDiffImportable(context);
 
             try
@@ -40,6 +47,7 @@ namespace SymphonyFrameWork.Editor
                 string[] exportFiles;
                 ExportPackageOptions options;
 
+                // 絞り込み済みなら確定したファイルだけを出力し、未絞り込みなら各ディレクトリを再帰出力する。
                 if (context.Plan.IsFiltered)
                 {
                     // 空判定は出力時バージョンを加える前に行う。加えた後では常に非空になる。
@@ -63,6 +71,7 @@ namespace SymphonyFrameWork.Editor
                     options = ExportPackageOptions.Recurse;
                 }
 
+                // 出力内容とオプションを確定してから、1つの統合パッケージへ書き出す。
                 AssetDatabase.ExportPackage(
                     exportFiles,
                     Path.Combine(context.ExportLocalPath, combinedName),
@@ -73,6 +82,7 @@ namespace SymphonyFrameWork.Editor
             }
             catch (Exception e)
             {
+                // 統合パッケージの失敗を記録し、ランナーが後続手順を続行できるよう例外を閉じ込める。
                 Debug.LogError($"統合パッケージの出力に失敗\n{e}");
             }
         }
@@ -86,10 +96,8 @@ namespace SymphonyFrameWork.Editor
             bool hasSingles = context.Plan.Steps
                 .Any(step => step is AssetStoreToolsSinglePackageStrategy);
 
-            if (hasSingles)
-            {
-                return;
-            }
+            // 個別パッケージがあれば、それを差分インポートへ利用できるため警告しない。
+            if (hasSingles) { return; }
 
             Debug.LogWarning(
                 $"[{nameof(AssetStoreToolsCombinePackageStrategy)}]\n"
@@ -98,5 +106,7 @@ namespace SymphonyFrameWork.Editor
                 + $"\n差分インポートが必要な場合は、パイプラインへ"
                 + $"{nameof(AssetStoreToolsSinglePackageStrategy)}を追加してください。");
         }
+
+        #endregion
     }
 }

@@ -24,8 +24,14 @@ namespace SymphonyFrameWork.Editor
     [Serializable]
     public abstract class AssetStoreToolsPackageStepStrategy
     {
+        #region 外部向けAPI
+
         /// <summary> ウィンドウと確認ウィンドウへ表示する名前。 </summary>
         public virtual string DisplayName => GetType().Name;
+
+        #endregion
+
+        #region 内部処理
 
         /// <summary>
         ///     出力対象を絞り込む段階。既定では何もしない。
@@ -48,5 +54,7 @@ namespace SymphonyFrameWork.Editor
         protected internal virtual void Execute(AssetStoreToolsPackageExportContext context)
         {
         }
+
+        #endregion
     }
 }

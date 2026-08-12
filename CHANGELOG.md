@@ -1,5 +1,134 @@
 # Changelog
 
+## [3.9.6] - 2026-08-12
+Save Data Registryパネルにセーブデータが表示されない不具合を修正しました。公開APIとシリアライズ形式は3.9.5から変更していません。
+
+### Fix
+
+- **Symphony Administrator の Save Data Registry パネルに、セーブデータが1件も表示されない不具合を修正しました。** `SaveDataWindow` が一時編集用の `ScriptableObject` をコンストラクタ本体で生成していましたが、基底クラスのコンストラクタが `Initialize_S` を同期的に呼ぶため、その時点ではまだ生成されていませんでした。初期化が `NullReferenceException` で中断し、ViewModel の購読と一覧の更新に到達していませんでした。生成をフィールド初期化子へ移し、基底コンストラクタより先に完了するようにしています。
+- **上記の初期化失敗が Console に出ていなかった問題を修正しました。** `SymphonyVisualElement.InitializeTask` は待機されないことがあり、`Initialize_S` の例外が観測されないまま初期化途中のUIだけが残っていました。例外をログしてから再送出するようにしています。
+- **プロジェクトに `SaveDataContent` を継承した型が1つも無いとき、Save Data Registry パネルのステータスが「初期化中です…」のまま残る不具合を修正しました。** 型が見つからない理由を表示します。
+
+## [3.9.5] - 2026-08-11
+コード全体へコメントと可読性の規約を適用しました。公開APIとシリアライズ形式は3.9.4から変更していません。
+
+### Change
+
+- **`Tests/` と `Samples/` を除く全160ファイルへ、`Documentation/CodeGuidelines.md` のコメント規約を適用しました。** 規約は文書として存在していましたが、コード側は1ファイルも適合していませんでした。適合していないコードが多数派である限り、新しいコードの書き手は周囲を手本にするため、規約が定着しません。
+- **型の中身を `#region 外部向けAPI` と `#region 内部処理` へ二分割しました。** 利用側から呼べるものと実装の都合が、型を開いた時点で分かれて見えます。メンバーを持たない型と型定義の無いファイルには入れていません。
+- **メソッドの中へ、処理のまとまりごとのコメントを追加しました。** 特に、分岐が成立する状況、順序の理由、回避している問題を書いています。18,551行に対して278行しかコメントがない状態でした。
+- **型とメソッドのサマリーを複数行形式に、プロパティとフィールドを1行形式に統一しました。** 流し読みしたときに型とメソッドの区切りが目に留まります。
+- **ローカル変数の型を明示し、`var` を廃止しました**（匿名型を除く）。右辺が `new` の場合はターゲット型 `new()` で短縮しています。
+- **制御構文の波括弧を補い、本文が1文なら1行形式、2文以上ならAllman形式へ揃えました。** 1行にすると120文字を超える場合はAllman形式のままにしています。
+
+実行時の振る舞いと生成物は変わりません。ただし `EnumGenerator` が出力する列挙型のサマリーだけ、同じ規約に合わせて複数行形式になります。
+
+## [3.9.4] - 2026-08-11
+HTML版ドキュメントのmermaidを、図として表示するようにしました。公開APIとシリアライズ形式は3.9.3から変更していません。
+
+### Add
+
+- **`Documentation~/Html/` のmermaidブロックが、コードブロックではなく図として表示されるようになりました。** `Window > SymphonyFrameWork > Documentation` から開くHTMLで、モジュール文書の内部構造図とアーキテクチャ図がそのまま読めます。これまでは「オフラインで開く前提のため外部スクリプトを読み込まない」という理由から、mermaidのソースをそのまま表示していました。
+- **図はSVGとして `Documentation~/Html/Diagrams/` へ同梱します。** 生成時にSVGへ変換して`<img>`から参照する方式のため、実行時のスクリプトを読み込みません。オフラインでもそのまま表示されます。ダークテーマでも読めるよう、図の下地は常に白で描画します。
+
+## [3.9.3] - 2026-08-11
+AIエージェント向け文書の役割分担を整理しました。公開APIとシリアライズ形式は3.9.2から変更していません。
+
+### Change
+
+- **`Documentation~/AgentUsage.md` の `## 共通の前提` を削除し、`AGENTS.md` の `## 1. 常に守ること` を常時ルールの唯一の正本にしました。** 7項目のうち6項目が`AGENTS.md`と同じ内容で、片方だけを更新すると2つの文書が食い違う状態でした。AgentUsage.mdは、namespaceと入口の型から読むべきモジュール文書を引くAPI索引に役割を絞ります。`## APIの参照先`と`## 非推奨APIと移行`は変更していません。
+- **重複していなかった`Cache/Log.txt`の扱いを、`AGENTS.md`の`## 1. 常に守ること`へ9項目目として移しました。** 削除ではなく移動です。
+- **`AGENTS.md`の`## 0. 作業内容ごとの参照先`へ、AgentUsage.mdへの行を追加しました。** これまでREADMEの索引からしか辿れず、エージェントが最初に読む文書からは到達できませんでした。
+
+## [3.9.2] - 2026-08-11
+Symphony AdministratorのUXMLが参照するUSSのパスを修正しました。公開APIとシリアライズ形式は3.9.1から変更していません。
+
+### Fix
+
+- **`PauseWindow.uxml` と `AutoEnumGeneratorWindow.uxml` の `<Style src>` が、実在しないフォルダのパスを指していた問題を修正しました。** それぞれ `Assets/Scripts/SymphonyFrameWork/SymphonyEditor/...` と `Assets/SymphonyFrameWork/SymphonyEditor/...` を指しており、どちらも過去のフォルダ構成の名残です。残る4つのUXMLと同じ `Assets/SymphonyFrameWork/Editor/Administrator/UITK/SymphonyWIndow.uss` へ揃えました。
+
+  **表示は修正前も壊れていません。** `src` のクエリ文字列に含まれるGUIDでUnityがUSSを解決するためです。**壊れるのはGUIDが失われた場合と、パス側で解決する経路を通った場合**で、それまでは誤ったパスだけが残り、読む人に存在しないフォルダがあるかのような誤解を与えていました。表示、公開API、シリアライズ形式への影響はありません。
+
+  **管理パネルの全UXMLについて、`<Style src>` のパスとGUIDが同じアセットを指すことを検証するEditModeテストを追加しました。** パスだけが古くなっても表示が壊れないため、テストが無いと同じ食い違いが再発しても気づけません。
+
+## [3.9.1] - 2026-08-11
+Symphony Administratorの各パネルからドキュメントを開けるようにしました。**公開APIとシリアライズ形式は3.9.0から変更していません。**
+
+### Add
+
+- **`Symphony Administrator` の5つのパネルへ、右上に `ドキュメント` ボタンを追加しました。** Service Locate / Scene Load / Save Data / Pause / Auto Enum Generator のそれぞれから、対応するモジュール文書がブラウザで開きます。状態を見ている画面から、その機能の説明へ直接移動できます。
+
+  ボタンは `SymphonyWIndow.uss` の `document-button` で装飾し、パネルの表示領域を圧迫しない大きさにしています。**Play Modeの開始・終了を繰り返してもボタンは機能し続けます。** 購読先のButtonはパネルと寿命を共にするためです。
+
+## [3.9.0] - 2026-08-11
+Editorからドキュメントをブラウザで開けるようにしました。**既存の公開APIとシリアライズ形式は3.8.7から変更していません。**
+
+### Add
+
+- **`Window > SymphonyFrameWork > Documentation` を追加しました。** 同梱ドキュメントの索引がブラウザで開きます。ドキュメントの在り処を知らないと読めない状態を解消するためです。
+
+- **`Project Settings > SymphonyFrameWork` の各画面へ `ドキュメントを開く` ボタンを追加しました。** 設定画面から、その設定を説明している文書へ直接移動できます。`SymphonyFrameWork` は[Editor機能](./Documentation~/EditorTools.md)、`Save System` は[Save Data System](./Documentation~/Modules/SaveDataSystem.md)、`Asset Store Tools Packager` は[Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)を開きます。
+
+- **Editor専用の公開API `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)` を追加しました。** 利用側のEditor拡張からも同じ経路でドキュメントを開けます。
+
+  ```csharp
+  SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
+  ```
+
+  **`Open` は例外を投げません。** Editorの補助機能であり、ドキュメントを開けないことで利用側の作業を止めないためです。同梱HTMLが見つからない場合は、Consoleへ警告を出したうえでGitHub上の正本Markdownを開きます。**フォールバック先は `main` ブランチです。** リポジトリにバージョンタグが無いため、導入バージョンでは固定できません。
+
+## [3.8.7] - 2026-08-11
+ドキュメントをブラウザで読めるHTMLをパッケージへ同梱しました。**公開APIとシリアライズ形式は3.8.6から変更していません。**
+
+### Add
+
+- **`Documentation~/Html/` に、README・CHANGELOG・`Documentation~` 配下の全Markdownと同じ内容のHTMLを同梱しました。** `Documentation~/Html/index.html` が入口です。Markdownのままではブラウザで読みにくく、レンダリングのために外部サービスへ頼る必要がありました。
+
+  **正本はMarkdownで、HTMLは生成物です。** 内容の修正はMarkdown側へ行ってください。生成は開発用リポジトリの `scripts/build_module_docs.py` が行い、正本との乖離はリリース前の検証で検出されます。
+
+  各HTMLは1ファイルで完結し、外部のCSS・フォント・スクリプトを読み込みません。`file://` で開けるようにするためで、ライトとダークの両方の配色に対応しています。**既知の制限として、mermaidの図はレンダリングされずコードブロックとして表示されます。**
+
+## [3.8.6] - 2026-08-11
+Editor機能のドキュメントをモジュールごとに分離しました。**公開APIとシリアライズ形式は3.8.5から変更していません。**
+
+### Change
+
+- **Editorモジュールごとの文書を `Documentation~/Modules/` へ追加しました。** `AutoEnumGenerator.md` / `AssetStoreToolsPackager.md` / `ProjectStructureTools.md` の3本です。`ProjectStructureTools.md` には `FolderGenerator` / `AssemblyGenerator` / `SymphonyPackageLoader` をまとめています。
+
+- **`Documentation~/EditorTools.md` を、単一モジュールへ属さない横断的な内容だけに縮めました（458行 → 154行）。** 残るのは索引、設定ファイルの置き場、Symphony Administrator、Framework設定、アセット保護、設定アセットの自動生成、Editorの初期化です。**索引表の行は消さず、移送先のモジュール文書へのリンクへ張り替えています。** どこに何があるかはこの1ファイルで引き続き分かります。
+
+- **3.8.5 でモジュール文書へ移した節（Save System設定、Service Locatorのログ設定、`SymphonyDebugHUD`、ログのファイル出力、`SymphonyMcpTools`、Inspector属性）を `EditorTools.md` から削除しました。** 3.8.5 の時点では両方へ載っており、片方だけが更新される状態でした。
+
+- **README.md の「Editor・デバッグ支援」を索引表へ置き換えました。** Runtimeモジュールに紐づくEditor機能は「機能ごとの使い方」の各モジュール文書側にあることを明記しています。
+
+## [3.8.5] - 2026-08-11
+利用者向けドキュメントをRuntimeモジュールごとに分離しました。**公開APIとシリアライズ形式は3.8.4から変更していません。**
+
+### Change
+
+- **Runtimeモジュールごとの文書を `Documentation~/Modules/` へ追加し、1モジュールを使うために1ファイルだけ読めばよい形にしました。** これまでは1つのモジュールを理解するのに、README.mdのクイックスタート、`Documentation~/AgentUsage.md`の実装時の注意、`Documentation~/EditorTools.md`のEditor入口、`Documentation~/Architecture.md`の内部構造という4ファイルを開く必要がありました。AIが参照するときのコンテキスト効率と、読む人の負担がどちらも悪化していたためです。
+
+  追加した文書は `ServiceLocator.md` / `SceneLoader.md` / `SaveDataSystem.md` / `AudioManager.md` / `PauseManager.md` / `Debug.md` / `Utility.md` / `InspectorAttributes.md` の8本です。各文書は「入口」「クイックスタート」「実装時の注意」「Editor機能」「内部構造」「関連」の構成で統一しています。
+
+- **README.md の「機能ごとの使い方」を索引へ置き換えました。** コード例は各モジュール文書へ移しています。READMEのアンカー（`#service-locator` など）を参照していた場合は、対応するモジュール文書へのリンクへ変更してください。
+
+- **`Documentation~/AgentUsage.md` からモジュール別の節を、`Documentation~/Architecture.md` からサブシステム個別の内部構成図5点を、それぞれ対応するモジュール文書へ移しました。** AgentUsage.mdには共通の前提とAPIの参照先だけが、Architecture.mdにはアセンブリ構成、ディレクトリ構成、起動と終了、公開Facade全体のclass図だけが残ります。
+
+- **`SymphonyStopWatch` と `SymphonyDebugLogger` の使い方を `Debug.md` へ、Utilityの各型の用途を `Utility.md` へ書き起こしました。** どちらもこれまでREADMEの箇条書き1行しか説明がありませんでした。
+
+- **`Project Settings > SymphonyFrameWork` のService Locatorログ設定に、`Destroy Instance` の項目があることを明記しました。** `Documentation~/EditorTools.md` には登録ログと取得ログの2つしか書かれていませんでした。
+
+## [3.8.4] - 2026-08-08
+Symphony AdministratorのUXML名前空間解決を修正しました。公開APIとシリアライズ形式は3.8.3から変更していません。
+
+### Fix
+
+- **`Symphony Administrator` を開くたび、5つの管理パネルに `UxmlElementAttribute` または登録済みfactoryが無いという警告が出る問題を修正しました。** 各パネル型には既に `[UxmlElement]` と生成済み `UxmlSerializedData` がありましたが、親の `SymphonyWindow.uxml` が `SymphonyFrameWork.Editor` 名前空間を宣言せず、完全修飾名を名前空間なしのタグとして記述していました。
+
+  **UXMLのルートで名前空間prefixを宣言し、5つの要素をprefix付きの型名で参照するようにしました。** Pause / Service Locate / Scene Load / Save Data / Auto Enum Generator の各パネルが登録済みカスタム要素として生成されます。公開API、メニューパス、設定保存先、シリアライズ形式への変更はありません。
+
+  **親UXMLを実際にインスタンス化し、5型すべてを取得できることを確認するEditModeテストを追加しました。** 名前空間宣言やタグの記述が再び崩れた場合はテストで検出されます。
+
 ## [3.8.3] - 2026-08-07
 Play Mode終了時の解除でService Locatorが例外になる問題の修正です。**公開APIのシグネチャとシリアライズ形式は 3.8.2 から変更していません。**
 

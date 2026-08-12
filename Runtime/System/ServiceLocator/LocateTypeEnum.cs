@@ -1,18 +1,19 @@
 ﻿namespace SymphonyFrameWork.System.ServiceLocate
 {
     /// <summary>
-    ///     登録するインスタンスの種類を定義します。
+    ///     インスタンスの登録方式を定義する。
     /// </summary>
     public enum LocateTypeEnum : byte
     {
-        /// <summary>
-        ///     通常のシングルトンとして登録します。
-        ///     Componentの場合、ServiceLocatorのGameObjectの子オブジェクトになります。
-        /// </summary>
+        #region 外部向けAPI
+
+        /// <summary> Singletonとして登録する。 </summary>
+        /// <remarks> Componentの場合はServiceLocatorのGameObjectの子になる。 </remarks>
         Singleton,
-        /// <summary>
-        ///     インスタンスをServiceLocatorに登録しますが、親子関係は設定しません。
-        /// </summary>
+
+        /// <summary> 親子関係を変更せずに登録する。 </summary>
         Locator
+
+        #endregion
     }
 }
