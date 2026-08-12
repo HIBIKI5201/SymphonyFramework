@@ -9,9 +9,15 @@ namespace SymphonyFrameWork.Attribute
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
     public sealed class TagSelectorAttribute : PropertyAttribute
     {
-        /// <summary> タグ選択欄を表示する属性を生成する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     タグ選択欄を表示する属性を生成する。
+        /// </summary>
         public TagSelectorAttribute()
         {
         }
+
+        #endregion
     }
 }

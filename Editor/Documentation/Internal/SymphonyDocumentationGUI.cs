@@ -10,11 +10,10 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     internal static class SymphonyDocumentationGUI
     {
+        #region 外部向けAPI
+
         /// <summary> 管理パネルのUXMLが持つ、ドキュメントを開くボタンの要素名。 </summary>
         internal const string DOCUMENT_BUTTON_NAME = "button-document";
-
-        private const string BUTTON_LABEL = "ドキュメントを開く";
-        private const float BUTTON_WIDTH = 160f;
 
         /// <summary>
         ///     UXMLから生成された管理パネルのボタンへ、ドキュメントを開く操作を結び付ける。
@@ -29,11 +28,10 @@ namespace SymphonyFrameWork.Editor
         {
             Button button = container?.Q<Button>(DOCUMENT_BUTTON_NAME);
 
-            if (button == null)
-            {
-                return;
-            }
+            // UXMLが差し替わってボタンが無い場合も、管理パネル自体の初期化は継続する。
+            if (button == null) { return; }
 
+            // ボタンはパネルと寿命を共にするため、匿名ラムダの購読解除は不要とする。
             button.clicked += () => SymphonyDocumentation.Open(page);
         }
 
@@ -46,17 +44,24 @@ namespace SymphonyFrameWork.Editor
         /// </remarks>
         internal static void DrawOpenButton(SymphonyDocumentPageEnum page)
         {
+            // 各設定画面の内容量に左右されず、ドキュメントへの導線を右端へ揃える。
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button(BUTTON_LABEL, GUILayout.Width(BUTTON_WIDTH)))
-                {
-                    SymphonyDocumentation.Open(page);
-                }
+                if (GUILayout.Button(BUTTON_LABEL, GUILayout.Width(BUTTON_WIDTH))) { SymphonyDocumentation.Open(page); }
             }
 
             EditorGUILayout.Space();
         }
+
+        #endregion
+
+        #region 内部処理
+
+        private const string BUTTON_LABEL = "ドキュメントを開く";
+        private const float BUTTON_WIDTH = 160f;
+
+        #endregion
     }
 }

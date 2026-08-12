@@ -2,10 +2,16 @@
 
 namespace SymphonyFrameWork.System.SceneLoad
 {
-    /// <summary> ロードしたシーンのルートオブジェクト初期化に失敗した場合に発生する例外。 </summary>
+    /// <summary>
+    ///     ロードしたシーンのルートオブジェクト初期化に失敗した場合に発生する例外。
+    /// </summary>
     public sealed class SceneInitializationException : Exception
     {
-        /// <summary> 初期化に失敗したシーンと対象を指定して例外を生成する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     初期化に失敗したシーンと対象を指定して例外を生成する。
+        /// </summary>
         /// <param name="sceneName"> 初期化中だったシーン名。 </param>
         /// <param name="gameObjectName"> 初期化対象のルートGameObject名。 </param>
         /// <param name="initializerType"> DIまたは非同期初期化を実行していた型。 </param>
@@ -20,6 +26,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 + $" Initializer: {initializerType?.FullName ?? "(null)"}",
                 innerException)
         {
+            // 例外メッセージと構造化プロパティへ同じ初期化文脈を保持する。
             SceneName = sceneName;
             GameObjectName = gameObjectName;
             InitializerType = initializerType;
@@ -33,5 +40,7 @@ namespace SymphonyFrameWork.System.SceneLoad
 
         /// <summary> DIまたは非同期初期化を実行していた型。 </summary>
         public Type InitializerType { get; }
+
+        #endregion
     }
 }

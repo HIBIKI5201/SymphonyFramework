@@ -2,10 +2,16 @@
 
 namespace SymphonyFrameWork.System.SceneLoad
 {
-    /// <summary> 追跡中シーンの状態を表す不変なスナップショット。 </summary>
+    /// <summary>
+    ///     追跡中シーンの状態を表す不変なスナップショット。
+    /// </summary>
     public readonly struct SceneLoadInfo : IEquatable<SceneLoadInfo>
     {
-        /// <summary> Queryが抽出した追跡状態からスナップショットを生成する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     Queryが抽出した追跡状態からスナップショットを生成する。
+        /// </summary>
         /// <param name="sceneName"> シーン名。 </param>
         /// <param name="state"> ロード状態。 </param>
         /// <param name="priority"> Active Scene選択に使用する優先度。 </param>
@@ -18,6 +24,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             float progress,
             bool isActive)
         {
+            // Queryが取得した同一時点の公開値を、不変なスナップショットへまとめる。
             SceneName = sceneName;
             State = state;
             Priority = priority;
@@ -40,21 +47,27 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> Active Sceneの場合はtrue。 </summary>
         public bool IsActive { get; }
 
-        /// <summary> 2つのスナップショットが同じ値を持つか判定する。 </summary>
+        /// <summary>
+        ///     2つのスナップショットが同じ値を持つか判定する。
+        /// </summary>
         /// <param name="left"> 左辺のスナップショット。 </param>
         /// <param name="right"> 右辺のスナップショット。 </param>
         /// <returns> 同値の場合はtrue。 </returns>
         public static bool operator ==(SceneLoadInfo left, SceneLoadInfo right) =>
             left.Equals(right);
 
-        /// <summary> 2つのスナップショットが異なる値を持つか判定する。 </summary>
+        /// <summary>
+        ///     2つのスナップショットが異なる値を持つか判定する。
+        /// </summary>
         /// <param name="left"> 左辺のスナップショット。 </param>
         /// <param name="right"> 右辺のスナップショット。 </param>
         /// <returns> 異なる場合はtrue。 </returns>
         public static bool operator !=(SceneLoadInfo left, SceneLoadInfo right) =>
             !left.Equals(right);
 
-        /// <summary> 指定したスナップショットと同値か判定する。 </summary>
+        /// <summary>
+        ///     指定したスナップショットと同値か判定する。
+        /// </summary>
         /// <param name="other"> 比較対象。 </param>
         /// <returns> すべての値が一致する場合はtrue。 </returns>
         public bool Equals(SceneLoadInfo other) =>
@@ -64,18 +77,23 @@ namespace SymphonyFrameWork.System.SceneLoad
             && Progress.Equals(other.Progress)
             && IsActive == other.IsActive;
 
-        /// <summary> 指定したオブジェクトと同値か判定する。 </summary>
+        /// <summary>
+        ///     指定したオブジェクトと同値か判定する。
+        /// </summary>
         /// <param name="obj"> 比較対象。 </param>
         /// <returns> 同値のSceneLoadInfoの場合はtrue。 </returns>
         public override bool Equals(object obj) =>
             obj is SceneLoadInfo other && Equals(other);
 
-        /// <summary> スナップショットの全値に基づくハッシュコードを返す。 </summary>
+        /// <summary>
+        ///     スナップショットの全値に基づくハッシュコードを返す。
+        /// </summary>
         /// <returns> ハッシュコード。 </returns>
         public override int GetHashCode()
         {
             unchecked
             {
+                // Equalsで比較する全値を同じ順序で合成する。
                 int hashCode = SceneName != null
                     ? StringComparer.Ordinal.GetHashCode(SceneName)
                     : 0;
@@ -86,5 +104,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 return hashCode;
             }
         }
+
+        #endregion
     }
 }

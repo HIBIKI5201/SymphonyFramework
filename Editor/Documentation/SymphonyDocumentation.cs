@@ -8,10 +8,12 @@ namespace SymphonyFrameWork.Editor
 {
     /// <summary>
     ///     Frameworkのドキュメントをブラウザで開く。
-    ///     パッケージへ同梱したHTMLを開き、見つからない場合はGitHub上の正本Markdownへ切り替える。
     /// </summary>
+    /// <remarks> 同梱HTMLが見つからない場合はGitHub上の正本Markdownへ切り替える。 </remarks>
     public static class SymphonyDocumentation
     {
+        #region 外部向けAPI
+
         /// <summary> ドキュメント表示のメニュー名。 </summary>
         public const string MENU_NAME = "Documentation";
 
@@ -25,6 +27,7 @@ namespace SymphonyFrameWork.Editor
         /// </remarks>
         public static void Open(SymphonyDocumentPageEnum page)
         {
+            // 未定義のページは誤ったURLを開かず、呼び出し側が特定できるエラーとして記録する。
             if (!SymphonyDocumentPathResolver.TryGetDocumentName(page, out _))
             {
                 Debug.LogError(
@@ -33,14 +36,17 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
+            // Package導入とAssets直置きのどちらでも、実際に検出したFrameworkルートから探す。
             string frameworkRoot = SymphonyConstant.GetFrameworkAbsolutePath();
 
+            // オフラインでも参照できる同梱HTMLを優先し、存在する場合はそこで完了する。
             if (SymphonyDocumentPathResolver.TryResolveLocalPath(frameworkRoot, page, out string localPath))
             {
                 Application.OpenURL(SymphonyDocumentPathResolver.ToFileUrl(localPath));
                 return;
             }
 
+            // 同梱HTMLを解決できない環境では、利用者が文書へ到達できるGitHubの正本へ切り替える。
             string fallbackUrl = SymphonyDocumentPathResolver.ResolveFallbackUrl(page);
 
             Debug.LogWarning(
@@ -50,6 +56,10 @@ namespace SymphonyFrameWork.Editor
             Application.OpenURL(fallbackUrl);
         }
 
+        #endregion
+
+        #region 内部処理
+
         /// <summary>
         ///     ドキュメントの索引をブラウザで開く。
         /// </summary>
@@ -58,5 +68,7 @@ namespace SymphonyFrameWork.Editor
         {
             Open(SymphonyDocumentPageEnum.Index);
         }
+
+        #endregion
     }
 }

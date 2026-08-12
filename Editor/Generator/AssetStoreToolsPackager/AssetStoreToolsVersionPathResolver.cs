@@ -12,6 +12,8 @@ namespace SymphonyFrameWork.Editor
     /// </remarks>
     internal static class AssetStoreToolsVersionPathResolver
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     アセットパスがどのパッケージ対象ディレクトリに属するかを解決する。
         /// </summary>
@@ -33,45 +35,38 @@ namespace SymphonyFrameWork.Editor
         {
             directoryName = null;
 
-            if (string.IsNullOrEmpty(assetPath) || string.IsNullOrEmpty(rootPath))
-            {
-                return false;
-            }
+            // 変更パスか基準ルートが無ければ所属を判定できない。
+            if (string.IsNullOrEmpty(assetPath) || string.IsNullOrEmpty(rootPath)) { return false; }
 
             string normalizedAssetPath = assetPath.Replace('\\', '/');
             string normalizedRootPath = rootPath.Replace('\\', '/').TrimEnd('/');
-            if (normalizedRootPath.Length == 0)
-            {
-                return false;
-            }
+            // 区切り文字だけのルートを、全アセットの基準として扱わない。
+            if (normalizedRootPath.Length == 0) { return false; }
 
             string rootPrefix = normalizedRootPath + "/";
-            if (!normalizedAssetPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
+            // 対象ルート外の変更は、このバージョンログへ反映しない。
+            if (!normalizedAssetPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase)) { return false; }
 
             string relativePath = normalizedAssetPath.Substring(rootPrefix.Length);
 
             // 区切りが無い場合は対象フォルダ直下のファイルかディレクトリ自身であり、
             // どのパッケージにも属さない。
             int separatorIndex = relativePath.IndexOf('/');
-            if (separatorIndex <= 0)
-            {
-                return false;
-            }
+            if (separatorIndex <= 0) { return false; }
 
             string name = relativePath.Substring(0, separatorIndex);
             string remainingPath = relativePath.Substring(separatorIndex + 1);
 
-            if (IsExportedVersionFile(remainingPath))
-            {
-                return false;
-            }
+            // 出力処理自身が書くバージョンファイルは、リビジョン加算の再入を防ぐため除外する。
+            if (IsExportedVersionFile(remainingPath)) { return false; }
 
             directoryName = name;
             return true;
         }
+
+        #endregion
+
+        #region 内部処理
 
         /// <summary> Unityが生成するメタデータファイルの拡張子。 </summary>
         private const string META_EXTENSION = ".meta";
@@ -96,5 +91,7 @@ namespace SymphonyFrameWork.Editor
                 EditorSymphonyConstant.ASSET_STORE_TOOLS_EXPORTED_VERSION_FILE_NAME,
                 StringComparison.OrdinalIgnoreCase);
         }
+
+        #endregion
     }
 }

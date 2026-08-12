@@ -2,9 +2,13 @@
 
 namespace SymphonyFrameWork.System.SaveSystem
 {
-    /// <summary> セーブデータ登録の表示用更新値。 </summary>
+    /// <summary>
+    ///     セーブデータ登録の表示用更新値を表す。
+    /// </summary>
     internal readonly struct SaveDataDto : IEquatable<SaveDataDto>
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     表示に必要な値を指定して生成する。
         /// </summary>
@@ -18,16 +22,15 @@ namespace SymphonyFrameWork.System.SaveSystem
             string saveDate,
             bool isLoaded)
         {
+            // 表示と比較に使う値を同じ不変スナップショットへ固定する。
             DataType = dataType;
             DataTypeName = dataTypeName;
             SaveDate = saveDate;
             IsLoaded = isLoaded;
         }
 
-        /// <summary>
-        ///     対象のセーブデータ型。
-        ///     Editorが選択行に対してロードや保存を実行するため、型そのものを渡す。
-        /// </summary>
+        /// <summary> 対象のセーブデータ型。 </summary>
+        /// <remarks> Editorが選択行を操作するため、型そのものを保持する。 </remarks>
         internal Type DataType { get; }
 
         /// <summary> 表示用の型名。 </summary>
@@ -39,28 +42,36 @@ namespace SymphonyFrameWork.System.SaveSystem
         /// <summary> 永続化データを読み込み済みかどうか。 </summary>
         internal bool IsLoaded { get; }
 
-        /// <summary> 表示値が等しいか判定する。 </summary>
+        /// <summary>
+        ///     表示値が等しいか判定する。
+        /// </summary>
         /// <param name="other"> 比較対象。 </param>
         /// <returns> 全ての表示値が等しい場合はtrue。 </returns>
         public bool Equals(SaveDataDto other)
         {
+            // 表示更新の要否を判定できるよう、表示に影響する全値を比較する。
             return DataType == other.DataType
                 && string.Equals(DataTypeName, other.DataTypeName, StringComparison.Ordinal)
                 && string.Equals(SaveDate, other.SaveDate, StringComparison.Ordinal)
                 && IsLoaded == other.IsLoaded;
         }
 
-        /// <summary> 表示値が等しいか判定する。 </summary>
+        /// <summary>
+        ///     表示値が等しいか判定する。
+        /// </summary>
         /// <param name="obj"> 比較対象。 </param>
         /// <returns> 同じ型で全ての表示値が等しい場合はtrue。 </returns>
         public override bool Equals(object obj) => obj is SaveDataDto other && Equals(other);
 
-        /// <summary> 表示値に基づくハッシュコードを返す。 </summary>
+        /// <summary>
+        ///     表示値に基づくハッシュコードを返す。
+        /// </summary>
         /// <returns> ハッシュコード。 </returns>
         public override int GetHashCode()
         {
             unchecked
             {
+                // Equalsで比較する全値を同じ順序で組み合わせ、オーバーフローをハッシュ値として許容する。
                 int hashCode = DataType?.GetHashCode() ?? 0;
                 hashCode = (hashCode * 397) ^ (DataTypeName?.GetHashCode() ?? 0);
                 hashCode = (hashCode * 397) ^ (SaveDate?.GetHashCode() ?? 0);
@@ -69,16 +80,22 @@ namespace SymphonyFrameWork.System.SaveSystem
             }
         }
 
-        /// <summary> 2つの表示値が等しいか判定する。 </summary>
+        /// <summary>
+        ///     2つの表示値が等しいか判定する。
+        /// </summary>
         /// <param name="left"> 左辺。 </param>
         /// <param name="right"> 右辺。 </param>
         /// <returns> 等しい場合はtrue。 </returns>
         public static bool operator ==(SaveDataDto left, SaveDataDto right) => left.Equals(right);
 
-        /// <summary> 2つの表示値が異なるか判定する。 </summary>
+        /// <summary>
+        ///     2つの表示値が異なるか判定する。
+        /// </summary>
         /// <param name="left"> 左辺。 </param>
         /// <param name="right"> 右辺。 </param>
         /// <returns> 異なる場合はtrue。 </returns>
         public static bool operator !=(SaveDataDto left, SaveDataDto right) => !left.Equals(right);
+
+        #endregion
     }
 }

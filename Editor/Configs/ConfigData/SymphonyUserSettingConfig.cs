@@ -5,12 +5,16 @@ using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> 開発者ごとのFramework設定を保持する。 </summary>
+    /// <summary>
+    ///     開発者ごとのFramework設定を保持する。
+    /// </summary>
     [FilePath(
         EditorSymphonyConstant.USER_SETTING_FILE_PATH + nameof(SymphonyUserSettingConfig) + ".asset",
         FilePathAttribute.Location.ProjectFolder)]
     public sealed class SymphonyUserSettingConfig : ScriptableSingleton<SymphonyUserSettingConfig>
     {
+        #region 外部向けAPI
+
         /// <summary> Framework配下のアセット移動に対する保護モード。 </summary>
         public AssetProtectionModeEnum AssetProtectionMode
         {
@@ -55,6 +59,10 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        #endregion
+
+        #region 内部処理
+
         [SerializeField, Tooltip("Framework配下のアセット移動に対する保護モード。")]
         private AssetProtectionModeEnum _assetProtectionMode = AssetProtectionModeEnum.Enabled;
 
@@ -67,7 +75,11 @@ namespace SymphonyFrameWork.Editor
         [SerializeField, Tooltip("Service Locatorからのインスタンス破棄ログを出力するか。")]
         private bool _isServiceLocatorDestroyInstanceLogEnabled = true;
 
-        /// <summary> 現在の設定値をUserSettingsへ保存する。 </summary>
+        /// <summary>
+        ///     現在の設定値をUserSettingsへ保存する。
+        /// </summary>
         private void Save() => Save(true);
+
+        #endregion
     }
 }

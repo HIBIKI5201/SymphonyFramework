@@ -2,10 +2,16 @@
 
 namespace SymphonyFrameWork.System.SceneLoad
 {
-    /// <summary> Scene Loadの表示に必要な不変の更新値。 </summary>
+    /// <summary>
+    ///     Scene Loadの表示に必要な不変の更新値。
+    /// </summary>
     internal readonly struct SceneLoadDto : IEquatable<SceneLoadDto>
     {
-        /// <summary> 表示に必要な値を指定して更新値を生成する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     表示に必要な値を指定して更新値を生成する。
+        /// </summary>
         /// <param name="sceneName"> シーン名。 </param>
         /// <param name="state"> ロード状態。 </param>
         /// <param name="priority"> Active Scene選択に使用する優先度。 </param>
@@ -18,6 +24,7 @@ namespace SymphonyFrameWork.System.SceneLoad
             float progress,
             bool isActive)
         {
+            // Queryが取得した同一時点の表示値を、不変な更新単位へまとめる。
             SceneName = sceneName;
             State = state;
             Priority = priority;
@@ -40,7 +47,9 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> Active Sceneの場合はtrue。 </summary>
         internal bool IsActive { get; }
 
-        /// <summary> 指定した更新値と同値か判定する。 </summary>
+        /// <summary>
+        ///     指定した更新値と同値か判定する。
+        /// </summary>
         /// <param name="other"> 比較対象。 </param>
         /// <returns> すべての値が一致する場合はtrue。 </returns>
         public bool Equals(SceneLoadDto other) =>
@@ -50,18 +59,23 @@ namespace SymphonyFrameWork.System.SceneLoad
             && Progress.Equals(other.Progress)
             && IsActive == other.IsActive;
 
-        /// <summary> 指定したオブジェクトと同値か判定する。 </summary>
+        /// <summary>
+        ///     指定したオブジェクトと同値か判定する。
+        /// </summary>
         /// <param name="obj"> 比較対象。 </param>
         /// <returns> 同値のSceneLoadDtoの場合はtrue。 </returns>
         public override bool Equals(object obj) =>
             obj is SceneLoadDto other && Equals(other);
 
-        /// <summary> 更新値の全値に基づくハッシュコードを返す。 </summary>
+        /// <summary>
+        ///     更新値の全値に基づくハッシュコードを返す。
+        /// </summary>
         /// <returns> ハッシュコード。 </returns>
         public override int GetHashCode()
         {
             unchecked
             {
+                // Equalsで比較する全値を同じ順序で合成する。
                 int hashCode = SceneName != null
                     ? StringComparer.Ordinal.GetHashCode(SceneName)
                     : 0;
@@ -72,5 +86,7 @@ namespace SymphonyFrameWork.System.SceneLoad
                 return hashCode;
             }
         }
+
+        #endregion
     }
 }

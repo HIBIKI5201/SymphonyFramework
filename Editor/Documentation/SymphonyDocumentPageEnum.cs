@@ -2,10 +2,12 @@
 {
     /// <summary>
     ///     ブラウザで開けるFrameworkのドキュメントページ。
-    ///     各値は<c>Documentation~/</c>配下の文書と1対1で対応する。
     /// </summary>
+    /// <remarks> 各値は<c>Documentation~/</c>配下の文書と1対1で対応する。 </remarks>
     public enum SymphonyDocumentPageEnum
     {
+        #region 外部向けAPI
+
         /// <summary> 全ドキュメントの索引。 </summary>
         Index,
 
@@ -44,5 +46,7 @@
 
         /// <summary> Editor機能の索引と、単一モジュールに属さない横断的な仕組み。 </summary>
         EditorTools,
+
+        #endregion
     }
 }

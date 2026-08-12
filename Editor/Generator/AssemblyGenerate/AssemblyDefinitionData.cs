@@ -2,11 +2,17 @@
 
 namespace SymphonyFrameWork.Editor
 {
-    /// <summary> Unity Assembly Definitionファイルへシリアライズする設定値を保持する。 </summary>
+    /// <summary>
+    ///     Unity Assembly Definitionファイルへシリアライズする設定値を保持する。
+    /// </summary>
     [Serializable]
     public sealed class AssemblyDefinitionData
     {
-        /// <summary> Assembly名を指定して既定の定義データを生成する。 </summary>
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     Assembly名を指定して既定の定義データを生成する。
+        /// </summary>
         public AssemblyDefinitionData(string name)
         {
             this.name = name;
@@ -50,5 +56,7 @@ namespace SymphonyFrameWork.Editor
 
         /// <summary> Assembly Definitionが使用するプラットフォーム設定。 </summary>
         public string[] platforms = new string[0];
+
+        #endregion
     }
 }

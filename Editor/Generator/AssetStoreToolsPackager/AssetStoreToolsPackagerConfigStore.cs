@@ -12,6 +12,8 @@ namespace SymphonyFrameWork.Editor
     /// </summary>
     internal static class AssetStoreToolsPackagerConfigStore
     {
+        #region 外部向けAPI
+
         /// <summary>
         ///     現在の対象フォルダ設定から設定ファイルのパスを組み立てる。
         /// </summary>
@@ -19,36 +21,35 @@ namespace SymphonyFrameWork.Editor
         internal static string GetConfigFilePath()
         {
             string root = AssetStoreToolsPackagerData.AssetStoreToolsPath;
-            if (string.IsNullOrEmpty(root))
-            {
-                return string.Empty;
-            }
+            // 未設定のルートを有効な相対パスとして扱わない。
+            if (string.IsNullOrEmpty(root)) { return string.Empty; }
 
             return CombinePath(root, EditorSymphonyConstant.ASSET_STORE_TOOLS_CONFIG_FILE_NAME);
         }
 
         /// <summary>
-        ///     設定を読み込む。ファイルが存在しない場合は生成し、ignore.txtがあれば内容を移行する。
+        ///     設定を読み込む。
         /// </summary>
+        /// <remarks> ファイルが存在しない場合は生成し、ignore.txtがあれば内容を移行する。 </remarks>
         /// <returns> 正規化済みの設定。読み込みに失敗した場合はnull。 </returns>
         internal static AssetStoreToolsPackagerConfig Load()
         {
             string configPath = GetConfigFilePath();
+            // 対象フォルダが未設定なら、設定ファイルの読み込み先を決められない。
             if (string.IsNullOrEmpty(configPath))
             {
                 Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
                 return null;
             }
 
-            if (!File.Exists(configPath))
-            {
-                return CreateConfigFile(configPath);
-            }
+            // 初回利用時は既定値を生成し、旧設定があれば同じ処理内で移行する。
+            if (!File.Exists(configPath)) { return CreateConfigFile(configPath); }
 
             try
             {
                 string json = File.ReadAllText(configPath);
-                var config = JsonConvert.DeserializeObject<AssetStoreToolsPackagerConfig>(json);
+                AssetStoreToolsPackagerConfig config =
+                    JsonConvert.DeserializeObject<AssetStoreToolsPackagerConfig>(json);
 
                 // 空ファイルやnullリテラルはnullになる。既定値へフォールバックすると
                 // 除外設定が無視されるため、壊れたファイルとして扱う。
@@ -79,22 +80,19 @@ namespace SymphonyFrameWork.Editor
         /// <returns> 書き出せた場合はtrue。 </returns>
         internal static bool Save(AssetStoreToolsPackagerConfig config)
         {
-            if (config == null)
-            {
-                return false;
-            }
+            // 保存対象が無ければ既存設定を上書きしない。
+            if (config == null) { return false; }
 
             string configPath = GetConfigFilePath();
+            // 対象フォルダが未設定なら、設定ファイルの保存先を決められない。
             if (string.IsNullOrEmpty(configPath))
             {
                 Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
                 return false;
             }
 
-            if (!TryEnsureDirectory(configPath))
-            {
-                return false;
-            }
+            // 保存先が無い場合は、別の場所へ暗黙に生成しない。
+            if (!TryEnsureDirectory(configPath)) { return false; }
 
             try
             {
@@ -110,23 +108,28 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        #endregion
+
+        #region 内部処理
+
         private const string LOG_PREFIX = "[" + nameof(AssetStoreToolsPackagerConfigStore) + "]";
 
-        /// <summary> 移行元となる旧設定ファイルの名前。次のメジャー更新で移行処理ごと削除する。 </summary>
+        /// <summary> 移行元となる旧設定ファイルの名前。 </summary>
+        /// <remarks> 次のメジャー更新で移行処理ごと削除する。 </remarks>
         private const string IGNORE_FILE_NAME = "ignore.txt";
 
         /// <summary>
-        ///     設定ファイルを新規生成する。ignore.txtが存在すれば除外フォルダ名を引き継ぐ。
+        ///     設定ファイルを新規生成する。
         /// </summary>
+        /// <remarks> ignore.txtが存在すれば除外フォルダ名を引き継ぐ。 </remarks>
         /// <param name="configPath"> 生成する設定ファイルのパス。 </param>
         /// <returns> 生成した正規化済みの設定。生成に失敗した場合はnull。 </returns>
         private static AssetStoreToolsPackagerConfig CreateConfigFile(string configPath)
         {
-            if (!TryEnsureDirectory(configPath))
-            {
-                return null;
-            }
+            // 対象フォルダが無い場合は、設定を別の場所へ生成しない。
+            if (!TryEnsureDirectory(configPath)) { return null; }
 
+            // 新形式の既定値を基点にして、旧形式から移せる項目だけを上書きする。
             AssetStoreToolsPackagerConfig config = AssetStoreToolsPackagerConfig.CreateDefault();
 
             string ignorePath = CombinePath(
@@ -134,6 +137,7 @@ namespace SymphonyFrameWork.Editor
                 IGNORE_FILE_NAME);
             bool isMigrated = false;
 
+            // 旧設定が残っている初回生成時だけ、除外フォルダ名を新形式へ引き継ぐ。
             if (File.Exists(ignorePath))
             {
                 try
@@ -150,11 +154,9 @@ namespace SymphonyFrameWork.Editor
 
             // 生成できなかった設定を返さない。返すと、除外設定が保存されていないまま
             // パッケージ出力へ進み、次回の読み込みでも同じ状態が繰り返される。
-            if (!Save(config))
-            {
-                return null;
-            }
+            if (!Save(config)) { return null; }
 
+            // 移行の有無に応じて、旧ファイルの後処理が必要かを利用者へ伝える。
             if (isMigrated)
             {
                 Debug.Log($"{LOG_PREFIX}\nignore.txtの内容を移行しました: {configPath}"
@@ -168,39 +170,44 @@ namespace SymphonyFrameWork.Editor
             return config.Normalize();
         }
 
-        /// <summary> ignore.txtからコメントと空行を除いたフォルダ名を読み出す。 </summary>
+        /// <summary>
+        ///     ignore.txtから除外フォルダ名を読み出す。
+        /// </summary>
         private static List<string> ReadIgnoreFile(string ignorePath)
         {
             List<string> names = new();
 
+            // 旧形式のコメントと空行は設定値ではないため移行しない。
             foreach (string line in File.ReadAllLines(ignorePath))
             {
                 string trimmed = line.Trim();
-                if (!string.IsNullOrEmpty(trimmed) && !trimmed.StartsWith("#"))
-                {
-                    names.Add(trimmed);
-                }
+                // 空行と#から始まる説明行は、除外フォルダ名ではないため移行しない。
+                if (!string.IsNullOrEmpty(trimmed) && !trimmed.StartsWith("#")) { names.Add(trimmed); }
             }
 
             return names;
         }
 
-        /// <summary> 設定ファイルを置くディレクトリの存在を確認する。 </summary>
+        /// <summary>
+        ///     設定ファイルを置くディレクトリの存在を確認する。
+        /// </summary>
         /// <returns> ディレクトリが存在すればtrue。 </returns>
         private static bool TryEnsureDirectory(string configPath)
         {
             string directory = Path.GetDirectoryName(configPath);
-            if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
-            {
-                return true;
-            }
+            // 設定済みの保存先が存在する場合だけ、ファイル書き込みを許可する。
+            if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory)) { return true; }
 
             Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダが存在しません: {directory}");
             return false;
         }
 
-        /// <summary> ディレクトリとファイル名をスラッシュ区切りで連結する。 </summary>
+        /// <summary>
+        ///     ディレクトリとファイル名をスラッシュ区切りで連結する。
+        /// </summary>
         private static string CombinePath(string directory, string fileName)
             => directory.Replace("\\", "/").TrimEnd('/') + "/" + fileName;
+
+        #endregion
     }
 }

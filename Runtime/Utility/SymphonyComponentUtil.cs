@@ -7,8 +7,10 @@ namespace SymphonyFrameWork
     /// </summary>
     public static class SymphonyComponentUtil
     {
+        #region 外部向けAPI
+
         /// <summary>
-        ///     コンポーネントを取得、なければ追加します。
+        ///     Componentを取得し、存在しない場合は追加する。
         /// </summary>
         /// <typeparam name="T"> 取得または追加するComponentの型。 </typeparam>
         /// <param name="gameObject"> Componentを検索するGameObject。 </param>
@@ -16,15 +18,15 @@ namespace SymphonyFrameWork
         public static T GetOrAddComponent<T>(this GameObject gameObject) where T : Component
         {
             T component = gameObject.GetComponent<T>();
-            if (component == null)
-            {
-                component = gameObject.AddComponent<T>();
-            }
+
+            // 既存Componentを再利用できない場合だけ追加し、重複生成を避ける。
+            if (component == null) { component = gameObject.AddComponent<T>(); }
+
             return component;
         }
 
         /// <summary>
-        ///     自身を除く子オブジェクトからコンポーネントを取得します。
+        ///     自身を除く子オブジェクトからComponentを取得する。
         /// </summary>
         /// <typeparam name="T"> 検索するComponentの型。 </typeparam>
         /// <param name="self"> 検索起点から除外するTransform。 </param>
@@ -34,24 +36,21 @@ namespace SymphonyFrameWork
             bool includeInactive = false) 
             where T : Component
         {
-            // Transformを直接たどる方が明確
+            // 起点自身を検索対象へ含めないため、直下の子ごとに子孫検索を行う。
             foreach (Transform child in self)
             {
-                // 子オブジェクトからコンポーネントを検索する。
                 T component = child.GetComponentInChildren<T>(includeInactive);
 
-                if (component != null)
-                {
-                    return component;
-                }
+                // Transformの列挙順で最初に見つかったComponentを返す。
+                if (component != null) { return component; }
             }
 
-            // 見つからなければnull。
+            // 全ての子階層に対象が無い場合は、未検出をnullで通知する。
             return null;
         }
 
         /// <summary>
-        ///     親を辿ってコンポーネントを取得します。
+        ///     親を辿ってComponentを取得する。
         /// </summary>
         /// <typeparam name="T"> 検索するComponentの型。 </typeparam>
         /// <param name="transform"> 親方向への検索を開始するTransform。 </param>
@@ -61,19 +60,21 @@ namespace SymphonyFrameWork
         {
             Transform parent = transform.parent;
 
-            // 親を辿ってコンポーネントを探す。
+            // 起点自身を除き、近い親から順に検索する。
             while (parent != null)
             {
                 T component = parent.GetComponent<T>();
-                if (component != null)
-                {
-                    return component; // 見つかったら返す。
-                }
 
-                parent = parent.parent; // 次の親へ移動。
+                // 最も近い親で見つかったComponentを優先する。
+                if (component != null) { return component; }
+
+                parent = parent.parent;
             }
 
+            // ルートまで対象が無い場合は、未検出をnullで通知する。
             return null;
         }
+
+        #endregion
     }
 }

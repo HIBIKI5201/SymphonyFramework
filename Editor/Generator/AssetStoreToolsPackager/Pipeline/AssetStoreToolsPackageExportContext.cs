@@ -13,6 +13,29 @@ namespace SymphonyFrameWork.Editor
     /// </remarks>
     public sealed class AssetStoreToolsPackageExportContext
     {
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     計画と出力先設定から、1回分の出力コンテキストを生成する。
+        /// </summary>
+        /// <param name="plan"> 出力内容を確定した計画。 </param>
+        /// <param name="basePackageName"> 出力フォルダ名の基本部分。 </param>
+        /// <param name="exportRoot"> 出力先フォルダのプロジェクト相対パス。 </param>
+        internal AssetStoreToolsPackageExportContext(
+            AssetStoreToolsPackagePlan plan,
+            string basePackageName,
+            string exportRoot)
+        {
+            Plan = plan;
+            DateTime = DateTime.Now;
+            PackageName = $"Export_{basePackageName}_{DateTime:yyyyMMdd_HHmmss}";
+
+            // 同じ出力先をファイルシステム用とAssetDatabase用の両方で扱える形へ確定する。
+            ExportRoot = Path.Combine(Application.dataPath, "..", exportRoot);
+            ExportLocalPath = Path.Combine(exportRoot, PackageName);
+            ExportFullPath = Path.Combine(ExportRoot, PackageName);
+        }
+
         /// <summary> 出力内容を確定した計画。 </summary>
         public AssetStoreToolsPackagePlan Plan { get; }
 
@@ -31,22 +54,6 @@ namespace SymphonyFrameWork.Editor
         /// <summary> パッケージ処理を開始した日時。 </summary>
         public DateTime DateTime { get; }
 
-        /// <summary> 計画と出力先設定から、1回分の出力コンテキストを生成する。 </summary>
-        /// <param name="plan"> 出力内容を確定した計画。 </param>
-        /// <param name="basePackageName"> 出力フォルダ名の基本部分。 </param>
-        /// <param name="exportRoot"> 出力先フォルダのプロジェクト相対パス。 </param>
-        internal AssetStoreToolsPackageExportContext(
-            AssetStoreToolsPackagePlan plan,
-            string basePackageName,
-            string exportRoot)
-        {
-            Plan = plan;
-            DateTime = DateTime.Now;
-            PackageName = $"Export_{basePackageName}_{DateTime:yyyyMMdd_HHmmss}";
-
-            ExportRoot = Path.Combine(Application.dataPath, "..", exportRoot);
-            ExportLocalPath = Path.Combine(exportRoot, PackageName);
-            ExportFullPath = Path.Combine(ExportRoot, PackageName);
-        }
+        #endregion
     }
 }

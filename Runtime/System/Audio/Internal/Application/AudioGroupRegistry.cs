@@ -4,22 +4,22 @@ using System.Collections.Generic;
 namespace SymphonyFrameWork.System
 {
     /// <summary>
-    ///     グループ名をキーに<see cref="AudioGroupEntity"/>を所有し、検索と消去を担当する。
-    ///     構築処理を実行済みかどうかもここで保持する。
+    ///     AudioMixerグループの登録と構築状態を保持する。
     /// </summary>
     internal sealed class AudioGroupRegistry
     {
-        /// <summary>
-        ///     構築処理を実行済みかどうか。
-        ///     **結果が空でも実行済みとして扱う。** AudioMixerが未割り当ての場合に
-        ///     警告が呼び出しのたびに出るのを防ぐため。
-        /// </summary>
+        #region 外部向けAPI
+
+        /// <summary> 構築処理を実行済みかどうか。 </summary>
+        /// <remarks> 結果が空でも、AudioMixer未割り当ての警告を繰り返さないため実行済みとして扱う。 </remarks>
         internal bool IsBuilt { get; private set; }
 
         /// <summary> 登録されているグループの件数。 </summary>
         internal int Count => _groups.Count;
 
-        /// <summary> 構築処理を実行済みとして記録する。 </summary>
+        /// <summary>
+        ///     構築処理を実行済みとして記録する。
+        /// </summary>
         internal void MarkBuilt()
         {
             IsBuilt = true;
@@ -32,16 +32,13 @@ namespace SymphonyFrameWork.System
         /// <returns> 新たに登録した場合はtrue。 </returns>
         internal bool TryAdd(AudioGroupEntity entity)
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
+            // グループ名へアクセスできない不完全なEntityを登録させない。
+            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
 
-            if (_groups.ContainsKey(entity.GroupName))
-            {
-                return false;
-            }
+            // 同名グループは先に構築したAudioSourceとの対応を維持するため上書きしない。
+            if (_groups.ContainsKey(entity.GroupName)) { return false; }
 
+            // グループ名をAudioMixer設定と同じ検索キーとして保持する。
             _groups.Add(entity.GroupName, entity);
             return true;
         }
@@ -54,6 +51,7 @@ namespace SymphonyFrameWork.System
         /// <returns> 登録がある場合はtrue。 </returns>
         internal bool TryGet(string groupName, out AudioGroupEntity entity)
         {
+            // AudioMixerグループを特定できない名前ではDictionaryを検索しない。
             if (string.IsNullOrEmpty(groupName))
             {
                 entity = null;
@@ -63,13 +61,22 @@ namespace SymphonyFrameWork.System
             return _groups.TryGetValue(groupName, out entity);
         }
 
-        /// <summary> 全ての登録と構築済み記録を消去する。 </summary>
+        /// <summary>
+        ///     全ての登録と構築済み記録を消去する。
+        /// </summary>
         internal void Clear()
         {
+            // 次回アクセス時にAudioMixer設定から再構築できる初期状態へ戻す。
             _groups.Clear();
             IsBuilt = false;
         }
 
+        #endregion
+
+        #region 内部処理
+
         private readonly Dictionary<string, AudioGroupEntity> _groups = new();
+
+        #endregion
     }
 }

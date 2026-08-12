@@ -1,10 +1,12 @@
 ﻿namespace SymphonyFrameWork.Core
 {
     /// <summary>
-    ///     ランタイム用の定数値を持つ
+    ///     ランタイム用の定数値を持つ。
     /// </summary>
     public static class SymphonyConstant
     {
+        #region 外部向けAPI
+
         /// <summary> Unity Package Managerで使用するパッケージ名。 </summary>
         public const string SYMPHONY_PACKAGE = "symphonyframework";
 
@@ -13,18 +15,20 @@
 
 #if UNITY_EDITOR
         /// <summary>
-        ///     Frameworkが実際に配置されている絶対パス（実ファイルパス）を取得する。
-        ///     UPM経由（Library/PackageCache等）とAssets直置きの両方に対応する。
+        ///     Frameworkの絶対パスを取得する。
         /// </summary>
+        /// <remarks> UPM経由とAssets直置きの両方に対応する。 </remarks>
         /// <returns> Frameworkルートフォルダの絶対パス。 </returns>
         public static string GetFrameworkAbsolutePath()
         {
-            var packageInfo = UnityEditor.PackageManager.PackageInfo
+            // UPMが解決した配置先を優先し、PackageCache内の実ファイルへ到達できるようにする。
+            UnityEditor.PackageManager.PackageInfo packageInfo = UnityEditor.PackageManager.PackageInfo
                 .FindForAssembly(typeof(SymphonyConstant).Assembly);
 
-            if (packageInfo != null) return packageInfo.resolvedPath;
+            // 対象アセンブリがUPMパッケージとして認識されている場合は解決済みパスを使用する。
+            if (packageInfo != null) { return packageInfo.resolvedPath; }
 
-            // パッケージとして認識されない場合はAssets直下に配置されているとみなす。
+            // UPMで解決できない場合は、開発用にAssets直下へ配置されているとみなす。
             return System.IO.Path.Combine(UnityEngine.Application.dataPath, SYMPHONY_FRAMEWORK);
         }
 #endif
@@ -40,5 +44,7 @@
 
         /// <summary> FrameworkのEditorWindowメニュー基準パス。 </summary>
         public const string WINDOW_MENU_PATH = "Window/" + SYMPHONY_FRAMEWORK + "/";
+
+        #endregion
     }
 }
