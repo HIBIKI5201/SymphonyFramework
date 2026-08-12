@@ -20,23 +20,17 @@ namespace SymphonyFrameWork.Editor
         #region 外部向けAPI
 
         /// <summary>
-        ///     管理パネル用UXMLと一時編集状態の初期化を開始する。
+        ///     管理パネル用UXMLの読み込みを開始する。
         /// </summary>
         /// <remarks>
         ///     UXMLの基準パスはパッケージ導入とAssets直置きの双方を解決する。
+        ///     一時編集状態は基底コンストラクタより先に必要なため、ここでは構築しない。
         /// </remarks>
         public SaveDataWindow() : base(
             SymphonyAdministrator.UITK_UXML_PATH + "SaveDataWindow.uxml",
             InitializeTypeEnum.None,
             LoadTypeEnum.AssetDataBase)
-        {
-            // SerializedObjectで一時編集するため、Window専用のScriptableObjectを生成する。
-            _debugState = ScriptableObject.CreateInstance<SaveDataDebugState>();
-            // HideAndDontSave には NotEditable も含まれ、SerializedProperty がすべて
-            // 読み取り専用になる。永続化だけを防ぎ、デバッグ編集は許可する。
-            _debugState.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSave;
-            _debugSerializedObject = new SerializedObject(_debugState);
-        }
+        { }
 
         /// <summary>
         ///     UIコールバックと一時編集用Unityオブジェクトを破棄する。
@@ -74,7 +68,10 @@ namespace SymphonyFrameWork.Editor
 
         private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataWindow.SelectedTypeName";
 
-        private readonly SaveDataDebugState _debugState;
+        // 基底コンストラクタが Initialize_S を同期的に呼ぶため、コンストラクタ本体では
+        // 間に合わない。フィールド初期化子は基底コンストラクタより先に走る。
+        private readonly SaveDataDebugState _debugState = CreateDebugState();
+
         private SerializedObject _debugSerializedObject;
         private List<Type> _saveDataTypes = new();
         private Type _selectedType;
@@ -110,6 +107,9 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         protected override Awaitable Initialize_S(VisualElement root)
         {
+            // IMGUI描画と型一覧の同期が参照するため、他の初期化より先に編集用SerializedObjectを構築する。
+            RebindDebugState(null);
+
             // 管理操作と状態表示に使うVisualElementを生成済みUXMLへ接続する。
             SymphonyDocumentationGUI.BindOpenButton(root, SymphonyDocumentPageEnum.SaveDataSystem);
 
@@ -206,6 +206,18 @@ namespace SymphonyFrameWork.Editor
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
                 .ToList();
 
+            // 対応型が存在しない場合は、古い選択と一時編集参照を残さない。
+            // 初期値の一覧も空のため、下の変更判定では「変化なし」となり理由を表示できない。
+            // 利用者から見れば未初期化と区別が付かないので、判定より先に扱う。
+            if (latestTypes.Count <= 0)
+            {
+                _saveDataTypes = latestTypes;
+                _selectedType = null;
+                RebindDebugState(null);
+                _statusMessage = "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
+                return;
+            }
+
             bool changed = latestTypes.Count != _saveDataTypes.Count
                 || !latestTypes.SequenceEqual(_saveDataTypes);
 
@@ -213,15 +225,6 @@ namespace SymphonyFrameWork.Editor
             if (!changed) { return; }
 
             _saveDataTypes = latestTypes;
-
-            // 対応型が存在しない場合は、古い選択と一時編集参照を残さない。
-            if (_saveDataTypes.Count <= 0)
-            {
-                _selectedType = null;
-                RebindDebugState(null);
-                _statusMessage = "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
-                return;
-            }
 
             // _selectedType はドメインリロードで作り直されると null に戻る。その場合、
             // 「まだ誰もインスタンス化していない型」を自動選択して Get() で無理やり
@@ -480,6 +483,24 @@ namespace SymphonyFrameWork.Editor
             RebindDebugState(regenerated);
             _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
             RefreshView();
+        }
+
+        /// <summary>
+        ///     一時編集用のScriptableObjectを生成する。
+        /// </summary>
+        /// <remarks>
+        ///     フィールド初期化子から呼ぶため、インスタンスの状態には触れない。
+        /// </remarks>
+        /// <returns> 永続化対象外のデバッグ用コンテナ。 </returns>
+        private static SaveDataDebugState CreateDebugState()
+        {
+            // SerializedObjectで一時編集するため、Window専用のScriptableObjectを生成する。
+            SaveDataDebugState debugState = ScriptableObject.CreateInstance<SaveDataDebugState>();
+
+            // HideAndDontSave には NotEditable も含まれ、SerializedProperty がすべて
+            // 読み取り専用になる。永続化だけを防ぎ、デバッグ編集は許可する。
+            debugState.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSave;
+            return debugState;
         }
 
         /// <summary>

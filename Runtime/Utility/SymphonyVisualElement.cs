@@ -163,8 +163,19 @@ namespace SymphonyFrameWork.Utility
                     style.width = Length.Percent(100);
                 }
 
-                // 共通のルート設定が整った後で、派生型にUI要素の取得と初期化を委ねる。
-                await Initialize_S(this);
+                try
+                {
+                    // 共通のルート設定が整った後で、派生型にUI要素の取得と初期化を委ねる。
+                    await Initialize_S(this);
+                }
+                catch (Exception exception)
+                {
+                    // InitializeTaskは待機されない場合があり、失敗を観測しないまま
+                    // 初期化途中のUIだけが残る。原因を追えるようConsoleへ必ず残し、
+                    // 待機側の契約は変えずに再送出する。
+                    Debug.LogException(exception);
+                    throw;
+                }
             }
             else
             {
