@@ -88,9 +88,17 @@ if (SaveStore.IsLoaded<PlayerData>())
 
 | パネル | 内容 |
 | --- | --- |
-| Save Data | セーブデータの登録内容 |
+| Save Data | 対応する全セーブデータ型、Inspectorの接続状態、保存状態 |
 
-Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
+一覧から型を選ぶと、Inspectorのバインド元をランプで表示します。ランプは、Registry正本へ接続中なら緑、Window専用インスタンスへ保存値を読み込み済みなら黄、新規のWindow専用インスタンスなら赤、未選択なら消灯です。ロード中は赤のまま `Loading…` を表示し、完了までInspectorを編集できません。
+
+| 操作 | 接続中（緑） | 非接続（黄・赤） |
+| --- | --- | --- |
+| Load | Registry正本を保存先から読み直す | Window専用インスタンスへ読み込む |
+| Save | Registry正本を保存する | Window専用インスタンスを保存し、Registryへは登録しない |
+| Delete | 保存値を削除してRegistry正本を既定値へ戻す | 保存値を削除してWindow専用インスタンスを作り直す |
+
+非接続のInspectorを編集すると `未保存の変更あり` が表示されます。`Play Mode へ持ち越す` を有効にすると、Play Mode突入時にその内容を保存先へ書き出します。この設定は開発者ごとの `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` に保存され、既定は無効です。
 
 ## 内部構造
 
@@ -108,9 +116,14 @@ flowchart LR
     Service --> Loader["SaveDataLoaderStrategy"]
     Service -->|状態変更event| ViewModel["SaveDataViewModel"]
     ViewModel -->|ReactiveProperty| Window["SaveDataWindow"]
+    Window -->|問い合わせ・Command| ViewStore["SaveDataViewStore"]
+    ViewStore -->|問い合わせ| Query
+    ViewStore -->|Command| Service
 ```
 
-`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataEntryInfo`、Viewには内部Dtoを返します。`SaveDataWindow`はViewModelを購読し、状態が変わったときだけ再描画します。
+`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataEntryInfo`、Viewには内部Dtoを返します。`SaveDataWindow`は表示状態を`SaveDataViewModel`から購読し、操作と問い合わせは`SaveDataViewStore`へ送ります。状態が変わったときにバインド元を評価し、解決した状態が変わった場合、または接続中のRegistry正本が差し替わった場合だけInspectorを再バインドします。
+
+`SaveDataViewStore`は表示状態を持たず、問い合わせをQueryへ、CommandをServiceへ委譲します。Window専用インスタンスのLoad／Save／DeleteはServiceのdetached操作へ渡され、通常操作と同じLoaderと例外変換を使いますが、Registryを読み書きせず、状態変更eventも発行しません。
 
 永続化データが存在するかどうか（`Exists`）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。
 

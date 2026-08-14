@@ -59,6 +59,17 @@ namespace SymphonyFrameWork.Editor
             }
         }
 
+        /// <summary> 非接続で編集したセーブデータを、Play Mode突入時に保存先へ書き出すか。 </summary>
+        public bool IsSaveDataPlayModeCarryOverEnabled
+        {
+            get => _isSaveDataPlayModeCarryOverEnabled;
+            set
+            {
+                _isSaveDataPlayModeCarryOverEnabled = value;
+                Save();
+            }
+        }
+
         #endregion
 
         #region 内部処理
@@ -74,6 +85,9 @@ namespace SymphonyFrameWork.Editor
 
         [SerializeField, Tooltip("Service Locatorからのインスタンス破棄ログを出力するか。")]
         private bool _isServiceLocatorDestroyInstanceLogEnabled = true;
+
+        [SerializeField, Tooltip("非接続で編集したセーブデータをPlay Modeへ持ち越すか。")]
+        private bool _isSaveDataPlayModeCarryOverEnabled;
 
         /// <summary>
         ///     現在の設定値をUserSettingsへ保存する。

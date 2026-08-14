@@ -126,3 +126,80 @@
     color: rgb(255, 255, 255);
     background-color: rgb(70, 70, 70);
 }
+
+.save-binding-row {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.save-binding-lamp {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+    margin-right: 6px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.save-binding-state {
+    -unity-text-align: middle-left;
+}
+
+.save-binding-suffix {
+    -unity-text-align: middle-left;
+    margin-left: 8px;
+}
+
+.save-carry-over {
+    align-self: flex-start;
+    margin-bottom: 8px;
+}
+
+.save-binding-lamp.save-binding--none {
+    background-color: rgb(90, 90, 90);
+}
+
+.save-binding-lamp.save-binding--instance {
+    background-color: rgb(200, 85, 85);
+}
+
+.save-binding-lamp.save-binding--loaded {
+    background-color: rgb(205, 175, 60);
+}
+
+.save-binding-lamp.save-binding--registry {
+    background-color: rgb(80, 170, 100);
+}
+
+.base.save-binding--none {
+    border-left-color: rgb(90, 90, 90);
+    border-right-color: rgb(90, 90, 90);
+    border-top-color: rgb(90, 90, 90);
+    border-bottom-color: rgb(90, 90, 90);
+}
+
+.base.save-binding--instance {
+    border-left-color: rgb(200, 85, 85);
+    border-right-color: rgb(200, 85, 85);
+    border-top-color: rgb(200, 85, 85);
+    border-bottom-color: rgb(200, 85, 85);
+}
+
+.base.save-binding--loaded {
+    border-left-color: rgb(205, 175, 60);
+    border-right-color: rgb(205, 175, 60);
+    border-top-color: rgb(205, 175, 60);
+    border-bottom-color: rgb(205, 175, 60);
+}
+
+.base.save-binding--registry {
+    border-left-color: rgb(80, 170, 100);
+    border-right-color: rgb(80, 170, 100);
+    border-top-color: rgb(80, 170, 100);
+    border-bottom-color: rgb(80, 170, 100);
+}
