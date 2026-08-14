@@ -135,12 +135,15 @@ await SaveStore.DeleteAsync&lt;PlayerData&gt;();</code></pre>
 <ul><li>ローダーが未設定の場合、<code>SaveStore</code> は既定の <code>JsonUtility</code> ローダーへフォールバックします。警告が表示されます。</li><li>独自ローダーは <code>SaveDataLoaderStrategy</code> を継承してください。共通の検証とデータ復旧は基底クラスが担当します。</li><li>ローダーを変更すると、その場で <code>SaveStore</code> が読み直します。</li></ul>
 <h3 id="save-data-パネル">Save Data パネル</h3>
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
-<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Save Data</td><td>セーブデータの登録内容</td></tr></tbody></table></div>
-<p>Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
+<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Save Data</td><td>対応する全セーブデータ型、Inspectorの接続状態、保存状態</td></tr></tbody></table></div>
+<p>一覧から型を選ぶと、Inspectorのバインド元をランプで表示します。ランプは、Registry正本へ接続中なら緑、Window専用インスタンスへ保存値を読み込み済みなら黄、新規のWindow専用インスタンスなら赤、未選択なら消灯です。ロード中は赤のまま <code>Loading…</code> を表示し、完了までInspectorを編集できません。</p>
+<div class="table-scroll"><table><thead><tr><th>操作</th><th>接続中（緑）</th><th>非接続（黄・赤）</th></tr></thead><tbody><tr><td>Load</td><td>Registry正本を保存先から読み直す</td><td>Window専用インスタンスへ読み込む</td></tr><tr><td>Save</td><td>Registry正本を保存する</td><td>Window専用インスタンスを保存し、Registryへは登録しない</td></tr><tr><td>Delete</td><td>保存値を削除してRegistry正本を既定値へ戻す</td><td>保存値を削除してWindow専用インスタンスを作り直す</td></tr></tbody></table></div>
+<p>非接続のInspectorを編集すると <code>未保存の変更あり</code> が表示されます。<code>Play Mode へ持ち越す</code> を有効にすると、Play Mode突入時にその内容を保存先へ書き出します。この設定は開発者ごとの <code>UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset</code> に保存され、既定は無効です。</p>
 <h2 id="内部構造">内部構造</h2>
 <p>Save DataのRuntime内部も同じ形で、処理順、読み取り変換、表示状態を分離しています。</p>
-<figure class="mermaid-diagram"><img src="../Diagrams/65c4db80239f59f8.svg" alt="flowchart の図" /></figure>
-<p><code>SaveDataQuery</code>だけがRegistry／Entityを読み取り、利用側には<code>SaveDataEntryInfo</code>、Viewには内部Dtoを返します。<code>SaveDataWindow</code>はViewModelを購読し、状態が変わったときだけ再描画します。</p>
+<figure class="mermaid-diagram"><img src="../Diagrams/ff0d592655614e89.svg" alt="flowchart の図" /></figure>
+<p><code>SaveDataQuery</code>だけがRegistry／Entityを読み取り、利用側には<code>SaveDataEntryInfo</code>、Viewには内部Dtoを返します。<code>SaveDataWindow</code>は表示状態を<code>SaveDataViewModel</code>から購読し、操作と問い合わせは<code>SaveDataViewStore</code>へ送ります。状態が変わったときにバインド元を評価し、解決した状態が変わった場合、または接続中のRegistry正本が差し替わった場合だけInspectorを再バインドします。</p>
+<p><code>SaveDataViewStore</code>は表示状態を持たず、問い合わせをQueryへ、CommandをServiceへ委譲します。Window専用インスタンスのLoad／Save／DeleteはServiceのdetached操作へ渡され、通常操作と同じLoaderと例外変換を使いますが、Registryを読み書きせず、状態変更eventも発行しません。</p>
 <p>永続化データが存在するかどうか（<code>Exists</code>）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。</p>
 <h2 id="関連">関連</h2>
 <ul><li><a href="Utility.html">Utility</a></li><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>

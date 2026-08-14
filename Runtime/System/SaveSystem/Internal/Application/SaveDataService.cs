@@ -124,6 +124,32 @@ namespace SymphonyFrameWork.System.SaveSystem
         }
 
         /// <summary>
+        ///     レジストリを経由せず指定インスタンスへ永続化データを読み込む。
+        /// </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="target"> 読み込み先のインスタンス。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 読み込みの完了を表すTask。 </returns>
+        internal async Task LoadDetachedAsync(
+            Type dataType,
+            SaveDataContent target,
+            CancellationToken token = default)
+        {
+            // 不変条件違反はLoader操作失敗へ包まず、I/O開始前に呼び出し側へ返す。
+            ValidateDetachedContent(dataType, target, nameof(target));
+
+            // 操作中に設定が変わっても同じI/O実装で例外文脈まで揃うよう、先にローダーを固定する。
+            SaveDataLoaderStrategy loader = GetLoader();
+
+            // Window専用インスタンスへ読み込み、Registryと状態変更eventには触れない。
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperationEnum.Load,
+                dataType,
+                loader,
+                () => loader.LoadAsync(dataType, target, token));
+        }
+
+        /// <summary>
         ///     指定型のキャッシュを保存先へ非同期に書き込む。
         /// </summary>
         /// <param name="dataType"> 対象のセーブデータ型。 </param>
@@ -146,6 +172,32 @@ namespace SymphonyFrameWork.System.SaveSystem
             // 保存成功時のキャッシュを読み込み済みとして公開し、表示へ反映する。
             _registry.MarkLoaded(dataType, content);
             RaiseStateChanged();
+        }
+
+        /// <summary>
+        ///     レジストリを経由せず指定インスタンスを保存先へ書き込む。
+        /// </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="source"> 保存するインスタンス。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 保存の完了を表すTask。 </returns>
+        internal async Task SaveDetachedAsync(
+            Type dataType,
+            SaveDataContent source,
+            CancellationToken token = default)
+        {
+            // 不変条件違反はLoader操作失敗へ包まず、I/O開始前に呼び出し側へ返す。
+            ValidateDetachedContent(dataType, source, nameof(source));
+
+            // 操作中に設定が変わっても同じI/O実装で例外文脈まで揃うよう、先にローダーを固定する。
+            SaveDataLoaderStrategy loader = GetLoader();
+
+            // Window専用インスタンスを保存し、Registryと状態変更eventには触れない。
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperationEnum.Save,
+                dataType,
+                loader,
+                () => loader.SaveAsync(dataType, source, token));
         }
 
         /// <summary>
@@ -181,6 +233,30 @@ namespace SymphonyFrameWork.System.SaveSystem
             // 削除後の既定状態を取得可能にし、表示へ操作完了を通知する。
             _registry.MarkLoaded(dataType, content);
             RaiseStateChanged();
+        }
+
+        /// <summary>
+        ///     レジストリを経由せず指定型の永続化データを削除する。
+        /// </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="token"> 処理を中断するためのトークン。 </param>
+        /// <returns> 削除の完了を表すTask。 </returns>
+        internal async Task DeleteDetachedAsync(
+            Type dataType,
+            CancellationToken token = default)
+        {
+            // 不正な型はLoader操作失敗へ包まず、保存先へ触れる前に呼び出し側へ返す。
+            ValidateDataType(dataType);
+
+            // 操作中に設定が変わっても同じI/O実装で例外文脈まで揃うよう、先にローダーを固定する。
+            SaveDataLoaderStrategy loader = GetLoader();
+
+            // 保存先だけを削除し、Registryと状態変更eventには触れない。
+            await ExecuteLoaderOperationAsync(
+                SaveDataOperationEnum.Delete,
+                dataType,
+                loader,
+                () => loader.DeleteAsync(dataType, token));
         }
 
         /// <summary>
@@ -303,6 +379,54 @@ namespace SymphonyFrameWork.System.SaveSystem
                     dataType,
                     loader.GetType(),
                     ex);
+            }
+        }
+
+        /// <summary>
+        ///     Detached操作の型とインスタンスが対応するか検証する。
+        /// </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="content"> 読み込み先または保存元。 </param>
+        /// <param name="contentParameterName"> インスタンス引数の名前。 </param>
+        private static void ValidateDetachedContent(
+            Type dataType,
+            SaveDataContent content,
+            string contentParameterName)
+        {
+            // 型契約を先に確定し、以降のインスタンス判定を安全に行う。
+            ValidateDataType(dataType);
+
+            // 復元先または保存元が無い要求は、Loaderへ渡す前に拒否する。
+            if (content == null) { throw new ArgumentNullException(contentParameterName); }
+
+            // 指定型と実体が異なると保存形式の型契約が崩れるため拒否する。
+            if (!dataType.IsInstanceOfType(content))
+            {
+                throw new ArgumentException(
+                    $"{dataType.Name} のインスタンスを指定してください。",
+                    contentParameterName);
+            }
+        }
+
+        /// <summary>
+        ///     セーブ対象として生成可能な具象型であることを検証する。
+        /// </summary>
+        /// <param name="dataType"> 検証するセーブデータ型。 </param>
+        private static void ValidateDataType(Type dataType)
+        {
+            // 型情報が無い要求は後続のリフレクションへ渡さず、引数違反として通知する。
+            if (dataType == null) { throw new ArgumentNullException(nameof(dataType)); }
+
+            // 既定値生成と基底ライフサイクルの両方を保証できる具象クラスだけを受け入れる。
+            if (!dataType.IsClass
+                || dataType.IsAbstract
+                || dataType.IsGenericTypeDefinition
+                || dataType.GetConstructor(Type.EmptyTypes) == null
+                || !typeof(SaveDataContent).IsAssignableFrom(dataType))
+            {
+                throw new ArgumentException(
+                    $"セーブ対象は {nameof(SaveDataContent)} を継承したデフォルトコンストラクタ付き具象クラスにしてください。",
+                    nameof(dataType));
             }
         }
 

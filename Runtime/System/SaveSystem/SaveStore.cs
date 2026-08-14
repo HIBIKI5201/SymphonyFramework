@@ -171,6 +171,7 @@ namespace SymphonyFrameWork.System.SaveSystem
         private static SaveDataService _service;
         private static SaveDataQuery _query;
         private static SaveDataViewModel _viewModel;
+        private static SaveDataViewStore _viewStore;
 
         /// <summary> Save Storeが初期化済みかどうか。 </summary>
         internal static bool IsInitialized => _service != null;
@@ -180,6 +181,10 @@ namespace SymphonyFrameWork.System.SaveSystem
         ///     未初期化の場合はnull。<see cref="OnCurrentViewModelChanged"/>で差し替えを検知する。
         /// </remarks>
         internal static SaveDataViewModel CurrentViewModel => _viewModel;
+
+        /// <summary> Viewの操作と問い合わせを受け付ける現在のStore。 </summary>
+        /// <remarks> 未初期化の場合はnull。操作のたびに現在値を取得する。 </remarks>
+        internal static SaveDataViewStore CurrentViewStore => _viewStore;
 
         /// <summary> <see cref="CurrentViewModel"/>が差し替わったときに発行される。 </summary>
         /// <remarks> Save DataはEdit Modeでも初期化されるため、Play Mode遷移以外でも発行される。 </remarks>
@@ -209,13 +214,14 @@ namespace SymphonyFrameWork.System.SaveSystem
             _viewModel?.Dispose();
             _service?.Reset();
 
-            // 同じRegistryをCommand、Query、ViewModelで共有し、状態と表示の参照先を揃える。
+            // 同じRegistryをCommand、Query、ViewModel、ViewStoreで共有し、状態と表示の参照先を揃える。
             SaveDataEntryRegistry registry = new();
             _service = new SaveDataService(registry, loaderResolver);
             _query = new SaveDataQuery(registry);
             _viewModel = new SaveDataViewModel(_query, _service);
+            _viewStore = new SaveDataViewStore(_query, _service);
 
-            // Editor表示が新しいViewModelへ購読し直せるよう、Composition完了後に差し替えを通知する。
+            // Editor表示が新しいViewModelとViewStoreを取得できるよう、Composition完了後に差し替えを通知する。
             OnCurrentViewModelChanged?.Invoke();
         }
 

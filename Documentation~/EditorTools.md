@@ -37,7 +37,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | --- | --- | --- |
 | `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset` | enum自動生成の有効・無効 | 含める（プロジェクト共有） |
 | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` | Packagerの入出力パス | 含める（プロジェクト共有） |
-| `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Service Locatorのログ設定 | **含めない（開発者ごと）** |
+| `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Service Locatorのログ設定、Save DataのPlay Mode持ち越し | **含めない（開発者ごと）** |
 | `Assets/Resources/SymphonyFrameWork/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` | 含める |
 | `<Asset Store Tools Path>/PackagerConfig.json` | Packagerの除外フォルダと強制包含拡張子 | 含める |
 | `<Asset Store Tools Path>/PackageVersions.json` | ディレクトリごとの現在リビジョン | 含める |
@@ -58,7 +58,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | --- | --- |
 | Service Locate | 登録済みインスタンスの一覧と登録状態 |
 | Scene Load | ロード済みシーンと進行中のロード |
-| Save Data | セーブデータの登録内容 |
+| Save Data | 全対応型の一覧、Registry／Window専用インスタンスの接続状態、非接続編集とPlay Modeへの持ち越し |
 | Pause | ポーズ状態の確認と切り替え |
 | Auto Enum Generator | enumの手動生成ボタンと自動生成の有効・無効 |
 
@@ -67,7 +67,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 **注意点**:
 
 - 5つのパネルは `SymphonyFrameWork.Editor` 名前空間の登録済みUXMLカスタム要素として構築されます。
-- Runtimeの状態を表示するパネルは、Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
+- Runtimeの状態を表示するパネルは、Play Mode中にRegistryへ接続します。Save DataはEdit ModeでもWindow専用インスタンスを編集・保存できます。
 - 表示はViewModelの変更通知で更新されます。ウィンドウを開いている間のポーリングは行いません。
 
 ---
