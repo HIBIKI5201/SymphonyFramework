@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace SymphonyFrameWork
+namespace SymphonyFrameWork.System.SceneLoad
 {
     /// <summary>
     ///     非同期で初期化するインターフェース。
