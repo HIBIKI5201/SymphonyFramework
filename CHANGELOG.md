@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.0.1] - 2026-08-16
+テストを38件追加し、公開型のテスト網羅を機械的に固定しました。公開APIとシリアライズ形式は 5.0.0 から変更していません。
+
+### Add
+
+- **`SymphonyStringUtil` / `SymphonyComponentUtil` / `SymphonyLazyObject<T>` へテストを追加しました**（38件）。いずれもこれまでテストがありませんでした。EditModeテストは377件から415件になりました。
+- **公開型のテスト網羅を `PublicTypeTestCoverageTests` で固定しました。** 公開型 `X` に対して `Tests/Editor/XTests.cs` が無い場合、既知の残作業一覧（86件）に載っている型だけが許されます。**新しい公開型をテスト無しで追加すると落ちます。**一覧は減らすためのもので、テストを書いたのに消し忘れた場合と、削除済みの型が残っている場合も検出します。
+- **テストを書く過程で見つかった `SymphonyComponentUtil.GetComponentInChildrenExcludeSelf` の不具合を、テストと `// TODO` で記録しました。** `includeInactive: false` でも直下の非アクティブな子を返します。`GetComponentInChildren` が検索の起点自身を `includeInactive` に関わらず対象へ含めるためです。**この版では挙動を変えていません。**修正は [#179](https://github.com/HIBIKI5201/SymphonyFramework/issues/179) で扱います。現在の挙動をテストで固定してあるため、修正時はそのテストを書き換えることになります。
+
 ## [5.0.0] - 2026-08-16
 ComponentとInterfaceを所属モジュールへ移しました。4つの公開型の名前空間が変わる破壊的変更です。
 
