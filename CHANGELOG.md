@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.2.0] - 2026-08-16
+エラーログへ Symphony Framework のバージョンを含めるようにしました。ログ1行だけで、不具合報告に必要な版が分かります。
+
+### Add
+
+- **`SymphonyConstant.VERSION` を追加しました。** `package.json` の `version` と同じ値を持つ定数です。**Playerビルドに `package.json` は含まれないため、実行時にバージョンを読む手段がありませんでした。** 更新は `release_round.py bump` が行い、`preflight` が `package.json` との一致を検査します。
+
+### Change
+
+- **エラーログの先頭へ `[SymphonyFrameWork v<版>]` を付けるようにしました。** 不具合の報告を受ける側が最初に必要とするのがバージョンで、これまでは利用者に別途確認してもらう必要がありました。**Consoleに出た1行、あるいは `Cache/Log.txt` の1行だけで版が分かります。**
+  - 対象は**エラーだけ**です。通常ログと警告ログの見た目は変わりません。
+  - **`LogException` はConsoleの表示を変えません。** バージョンを添えるには例外を包む必要があり、Consoleの先頭行が本来の例外型でなくなってスタックトレースの追跡が壊れるためです。ファイル出力（`Cache/Log.txt`）の行には付きます。
+  - ログのテキストを完全一致で判定している利用側のコードがある場合、エラーログだけ一致しなくなります。
+
 ## [4.1.0] - 2026-08-16
 フレームワーク内のログをすべて SymphonyDebugLogger 経由へ統一し、例外用の LogException を追加しました。Framework が出すログは Cache/Log.txt にも残ります。
 
