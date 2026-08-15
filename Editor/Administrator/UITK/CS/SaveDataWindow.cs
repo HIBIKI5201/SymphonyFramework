@@ -100,6 +100,8 @@ namespace SymphonyFrameWork.Editor
         private IDisposable _entriesSubscription;
         private IReadOnlyList<SaveDataDto> _cachedEntries = Array.Empty<SaveDataDto>();
         private List<SaveDataEntryRow> _rows = new();
+        private readonly Dictionary<Type, string> _savedDates = new();
+        private readonly HashSet<Type> _savedDateProbedTypes = new();
         private int _activeLoadRequestId;
         private bool _isLocalContentLoaded;
         private bool _isLocalContentDirty;
@@ -740,6 +742,9 @@ namespace SymphonyFrameWork.Editor
                 await LoadLocalContentAsync(viewStore, _selectedType, _localContent, requestId);
             }
 
+            // ロードで読み取った内容から日時を取り直せるよう、保持していた値を捨てる。
+            InvalidateSavedDate(_selectedType);
+
             _statusMessage = $"{_selectedType.FullName} をロードしました。";
             RefreshView();
         }
@@ -781,8 +786,16 @@ namespace SymphonyFrameWork.Editor
                 }
 
                 await viewStore.SaveDetachedAsync(_selectedType, _localContent);
+
+                // 保存が成功した時点で、Window専用インスタンスの内容は保存先と一致する。
+                // Loadで読み込んだ場合と同じ状態なので、赤のままにせず黄へ移す。
                 _isLocalContentDirty = false;
+                _isLocalContentLoaded = true;
+                UpdateCurrentBinding();
             }
+
+            // 保存で更新された日時を一覧へ反映するため、この型のキャッシュを捨てる。
+            InvalidateSavedDate(_selectedType);
 
             // 保存日時と永続化状態を一覧へ反映する。
             _statusMessage = $"{_selectedType.FullName} を保存しました。";
@@ -831,6 +844,9 @@ namespace SymphonyFrameWork.Editor
                 EnsureLocalContent(viewStore);
                 UpdateCurrentBinding();
             }
+
+            // 保存データが消えたため、保持していた日時も捨てる。
+            InvalidateSavedDate(_selectedType);
 
             _statusMessage = $"{_selectedType.FullName} の保存データを削除し、現在インスタンスを初期化しました。";
             RefreshView();
@@ -1151,23 +1167,112 @@ namespace SymphonyFrameWork.Editor
             foreach (Type saveDataType in _saveDataTypes)
             {
                 bool isSaved = viewStore != null && viewStore.Exists(saveDataType);
+                cachedEntries.TryGetValue(saveDataType, out SaveDataDto cachedEntry);
 
-                // キャッシュ済みの型は、Dtoのロード状態と保存日時を優先して行へ反映する。
-                if (cachedEntries.TryGetValue(saveDataType, out SaveDataDto cachedEntry))
-                {
-                    rows.Add(new SaveDataEntryRow(
-                        saveDataType,
-                        cachedEntry.SaveDate,
-                        cachedEntry.IsLoaded,
-                        isSaved));
-                    continue;
-                }
+                // Registryが保持する日時を最優先し、無ければ保存先から読んだ日時で補う。
+                string saveDate = cachedEntry.SaveDate ?? ResolveSavedDate(viewStore, saveDataType, isSaved);
 
-                // 未キャッシュかつ未保存でも、Window専用インスタンスを選択できる行として表示する。
-                rows.Add(new SaveDataEntryRow(saveDataType, null, false, isSaved));
+                rows.Add(new SaveDataEntryRow(
+                    saveDataType,
+                    saveDate,
+                    cachedEntry.IsLoaded,
+                    isSaved));
             }
 
             return rows;
+        }
+
+        /// <summary>
+        ///     保存先に記録されている最終保存日時を返す。
+        /// </summary>
+        /// <remarks>
+        ///     Registryに載っていない型の日時はQueryから取れないため、保存先を1度だけ読んで保持する。
+        /// </remarks>
+        /// <param name="viewStore"> I/Oを仲介する現在のViewStore。 </param>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <param name="isSaved"> 永続化データが存在するかどうか。 </param>
+        /// <returns> 既知の保存日時。未取得または未保存の場合はnull。 </returns>
+        private string ResolveSavedDate(SaveDataViewStore viewStore, Type dataType, bool isSaved)
+        {
+            // 保存データが無い型では、読み取りを試みず日時も持たない。
+            if (!isSaved || viewStore == null)
+            {
+                _savedDates.Remove(dataType);
+                return null;
+            }
+
+            // 選択中の型は、表示しているWindow専用インスタンスの日時が常に最新である。
+            if (dataType == _localContentType
+                && _localContent != null
+                && _isLocalContentLoaded)
+            {
+                _savedDates[dataType] = _localContent.SaveDate;
+                _savedDateProbedTypes.Add(dataType);
+                return _localContent.SaveDate;
+            }
+
+            // 取得済みなら再読み込みしない。日時を変える操作の側でキャッシュを捨てる。
+            if (_savedDates.TryGetValue(dataType, out string knownDate)) { return knownDate; }
+
+            // 一覧を描くたびに全型を読み直さないよう、型ごとに1度だけ読み取りを開始する。
+            if (_savedDateProbedTypes.Add(dataType))
+            {
+                _ = ProbeSavedDateAsync(viewStore, dataType);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     保存先の最終保存日時を読み取ってキャッシュへ反映する。
+        /// </summary>
+        /// <remarks>
+        ///     表示専用の一時インスタンスへ読み込み、RegistryとWindow専用インスタンスへは触れない。
+        /// </remarks>
+        /// <param name="viewStore"> I/Oを仲介するViewStore。 </param>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        /// <returns> 読み取りの完了を表すTask。 </returns>
+        private async Task ProbeSavedDateAsync(SaveDataViewStore viewStore, Type dataType)
+        {
+            SaveDataContent probe = (SaveDataContent)Activator.CreateInstance(dataType);
+
+            try
+            {
+                await viewStore.LoadDetachedAsync(dataType, probe);
+
+                // Window破棄後や、読み取り中に保存データが消えた場合は表示へ反映しない。
+                if (_disposed || !_savedDateProbedTypes.Contains(dataType)) { return; }
+
+                // 値が変わったときだけ再描画し、RefreshViewとの往復を1度で終わらせる。
+                _savedDates.TryGetValue(dataType, out string previous);
+                if (string.Equals(previous, probe.SaveDate, StringComparison.Ordinal)) { return; }
+
+                _savedDates[dataType] = probe.SaveDate;
+                RefreshView();
+            }
+            catch (Exception ex)
+            {
+                // 日時は補助情報のため、読めなくても操作を止めず診断だけ残す。
+                if (_disposed) { return; }
+
+                Debug.LogException(ex);
+            }
+            finally
+            {
+                // 利用側が資源を持つ場合に備え、表示用の一時インスタンスも必ず解放する。
+                probe.Dispose();
+            }
+        }
+
+        /// <summary>
+        ///     保存日時のキャッシュを破棄して次回の再読み取りを許可する。
+        /// </summary>
+        /// <param name="dataType"> 対象のセーブデータ型。 </param>
+        private void InvalidateSavedDate(Type dataType)
+        {
+            // 保存と削除で日時が変わるため、次の描画で読み直せる状態へ戻す。
+            _savedDates.Remove(dataType);
+            _savedDateProbedTypes.Remove(dataType);
         }
 
         /// <summary>
