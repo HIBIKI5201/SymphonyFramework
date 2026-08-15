@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.1] - 2026-08-16
+サブシステムの置き場を Runtime/System から Runtime/Service へ変更しました。公開APIと名前空間、シリアライズ形式は 4.2.0 から変更していません。
+
+### Change
+
+- **`Runtime/System/` を `Runtime/Service/` へ改名しました。** `System` は責務を表すには大雑把で、C#の `System` 名前空間とも紛らわしいためです。`git mv` で `.meta` ごと移しており、**GUIDは維持されるため利用側の参照は切れません。**
+- **名前空間は `SymphonyFrameWork.System.*` のままです。** `SymphonyFrameWork.System.SaveData` などは利用側のすべての `using` に現れるため、変更すると破壊的変更になります。フォルダ名と名前空間の乖離は意図的なもので、揃える場合はメジャー更新として別途扱います。**利用側のコードに必要な変更はありません。**
+
 ## [4.2.0] - 2026-08-16
 エラーログへ Symphony Framework のバージョンを含めるようにしました。ログ1行だけで、不具合報告に必要な版が分かります。
 
