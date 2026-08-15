@@ -7,7 +7,7 @@
 | 項目 | 内容 |
 | --- | --- |
 | namespace | `SymphonyFrameWork.System.ServiceLocate` |
-| 主な公開型 | `ServiceLocator` / `ServiceInjector` / `ServiceLocateComponent` / `IInjectable` / `LocateTypeEnum` / `ServiceRegistrationInfo` |
+| 主な公開型 | `ServiceLocator` / `ServiceInjector` / `ServiceLocateComponent` / `SymphonyLocateObject<T>` / `IInjectable` / `LocateTypeEnum` / `ServiceRegistrationInfo` |
 | メニューパス | `Window > SymphonyFrameWork > Symphony Administrator` の `Service Locate` パネル |
 | 設定の保存先 | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`（Service Locatorのログ設定） |
 
@@ -71,6 +71,8 @@ foreach (ServiceRegistrationInfo registration
 - 登録中の型と登録方式を一覧で調べる場合は`GetRegistrationInfos()`、既知の型だけを調べる場合は`TryGetRegistrationInfo(Type, out ...)`を使う。返る`ServiceRegistrationInfo`は取得時点のスナップショットとして扱う。
 - `GetInstanceAsync<T>`の期限超過は`TimeoutException`、呼び出し側キャンセルは`OperationCanceledException`。`TryGetInstanceAsync<T>`がfalseへ変換するのは期限超過だけ。
 - `SceneLoader`が自動注入するのはロードしたシーンのルートにある`IInjectable<T...>`。実行時`Instantiate`したオブジェクトには`ServiceInjector.Inject(...)`を手動で呼ぶ。
+- 同じインスタンスを繰り返し引く場合は`SymphonyLocateObject<T>`でキャッシュする。初回に`ServiceLocator`から取得し、以降は保持した参照を返す。
+- **`ServiceLocateComponent`・`SymphonyLocateObject<T>`・`IInjectable`は 5.0.0 でこのnamespaceへ移りました。** 5.0.0 より前はそれぞれ`SymphonyFrameWork.Utility`と`SymphonyFrameWork`にありました。移行方法は[CHANGELOG.md](../../CHANGELOG.md)の`### Breaking`にあります。
 
 ## Editor機能
 

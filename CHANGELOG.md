@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.0.0] - 2026-08-16
+ComponentとInterfaceを所属モジュールへ移しました。4つの公開型の名前空間が変わる破壊的変更です。
+
+### Breaking
+
+- **Service Locatorに属する3つの型を `SymphonyFrameWork.System.ServiceLocate` へ移しました。** これまで `Runtime/Component/` と `Runtime/Interface/` に置かれ、モジュールと無関係な名前空間にありました。**どのモジュールの型なのかが、置き場からも名前空間からも分からない状態でした。**
+- **`IInitializeAsync` を `SymphonyFrameWork.System.SceneLoad` へ移しました。** `SceneLoader` がシーンのルートを初期化するための契約であり、SceneLoader以外から使う場面がありません。
+  - **移行方法**: `using` を書き換えてください。型名とメンバーは変わりません。
+
+  | 型 | 旧namespace | 新namespace |
+  | --- | --- | --- |
+  | `ServiceLocateComponent` | `SymphonyFrameWork.Utility` | `SymphonyFrameWork.System.ServiceLocate` |
+  | `SymphonyLocateObject<T>` | `SymphonyFrameWork.Utility` | `SymphonyFrameWork.System.ServiceLocate` |
+  | `IInjectable` / `IInjectable<T...>` | `SymphonyFrameWork` | `SymphonyFrameWork.System.ServiceLocate` |
+  | `IInitializeAsync` | `SymphonyFrameWork` | `SymphonyFrameWork.System.SceneLoad` |
+
+  - **シーンとPrefabの参照は切れません。** `git mv` で `.meta` ごと移しており、`ServiceLocateComponent` を貼ったGameObjectはGUIDで解決されます。
+  - **互換シムは置いていません。** `IInjectable` と `IInitializeAsync` はinterfaceで、旧名の別interfaceを残しても実装済みの型が新しい契約を満たさないため、移行期間を作れないためです。
+
+### Change
+
+- **`Runtime/Component/` を削除しました。** 中身の2型をどちらもService Locatorへ移し、空になったためです。
+- `IGameObject` は `Runtime/Interface/` と `SymphonyFrameWork` 名前空間に残しています。特定のモジュールに属さない共通の契約のためです。
+
 ## [4.2.1] - 2026-08-16
 サブシステムの置き場を Runtime/System から Runtime/Service へ変更しました。公開APIと名前空間、シリアライズ形式は 4.2.0 から変更していません。
 
