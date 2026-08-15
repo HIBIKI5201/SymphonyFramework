@@ -1,6 +1,9 @@
-﻿using SymphonyFrameWork.Config;
+﻿using System.Collections.Generic;
+
+using SymphonyFrameWork.Config;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.System.SaveSystem;
-using System.Collections.Generic;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -44,12 +47,12 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         {
             SymphonyDocumentationGUI.DrawOpenButton(SymphonyDocumentPageEnum.SaveDataSystem);
 
-            // PackageInitializerより先に画面が開かれた場合も、設定を生成してから描画する。
-            SaveDataConfig config = GetOrCreateConfig();
-            // 生成後も取得できない場合は、nullを渡したSerializedObjectの生成を避ける。
+            // 画面を開いただけで生成を始めず、取得できたものだけを描画する。
+            SaveDataConfig config = SymphonyConfigLocator.GetConfig<SaveDataConfig>();
+            // 未生成の状態でも例外にせず、生成の導線だけを出して描画を終える。
             if (config == null)
             {
-                EditorGUILayout.HelpBox("SaveDataConfig を生成できませんでした。", MessageType.Error);
+                DrawMissingConfig();
                 return;
             }
 
@@ -84,24 +87,30 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         }
 
         /// <summary>
-        ///     SaveDataConfigを取得し、存在しない場合は生成して再取得する。
+        ///     SaveDataConfigが未生成であることと、生成の導線を描画する。
         /// </summary>
-        private static SaveDataConfig GetOrCreateConfig()
+        /// <remarks>
+        ///     生成そのものはOrchestratorへ委譲する。設定画面のcallbackからpackage-wideな初期化を
+        ///     始めると、Editor起動時のAsset変更を1回のRefreshへ集約する設計の外側で生成が走る。
+        /// </remarks>
+        private static void DrawMissingConfig()
         {
-            SaveDataConfig config = SymphonyConfigLocator.GetConfig<SaveDataConfig>();
-            // 既存設定が見つかった場合は、生成処理とAssetDatabase更新を省く。
-            if (config != null) { return config; }
+            EditorGUILayout.HelpBox(
+                "SaveDataConfig がまだ生成されていません。"
+                + " 通常はEditor起動時に生成されます。生成されていない場合は下のボタンで生成してください。",
+                MessageType.Warning);
 
-            // PackageInitializer以外の生成入口として全設定を確認し、AssetDatabase更新後に保存先から直接読み直す。
-            // TODO(#162): SettingsProviderのcallbackからpackage-wideな初期化とAsset生成を開始している。
-            //             規約は発見用属性のcallbackから初期化を始めることを禁じており、
-            //             Editor起動時のAsset変更はOrchestratorが集約してRefreshを1回に抑える設計になっている。
-            //             生成の開始をSymphonyEditorOrchestrator側の入口へ委譲し、
-            //             ここは未生成である旨の表示に留める。
-            SymphonyConfigManager.AllConfigCheck();
-            AssetDatabase.Refresh();
-            return AssetDatabase.LoadAssetAtPath<SaveDataConfig>(
-                SymphonyConfigLocator.GetFullPath<SaveDataConfig>());
+            // 押されたときだけ生成を要求し、画面を開いた時点ではAssetを変更しない。
+            if (!GUILayout.Button("設定アセットを生成")) { return; }
+
+            // 初期化が完了していない間は、その初期化自身が同じ生成を行う。ここでは案内だけを残す。
+            if (!SymphonyEditorOrchestrator.RequestPackageSetup())
+            {
+                SymphonyDebugLogger.LogDirect(
+                    "Symphony Frameworkの初期化中のため、設定アセットの生成を要求できませんでした。"
+                    + " 初期化の完了後に再度お試しください。",
+                    LogKindEnum.Warning);
+            }
         }
 
         #endregion

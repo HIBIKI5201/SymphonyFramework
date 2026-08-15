@@ -157,6 +157,7 @@ Framework全体の開発者ごとの設定です。
 
 - **Runtime用のConfigは `internal` です。** コードから型として参照できません。InspectorとProject Settingsから設定してください。
 - 生成された設定アセットを複製しないでください。Frameworkは決まった位置の1つだけを読みます。
+- **Project Settingsの画面を開いただけでは生成されません。** 設定画面は未生成である旨と生成ボタンを表示するだけで、生成そのものは `SymphonyEditorOrchestrator` の入口を通ります。`AssetDatabase.Refresh` を1回へまとめる集約の外側でアセットが変わらないようにするためです。
 
 ---
 

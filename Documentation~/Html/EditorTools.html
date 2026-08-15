@@ -146,7 +146,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p><strong>対象</strong>:</p>
 <div class="table-scroll"><table><thead><tr><th>種別</th><th>アセット</th><th>置き場</th></tr></thead><tbody><tr><td>Runtime（<code>ScriptableObject</code>）</td><td><code>SceneLoadConfig</code> / <code>AudioConfig</code> / <code>SaveDataConfig</code></td><td><code>Assets/Resources/SymphonyFrameWork/</code></td></tr><tr><td>Editor（<code>ScriptableSingleton</code>）</td><td><code>AutoEnumGeneratorConfig</code></td><td><code>ProjectSettings/Packages/symphonyframework/</code></td></tr><tr><td>Editor（<code>ScriptableSingleton</code>）</td><td><code>SymphonyUserSettingConfig</code></td><td><code>UserSettings/SymphonyFrameWork/</code></td></tr></tbody></table></div>
 <p><strong>注意点</strong>:</p>
-<ul><li><strong>Runtime用のConfigは <code>internal</code> です。</strong> コードから型として参照できません。InspectorとProject Settingsから設定してください。</li><li>生成された設定アセットを複製しないでください。Frameworkは決まった位置の1つだけを読みます。</li></ul>
+<ul><li><strong>Runtime用のConfigは <code>internal</code> です。</strong> コードから型として参照できません。InspectorとProject Settingsから設定してください。</li><li>生成された設定アセットを複製しないでください。Frameworkは決まった位置の1つだけを読みます。</li><li><strong>Project Settingsの画面を開いただけでは生成されません。</strong> 設定画面は未生成である旨と生成ボタンを表示するだけで、生成そのものは <code>SymphonyEditorOrchestrator</code> の入口を通ります。<code>AssetDatabase.Refresh</code> を1回へまとめる集約の外側でアセットが変わらないようにするためです。</li></ul>
 <hr />
 <h2 id="editorの初期化">Editorの初期化</h2>
 <p><code>SymphonyEditorOrchestrator</code> が、Unity EditorのホストライフサイクルをFrameworkの初期化・終了フェーズへ変換します。各Editorモジュールはこれ経由で開始・終了します。</p>
