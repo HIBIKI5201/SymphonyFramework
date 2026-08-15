@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEngine;
 
 namespace SymphonyFrameWork.System.SaveSystem
@@ -47,7 +49,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             if (string.IsNullOrEmpty(json))
             {
                 ResetToDefault(dataType, data);
-                Debug.Log($"[{GetType().Name}]\n{dataType.Name} のデータが見つからないので生成しました。");
+                SymphonyDebugLogger.LogDirect($"[{GetType().Name}]\n{dataType.Name} のデータが見つからないので生成しました。");
                 return;
             }
 
@@ -61,8 +63,8 @@ namespace SymphonyFrameWork.System.SaveSystem
             {
                 // 本体データの破損や形式不一致ではロード全体を失敗させず、安全な既定状態へ戻す。
                 ResetToDefault(dataType, data);
-                Debug.LogWarning(
-                    $"[{GetType().Name}]\n{dataType.Name} の本体データ復元に失敗しました。新たなインスタンス状態へ戻します。\n{ex.Message}");
+                SymphonyDebugLogger.LogDirect(
+                    $"[{GetType().Name}]\n{dataType.Name} の本体データ復元に失敗しました。新たなインスタンス状態へ戻します。\n{ex.Message}", LogKindEnum.Warning);
             }
         }
 
@@ -97,7 +99,7 @@ namespace SymphonyFrameWork.System.SaveSystem
                 throw;
             }
 
-            Debug.Log($"[{GetType().Name}]\nデータをセーブしました。 date : {data.SaveDate}\n{data}");
+            SymphonyDebugLogger.LogDirect($"[{GetType().Name}]\nデータをセーブしました。 date : {data.SaveDate}\n{data}");
         }
 
         /// <summary>

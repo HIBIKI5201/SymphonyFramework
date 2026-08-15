@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Exceptions;
 
 using UnityEngine;
@@ -339,7 +340,7 @@ namespace SymphonyFrameWork.System.SaveSystem
             catch (Exception exception)
             {
                 // 表示側の失敗を完了済みの保存操作へ逆流させず、診断可能なログだけを残す。
-                Debug.LogException(exception);
+                SymphonyDebugLogger.LogException(exception);
             }
         }
 

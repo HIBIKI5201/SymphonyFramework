@@ -37,6 +37,33 @@ namespace SymphonyFrameWork.Debugger.Logger
         }
 
         /// <summary>
+        ///     例外をログへ出力する。
+        /// </summary>
+        /// <remarks>
+        ///     Unity Consoleへはスタックトレース付きの例外として出力し、購読者へは
+        ///     型と理由を含む1行のテキストとして通知する。Consoleの表示を犠牲にせず、
+        ///     ファイル出力にも例外の内容を残すための分担である。
+        /// </remarks>
+        /// <param name="exception"> 出力する例外。 </param>
+        /// <param name="context"> Consoleから追跡可能にするUnityオブジェクト。 </param>
+        [HideInCallstack]
+        public static void LogException(Exception exception, UnityEngine.Object context = null)
+        {
+            // 呼び出し側の判定漏れでログ機構自体が落ちないよう、nullを診断として扱う。
+            if (exception == null)
+            {
+                LogDirect("nullの例外がLogExceptionへ渡されました。", LogKindEnum.Error, context);
+                return;
+            }
+
+            // Consoleでは例外として扱わせ、スタックトレースの表示とジャンプを維持する。
+            Debug.LogException(exception, context);
+
+            // Runtime層ではファイル出力を担わず、Editor側の購読者へ同じ内容を通知する。
+            OnLogDirect?.Invoke(DescribeException(exception), LogKindEnum.Error);
+        }
+
+        /// <summary>
         ///     Editorでのみデバッグログを直接出力する。
         /// </summary>
         /// <param name="text"> Editorでのみ出力する文字列。 </param>
@@ -233,6 +260,26 @@ namespace SymphonyFrameWork.Debugger.Logger
         #endregion
 
         #region 内部処理
+
+        /// <summary>
+        ///     例外を1行のテキストへ要約する。
+        /// </summary>
+        /// <remarks>
+        ///     ファイル出力は1件を1行として書き出す。<c>ArgumentNullException</c> のように
+        ///     Message自体が複数行になる例外があるため、改行を空白へ畳んでから返す。
+        ///     スタックトレースは含めない。Consoleへは例外として別途出力している。
+        /// </remarks>
+        /// <param name="exception"> 要約する例外。 </param>
+        /// <returns> 型名と理由を含む1行のテキスト。 </returns>
+        internal static string DescribeException(Exception exception)
+        {
+            string reason = exception.Message
+                .Replace("\r\n", " ")
+                .Replace('\r', ' ')
+                .Replace('\n', ' ');
+
+            return $"{exception.GetType().FullName}: {reason}";
+        }
 
         /// <summary>
         ///     参照が使用できない状態かを判定する。

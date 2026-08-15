@@ -33,6 +33,13 @@ SymphonyDebugLogger.AddText("Progress: 100%");
 SymphonyDebugLogger.LogText();
 ```
 
+例外は`LogException`で出力します。Unity Consoleへはスタックトレース付きの例外として出し、ファイル出力へは型名と理由を1行で残します。
+
+```csharp
+try { /* 失敗しうる処理 */ }
+catch (Exception exception) { SymphonyDebugLogger.LogException(exception); }
+```
+
 `SymphonyStopWatch`はIDで計測区間を識別します。`Stop`でログへ出力されます。
 
 ```csharp
@@ -83,6 +90,9 @@ Frameworkの実配置パスを解決してその直下へ書くため、UPM経�
 
 - `Cache/` は生成物です。**版管理へ含めないでください。**
 - 書き込みは定期的にまとめて行われます。1行ごとにファイルを開きません。
+- **Framework自身が出すログは、すべてこの経路を通ります。** Framework内のコードは`UnityEngine.Debug`を直接呼びません。Consoleに出たFrameworkのログは`Log.txt`にも残っている、と考えて構いません。
+- **`LogException`はスタックトレースをファイルへ書きません。** 1件を1行として書き出すためで、型名と理由だけが残ります。スタックトレースはConsoleで確認してください。
+- Core層（`SymphonyFrameWork.Core`アセンブリ）はRuntimeのロガーを参照できないため、内部の中継口を経由してこの出力先へ載ります。上位層の初期化前に発生したCore層のログだけは、Unity標準の出力へ落ちて`Log.txt`に残りません。
 
 ### SymphonyMcpTools
 

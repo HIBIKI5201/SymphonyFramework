@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -101,8 +103,8 @@ namespace SymphonyFrameWork.Editor
                 // 一部の出力ファイルが欠けていても、残りの選択項目は継続して取り込む。
                 if (!File.Exists(packagePath))
                 {
-                    Debug.LogError(
-                        $"{LOG_PREFIX}\nパッケージが見つかりませんでした: {packagePath}");
+                    SymphonyDebugLogger.LogDirect(
+                        $"{LOG_PREFIX}\nパッケージが見つかりませんでした: {packagePath}", LogKindEnum.Error);
                     continue;
                 }
 
@@ -113,13 +115,13 @@ namespace SymphonyFrameWork.Editor
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(
-                        $"{LOG_PREFIX}\nパッケージのインポートに失敗しました: {packagePath}\n{e}");
+                    SymphonyDebugLogger.LogDirect(
+                        $"{LOG_PREFIX}\nパッケージのインポートに失敗しました: {packagePath}\n{e}", LogKindEnum.Error);
                 }
             }
 
             // 1件も開始できなかった場合は、成功を示すログを出さない。
-            if (importedCount > 0) { Debug.Log($"{LOG_PREFIX}\n{importedCount}件のパッケージをインポートしました。"); }
+            if (importedCount > 0) { SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n{importedCount}件のパッケージをインポートしました。"); }
 
             return importedCount;
         }

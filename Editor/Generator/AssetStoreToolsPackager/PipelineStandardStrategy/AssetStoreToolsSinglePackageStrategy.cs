@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -60,7 +62,7 @@ namespace SymphonyFrameWork.Editor
                     // 出力時バージョンを加える前の計画が空なら、実体のないパッケージを作らない。
                     if (entry.AssetPaths.Count == 0)
                     {
-                        Debug.LogWarning($"使用中アセットなし: {entry.DirectoryPath}");
+                        SymphonyDebugLogger.LogDirect($"使用中アセットなし: {entry.DirectoryPath}", LogKindEnum.Warning);
                         return false;
                     }
 
@@ -87,7 +89,7 @@ namespace SymphonyFrameWork.Editor
             catch (Exception e)
             {
                 // 失敗した単位をマニフェストから除けるよう、例外を成否へ変換する。
-                Debug.LogError($"パッケージの出力に失敗しました: {entry.DirectoryPath}\n{e}");
+                SymphonyDebugLogger.LogDirect($"パッケージの出力に失敗しました: {entry.DirectoryPath}\n{e}", LogKindEnum.Error);
                 return false;
             }
         }

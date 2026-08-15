@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.1.0] - 2026-08-16
+フレームワーク内のログをすべて SymphonyDebugLogger 経由へ統一し、例外用の LogException を追加しました。Framework が出すログは Cache/Log.txt にも残ります。
+
+### Add
+
+- **`SymphonyDebugLogger.LogException(Exception, UnityEngine.Object)` を追加しました。** Unity Consoleへはスタックトレース付きの例外として出力し、ファイル出力の購読者へは型名と理由を1行に畳んだテキストをError種別で通知します。**Consoleの表示（スタックトレースとジャンプ）を犠牲にせず、ファイルにも例外の内容を残すための分担です。**`ArgumentNullException` のようにMessage自体が複数行になる例外があるため、改行は空白へ畳みます。nullを渡した場合は例外にせず、その旨を診断ログとして出します。
+
+### Change
+
+- **フレームワーク内のログを、すべて `SymphonyDebugLogger` 経由へ統一しました。** `Runtime/` `Core/` `Editor/` の35ファイル・104箇所が `UnityEngine.Debug` を直接呼んでおり、**Editorのファイル出力の購読者が拾えないため `Cache/Log.txt` に残っていませんでした。**Consoleに出ているのに後からログを追えない状態でした。Console上の見え方（重要度とメッセージ）は変わりません。
+- **`SymphonyFrameWork.Core` アセンブリのログも同じ出力先へ載るようにしました。** CoreはRuntimeの下位にあり `SymphonyDebugLogger` を直接参照できないため、Coreへ中継口（`internal`）を置き、RuntimeとEditorのComposition Rootが出力先を注入します。**注入前に発生したCore層のログは、これまでどおりUnity標準の出力へ落ちます。**利用側から見える型は追加していません。
+
 ## [4.0.0] - 2026-08-15
 サンプルをUnityのインポート対象外である Samples~ へ移しました。サンプルの13クラスが SymphonyFrameWork アセンブリから外れる破壊的変更です。
 

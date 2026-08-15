@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -121,7 +122,7 @@ namespace SymphonyFrameWork.Editor
             // パイプライン無しでは手順の順序と出力形式を確定できない。
             if (pipeline == null)
             {
-                Debug.LogError($"[{nameof(AssetStoreToolsPackager)}]\nパイプラインが指定されていません。");
+                SymphonyDebugLogger.LogDirect($"[{nameof(AssetStoreToolsPackager)}]\nパイプラインが指定されていません。", LogKindEnum.Error);
                 return null;
             }
 

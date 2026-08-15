@@ -1,4 +1,5 @@
-﻿using SymphonyFrameWork.System.SaveSystem;
+﻿using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFrameWork.System.SaveSystem;
 using SymphonyFrameWork.Utility;
 using System;
 using System.Collections.Generic;
@@ -177,7 +178,7 @@ namespace SymphonyFrameWork.Editor
 
             // 真に非同期なLoaderでは遷移を一度取り消し、保存完了後に入り直す。
             EditorApplication.isPlaying = false;
-            Debug.Log($"[{nameof(SaveDataWindow)}] Save Dataの持ち越し完了後にPlay Modeへ入り直します。");
+            SymphonyDebugLogger.LogDirect($"[{nameof(SaveDataWindow)}] Save Dataの持ち越し完了後にPlay Modeへ入り直します。");
             _ = CompleteCarryOverAndEnterPlayModeAsync(saveTask, selectedType, localContent);
         }
 
@@ -631,7 +632,7 @@ namespace SymphonyFrameWork.Editor
                 // 古い要求の失敗は現在の選択へ表示せず、有効な要求だけを診断する。
                 if (!IsCurrentLocalRequest(requestId, selectedType, target)) { return; }
 
-                Debug.LogException(ex);
+                SymphonyDebugLogger.LogException(ex);
             }
         }
 
@@ -951,7 +952,7 @@ namespace SymphonyFrameWork.Editor
             Exception reportedException = exception is AggregateException aggregateException
                 ? aggregateException.GetBaseException()
                 : exception;
-            Debug.LogException(reportedException);
+            SymphonyDebugLogger.LogException(reportedException);
 
             // Windowが残っている場合だけ、現在のパネルへ失敗理由を表示する。
             if (_disposed) { return; }
@@ -1065,7 +1066,7 @@ namespace SymphonyFrameWork.Editor
                 if (_disposed) { return; }
 
                 // UIイベント境界で例外を捕捉し、Consoleとパネルの双方へ診断を残す。
-                Debug.LogException(ex);
+                SymphonyDebugLogger.LogException(ex);
                 _statusMessage = ex.Message;
                 RefreshView();
             }
