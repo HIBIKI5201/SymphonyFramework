@@ -39,7 +39,7 @@ SymphonyFrameWork/
 │  ├─ System/              Scene、Service、Save、Audio、Pause
 │  └─ Utility/             Awaitable、Tween、文字列等の補助
 ├─ Editor/                  Editor専用UI、Drawer、Generator
-├─ Samples/Runtime/         Package Managerから導入する利用例
+├─ Samples~/Runtime/        Package Managerから導入する利用例（Unityのインポート対象外）
 ├─ Tests/                   EditMode／PlayModeテスト
 └─ Documentation~/         Asset Importされない利用者向け詳細文書（Modules/にモジュール別文書）
 ```

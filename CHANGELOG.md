@@ -1,5 +1,15 @@
 # Changelog
 
+## [4.0.0] - 2026-08-15
+サンプルをUnityのインポート対象外である Samples~ へ移しました。サンプルの13クラスが SymphonyFrameWork アセンブリから外れる破壊的変更です。
+
+### Breaking
+
+- **`Samples/` を `Samples~/` へ移しました。サンプルの13クラスが `SymphonyFrameWork` アセンブリから外れます。** これまで `Samples/` に asmdef が無かったため、サンプルスクリプトはパッケージ本体の `SymphonyFrameWork` アセンブリへ取り込まれ、**サンプルを使うかどうかに関わらず利用側の全ビルドへ出荷されていました。**さらに Package Manager の `samples` からインポートすると、同じ `SymphonyFrameWork.Samples.*` 名前空間・同じクラス名が `Assets/Samples/` にもコンパイルされ、**利用側プロジェクトが CS0101（同名の定義が複数存在する）でコンパイルできなくなっていました。**末尾チルダのフォルダはUnityのアセットパイプラインから不可視になるため、二重定義が起きなくなります。
+  - **移行方法**: サンプルのクラス（`ServiceLocatorSample_1`、`SaveDataSystemSample_Controller` など13件）を利用側のコードから直接参照している場合、その参照は解決できなくなります。`Window > Package Manager > Symphony Framework > Samples` から必要なサンプルをインポートしてください。`Assets/Samples/Symphony Framework/<version>/<サンプル名>/` へコピーされ、利用側プロジェクトのコードとしてコンパイルされます。**サンプルは利用例であり、パッケージのAPIとして参照する対象ではありません。**
+  - **すでにインポート済みで CS0101 が出ていた利用者は、この版へ更新するとエラーが解消します。**
+- **`package.json` の `samples[].path` を `Samples~/Runtime/...` へ変更しました。** Unity標準のパッケージレイアウトに合わせています。Package Managerからのインポート操作と、コピー先の `Assets/Samples/` のパスは変わりません。
+
 ## [3.10.3] - 2026-08-15
 Save Systemの設定画面を開いた副作用で設定アセットの生成が始まる問題を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.2から変更していません。
 
