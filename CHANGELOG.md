@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.10.1] - 2026-08-15
+警告を出すためのnull診断APIが、真のnull参照を渡すと例外で落ちる不具合を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.0から変更していません。
+
+### Fix
+
+- **`SymphonyDebugLogger.CheckComponentNull` へ真のnull参照を渡すと、警告ではなく`NullReferenceException`になっていた不具合を修正しました。** nullと判定した分岐の中で`component.name`を読んでいたためです。`UnityEngine.Object`の`== null`は「破棄済みだがマネージド参照は生きている」場合と「真のnull参照」の場合の両方でtrueになり、後者では`name`の取得自体が失敗します。**名前を読まず、未代入（`unassigned`）と破棄済み（`destroyed`）のどちらであるかを警告文へ含める形へ変えました。**破棄済みの場合も`name`は読めないため、両方とも名前を出しません。
+- **`SymphonyDebugLogger.LogAndCheckComponentNull` が、破棄済みのUnityオブジェクトを「nullではない」と報告していた不具合を修正しました。** 型引数に制約が無いため`== null`が`UnityEngine.Object`の比較演算子ではなく参照比較になっており、`Destroy`済みのComponentやGameObjectでは`false`を返していました。**戻り値を信じて参照した利用側が、警告を1つも見ないまま`MissingReferenceException`で落ちる状態でした。**対象が`UnityEngine.Object`のときだけUnityの比較演算子で判定します。Unityオブジェクト以外の参照に対する挙動は変わりません。
+
 ## [3.10.0] - 2026-08-14
 Save Data パネルへ、Inspectorの接続状態を示す色ランプと、非接続でのセーブデータ編集を追加しました。Play Modeへの持ち越し設定が1つ増えます。既存の公開APIとシリアライズ形式は3.9.7から変更していません。
 

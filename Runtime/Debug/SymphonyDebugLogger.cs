@@ -156,7 +156,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         [HideInCallstack]
         public static bool LogAndCheckComponentNull<T>(this T @object)
         {
-            bool isNull = @object == null;
+            bool isNull = IsNullReference(@object);
 
             // Playerでも欠落参照を見逃さない診断APIのため、Unity標準の警告として常に出力する。
             if (isNull) { Debug.LogWarning($"<b>{typeof(T).Name}</b> is null"); }
@@ -206,11 +206,11 @@ namespace SymphonyFrameWork.Debugger.Logger
         {
 #if UNITY_EDITOR
             // 旧APIの既存動作を維持するため、Editor限定のUnity標準警告を直接使用する。
-            // TODO(#160): componentがnullの分岐でcomponent.nameを参照している。
-            //             UnityEngine.Objectの==nullは破棄済みと真のnullの両方でtrueになり、
-            //             後者ではNullReferenceExceptionになる。警告を出す関数が落ちるため、
-            //             破棄済みと真のnullを分けて扱う。
-            if (component == null) { Debug.LogWarning($"The component {typeof(T).Name} of {component.name} is null."); }
+            // 破棄済みと真のnullではnameを読めないため、参照せずに種別だけを伝える。
+            if (component == null)
+            {
+                Debug.LogWarning($"The component {typeof(T).Name} is null. ({DescribeNullKind(component)})");
+            }
 #endif
         }
 
@@ -233,6 +233,36 @@ namespace SymphonyFrameWork.Debugger.Logger
         #endregion
 
         #region 内部処理
+
+        /// <summary>
+        ///     参照が使用できない状態かを判定する。
+        /// </summary>
+        /// <remarks>
+        ///     型引数に制約が無いため、<c>==</c> は <see cref="UnityEngine.Object" /> の
+        ///     比較演算子ではなく参照比較になる。**破棄済みのUnityオブジェクトを見逃さないよう、
+        ///     Unityオブジェクトのときだけ比較演算子へ委ねる。**
+        /// </remarks>
+        /// <typeparam name="T"> 判定する参照の型。 </typeparam>
+        /// <param name="object"> 判定する対象。 </param>
+        /// <returns> 真のnull、または破棄済みのUnityオブジェクトの場合はtrue。 </returns>
+        private static bool IsNullReference<T>(T @object)
+        {
+            if (@object is UnityEngine.Object unityObject) { return unityObject == null; }
+
+            return @object is null;
+        }
+
+        /// <summary>
+        ///     nullと判定された参照が、未代入と破棄済みのどちらであるかを表す語を返す。
+        /// </summary>
+        /// <remarks>
+        ///     破棄済みでも真のnullでも <c>name</c> の取得は失敗する。**参照せずに種別だけを伝え、
+        ///     警告を出すためのAPIが例外で落ちないようにする。**
+        /// </remarks>
+        /// <param name="object"> nullと判定済みの対象。 </param>
+        /// <returns> 未代入なら <c>unassigned</c>、破棄済みなら <c>destroyed</c>。 </returns>
+        private static string DescribeNullKind(object @object)
+            => @object is null ? "unassigned" : "destroyed";
 
         /// <summary> LogDirectで出力されたログを後続処理へ通知するイベント。 </summary>
         internal static event Action<string, LogKindEnum> OnLogDirect;

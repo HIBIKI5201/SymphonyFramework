@@ -117,6 +117,14 @@ SymphonyDebugLogger.LogText();</code></pre>
 SymphonyStopWatch.Start(&quot;SceneLoad&quot;);
 // 計測したい処理
 SymphonyStopWatch.Stop(&quot;SceneLoad&quot;);</code></pre>
+<h2 id="実装時の注意">実装時の注意</h2>
+<h3 id="nullの診断にはlogandcheckcomponentnullを使う">nullの診断には<code>LogAndCheckComponentNull</code>を使う</h3>
+<p>参照が使えるかを警告付きで確認するには、拡張メソッドの<code>LogAndCheckComponentNull</code>を使います。nullなら警告を出したうえで<code>true</code>を返します。</p>
+<pre><code class="language-csharp">using SymphonyFrameWork.Debugger.Logger;
+
+if (_renderer.LogAndCheckComponentNull()) { return; }</code></pre>
+<p><strong><code>UnityEngine.Object</code>を渡した場合は、<code>Destroy</code>済みの参照もnullとして報告します。</strong> マネージド参照が生きていても、Unityの比較演算子がnullとみなす状態なら<code>true</code>です。Unityオブジェクト以外の参照は通常の参照比較で判定します。</p>
+<p>旧APIの<code>CheckComponentNull</code>と<code>IsComponentNotNull</code>は非推奨です。移行先と削除予定は<a href="../Deprecations.html">Deprecations.md</a>にあります。</p>
 <h2 id="editor機能">Editor機能</h2>
 <h3 id="symphonydebughud">SymphonyDebugHUD</h3>
 <p>FPS、メモリ使用量、任意テキストをGame Viewへ重ねて表示します。</p>
