@@ -97,6 +97,11 @@ th { background: var(--code-bg); white-space: nowrap; }
 <body>
 <nav class="doc-nav"><a href="index.html">Symphony Framework Documentation</a></nav>
 <h1 id="changelog">Changelog</h1>
+<h2 id="400---2026-08-15">[4.0.0] - 2026-08-15</h2>
+<p>サンプルをUnityのインポート対象外である Samples~ へ移しました。サンプルの13クラスが SymphonyFrameWork アセンブリから外れる破壊的変更です。</p>
+<h3 id="breaking">Breaking</h3>
+<ul><li><p><strong><code>Samples/</code> を <code>Samples~/</code> へ移しました。サンプルの13クラスが <code>SymphonyFrameWork</code> アセンブリから外れます。</strong> これまで <code>Samples/</code> に asmdef が無かったため、サンプルスクリプトはパッケージ本体の <code>SymphonyFrameWork</code> アセンブリへ取り込まれ、<strong>サンプルを使うかどうかに関わらず利用側の全ビルドへ出荷されていました。</strong>さらに Package Manager の <code>samples</code> からインポートすると、同じ <code>SymphonyFrameWork.Samples.*</code> 名前空間・同じクラス名が <code>Assets/Samples/</code> にもコンパイルされ、<strong>利用側プロジェクトが CS0101（同名の定義が複数存在する）でコンパイルできなくなっていました。</strong>末尾チルダのフォルダはUnityのアセットパイプラインから不可視になるため、二重定義が起きなくなります。</p>
+<ul><li><strong>移行方法</strong>: サンプルのクラス（<code>ServiceLocatorSample_1</code>、<code>SaveDataSystemSample_Controller</code> など13件）を利用側のコードから直接参照している場合、その参照は解決できなくなります。<code>Window &gt; Package Manager &gt; Symphony Framework &gt; Samples</code> から必要なサンプルをインポートしてください。<code>Assets/Samples/Symphony Framework/&lt;version&gt;/&lt;サンプル名&gt;/</code> へコピーされ、利用側プロジェクトのコードとしてコンパイルされます。<strong>サンプルは利用例であり、パッケージのAPIとして参照する対象ではありません。</strong></li><li><strong>すでにインポート済みで CS0101 が出ていた利用者は、この版へ更新するとエラーが解消します。</strong></li></ul></li><li><strong><code>package.json</code> の <code>samples[].path</code> を <code>Samples~/Runtime/...</code> へ変更しました。</strong> Unity標準のパッケージレイアウトに合わせています。Package Managerからのインポート操作と、コピー先の <code>Assets/Samples/</code> のパスは変わりません。</li></ul>
 <h2 id="3103---2026-08-15">[3.10.3] - 2026-08-15</h2>
 <p>Save Systemの設定画面を開いた副作用で設定アセットの生成が始まる問題を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.2から変更していません。</p>
 <h3 id="fix">Fix</h3>
@@ -310,7 +315,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h2 id="300---2026-08-04">[3.0.0] - 2026-08-04</h2>
 <p><strong>3.0.0 の確定版です。</strong> <code>3.0.0-preview.1</code>〜<code>preview.4</code> で積み上げた Awaitable 移行（Phase 5）を Scene Load、Service Locate、Debug HUD、Component、Editor UI、Loader Strategy まで広げ、移行期間を終えた旧シムの削除と改名（Phase 6）を行いました。preview 版から更新する場合は、本項の Breaking をすべて確認してください。</p>
 <p><code>SaveDataContent</code> のフィールド構成、保存されるJSON、PlayerPrefsのキーは変更していないため、<strong>既存のセーブデータはそのまま読み込めます。</strong></p>
-<h3 id="breaking">Breaking</h3>
+<h3 id="breaking-1">Breaking</h3>
 <ul><li><p><strong><code>SceneLoader</code> の非同期API4件を改名し、戻り値を <code>Awaitable</code> にしました。</strong> <code>LoadScene</code> → <code>LoadSceneAsync</code>、<code>LoadScenes</code> → <code>LoadScenesAsync</code>、<code>UnloadScene</code> → <code>UnloadSceneAsync</code>、<code>UnloadScenes</code> → <code>UnloadScenesAsync</code>。<code>WaitForLoadSceneAsync</code> は名前を維持し、戻り値だけ <code>Awaitable</code> になります。</p>
 <p><strong>移行方法</strong>: 呼び出し名に <code>Async</code> を付ける。<code>await</code> して使っている場合、それ以外の変更は不要です。</p>
 <pre><code class="language-csharp">// 2.x
@@ -357,7 +362,7 @@ protected override Awaitable SaveJsonAsync(Type dataType, string json, Cancellat
 <h3 id="add-12">Add</h3>
 <ul><li><code>SaveStore.IsLoaded&lt;T&gt;()</code> / <code>IsLoaded(Type)</code> を追加しました。<code>Get&lt;T&gt;()</code> が使用できる状態か、例外を発生させずに判定できます。</li><li><code>Get&lt;T&gt;()</code> の新しい契約に対するPlayModeテストを2件追加しました。未読み込み時に <code>InvalidOperationException</code> になること、読み込み後は <code>LoadAsync&lt;T&gt;()</code> の戻り値と同一インスタンスを返すことを検証します。</li></ul>
 <h2 id="300-preview4---2026-08-04">[3.0.0-preview.4] - 2026-08-04</h2>
-<h3 id="breaking-1">Breaking</h3>
+<h3 id="breaking-2">Breaking</h3>
 <ul><li><p><strong><code>SaveStore</code> の非同期API6件が <code>ValueTask</code> ではなく <code>Awaitable</code> を返すようになりました。</strong> 対象は <code>LoadAsync&lt;T&gt;</code> / <code>LoadAsync(Type)</code> / <code>SaveAsync&lt;T&gt;</code> / <code>SaveAsync(Type)</code> / <code>DeleteAsync&lt;T&gt;</code> / <code>DeleteAsync(Type)</code> です。</p>
 <p><strong>移行方法</strong>: <code>await</code> して使っている場合、<strong>ソースの変更は不要です。</strong></p>
 <pre><code class="language-csharp">// 2.x でも 3.0.0 でもそのまま動く
@@ -374,7 +379,7 @@ PlayerData data = await SaveStore.LoadAsync&lt;PlayerData&gt;();</code></pre>
 <h3 id="fix-12">Fix</h3>
 <ul><li><strong><code>PausableDestroy</code> と <code>PausableInvoke</code> の引数エラーが、呼び出し元へ同期的に伝わるようになりました。</strong> 従来は <code>async void</code> だったため、<code>ArgumentNullException</code> や <code>ArgumentOutOfRangeException</code> が非同期メソッドの中で投げられ、呼び出し側の <code>try/catch</code> では捕まえられずUnityの未処理例外ハンドラへ流れていました。検証を同期部分へ移しています。</li></ul>
 <h2 id="300-preview2---2026-08-04">[3.0.0-preview.2] - 2026-08-04</h2>
-<h3 id="breaking-2">Breaking</h3>
+<h3 id="breaking-3">Breaking</h3>
 <ul><li><p><strong><code>PauseManager.PausableDestroy</code> と <code>PausableInvoke</code> が <code>void</code> ではなく <code>Awaitable</code> を返すようになりました。</strong></p>
 <p><strong>移行方法</strong>: 文として呼んでいる場合、<strong>ソースの変更は不要です。</strong></p>
 <pre><code class="language-csharp">// 2.x でも 3.0.0 でもそのまま動く
@@ -389,7 +394,7 @@ await PauseManager.PausableDestroy(gameObject, 1.0f);</code></pre>
 <ul><li><code>Awaitable</code> は完了を観測した時点でプールへ返却されます。<strong>待機せずに呼んだ場合はプールへ戻らず、通常のGC対象になります。</strong> 無制限に溜まるものではなく、プールの効果が失われるだけです。fire-and-forgetとして使うAPIであるため、この代償を受け入れています。</li></ul>
 <h2 id="300-preview1---2026-08-04">[3.0.0-preview.1] - 2026-08-04</h2>
 <p><strong>3.0.0 系の最初のプレビューです。</strong> 破壊的変更を段階的に積み上げ、Phase 5（Awaitable移行）とPhase 6（改名とシム削除）を終えた時点で <code>3.0.0</code> として確定します。プレビュー版は「壊れることを承知で先行して試す」ためのものです。</p>
-<h3 id="breaking-3">Breaking</h3>
+<h3 id="breaking-4">Breaking</h3>
 <ul><li><p><strong><code>PauseManager</code> の非同期APIが <code>Task</code> ではなく <code>Awaitable</code> を返すようになりました。</strong> 対象は <code>PausableNextFrameAsync</code>、<code>PausableWaitForSecondAsync</code>、<code>PausableWaitUntil</code> の3つです。</p>
 <p><strong>移行方法</strong>: <code>await</code> して使っている場合、<strong>ソースの変更は不要です。</strong></p>
 <pre><code class="language-csharp">// 2.x でも 3.0.0 でもそのまま動く
@@ -581,7 +586,7 @@ await SymphonyAwaitable.WhenAll(
 <p>設計思想（<a href="https://github.com/HIBIKI5201/SymphonyWorkspace/blob/main/Documentation/DesignPhilosophy.md"><code>DesignPhilosophy.md</code></a>）の改訂に合わせて、主要サブシステムの公開範囲とアーキテクチャを再構成しました。破壊的変更を含みます。</p>
 <h3 id="add-35">Add</h3>
 <ul><li><code>IInjectable&lt;T...&gt;</code> を実装したシーンのルートオブジェクトへ、<code>SceneLoader</code> がロード完了時に自動注入する機能</li></ul>
-<h3 id="breaking-4">Breaking</h3>
+<h3 id="breaking-5">Breaking</h3>
 <ul><li><code>SaveSystem&lt;TData, TLoader&gt;</code> のローダー制約を <code>where TLoader : ISaveDataLoader&lt;TData&gt;, new()</code> から <code>where TLoader : SaveDataLoader, new()</code> へ変更。旧 <code>ISaveDataLoader&lt;T&gt;</code> 実装（Obsoleteの <code>NugetDataLoader&lt;T&gt;</code>、<code>JsonUtilityDataLoader&lt;T&gt;</code> など）は <code>TLoader</code> に指定できなくなる。<strong>移行方法:</strong> <code>SaveSystem&lt;TData, TLoader&gt;</code> の利用箇所を <code>SaveDataRegistry.Get&lt;T&gt;()</code>／<code>SaveAsync&lt;T&gt;()</code>／<code>LoadAsync&lt;T&gt;()</code> へ置き換える（ローダー選択は <code>SaveSystemConfig</code> のProject Settingsに委ねる）。</li><li>次の型を <code>public</code> から <code>internal</code> へ変更。型名を直接参照しているコードはコンパイルできなくなる: <code>ServiceLocateManager</code>、<code>ServiceLocateData</code>、<code>SceneLoadManager</code>、<code>SceneLoadData</code>（<code>SceneInfo</code>含む）、<code>SceneResetter</code>、<code>SymphonyCoreSystem</code>（<code>MoveObjectToSymphonySystem</code>含む）、<code>JsonUtilitySaveDataLoader</code>、<code>NewtonsoftSaveDataLoader</code>、<code>AudioManagerConfig</code>、<code>SaveSystemConfig</code>、<code>SceneManagerConfig</code>、<code>SymphonyHUDDrawer</code>。</li><li><code>SymphonyLocate</code> を含む、継承を前提としない具象クラスを <code>sealed</code> 化。既存のサブクラスはコンパイルできなくなる。</li></ul>
 <h3 id="change-38">Change</h3>
 <ul><li>Configの解決を <code>SymphonyCoreSystem</code> とEditorのCompositionからの注入へ変更</li><li><code>SaveDataRegistry.RefreshLoader()</code> が注入済みResolverからローダーを再解決する構造へ変更</li><li>Framework内部のログ呼び出しを <code>LogDirect</code>／<code>LogText</code> へ移行</li><li>Editorアセンブリへ <code>InternalsVisibleTo</code> を追加（Runtimeのinternal型をEditor拡張から参照するため。利用側プロジェクトのアセンブリには適用されない）</li></ul>

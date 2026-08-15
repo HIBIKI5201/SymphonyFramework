@@ -99,7 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="symphony-framework">Symphony Framework</h1>
 <p>Symphony Frameworkは、Unityゲームで何度も作ることになる「シーン遷移」「サービス共有」「セーブ」「オーディオ」「ポーズ」を、同じ使い方で扱えるようにまとめたフレームワークです。</p>
 <p>最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。</p>
-<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>3.10.3</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
+<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>4.0.0</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
 <h2 id="symphony-frameworkでできること">Symphony Frameworkでできること</h2>
 <div class="table-scroll"><table><thead><tr><th>やりたいこと</th><th>使う機能</th></tr></thead><tbody><tr><td>シーンを非同期で読み込み、進捗やActive Sceneを管理したい</td><td><a href="Modules/SceneLoader.html">Scene Loader</a></td></tr><tr><td>シーンを跨いでサービスやComponentを共有したい</td><td><a href="Modules/ServiceLocator.html">Service Locator</a></td></tr><tr><td>データ型ごとに保存・読み込み・削除したい</td><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td></tr><tr><td>AudioMixerGroupごとの再生元と音量をまとめたい</td><td><a href="Modules/AudioManager.html">Audio Manager</a></td></tr><tr><td>ゲーム全体を止め、待機やTweenもポーズへ追従させたい</td><td><a href="Modules/PauseManager.html">Pause Manager</a></td></tr><tr><td>実行中の状態、FPS、ログ、処理時間を確認したい</td><td><a href="Modules/Debug.html">Debug</a></td></tr><tr><td>Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい</td><td><a href="EditorTools.html">Editor機能</a></td></tr></tbody></table></div>
 <p>すべてを導入時に設定する必要はありません。使いたい機能のモジュール文書とサンプルから始められます。</p>
@@ -148,7 +148,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <div class="table-scroll"><table><thead><tr><th>機能</th><th>内容</th></tr></thead><tbody><tr><td><a href="EditorTools.html#symphony-administrator">Symphony Administrator</a></td><td>Service Locator、Scene Loader、Save Data、Pauseの状態確認</td></tr><tr><td><a href="Modules/AutoEnumGenerator.html">AutoEnumGenerator</a></td><td>Scene、Tag、Layer、Audio Groupのenum生成</td></tr><tr><td><a href="Modules/AssetStoreToolsPackager.html">Asset Store Tools Packager</a></td><td>Asset Store Toolsの出力、差分インポート、出力パイプライン</td></tr><tr><td><a href="Modules/ProjectStructureTools.html">Project Structure Tools</a></td><td>FolderGenerator、AssemblyGenerator、SymphonyPackageLoader</td></tr></tbody></table></div>
 <p>Runtimeモジュールに紐づくEditor機能（Save System設定、Service Locatorのログ設定、<code>SymphonyDebugHUD</code>、<code>SymphonyMcpTools</code>、Inspector属性）は、上の<a href="#機能ごとの使い方">機能ごとの使い方</a>から各モジュール文書を参照してください。</p>
 <h2 id="サンプル">サンプル</h2>
-<p>Package Managerから<a href="../../Samples/Runtime"><code>Samples/Runtime</code></a>の各サンプルを利用プロジェクトへインポートできます。</p>
+<p>Package Managerから<a href="../../Samples~/Runtime"><code>Samples~/Runtime</code></a>の各サンプルを利用プロジェクトへインポートできます。<strong>インポートするまでプロジェクトには入りません。</strong></p>
 <ul><li><code>ServiceLocatorSample</code>: 登録、同期取得、非同期取得、Singleton</li><li><code>SaveDataSystemSample</code>: 複数データ型の編集、保存、再ロード、削除</li><li><code>SceneLoaderSample</code>: 追加ロード、Active Scene切り替え、アンロード</li><li><code>PauseManagerSample</code>: Pause切り替え、<code>IPausable</code>、ポーズ対応待機</li><li><code>AudioManagerSample</code>: AudioSource取得と音量制御</li><li><code>DebuggerSample</code>: Logger、HUD、StopWatch</li></ul>
 <h2 id="ドキュメント">ドキュメント</h2>
 <ul><li><a href="CHANGELOG.html">変更履歴</a></li><li><a href="Architecture.html">パッケージ構成・クラス図</a></li><li><a href="EditorTools.html">Editor機能</a></li><li><a href="Deprecations.html">非推奨APIと削除予定</a></li><li><p>Modules/</p>
