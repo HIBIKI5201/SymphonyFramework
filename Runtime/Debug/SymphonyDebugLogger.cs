@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+
+using SymphonyFrameWork.Core;
+
 using UnityEngine;
+
 using Debug = UnityEngine.Debug;
 
 namespace SymphonyFrameWork.Debugger.Logger
@@ -24,16 +28,19 @@ namespace SymphonyFrameWork.Debugger.Logger
             LogKindEnum kind = LogKindEnum.Normal,
             UnityEngine.Object context = null)
         {
+            // エラーだけはバージョンを添える。報告を受ける側が最初に必要とする情報である。
+            string output = kind == LogKindEnum.Error ? $"{VersionTag} {text}" : text;
+
             // 呼び出し側が指定した重要度をUnity Consoleの対応するログ種別へそのまま反映する。
-            switch (kind) 
+            switch (kind)
             {
-                case LogKindEnum.Normal: Debug.Log(text, context); break;
-                case LogKindEnum.Warning: Debug.LogWarning(text, context); break;
-                case LogKindEnum.Error: Debug.LogError(text, context); break;
+                case LogKindEnum.Normal: Debug.Log(output, context); break;
+                case LogKindEnum.Warning: Debug.LogWarning(output, context); break;
+                case LogKindEnum.Error: Debug.LogError(output, context); break;
             }
 
             // Runtime層ではファイル出力を担わず、Editor側の購読者へ同じ内容を通知する。
-            OnLogDirect?.Invoke(text, kind);
+            OnLogDirect?.Invoke(output, kind);
         }
 
         /// <summary>
@@ -57,10 +64,12 @@ namespace SymphonyFrameWork.Debugger.Logger
             }
 
             // Consoleでは例外として扱わせ、スタックトレースの表示とジャンプを維持する。
+            // ここへバージョンを足すには例外を包む必要があり、Consoleの先頭行が
+            // 本来の例外型でなくなる。表示を壊さないため、Consoleは素の例外のままにする。
             Debug.LogException(exception, context);
 
             // Runtime層ではファイル出力を担わず、Editor側の購読者へ同じ内容を通知する。
-            OnLogDirect?.Invoke(DescribeException(exception), LogKindEnum.Error);
+            OnLogDirect?.Invoke($"{VersionTag} {DescribeException(exception)}", LogKindEnum.Error);
         }
 
         /// <summary>
@@ -286,8 +295,8 @@ namespace SymphonyFrameWork.Debugger.Logger
         /// </summary>
         /// <remarks>
         ///     型引数に制約が無いため、<c>==</c> は <see cref="UnityEngine.Object" /> の
-        ///     比較演算子ではなく参照比較になる。**破棄済みのUnityオブジェクトを見逃さないよう、
-        ///     Unityオブジェクトのときだけ比較演算子へ委ねる。**
+        ///     比較演算子ではなく参照比較になる。破棄済みのUnityオブジェクトを見逃さないよう、
+        ///     Unityオブジェクトのときだけ比較演算子へ委ねる。
         /// </remarks>
         /// <typeparam name="T"> 判定する参照の型。 </typeparam>
         /// <param name="object"> 判定する対象。 </param>
@@ -303,13 +312,23 @@ namespace SymphonyFrameWork.Debugger.Logger
         ///     nullと判定された参照が、未代入と破棄済みのどちらであるかを表す語を返す。
         /// </summary>
         /// <remarks>
-        ///     破棄済みでも真のnullでも <c>name</c> の取得は失敗する。**参照せずに種別だけを伝え、
-        ///     警告を出すためのAPIが例外で落ちないようにする。**
+        ///     破棄済みでも真のnullでも <c>name</c> の取得は失敗する。参照せずに種別だけを伝え、
+        ///     警告を出すためのAPIが例外で落ちないようにする。
         /// </remarks>
         /// <param name="object"> nullと判定済みの対象。 </param>
         /// <returns> 未代入なら <c>unassigned</c>、破棄済みなら <c>destroyed</c>。 </returns>
         private static string DescribeNullKind(object @object)
             => @object is null ? "unassigned" : "destroyed";
+
+        /// <summary>
+        ///     エラーログの先頭へ付けるFrameworkのバージョン表記。
+        /// </summary>
+        /// <remarks>
+        ///     不具合の報告を受ける側が最初に必要とするのがバージョンである。
+        ///     利用者がpackage.jsonを開かなくても、ログ1行から分かる状態にする。
+        /// </remarks>
+        internal static string VersionTag { get; } =
+            $"[{SymphonyConstant.SYMPHONY_FRAMEWORK} v{SymphonyConstant.VERSION}]";
 
         /// <summary> LogDirectで出力されたログを後続処理へ通知するイベント。 </summary>
         internal static event Action<string, LogKindEnum> OnLogDirect;

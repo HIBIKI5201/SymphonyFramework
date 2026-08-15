@@ -111,6 +111,7 @@ SymphonyDebugLogger.NewText(&quot;ロード結果&quot;);
 SymphonyDebugLogger.AddText(&quot;Scene: Game&quot;);
 SymphonyDebugLogger.AddText(&quot;Progress: 100%&quot;);
 SymphonyDebugLogger.LogText();</code></pre>
+<p><strong>エラーログには<code>[SymphonyFrameWork v&lt;版&gt;]</code>が自動で付きます。</strong> 不具合を報告するとき、ログ1行だけで版が分かるようにするためです。通常ログと警告ログには付きません。版は<code>SymphonyConstant.VERSION</code>から取ります。</p>
 <p>例外は<code>LogException</code>で出力します。Unity Consoleへはスタックトレース付きの例外として出し、ファイル出力へは型名と理由を1行で残します。</p>
 <pre><code class="language-csharp">try { /* 失敗しうる処理 */ }
 catch (Exception exception) { SymphonyDebugLogger.LogException(exception); }</code></pre>

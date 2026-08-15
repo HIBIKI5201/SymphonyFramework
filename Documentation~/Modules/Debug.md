@@ -33,6 +33,8 @@ SymphonyDebugLogger.AddText("Progress: 100%");
 SymphonyDebugLogger.LogText();
 ```
 
+**エラーログには`[SymphonyFrameWork v<版>]`が自動で付きます。** 不具合を報告するとき、ログ1行だけで版が分かるようにするためです。通常ログと警告ログには付きません。版は`SymphonyConstant.VERSION`から取ります。
+
 例外は`LogException`で出力します。Unity Consoleへはスタックトレース付きの例外として出し、ファイル出力へは型名と理由を1行で残します。
 
 ```csharp
