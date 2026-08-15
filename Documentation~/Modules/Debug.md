@@ -43,6 +43,22 @@ SymphonyStopWatch.Start("SceneLoad");
 SymphonyStopWatch.Stop("SceneLoad");
 ```
 
+## 実装時の注意
+
+### nullの診断には`LogAndCheckComponentNull`を使う
+
+参照が使えるかを警告付きで確認するには、拡張メソッドの`LogAndCheckComponentNull`を使います。nullなら警告を出したうえで`true`を返します。
+
+```csharp
+using SymphonyFrameWork.Debugger.Logger;
+
+if (_renderer.LogAndCheckComponentNull()) { return; }
+```
+
+**`UnityEngine.Object`を渡した場合は、`Destroy`済みの参照もnullとして報告します。** マネージド参照が生きていても、Unityの比較演算子がnullとみなす状態なら`true`です。Unityオブジェクト以外の参照は通常の参照比較で判定します。
+
+旧APIの`CheckComponentNull`と`IsComponentNotNull`は非推奨です。移行先と削除予定は[Deprecations.md](../Deprecations.md)にあります。
+
 ## Editor機能
 
 ### SymphonyDebugHUD
