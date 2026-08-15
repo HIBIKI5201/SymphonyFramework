@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.10.3] - 2026-08-15
+Save Systemの設定画面を開いた副作用で設定アセットの生成が始まる問題を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.2から変更していません。
+
+### Fix
+
+- **`Project Settings > SymphonyFrameWork > Save System` を開くだけで、パッケージ全体の設定アセット生成と `AssetDatabase.Refresh` が走っていた不具合を修正しました。** 設定画面の描画callbackが `SymphonyConfigManager.AllConfigCheck()` を直接呼んでいたためです。**Editor起動時のアセット変更を1回のRefreshへまとめる集約の外側で生成が起きており、生成対象は `SaveDataConfig` だけでなくSceneLoad・Audio・Editor設定を含む全アセットでした。**画面は未生成である旨と `設定アセットを生成` ボタンを表示するだけにし、生成は起動時と同じ `SymphonyEditorOrchestrator` の経路へ委譲します。ボタンを押さない限りアセットは変更されません。設定アセットが揃っている通常の状態では、画面の見た目も操作も変わりません。
+
 ## [3.10.2] - 2026-08-15
 自動生成enumが、シーン名やタグ名にC#の予約語が含まれるとコンパイルできない.csを書き出す不具合を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.1から変更していません。
 

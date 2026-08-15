@@ -132,7 +132,7 @@ await SaveStore.DeleteAsync&lt;PlayerData&gt;();</code></pre>
 <div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>Loader</td><td><code>SaveDataLoaderStrategy</code> を継承したローダー。<code>[SerializeReference]</code> で選択する</td></tr><tr><td>Current Loader Type</td><td>現在設定されているローダーの型名（読み取り専用）</td></tr></tbody></table></div>
 <p><strong>保存先</strong>: <code>Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset</code></p>
 <p><strong>注意点</strong>:</p>
-<ul><li>ローダーが未設定の場合、<code>SaveStore</code> は既定の <code>JsonUtility</code> ローダーへフォールバックします。警告が表示されます。</li><li>独自ローダーは <code>SaveDataLoaderStrategy</code> を継承してください。共通の検証とデータ復旧は基底クラスが担当します。</li><li>ローダーを変更すると、その場で <code>SaveStore</code> が読み直します。</li></ul>
+<ul><li>ローダーが未設定の場合、<code>SaveStore</code> は既定の <code>JsonUtility</code> ローダーへフォールバックします。警告が表示されます。</li><li><strong><code>SaveDataConfig</code> がまだ無い状態でこの画面を開いても、生成は始まりません。</strong> 未生成である旨と <code>設定アセットを生成</code> ボタンが表示されます。設定アセットの生成はEditor起動時にまとめて行われる処理であり、画面を開いた副作用として走らせないためです。ボタンを押すと、起動時と同じ経路（<code>SymphonyEditorOrchestrator</code>）で生成されます。</li><li>独自ローダーは <code>SaveDataLoaderStrategy</code> を継承してください。共通の検証とデータ復旧は基底クラスが担当します。</li><li>ローダーを変更すると、その場で <code>SaveStore</code> が読み直します。</li></ul>
 <h3 id="save-data-パネル">Save Data パネル</h3>
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
 <div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Save Data</td><td>対応する全セーブデータ型、Inspectorの接続状態、保存状態</td></tr></tbody></table></div>
