@@ -36,7 +36,7 @@ SymphonyFrameWork/
 │  ├─ Debug/               HUD、Logger、StopWatch
 │  ├─ Interface/           注入・初期化などの公開契約
 │  ├─ Orchestrator/        自動初期化を行うComposition Root
-│  ├─ System/              Scene、Service、Save、Audio、Pause
+│  ├─ Service/             Scene、Service Locator、Save、Audio、Pause
 │  └─ Utility/             Awaitable、Tween、文字列等の補助
 ├─ Editor/                  Editor専用UI、Drawer、Generator
 ├─ Samples~/Runtime/        Package Managerから導入する利用例（Unityのインポート対象外）
