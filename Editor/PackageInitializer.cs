@@ -2,6 +2,7 @@
 
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.System.SaveSystem;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
@@ -30,6 +31,10 @@ namespace SymphonyFrameWork.Editor
             // 後続処理が参照するConfigを最初に生成し、Asset変更の有無をOrchestratorへ返す。
             bool hasAssetChanges = SymphonyConfigManager.AllConfigCheck();
 
+            // CoreはRuntimeのロガーを参照できない。Edit Modeで動くEditorウィンドウのCoreログも
+            // 集約先へ載せるため、Runtimeの初期化を待たずここでも中継口へ注入する。
+            CoreLogRelay.ExceptionHandler = exception => SymphonyDebugLogger.LogException(exception);
+
             // Editor設定とAssetDatabase依存をRuntime側の差し替え口へ明示的に注入する。
             ApplyServiceLocateLogOptions();
             SymphonyVisualElement.EditorAssetLoader =
@@ -49,6 +54,7 @@ namespace SymphonyFrameWork.Editor
         {
             // assembly reload後に旧Editorアセンブリのデリゲートを残さない。
             SymphonyVisualElement.EditorAssetLoader = null;
+            CoreLogRelay.Reset();
         }
 
         /// <summary>

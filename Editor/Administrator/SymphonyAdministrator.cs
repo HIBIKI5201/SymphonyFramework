@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -58,7 +59,7 @@ namespace SymphonyFrameWork.Editor
             }
             else
             {
-                Debug.LogWarning("ウィンドウがロードできませんでした");
+                SymphonyDebugLogger.LogDirect("ウィンドウがロードできませんでした", LogKindEnum.Warning);
             }
         }
 
@@ -104,7 +105,7 @@ namespace SymphonyFrameWork.Editor
             }
 
             // UXMLが見つからない場合は、不完全なルートを返さず呼び出し側へ失敗を伝える。
-            Debug.LogError("ウィンドウが見つかりません");
+            SymphonyDebugLogger.LogDirect("ウィンドウが見つかりません", LogKindEnum.Error);
             return null;
         }
 

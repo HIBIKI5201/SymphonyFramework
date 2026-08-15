@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
@@ -113,7 +114,7 @@ namespace SymphonyFrameWork.Editor
                     AssetDatabase.ImportAsset(enumFilePath, ImportAssetOptions.ForceUpdate);
                     if (refreshAssetDatabase) { AssetDatabase.Refresh(); }
 
-                    Debug.Log($"{fileName}Enumを生成しました");
+                    SymphonyDebugLogger.LogDirect($"{fileName}Enumを生成しました");
                     return;
                 }
                 catch (IOException e)
@@ -121,12 +122,12 @@ namespace SymphonyFrameWork.Editor
                     // 最終試行でも書き込めない場合だけ例外を戻し、呼び出し側へ失敗を伝える。
                     if (attempt == maxRetries)
                     {
-                        Debug.LogError($"ファイル書き込みに失敗しました（{enumFilePath}）：{e.Message}");
+                        SymphonyDebugLogger.LogDirect($"ファイル書き込みに失敗しました（{enumFilePath}）：{e.Message}", LogKindEnum.Error);
                         throw;
                     }
 
                     // Unityや外部エディタがファイルを解放する猶予を置いてから再試行する。
-                    Debug.LogWarning($"ファイルが使用中のため再試行します（{attempt}/{maxRetries}）...");
+                    SymphonyDebugLogger.LogDirect($"ファイルが使用中のため再試行します（{attempt}/{maxRetries}）...", LogKindEnum.Warning);
                     await Task.Delay(500);
                 }
             }
@@ -176,7 +177,7 @@ namespace SymphonyFrameWork.Editor
             // C#の識別子として使用できない候補は、生成後のコンパイルエラーを避けるため除外する。
             if (string.IsNullOrEmpty(candidate) || !IdentifierRegex.IsMatch(candidate))
             {
-                Debug.LogWarning($"無効な文字で始まっているか無効な文字が含まれているため'{candidate}'を除外しました");
+                SymphonyDebugLogger.LogDirect($"無効な文字で始まっているか無効な文字が含まれているため'{candidate}'を除外しました", LogKindEnum.Warning);
                 return null;
             }
 
@@ -186,14 +187,14 @@ namespace SymphonyFrameWork.Editor
             // value__はコンパイラがenumの値の格納に使う名前で、@を付けても列挙子にできない。
             if (bare == RESERVED_ENUM_MEMBER_NAME)
             {
-                Debug.LogWarning($"'{candidate}'はenumの列挙子名として予約されているため除外しました");
+                SymphonyDebugLogger.LogDirect($"'{candidate}'はenumの列挙子名として予約されているため除外しました", LogKindEnum.Warning);
                 return null;
             }
 
             // 予約語は除外せず、@を前置した識別子として生成する。名前を消さずにコンパイルを通す。
             if (ReservedWords.Contains(bare))
             {
-                Debug.LogWarning($"'{bare}'はC#の予約語のため、'@{bare}'として生成します");
+                SymphonyDebugLogger.LogDirect($"'{bare}'はC#の予約語のため、'@{bare}'として生成します", LogKindEnum.Warning);
                 return $"@{bare}";
             }
 

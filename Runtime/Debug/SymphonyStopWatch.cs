@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using Debug = UnityEngine.Debug;
+using SymphonyFrameWork.Debugger.Logger;
+
 
 namespace SymphonyFrameWork.Debugger
 {
@@ -23,7 +24,7 @@ namespace SymphonyFrameWork.Debugger
             // 同じIDの計測結果が上書きされないよう、重複時はEditorで直接警告する。
             if (!dict.TryAdd(id, (Stopwatch.StartNew(), text)))
             {
-                Debug.LogWarning($"ストップウォッチのIDが被っています\n{id} ではない別のIDを指定してください");
+                SymphonyDebugLogger.LogDirect($"ストップウォッチのIDが被っています\n{id} ではない別のIDを指定してください", LogKindEnum.Warning);
             }
 #endif
         }
@@ -40,10 +41,10 @@ namespace SymphonyFrameWork.Debugger
             if (dict.TryGetValue(id, out (Stopwatch watch, string text) value))
             {
                 value.watch.Stop();
-                Debug.Log($"{value.text} <color=green><b>{value.watch.ElapsedMilliseconds}</b></color> ms");
+                SymphonyDebugLogger.LogDirect($"{value.text} <color=green><b>{value.watch.ElapsedMilliseconds}</b></color> ms");
                 dict.Remove(id);
             }
-            else { Debug.LogWarning($"{id}のストップウォッチは開始されていません"); }
+            else { SymphonyDebugLogger.LogDirect($"{id}のストップウォッチは開始されていません", LogKindEnum.Warning); }
 #endif
         }
 

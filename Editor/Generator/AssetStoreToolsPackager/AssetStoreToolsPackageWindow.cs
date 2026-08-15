@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Editor.SettingProvider;
 
 using UnityEditor;
@@ -30,14 +31,14 @@ namespace SymphonyFrameWork.Editor
             // 対象パスが未設定なら、操作不能なウィンドウを開かず設定不足を通知する。
             if (string.IsNullOrEmpty(assetStoreToolsPath))
             {
-                Debug.LogError("AssetStoreToolsフォルダのパスが設定されていません。");
+                SymphonyDebugLogger.LogDirect("AssetStoreToolsフォルダのパスが設定されていません。", LogKindEnum.Error);
                 return;
             }
 
             // 設定済みでもUnityが認識できないフォルダなら、出力処理へ進ませない。
             if (!AssetDatabase.IsValidFolder(assetStoreToolsPath))
             {
-                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {assetStoreToolsPath}");
+                SymphonyDebugLogger.LogDirect($"AssetStoreToolsフォルダが存在しません: {assetStoreToolsPath}", LogKindEnum.Error);
                 return;
             }
             // 同じ種類のウィンドウを再利用し、複数画面から設定状態が分岐することを防ぐ。

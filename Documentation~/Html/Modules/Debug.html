@@ -111,6 +111,9 @@ SymphonyDebugLogger.NewText(&quot;ロード結果&quot;);
 SymphonyDebugLogger.AddText(&quot;Scene: Game&quot;);
 SymphonyDebugLogger.AddText(&quot;Progress: 100%&quot;);
 SymphonyDebugLogger.LogText();</code></pre>
+<p>例外は<code>LogException</code>で出力します。Unity Consoleへはスタックトレース付きの例外として出し、ファイル出力へは型名と理由を1行で残します。</p>
+<pre><code class="language-csharp">try { /* 失敗しうる処理 */ }
+catch (Exception exception) { SymphonyDebugLogger.LogException(exception); }</code></pre>
 <p><code>SymphonyStopWatch</code>はIDで計測区間を識別します。<code>Stop</code>でログへ出力されます。</p>
 <pre><code class="language-csharp">using SymphonyFrameWork.Debugger;
 
@@ -136,7 +139,7 @@ if (_renderer.LogAndCheckComponentNull()) { return; }</code></pre>
 <p><strong>出力先</strong>: <code>&lt;Frameworkルート&gt;/Cache/Log.txt</code></p>
 <p>Frameworkの実配置パスを解決してその直下へ書くため、UPM経由（<code>Library/PackageCache/</code>）でもAssets直置きでも同じ位置関係になります。</p>
 <p><strong>注意点</strong>:</p>
-<ul><li><code>Cache/</code> は生成物です。<strong>版管理へ含めないでください。</strong></li><li>書き込みは定期的にまとめて行われます。1行ごとにファイルを開きません。</li></ul>
+<ul><li><code>Cache/</code> は生成物です。<strong>版管理へ含めないでください。</strong></li><li>書き込みは定期的にまとめて行われます。1行ごとにファイルを開きません。</li><li><strong>Framework自身が出すログは、すべてこの経路を通ります。</strong> Framework内のコードは<code>UnityEngine.Debug</code>を直接呼びません。Consoleに出たFrameworkのログは<code>Log.txt</code>にも残っている、と考えて構いません。</li><li><strong><code>LogException</code>はスタックトレースをファイルへ書きません。</strong> 1件を1行として書き出すためで、型名と理由だけが残ります。スタックトレースはConsoleで確認してください。</li><li>Core層（<code>SymphonyFrameWork.Core</code>アセンブリ）はRuntimeのロガーを参照できないため、内部の中継口を経由してこの出力先へ載ります。上位層の初期化前に発生したCore層のログだけは、Unity標準の出力へ落ちて<code>Log.txt</code>に残りません。</li></ul>
 <h3 id="symphonymcptools">SymphonyMcpTools</h3>
 <p>MCPや自動化スクリプトから、SymphonyのRuntime状態をJSON文字列で読み取るためのツール群です。</p>
 <p><strong>入口</strong>: メニューはありません。外部ツールから <code>SymphonyFrameWork.Editor.Debugger.SymphonyMcpTools</code> の各メソッドを呼びます。</p>

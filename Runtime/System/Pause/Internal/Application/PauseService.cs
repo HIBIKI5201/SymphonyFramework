@@ -1,5 +1,7 @@
 ﻿using System;
 
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEngine;
 
 namespace SymphonyFrameWork.System
@@ -143,7 +145,7 @@ namespace SymphonyFrameWork.System
             catch (Exception exception)
             {
                 // 表示側の失敗はゲームロジックのポーズ処理へ逆流させず、診断ログだけを残す。
-                Debug.LogException(exception);
+                SymphonyDebugLogger.LogException(exception);
             }
         }
 

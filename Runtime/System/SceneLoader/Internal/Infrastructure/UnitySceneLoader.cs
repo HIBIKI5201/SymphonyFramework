@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.System.ServiceLocate;
 using SymphonyFrameWork.Utility;
 
@@ -71,8 +72,8 @@ namespace SymphonyFrameWork.System.SceneLoad
                 SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             if (operation == null)
             {
-                Debug.LogError(
-                    $"[{nameof(UnitySceneLoader)}] {sceneName} is not registered in Build Settings.");
+                SymphonyDebugLogger.LogDirect(
+                    $"[{nameof(UnitySceneLoader)}] {sceneName} is not registered in Build Settings.", LogKindEnum.Error);
                 return false;
             }
 
@@ -100,8 +101,8 @@ namespace SymphonyFrameWork.System.SceneLoad
             AsyncOperation operation = SceneManager.UnloadSceneAsync(sceneName);
             if (operation == null)
             {
-                Debug.LogError(
-                    $"[{nameof(UnitySceneLoader)}] Failed to start unloading scene: {sceneName}.");
+                SymphonyDebugLogger.LogDirect(
+                    $"[{nameof(UnitySceneLoader)}] Failed to start unloading scene: {sceneName}.", LogKindEnum.Error);
                 return false;
             }
 

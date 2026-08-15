@@ -67,7 +67,7 @@ namespace SymphonyFrameWork.System
             // 公開パラメーターが無いグループはdB値へ変換できないため、診断して終了する。
             if (!entity.TryGetVolumeDecibel(ratio, out float decibel))
             {
-                Debug.LogWarning($"{groupName}のボリュームがありません");
+                SymphonyDebugLogger.LogDirect($"{groupName}のボリュームがありません", LogKindEnum.Warning);
                 return;
             }
 
@@ -110,7 +110,7 @@ namespace SymphonyFrameWork.System
             // ConfigまたはAudioMixerが無い場合はAudioSourceの所有オブジェクトも生成しない。
             if (!mixer)
             {
-                Debug.LogWarning("オーディオミキサーがアサインされていません");
+                SymphonyDebugLogger.LogDirect("オーディオミキサーがアサインされていません", LogKindEnum.Warning);
                 return;
             }
 

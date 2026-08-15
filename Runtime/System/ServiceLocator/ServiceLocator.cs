@@ -132,7 +132,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             // 登録が無い型の解除要求だけを警告し、呼び出し側へ失敗を返す。
             if (!unregistered)
             {
-                Debug.LogWarning($"{type.Name}は登録されていません。");
+                SymphonyDebugLogger.LogDirect($"{type.Name}は登録されていません。", LogKindEnum.Warning);
                 return false;
             }
 
@@ -140,7 +140,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             // Editor向け解除ログが有効な場合だけ、正常な状態変更を記録する。
             if (ServiceLocateLogOption.IsDestroyInstanceLogEnabled)
             {
-                Debug.Log($"{type.Name}が登録解除されました。");
+                SymphonyDebugLogger.LogDirect($"{type.Name}が登録解除されました。");
             }
 #endif
             return true;
@@ -190,7 +190,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             // 未登録型は破棄できないため警告し、Hostへ処理を渡さない。
             if (!_query.Contains(type))
             {
-                Debug.LogWarning($"{type.Name}は登録されていません");
+                SymphonyDebugLogger.LogDirect($"{type.Name}は登録されていません", LogKindEnum.Warning);
                 return false;
             }
 
@@ -201,7 +201,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             // Editor向け破棄ログが有効な場合だけ、正常な状態変更を記録する。
             if (ServiceLocateLogOption.IsDestroyInstanceLogEnabled)
             {
-                Debug.Log($"{typeof(T).Name}が破棄されました");
+                SymphonyDebugLogger.LogDirect($"{typeof(T).Name}が破棄されました");
             }
 #endif
             return true;
@@ -571,7 +571,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
                     LocateTypeEnum.Singleton => "シングルトン",
                     _ => string.Empty
                 };
-                Debug.Log($"{type.Name}クラスの{instanceName}が{locateTypeName}登録されました");
+                SymphonyDebugLogger.LogDirect($"{type.Name}クラスの{instanceName}が{locateTypeName}登録されました");
             }
 #endif
             return registered;

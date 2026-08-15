@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -104,7 +106,7 @@ namespace SymphonyFrameWork.Utility
             // 読込先を特定できない場合は、実行環境でも確認できるエラーを残して初期化を中止する。
             if (string.IsNullOrEmpty(path))
             {
-                Debug.LogError($"{name} failed initialize");
+                SymphonyDebugLogger.LogDirect($"{name} failed initialize", LogKindEnum.Error);
                 return;
             }
 
@@ -124,7 +126,7 @@ namespace SymphonyFrameWork.Utility
                     if (asyncOperation.Status == AsyncOperationStatus.Succeeded) { treeAsset = asyncOperation.Result; }
                     else
                     {
-                        Debug.LogError($"Failed to load UXML file \nfrom : {path} \nusing Addressables");
+                        SymphonyDebugLogger.LogDirect($"Failed to load UXML file \nfrom : {path} \nusing Addressables", LogKindEnum.Error);
                         return;
                     }
                     asyncOperation.Release();
@@ -136,7 +138,7 @@ namespace SymphonyFrameWork.Utility
                     treeAsset = EditorAssetLoader?.Invoke(path);
 #else
                     // PlayerではEditor専用方式を利用できないことを、既存契約どおり通常ログで通知する。
-                    Debug.Log("AssetDataBaseを使用したロードはエディタ専用です");
+                    SymphonyDebugLogger.LogDirect("AssetDataBaseを使用したロードはエディタ専用です");
 #endif
                     break;
             }
@@ -173,14 +175,14 @@ namespace SymphonyFrameWork.Utility
                     // InitializeTaskは待機されない場合があり、失敗を観測しないまま
                     // 初期化途中のUIだけが残る。原因を追えるようConsoleへ必ず残し、
                     // 待機側の契約は変えずに再送出する。
-                    Debug.LogException(exception);
+                    SymphonyDebugLogger.LogException(exception);
                     throw;
                 }
             }
             else
             {
                 // 方式固有の処理が結果を返さなかった場合も、実行環境で追跡できるエラーを残す。
-                Debug.LogError($"Failed to load UXML file \nfrom : {path}");
+                SymphonyDebugLogger.LogDirect($"Failed to load UXML file \nfrom : {path}", LogKindEnum.Error);
             }
         }
 

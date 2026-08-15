@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Editor.Debugger.Logger;
 
 using UnityEditor;
@@ -140,9 +141,9 @@ namespace SymphonyFrameWork.Editor
             }
             catch (Exception exception)
             {
-                Debug.LogError(
+                SymphonyDebugLogger.LogDirect(
                     $"[{nameof(SymphonyEditorOrchestrator)}] host callbackの処理に失敗しました。" +
-                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}");
+                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}", LogKindEnum.Error);
             }
         }
 
@@ -198,15 +199,15 @@ namespace SymphonyFrameWork.Editor
                 initializingModuleName = nameof(TagsAndLayersPostProcessor);
                 ProcessPendingHostChanges();
 
-                Debug.Log("Symphony Framework Initialized");
+                SymphonyDebugLogger.LogDirect("Symphony Framework Initialized");
             }
             catch (Exception exception)
             {
                 // 部分初期化のままEditorへ残さず、成功済みのモジュールだけを逆順で戻す。
-                Debug.LogError(
+                SymphonyDebugLogger.LogDirect(
                     $"[{nameof(SymphonyEditorOrchestrator)}] " +
                     $"{initializingModuleName}の初期化に失敗しました。" +
-                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}");
+                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}", LogKindEnum.Error);
                 RollbackInitialization();
             }
         }
@@ -345,7 +346,7 @@ namespace SymphonyFrameWork.Editor
                 message.AppendLine("'");
             }
 
-            Debug.LogError(message.ToString());
+            SymphonyDebugLogger.LogDirect(message.ToString(), LogKindEnum.Error);
         }
 
         /// <summary>

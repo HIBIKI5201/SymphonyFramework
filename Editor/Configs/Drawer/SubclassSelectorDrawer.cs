@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Attribute;
+using SymphonyFrameWork.Debugger.Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -221,7 +222,7 @@ namespace SymphonyFrameWork.Editor
             FieldInfo fieldInfo = GetFieldInfo(property);
             if (fieldInfo == null)
             {
-                Debug.LogWarning($"Could not find field for property {property.propertyPath}");
+                SymphonyDebugLogger.LogDirect($"Could not find field for property {property.propertyPath}", LogKindEnum.Warning);
                 return null;
             }
 

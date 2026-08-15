@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 
 using UnityEditor;
 
@@ -30,9 +31,9 @@ namespace SymphonyFrameWork.Editor
             // 未定義のページは誤ったURLを開かず、呼び出し側が特定できるエラーとして記録する。
             if (!SymphonyDocumentPathResolver.TryGetDocumentName(page, out _))
             {
-                Debug.LogError(
+                SymphonyDebugLogger.LogDirect(
                     $"[{SymphonyConstant.SYMPHONY_FRAMEWORK}] "
-                    + $"ドキュメントページ '{page}' に対応する文書がありません。");
+                    + $"ドキュメントページ '{page}' に対応する文書がありません。", LogKindEnum.Error);
                 return;
             }
 
@@ -49,9 +50,9 @@ namespace SymphonyFrameWork.Editor
             // 同梱HTMLを解決できない環境では、利用者が文書へ到達できるGitHubの正本へ切り替える。
             string fallbackUrl = SymphonyDocumentPathResolver.ResolveFallbackUrl(page);
 
-            Debug.LogWarning(
+            SymphonyDebugLogger.LogDirect(
                 $"[{SymphonyConstant.SYMPHONY_FRAMEWORK}] "
-                + $"同梱ドキュメントが見つかりません。GitHubの正本を開きます: {fallbackUrl}");
+                + $"同梱ドキュメントが見つかりません。GitHubの正本を開きます: {fallbackUrl}", LogKindEnum.Warning);
 
             Application.OpenURL(fallbackUrl);
         }
