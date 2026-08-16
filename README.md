@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **5.0.1**
+- 現在のバージョン: **5.1.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -91,7 +91,7 @@ Assets/
 主な設定場所:
 
 - `Window > SymphonyFrameWork > Symphony Administrator`: 各機能の状態確認とenum生成
-- `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択
+- `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択
 - `SceneLoadConfig.asset`: 再生開始時のシーン初期化
 - `AudioConfig.asset`: AudioMixerとグループ設定
 
