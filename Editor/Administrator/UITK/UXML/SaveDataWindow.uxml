@@ -16,10 +16,10 @@
         <ui:Label text="Save Data Types" class="text" style="-unity-text-align: middle-left; width: 100%;"/>
         <ui:ListView name="save-cache-list" fixed-item-height="42" class="text" style="width: 100%; height: 180px; margin-top: 6px; margin-bottom: 8px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);"/>
 
-        <ui:VisualElement style="width: 100%; flex-direction: row; flex-wrap: wrap; margin-bottom: 8px;">
-            <ui:Button name="save-load" text="Load" class="button" style="width: 32%; height: 32px;"/>
-            <ui:Button name="save-save" text="Save" class="button" style="width: 32%; height: 32px;"/>
-            <ui:Button name="save-delete" text="Delete" class="button" style="width: 32%; height: 32px;"/>
+        <ui:VisualElement style="width: 100%; flex-direction: row; flex-wrap: nowrap; margin-bottom: 8px;">
+            <ui:Button name="save-load" text="Load" class="button" style="flex-grow: 1; flex-shrink: 1; flex-basis: 0; width: auto; min-width: 0; height: 32px;"/>
+            <ui:Button name="save-save" text="Save" class="button" style="flex-grow: 1; flex-shrink: 1; flex-basis: 0; width: auto; min-width: 0; height: 32px;"/>
+            <ui:Button name="save-delete" text="Delete" class="button" style="flex-grow: 1; flex-shrink: 1; flex-basis: 0; width: auto; min-width: 0; height: 32px;"/>
         </ui:VisualElement>
 
         <ui:Label text="Status" class="text" style="-unity-text-align: middle-left; width: 100%;"/>
