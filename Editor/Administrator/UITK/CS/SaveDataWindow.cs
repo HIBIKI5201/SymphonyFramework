@@ -4,7 +4,6 @@ using SymphonyFrameWork.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -44,6 +43,7 @@ namespace SymphonyFrameWork.Editor
             _disposed = true;
 
             // Windowより長生きするstatic eventとReactivePropertyの購読を対にして解除する。
+            SaveDataVisibilityConfig.instance.OnChanged -= SaveDataVisibilityChangedHandler;
             SaveStore.OnCurrentViewModelChanged -= ViewModelChangedHandler;
             EditorApplication.playModeStateChanged -= PlayModeStateChangedHandler;
             UnbindViewModel();
@@ -73,6 +73,18 @@ namespace SymphonyFrameWork.Editor
         #region 内部処理
 
         private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataWindow.SelectedTypeName";
+
+        /// <summary> 対応するセーブデータ型がプロジェクトに1つも無いことを示す文言。 </summary>
+        private const string NO_SAVE_DATA_TYPE_MESSAGE =
+            "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
+
+        /// <summary> 管理対象の型が1つも無いことと、設定画面への導線を示す文言。 </summary>
+        private const string NO_MANAGED_TYPE_MESSAGE =
+            "管理対象のセーブデータ型がありません。"
+            + "Project Settings > SymphonyFrameWork > Save System で管理対象を設定してください。";
+
+        /// <summary> 一覧からの明示選択を促す文言。 </summary>
+        private const string SELECT_TYPE_MESSAGE = "Save Data Types からセーブデータを選択してください。";
 
         // 基底コンストラクタが Initialize_S を同期的に呼ぶため、コンストラクタ本体では
         // 間に合わない。フィールド初期化子は基底コンストラクタより先に走る。
@@ -109,7 +121,20 @@ namespace SymphonyFrameWork.Editor
         private bool _isLocalContentLoading;
         private bool _hasLocalAutoLoadAttempted;
         private bool _skipNextCarryOverFlush;
+        private bool _hasSupportedTypes;
         private bool _disposed;
+
+        /// <summary>
+        ///     セーブデータ型の管理対象設定が変わったときに一覧を更新する。
+        /// </summary>
+        private void SaveDataVisibilityChangedHandler()
+        {
+            // Window破棄後に設定変更の通知が残っても、表示へ触れない。
+            if (_disposed) { return; }
+
+            EnsureTypeListCurrent();
+            RefreshView();
+        }
 
         /// <summary>
         ///     ViewModelが差し替わったときに接続し直す。
@@ -228,6 +253,7 @@ namespace SymphonyFrameWork.Editor
 
             // ViewModel購読前に一覧の描画規則と対象型を揃え、初回通知を安全に反映できる状態にする。
             ConfigureCacheList();
+            SaveDataVisibilityConfig.instance.OnChanged += SaveDataVisibilityChangedHandler;
             EnsureTypeListCurrent();
 
             // ViewModelはCompositionが所有し、Windowは差し替え通知と購読ハンドルだけを所有する。
@@ -302,25 +328,32 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private void EnsureTypeListCurrent()
         {
-            // ロード可能な全Assemblyから対応型だけを抽出し、表示順を完全名で固定する。
-            List<Type> latestTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(GetTypesSafe)
-                .Where(IsSupportedSaveDataType)
-                .OrderBy(type => type.FullName, StringComparer.Ordinal)
+            // 対応型の探索結果とテストAssembly由来の既定値から管理対象だけを抽出する。
+            IReadOnlyList<Type> supportedTypes = SaveDataTypeCatalog.CollectSupportedTypes();
+            IEnumerable<KeyValuePair<string, bool>> catalogEntries = supportedTypes.Select(type =>
+                new KeyValuePair<string, bool>(type.FullName, SaveDataTypeCatalog.IsTestAssembly(type.Assembly)));
+            SaveDataVisibilityMap visibilityMap = new(
+                catalogEntries,
+                SaveDataVisibilityConfig.instance.GetOverrides());
+            List<Type> latestTypes = supportedTypes
+                .Where(type => visibilityMap.IsManaged(type.FullName))
                 .ToList();
 
             // 対応型が存在しない場合は、古い選択と一時編集参照を残さない。
             // 初期値の一覧も空のため、下の変更判定では「変化なし」となり理由を表示できない。
             // 利用者から見れば未初期化と区別が付かないので、判定より先に扱う。
+            _hasSupportedTypes = supportedTypes.Count > 0;
+
+            if (!_hasSupportedTypes)
+            {
+                ClearTypeSelection(latestTypes, NO_SAVE_DATA_TYPE_MESSAGE);
+                return;
+            }
+
+            // 対応型があってもすべて管理対象外なら、設定画面への導線を表示する。
             if (latestTypes.Count <= 0)
             {
-                _saveDataTypes = latestTypes;
-                _selectedType = null;
-                DisposeLocalContent();
-                _bindingSource = SaveDataBindingSourceEnum.None;
-                _boundRegistryContent = null;
-                RebindDebugState(null);
-                _statusMessage = "プロジェクト内に SaveDataContent を継承したセーブデータ型が見つかりません。";
+                ClearTypeSelection(latestTypes, NO_MANAGED_TYPE_MESSAGE);
                 return;
             }
 
@@ -340,6 +373,38 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
+        ///     型一覧と選択状態を空の表示へ切り替える。
+        /// </summary>
+        /// <param name="latestTypes"> 空の管理対象型一覧。 </param>
+        /// <param name="statusMessage"> 空になった理由を示す文言。 </param>
+        private void ClearTypeSelection(List<Type> latestTypes, string statusMessage)
+        {
+            // 古い選択、一時編集参照、Inspectorのバインドを同時に解除する。
+            _saveDataTypes = latestTypes;
+            _selectedType = null;
+            DisposeLocalContent();
+            _bindingSource = SaveDataBindingSourceEnum.None;
+            _boundRegistryContent = null;
+            RebindDebugState(null);
+            _statusMessage = statusMessage;
+        }
+
+        /// <summary>
+        ///     未選択状態で表示する文言を決める。
+        /// </summary>
+        /// <remarks>
+        ///     管理対象が空のときに選択を促しても、選べる行が無い。設定画面へ誘導する。
+        /// </remarks>
+        /// <returns> 現在の型一覧に対応する未選択時の文言。 </returns>
+        private string ResolveUnselectedMessage()
+        {
+            // 対応型自体が無い場合と、あるが管理対象が空の場合で、次の操作が変わる。
+            if (!_hasSupportedTypes) { return NO_SAVE_DATA_TYPE_MESSAGE; }
+
+            return _saveDataTypes.Count <= 0 ? NO_MANAGED_TYPE_MESSAGE : SELECT_TYPE_MESSAGE;
+        }
+
+        /// <summary>
         ///     解決済みの型を選択状態へ反映する。
         /// </summary>
         /// <remarks>
@@ -355,7 +420,7 @@ namespace SymphonyFrameWork.Editor
                 _bindingSource = SaveDataBindingSourceEnum.None;
                 _boundRegistryContent = null;
                 RebindDebugState(null);
-                _statusMessage = "Save Data Types からセーブデータを選択してください。";
+                _statusMessage = ResolveUnselectedMessage();
                 return;
             }
 
@@ -1020,7 +1085,7 @@ namespace SymphonyFrameWork.Editor
             // 未選択時は一覧からの明示選択を促す。
             if (_bindingSource == SaveDataBindingSourceEnum.None)
             {
-                _statusMessage = "Save Data Types からセーブデータを選択してください。";
+                _statusMessage = ResolveUnselectedMessage();
                 return;
             }
 
@@ -1066,7 +1131,7 @@ namespace SymphonyFrameWork.Editor
             // 対象型が無い場合は非同期操作を開始せず、利用者へ選択を促す。
             if (_selectedType == null)
             {
-                _statusMessage = "Save Data Types からセーブデータを選択してください。";
+                _statusMessage = ResolveUnselectedMessage();
                 RefreshView();
                 return;
             }
@@ -1256,7 +1321,7 @@ namespace SymphonyFrameWork.Editor
                 // 日時は補助情報のため、読めなくても操作を止めず診断だけ残す。
                 if (_disposed) { return; }
 
-                Debug.LogException(ex);
+                SymphonyDebugLogger.LogException(ex);
             }
             finally
             {
@@ -1274,49 +1339,6 @@ namespace SymphonyFrameWork.Editor
             // 保存と削除で日時が変わるため、次の描画で読み直せる状態へ戻す。
             _savedDates.Remove(dataType);
             _savedDateProbedTypes.Remove(dataType);
-        }
-
-        /// <summary>
-        ///     Assemblyから取得可能な型だけを列挙する。
-        /// </summary>
-        /// <remarks> 一部の型をロードできないAssemblyでも、取得済みの型を保持する。 </remarks>
-        private static IEnumerable<Type> GetTypesSafe(Assembly assembly)
-        {
-            try
-            {
-                // すべての型を解決できるAssemblyでは通常の型一覧を返す。
-                return assembly.GetTypes();
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                // 一部解決失敗でも、取得できた非null型まで捨てずに列挙する。
-                return ex.Types.Where(type => type != null);
-            }
-        }
-
-        /// <summary>
-        ///     管理パネルで生成・編集できるセーブデータ具象型か検証する。
-        /// </summary>
-        private static bool IsSupportedSaveDataType(Type type)
-        {
-            // ScriptableObjectなどのUnity Objectと抽象・未構築型は、SerializeReferenceの編集対象にしない。
-            if (type == null
-                || !type.IsClass
-                || type.IsAbstract
-                || type.IsGenericTypeDefinition
-                || typeof(UnityEngine.Object).IsAssignableFrom(type))
-            {
-                return false;
-            }
-
-            // SaveStoreが生成できるよう、引数なしコンストラクタを持つ型だけを許可する。
-            if (type.GetConstructor(Type.EmptyTypes) == null) { return false; }
-
-            // セーブデータ契約を満たさない型は、同じ生成条件を持っていても対象外とする。
-            if (!typeof(SaveDataContent).IsAssignableFrom(type)) { return false; }
-
-            // UnityのSerializeReferenceで編集できるよう、Serializable指定を最後に確認する。
-            return type.IsDefined(typeof(SerializableAttribute), false);
         }
 
         /// <summary>

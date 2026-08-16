@@ -65,7 +65,7 @@ if (SaveStore.IsLoaded<PlayerData>())
 
 ### Save System設定
 
-`SaveStore` が使用するセーブローダーを選択します。
+`SaveStore` が使用するセーブローダーと、Save Data パネルへ表示する型を選択します。
 
 **入口**: `Project Settings > SymphonyFrameWork > Save System`
 
@@ -73,8 +73,9 @@ if (SaveStore.IsLoaded<PlayerData>())
 | --- | --- |
 | Loader | `SaveDataLoaderStrategy` を継承したローダー。`[SerializeReference]` で選択する |
 | Current Loader Type | 現在設定されているローダーの型名（読み取り専用） |
+| Managed Save Data Types | Save Data パネルへ表示する型のチェックボックス。名前空間の階層で並ぶ |
 
-**保存先**: `Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset`
+**保存先**: ローダーは `Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset`、管理対象のチェックは `ProjectSettings/Packages/symphonyframework/SaveDataVisibilityConfig.asset`
 
 **注意点**:
 
@@ -83,13 +84,27 @@ if (SaveStore.IsLoaded<PlayerData>())
 - 独自ローダーは `SaveDataLoaderStrategy` を継承してください。共通の検証とデータ復旧は基底クラスが担当します。
 - ローダーを変更すると、その場で `SaveStore` が読み直します。
 
+#### Managed Save Data Types
+
+`SaveDataContent` を継承した型は、プロジェクト内のどのアセンブリにあってもこの一覧へ並びます。チェックを外した型は Save Data パネルへ表示されません。
+
+**既定値は、テスト用アセンブリの型が `false`、それ以外の型が `true` です。** テスト用アセンブリかどうかは、そのアセンブリが `nunit.framework` または `UnityEngine.TestRunner` を参照しているかで判定します。**この判定は既定値を決めるためだけに使います。** 意図と違う場合はチェックを操作してください。
+
+一覧は名前空間の階層で並びます。**分岐の無い名前空間は1行にまとめて表示します。** 例えば `SpaceA.ScopeB` の下にしか型が無ければ `SpaceA.ScopeB` の1行になり、`SpaceA.ScopeE` の型が加わった時点で `SpaceA` の下が `ScopeB` と `ScopeE` に分かれます。名前空間の行のチェックは、その配下の型をまとめて切り替えます。配下が混在している場合は混在表示になり、押すとすべて管理対象になります。
+
+- **設定へ保存されるのは、操作して切り替えた型だけです。** 既定のままの型は保存されないため、画面を開くだけでは設定ファイルが増えません。
+- 型を追加すると、既定値に従って自動的に一覧へ現れます。既存の設定を書き換える必要はありません。
+- **この設定はEditorの表示だけに効きます。** `SaveStore.Get<T>()` などの実行時APIは、チェックの有無に関係なく従来どおり動きます。
+
 ### Save Data パネル
 
 **入口**: `Window > SymphonyFrameWork > Symphony Administrator`
 
 | パネル | 内容 |
 | --- | --- |
-| Save Data | 対応する全セーブデータ型、Inspectorの接続状態、保存状態 |
+| Save Data | 管理対象のセーブデータ型、Inspectorの接続状態、保存状態 |
+
+一覧に並ぶのは、Save System設定の `Managed Save Data Types` でチェックが入っている型だけです。設定を変えると、パネルを開き直さずにその場で一覧が入れ替わります。管理対象が1つも無い場合は、設定画面への導線を表示します。
 
 一覧から型を選ぶと、Inspectorのバインド元をランプで表示します。ランプは、Registry正本へ接続中なら緑、Window専用インスタンスへ保存値を読み込み済みなら黄、新規のWindow専用インスタンスなら赤、未選択なら消灯です。ロード中は赤のまま `Loading…` を表示し、完了までInspectorを編集できません。
 
