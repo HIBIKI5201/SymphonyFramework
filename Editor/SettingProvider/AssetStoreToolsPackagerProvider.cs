@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -195,9 +196,9 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                     or ArgumentException
                     or NotSupportedException)
             {
-                Debug.LogError(
+                SymphonyDebugLogger.LogDirect(
                     $"[{nameof(AssetStoreToolsPackagerProvider)}]\n"
-                    + $"パイプラインの配置先を生成できませんでした: {directory}\n{exception.Message}");
+                    + $"パイプラインの配置先を生成できませんでした: {directory}\n{exception.Message}", LogKindEnum.Error);
                 return null;
             }
 
@@ -214,7 +215,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             AssetDatabase.CreateAsset(pipeline, path);
             AssetDatabase.SaveAssets();
 
-            Debug.Log(
+            SymphonyDebugLogger.LogDirect(
                 $"[{nameof(AssetStoreToolsPackagerProvider)}]\n"
                 + $"既定のパイプラインを生成しました: {path}");
 

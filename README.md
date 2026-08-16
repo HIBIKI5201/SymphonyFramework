@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **3.10.0**
+- 現在のバージョン: **5.0.1**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -127,7 +127,7 @@ Runtimeモジュールに紐づくEditor機能（Save System設定、Service Loc
 
 ## サンプル
 
-Package Managerから[`Samples/Runtime`](./Samples/Runtime)の各サンプルを利用プロジェクトへインポートできます。
+Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプルを利用プロジェクトへインポートできます。**インポートするまでプロジェクトには入りません。**
 
 - `ServiceLocatorSample`: 登録、同期取得、非同期取得、Singleton
 - `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除

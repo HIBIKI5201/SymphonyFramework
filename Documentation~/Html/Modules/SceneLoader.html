@@ -99,7 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="scene-loader">Scene Loader</h1>
 <p>Scene Loaderは非同期ロード、進捗、複数シーン、優先度によるActive Scene切り替えをまとめて扱います。</p>
 <h2 id="入口">入口</h2>
-<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System.SceneLoad</code></td></tr><tr><td>主な公開型</td><td><code>SceneLoader</code> / <code>SceneLoadRequest</code> / <code>SceneLoadInfo</code> / <code>IInitializeAsync</code></td></tr><tr><td>メニューパス</td><td><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code> の <code>Scene Load</code> パネル</td></tr><tr><td>設定の保存先</td><td><code>Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset</code></td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System.SceneLoad</code></td></tr><tr><td>主な公開型</td><td><code>SceneLoader</code> / <code>SceneLoadRequest</code> / <code>SceneLoadInfo</code> / <code>IInitializeAsync</code></td></tr><tr><td>補足</td><td><code>IInitializeAsync</code> は 5.0.0 で <code>SymphonyFrameWork</code> からこのnamespaceへ移りました</td></tr><tr><td>メニューパス</td><td><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code> の <code>Scene Load</code> パネル</td></tr><tr><td>設定の保存先</td><td><code>Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset</code></td></tr></tbody></table></div>
 <h2 id="クイックスタート">クイックスタート</h2>
 <p>対象シーンをBuild Settingsへ追加してから、名前を指定してロードします。</p>
 <pre><code class="language-csharp">using System;

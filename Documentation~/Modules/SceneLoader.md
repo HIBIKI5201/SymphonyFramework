@@ -8,6 +8,7 @@ Scene Loaderは非同期ロード、進捗、複数シーン、優先度によ�
 | --- | --- |
 | namespace | `SymphonyFrameWork.System.SceneLoad` |
 | 主な公開型 | `SceneLoader` / `SceneLoadRequest` / `SceneLoadInfo` / `IInitializeAsync` |
+| 補足 | `IInitializeAsync` は 5.0.0 で `SymphonyFrameWork` からこのnamespaceへ移りました |
 | メニューパス | `Window > SymphonyFrameWork > Symphony Administrator` の `Scene Load` パネル |
 | 設定の保存先 | `Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset` |
 

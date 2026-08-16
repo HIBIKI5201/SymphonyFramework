@@ -197,7 +197,8 @@ namespace SymphonyFrameWork.Core
             if (exceptions == null) { return; }
 
             // 複数の購読者例外を1件に集約し、通知失敗の全体像を保持する。
-            Debug.LogException(new AggregateException(
+            // CoreはRuntimeのロガーを直接参照できないため、中継口へ渡して集約先を揃える。
+            CoreLogRelay.LogException(new AggregateException(
                 $"[{nameof(ReactiveProperty<T>)}] 購読者への通知で例外が発生しました。",
                 exceptions));
         }

@@ -79,6 +79,7 @@ if (SaveStore.IsLoaded<PlayerData>())
 **注意点**:
 
 - ローダーが未設定の場合、`SaveStore` は既定の `JsonUtility` ローダーへフォールバックします。警告が表示されます。
+- **`SaveDataConfig` がまだ無い状態でこの画面を開いても、生成は始まりません。** 未生成である旨と `設定アセットを生成` ボタンが表示されます。設定アセットの生成はEditor起動時にまとめて行われる処理であり、画面を開いた副作用として走らせないためです。ボタンを押すと、起動時と同じ経路（`SymphonyEditorOrchestrator`）で生成されます。
 - 独自ローダーは `SaveDataLoaderStrategy` を継承してください。共通の検証とデータ復旧は基底クラスが担当します。
 - ローダーを変更すると、その場で `SaveStore` が読み直します。
 

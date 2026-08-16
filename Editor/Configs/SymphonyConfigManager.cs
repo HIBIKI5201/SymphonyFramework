@@ -56,7 +56,7 @@ namespace SymphonyFrameWork.Editor
             // Config型に対応する既知の保存先が無い場合は、推測したパスへ生成しない。
             if (path == null)
             {
-                Debug.LogWarning(typeof(T).Name + " doesn't exist!");
+                SymphonyDebugLogger.LogDirect(typeof(T).Name + " doesn't exist!", LogKindEnum.Warning);
                 return false;
             }
 
@@ -108,9 +108,9 @@ namespace SymphonyFrameWork.Editor
             }
             catch (Exception exception)
             {
-                Debug.LogWarning(
+                SymphonyDebugLogger.LogDirect(
                     $"[{nameof(SymphonyConfigManager)}] UserSettingsの保存先を生成できませんでした。" +
-                    $" path: '{EditorSymphonyConstant.USER_SETTING_FILE_PATH}', reason: '{exception.Message}'");
+                    $" path: '{EditorSymphonyConstant.USER_SETTING_FILE_PATH}', reason: '{exception.Message}'", LogKindEnum.Warning);
             }
         }
 

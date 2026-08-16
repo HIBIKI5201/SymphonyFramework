@@ -46,7 +46,7 @@ Assets/Scripts/SymphonyFrameWork/AudioGroupTypeEnum.cs
 
 ## 3. Play Mode
 
-Package Managerから該当する[`Samples/Runtime`](../Samples/Runtime)をインポートし、サンプルシーンをPlayするのが最短です。
+Package Managerから該当する[`Samples~/Runtime`](../Samples~/Runtime)をインポートし、サンプルシーンをPlayするのが最短です。
 
 - Service Locator: 登録、取得、解除が成立し、シーンを跨いだ不要な参照が残らない。
 - Scene Loader: 対象シーンをBuild Settingsへ追加し、ロード、Active Scene切り替え、アンロードが成功する。

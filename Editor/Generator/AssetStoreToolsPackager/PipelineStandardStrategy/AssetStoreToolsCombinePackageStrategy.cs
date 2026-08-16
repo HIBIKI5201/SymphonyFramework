@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -53,7 +55,7 @@ namespace SymphonyFrameWork.Editor
                     // 空判定は出力時バージョンを加える前に行う。加えた後では常に非空になる。
                     if (context.Plan.Entries.All(entry => entry.AssetPaths.Count == 0))
                     {
-                        Debug.LogWarning("使用中アセットが存在しないため統合パッケージを作成しませんでした。");
+                        SymphonyDebugLogger.LogDirect("使用中アセットが存在しないため統合パッケージを作成しませんでした。", LogKindEnum.Warning);
                         return;
                     }
 
@@ -78,12 +80,12 @@ namespace SymphonyFrameWork.Editor
                     options
                 );
 
-                Debug.Log($"統合パッケージ作成: {combinedName}");
+                SymphonyDebugLogger.LogDirect($"統合パッケージ作成: {combinedName}");
             }
             catch (Exception e)
             {
                 // 統合パッケージの失敗を記録し、ランナーが後続手順を続行できるよう例外を閉じ込める。
-                Debug.LogError($"統合パッケージの出力に失敗\n{e}");
+                SymphonyDebugLogger.LogDirect($"統合パッケージの出力に失敗\n{e}", LogKindEnum.Error);
             }
         }
 
@@ -99,12 +101,12 @@ namespace SymphonyFrameWork.Editor
             // 個別パッケージがあれば、それを差分インポートへ利用できるため警告しない。
             if (hasSingles) { return; }
 
-            Debug.LogWarning(
+            SymphonyDebugLogger.LogDirect(
                 $"[{nameof(AssetStoreToolsCombinePackageStrategy)}]\n"
                 + "統合パッケージだけの出力は差分インポートの対象になりません。"
                 + "ディレクトリ単位で取り出せないためです。"
                 + $"\n差分インポートが必要な場合は、パイプラインへ"
-                + $"{nameof(AssetStoreToolsSinglePackageStrategy)}を追加してください。");
+                + $"{nameof(AssetStoreToolsSinglePackageStrategy)}を追加してください。", LogKindEnum.Warning);
         }
 
         #endregion

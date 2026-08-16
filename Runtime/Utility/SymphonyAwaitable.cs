@@ -3,6 +3,8 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEngine;
 
 namespace SymphonyFrameWork.Utility
@@ -42,7 +44,7 @@ namespace SymphonyFrameWork.Utility
             }
 
             // fire-and-forget処理の正常完了を実行環境でも追跡できるよう、Unity標準ログへ出力する。
-            Debug.Log($"{action.Method} is done");
+            SymphonyDebugLogger.LogDirect($"{action.Method} is done");
         }
 
         /// <summary>
@@ -71,7 +73,7 @@ namespace SymphonyFrameWork.Utility
             }
 
             // 待機可能な処理でも既存契約の完了ログを実行環境へ残す。
-            Debug.Log($"{action.Method} is done");
+            SymphonyDebugLogger.LogDirect($"{action.Method} is done");
         }
 
         /// <summary>

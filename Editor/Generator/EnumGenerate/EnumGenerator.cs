@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
@@ -41,7 +42,31 @@ namespace SymphonyFrameWork.Editor
         #region 内部処理
 
         private static readonly Regex IdentifierRegex = new(@"^@?[a-zA-Z_][a-zA-Z0-9_]*$");
-        private static readonly string[] ReservedWords = { "abstract", "as", "base", "bool", "break", "while" };
+
+        /// <summary>
+        ///     C#の予約語。そのままでは識別子にできず、<c>@</c> の前置が要る。
+        /// </summary>
+        /// <remarks>
+        ///     文脈キーワード（<c>var</c>、<c>value</c>、<c>async</c>、<c>record</c> など）は
+        ///     識別子として使えるため含めない。
+        /// </remarks>
+        private static readonly HashSet<string> ReservedWords = new()
+        {
+            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
+            "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
+            "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+            "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+            "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+            "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed",
+            "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this",
+            "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort",
+            "using", "virtual", "void", "volatile", "while",
+        };
+
+        /// <summary>
+        ///     enumの列挙子名として使えない名前。コンパイラが値の格納に予約している。
+        /// </summary>
+        private const string RESERVED_ENUM_MEMBER_NAME = "value__";
 
         /// <summary>
         ///     AssetDatabase更新の所有者を指定してenumソースを生成する。
@@ -56,29 +81,8 @@ namespace SymphonyFrameWork.Editor
             bool flag,
             bool refreshAssetDatabase)
         {
-            // 出力内容を作る前に候補を検証し、無効な識別子と重複を取り除く。
-            HashSet<string> hash = new HashSet<string>(new string[1] { "None" }.Concat(strings))
-                .Where(s =>
-                {
-                    // C#の識別子として使用できない候補は、生成後のコンパイルエラーを避けるため除外する。
-                    if (!IdentifierRegex.IsMatch(s))
-                    {
-                        Debug.LogWarning($"無効な文字で始まっているか無効な文字が含まれているため'{s}'を除外しました");
-                        return false;
-                    }
-
-                    // 予約語は既存の生成結果を変えず、問題のある候補として警告する。
-                    // TODO(#161): 「除外しました」と警告しながらreturn trueで候補に残している。
-                    //             シーン名やタグ名に予約語があると、生成した.csがコンパイルエラーになる。
-                    //             除外するか@を前置してエスケープするかを決め、警告文を実際の挙動へ揃える。
-                    if (ReservedWords.Contains(s))
-                    {
-                        Debug.LogWarning($"無効な文字列'{s}'を除外しました");
-                    }
-
-                    return true;
-                })
-                .ToHashSet();
+            // 出力内容を作る前に候補を列挙子名へ解決し、使えない候補と重複を取り除く。
+            IReadOnlyList<string> hash = ResolveEnumMemberNames(strings);
 
             // 自動生成物は利用側のAssets/Scripts/SymphonyFrameWork配下へ置き、手編集を前提にしない。
             CreateResourcesFolder($"{EditorSymphonyConstant.ENUM_PATH}/");
@@ -110,7 +114,7 @@ namespace SymphonyFrameWork.Editor
                     AssetDatabase.ImportAsset(enumFilePath, ImportAssetOptions.ForceUpdate);
                     if (refreshAssetDatabase) { AssetDatabase.Refresh(); }
 
-                    Debug.Log($"{fileName}Enumを生成しました");
+                    SymphonyDebugLogger.LogDirect($"{fileName}Enumを生成しました");
                     return;
                 }
                 catch (IOException e)
@@ -118,15 +122,83 @@ namespace SymphonyFrameWork.Editor
                     // 最終試行でも書き込めない場合だけ例外を戻し、呼び出し側へ失敗を伝える。
                     if (attempt == maxRetries)
                     {
-                        Debug.LogError($"ファイル書き込みに失敗しました（{enumFilePath}）：{e.Message}");
+                        SymphonyDebugLogger.LogDirect($"ファイル書き込みに失敗しました（{enumFilePath}）：{e.Message}", LogKindEnum.Error);
                         throw;
                     }
 
                     // Unityや外部エディタがファイルを解放する猶予を置いてから再試行する。
-                    Debug.LogWarning($"ファイルが使用中のため再試行します（{attempt}/{maxRetries}）...");
+                    SymphonyDebugLogger.LogDirect($"ファイルが使用中のため再試行します（{attempt}/{maxRetries}）...", LogKindEnum.Warning);
                     await Task.Delay(500);
                 }
             }
+        }
+
+        /// <summary>
+        ///     候補文字列を、そのまま生成できるenumの列挙子名へ解決する。
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         生成物は利用側の <c>Assets/Scripts/</c> 配下へ書き出され、そのままコンパイルされる。
+        ///         ここを通過した名前がコンパイルできなければ、利用者のプロジェクトが壊れる。
+        ///     </para>
+        ///     <para>
+        ///         予約語は除外せず <c>@</c> を前置してエスケープする。除外すると、その名前のシーンが
+        ///         <c>SceneListEnum</c> から消えて <c>SceneLoader</c> から参照できなくなり、
+        ///         利用者の意図を壊すためである。
+        ///     </para>
+        /// </remarks>
+        /// <param name="strings"> enumの列挙子候補。 </param>
+        /// <returns> 先頭が <c>None</c> の、重複を除いた列挙子名。 </returns>
+        internal static IReadOnlyList<string> ResolveEnumMemberNames(IEnumerable<string> strings)
+        {
+            List<string> members = new();
+            HashSet<string> seen = new();
+
+            foreach (string candidate in new[] { "None" }.Concat(strings ?? Array.Empty<string>()))
+            {
+                string member = ResolveEnumMemberName(candidate);
+
+                // 使えない候補と、既に同じ列挙子名へ解決済みの候補は生成対象へ含めない。
+                if (member == null || !seen.Add(member)) { continue; }
+
+                members.Add(member);
+            }
+
+            return members;
+        }
+
+        /// <summary>
+        ///     候補1件を列挙子名へ解決する。
+        /// </summary>
+        /// <param name="candidate"> 解決する候補。 </param>
+        /// <returns> 列挙子名。生成対象にできない場合はnull。 </returns>
+        private static string ResolveEnumMemberName(string candidate)
+        {
+            // C#の識別子として使用できない候補は、生成後のコンパイルエラーを避けるため除外する。
+            if (string.IsNullOrEmpty(candidate) || !IdentifierRegex.IsMatch(candidate))
+            {
+                SymphonyDebugLogger.LogDirect($"無効な文字で始まっているか無効な文字が含まれているため'{candidate}'を除外しました", LogKindEnum.Warning);
+                return null;
+            }
+
+            // 候補が既に@付きでも、判定と生成は素の名前を基準に行う。
+            string bare = candidate.TrimStart('@');
+
+            // value__はコンパイラがenumの値の格納に使う名前で、@を付けても列挙子にできない。
+            if (bare == RESERVED_ENUM_MEMBER_NAME)
+            {
+                SymphonyDebugLogger.LogDirect($"'{candidate}'はenumの列挙子名として予約されているため除外しました", LogKindEnum.Warning);
+                return null;
+            }
+
+            // 予約語は除外せず、@を前置した識別子として生成する。名前を消さずにコンパイルを通す。
+            if (ReservedWords.Contains(bare))
+            {
+                SymphonyDebugLogger.LogDirect($"'{bare}'はC#の予約語のため、'@{bare}'として生成します", LogKindEnum.Warning);
+                return $"@{bare}";
+            }
+
+            return bare;
         }
 
         /// <summary>
@@ -175,7 +247,7 @@ namespace SymphonyFrameWork.Editor
         /// <param name="fileName"> 生成するenumの型名。 </param>
         /// <param name="hash"> 重複除去済みの列挙子名。 </param>
         /// <returns> 通常enumを構成するソース行。 </returns>
-        private static IEnumerable<string> NormalEnumGenerate(string fileName, HashSet<string> hash)
+        private static IEnumerable<string> NormalEnumGenerate(string fileName, IReadOnlyList<string> hash)
         {
             // 型宣言を先頭に置き、検証済みの候補を現在の列挙順で連結する。
             IEnumerable<string> content = new[]
@@ -188,7 +260,7 @@ namespace SymphonyFrameWork.Editor
 
             content = content.Concat(hash.SelectMany((s, i) => new[]
             {
-                $"    /// <summary> {s}を表す。 </summary>",
+                $"    /// <summary> {s.TrimStart('@')}を表す。 </summary>",
                 $"    {s} = {i},"
             }));
             content = content.Append("}");
@@ -199,7 +271,7 @@ namespace SymphonyFrameWork.Editor
         /// <summary>
         ///     Flags属性付きenumのソース行を生成する。
         /// </summary>
-        private static IEnumerable<string> FlagEnumGenerate(string fileName, HashSet<string> hash)
+        private static IEnumerable<string> FlagEnumGenerate(string fileName, IReadOnlyList<string> hash)
         {
             // Flags属性と型宣言を先頭に置き、候補をビット位置へ割り当てる。
             IEnumerable<string> content = new[]
@@ -213,7 +285,7 @@ namespace SymphonyFrameWork.Editor
 
             content = content.Concat(hash.SelectMany((s, i) => new[]
             {
-                $"    /// <summary> {s}を表す。 </summary>",
+                $"    /// <summary> {s.TrimStart('@')}を表す。 </summary>",
                 $"    {s} = 1 << {i},"
             }));
             content = content.Append("}");

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -44,7 +46,7 @@ namespace SymphonyFrameWork.Editor
             // 参照元が無い状態では有効な定義を書き戻せないため、変更せず終了する。
             if (!File.Exists(mainAsmdefPath))
             {
-                Debug.LogError("メインアセンブリが見つかりません。リファレンスの追加は行われません");
+                SymphonyDebugLogger.LogDirect("メインアセンブリが見つかりません。リファレンスの追加は行われません", LogKindEnum.Error);
                 return;
             }
 

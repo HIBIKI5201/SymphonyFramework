@@ -5,6 +5,7 @@ using System.Threading;
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger.HUD;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.System;
 using SymphonyFrameWork.System.SaveSystem;
 using SymphonyFrameWork.System.SceneLoad;
@@ -36,6 +37,13 @@ namespace SymphonyFrameWork.Orchestrator
             _isShuttingDown = false;
 
             ISystemObjectFactory systemObjectFactory = new SystemObjectFactory();
+
+            // Coreは下位アセンブリにありRuntimeのロガーを参照できない。中継口へ出力先を注入し、
+            // Core層のログもフレームワーク共通の集約先（Editorのファイル出力）へ載せる。
+            // **Shutdownでは解除しない。** Editor側も同じ中継口へ注入しており、Play Mode終了で
+            // 解除すると、Edit Modeで動くEditorウィンドウのCoreログが集約先から外れる。
+            // Editorでの解除はassembly reloadに合わせてPackageInitializerが行う。
+            CoreLogRelay.ExceptionHandler = exception => SymphonyDebugLogger.LogException(exception);
 
             try
             {
@@ -183,10 +191,11 @@ namespace SymphonyFrameWork.Orchestrator
             // すべての終了処理を試した後に、発生した例外を1件のログへ集約する。
             if (exceptions != null)
             {
-                Debug.LogException(new AggregateException(
+                SymphonyDebugLogger.LogException(new AggregateException(
                     $"[{nameof(SymphonyOrchestrator)}] サブシステムの終了処理で例外が発生しました。",
                     exceptions));
             }
+
         }
 
         /// <summary>

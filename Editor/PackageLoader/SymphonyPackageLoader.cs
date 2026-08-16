@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Utility;
 using System;
 using System.Collections.Concurrent;
@@ -108,7 +109,7 @@ namespace SymphonyFrameWork.Editor
             // Package Managerが失敗を返した場合は、部分的な一覧を不足判定へ渡さない。
             if (listRequest.Status == StatusCode.Failure)
             {
-                Debug.LogError("Failed to fetch package list: " + listRequest.Error.message);
+                SymphonyDebugLogger.LogDirect("Failed to fetch package list: " + listRequest.Error.message, LogKindEnum.Error);
                 return null;
             }
 
@@ -155,9 +156,9 @@ namespace SymphonyFrameWork.Editor
                 // 1件の失敗で他の追加要求を中断せず、各結果をConsoleへ残す。
                 if (addRequest.Status == StatusCode.Failure)
                 {
-                    Debug.LogError("Failed to install package: " + addRequest.Error.message);
+                    SymphonyDebugLogger.LogDirect("Failed to install package: " + addRequest.Error.message, LogKindEnum.Error);
                 }
-                else { Debug.Log("Package installed: " + name); }
+                else { SymphonyDebugLogger.LogDirect("Package installed: " + name); }
             });
 
             // 呼び出し元へ戻る前に、開始したすべての追加要求を完了させる。

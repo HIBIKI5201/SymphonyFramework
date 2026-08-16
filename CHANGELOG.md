@@ -1,5 +1,108 @@
 # Changelog
 
+## [5.0.1] - 2026-08-16
+テストを38件追加し、公開型のテスト網羅を機械的に固定しました。公開APIとシリアライズ形式は 5.0.0 から変更していません。
+
+### Add
+
+- **`SymphonyStringUtil` / `SymphonyComponentUtil` / `SymphonyLazyObject<T>` へテストを追加しました**（38件）。いずれもこれまでテストがありませんでした。EditModeテストは377件から415件になりました。
+- **公開型のテスト網羅を `PublicTypeTestCoverageTests` で固定しました。** 公開型 `X` に対して `Tests/Editor/XTests.cs` が無い場合、既知の残作業一覧（86件）に載っている型だけが許されます。**新しい公開型をテスト無しで追加すると落ちます。**一覧は減らすためのもので、テストを書いたのに消し忘れた場合と、削除済みの型が残っている場合も検出します。
+- **テストを書く過程で見つかった `SymphonyComponentUtil.GetComponentInChildrenExcludeSelf` の不具合を、テストと `// TODO` で記録しました。** `includeInactive: false` でも直下の非アクティブな子を返します。`GetComponentInChildren` が検索の起点自身を `includeInactive` に関わらず対象へ含めるためです。**この版では挙動を変えていません。**修正は [#179](https://github.com/HIBIKI5201/SymphonyFramework/issues/179) で扱います。現在の挙動をテストで固定してあるため、修正時はそのテストを書き換えることになります。
+
+## [5.0.0] - 2026-08-16
+ComponentとInterfaceを所属モジュールへ移しました。4つの公開型の名前空間が変わる破壊的変更です。
+
+### Breaking
+
+- **Service Locatorに属する3つの型を `SymphonyFrameWork.System.ServiceLocate` へ移しました。** これまで `Runtime/Component/` と `Runtime/Interface/` に置かれ、モジュールと無関係な名前空間にありました。**どのモジュールの型なのかが、置き場からも名前空間からも分からない状態でした。**
+- **`IInitializeAsync` を `SymphonyFrameWork.System.SceneLoad` へ移しました。** `SceneLoader` がシーンのルートを初期化するための契約であり、SceneLoader以外から使う場面がありません。
+  - **移行方法**: `using` を書き換えてください。型名とメンバーは変わりません。
+
+  | 型 | 旧namespace | 新namespace |
+  | --- | --- | --- |
+  | `ServiceLocateComponent` | `SymphonyFrameWork.Utility` | `SymphonyFrameWork.System.ServiceLocate` |
+  | `SymphonyLocateObject<T>` | `SymphonyFrameWork.Utility` | `SymphonyFrameWork.System.ServiceLocate` |
+  | `IInjectable` / `IInjectable<T...>` | `SymphonyFrameWork` | `SymphonyFrameWork.System.ServiceLocate` |
+  | `IInitializeAsync` | `SymphonyFrameWork` | `SymphonyFrameWork.System.SceneLoad` |
+
+  - **シーンとPrefabの参照は切れません。** `git mv` で `.meta` ごと移しており、`ServiceLocateComponent` を貼ったGameObjectはGUIDで解決されます。
+  - **互換シムは置いていません。** `IInjectable` と `IInitializeAsync` はinterfaceで、旧名の別interfaceを残しても実装済みの型が新しい契約を満たさないため、移行期間を作れないためです。
+
+### Change
+
+- **`Runtime/Component/` を削除しました。** 中身の2型をどちらもService Locatorへ移し、空になったためです。
+- `IGameObject` は `Runtime/Interface/` と `SymphonyFrameWork` 名前空間に残しています。特定のモジュールに属さない共通の契約のためです。
+
+## [4.2.1] - 2026-08-16
+サブシステムの置き場を Runtime/System から Runtime/Service へ変更しました。公開APIと名前空間、シリアライズ形式は 4.2.0 から変更していません。
+
+### Change
+
+- **`Runtime/System/` を `Runtime/Service/` へ改名しました。** `System` は責務を表すには大雑把で、C#の `System` 名前空間とも紛らわしいためです。`git mv` で `.meta` ごと移しており、**GUIDは維持されるため利用側の参照は切れません。**
+- **名前空間は `SymphonyFrameWork.System.*` のままです。** `SymphonyFrameWork.System.SaveData` などは利用側のすべての `using` に現れるため、変更すると破壊的変更になります。フォルダ名と名前空間の乖離は意図的なもので、揃える場合はメジャー更新として別途扱います。**利用側のコードに必要な変更はありません。**
+
+## [4.2.0] - 2026-08-16
+エラーログへ Symphony Framework のバージョンを含めるようにしました。ログ1行だけで、不具合報告に必要な版が分かります。
+
+### Add
+
+- **`SymphonyConstant.VERSION` を追加しました。** `package.json` の `version` と同じ値を持つ定数です。**Playerビルドに `package.json` は含まれないため、実行時にバージョンを読む手段がありませんでした。** 更新は `release_round.py bump` が行い、`preflight` が `package.json` との一致を検査します。
+
+### Change
+
+- **エラーログの先頭へ `[SymphonyFrameWork v<版>]` を付けるようにしました。** 不具合の報告を受ける側が最初に必要とするのがバージョンで、これまでは利用者に別途確認してもらう必要がありました。**Consoleに出た1行、あるいは `Cache/Log.txt` の1行だけで版が分かります。**
+  - 対象は**エラーだけ**です。通常ログと警告ログの見た目は変わりません。
+  - **`LogException` はConsoleの表示を変えません。** バージョンを添えるには例外を包む必要があり、Consoleの先頭行が本来の例外型でなくなってスタックトレースの追跡が壊れるためです。ファイル出力（`Cache/Log.txt`）の行には付きます。
+  - ログのテキストを完全一致で判定している利用側のコードがある場合、エラーログだけ一致しなくなります。
+
+## [4.1.0] - 2026-08-16
+フレームワーク内のログをすべて SymphonyDebugLogger 経由へ統一し、例外用の LogException を追加しました。Framework が出すログは Cache/Log.txt にも残ります。
+
+### Add
+
+- **`SymphonyDebugLogger.LogException(Exception, UnityEngine.Object)` を追加しました。** Unity Consoleへはスタックトレース付きの例外として出力し、ファイル出力の購読者へは型名と理由を1行に畳んだテキストをError種別で通知します。**Consoleの表示（スタックトレースとジャンプ）を犠牲にせず、ファイルにも例外の内容を残すための分担です。**`ArgumentNullException` のようにMessage自体が複数行になる例外があるため、改行は空白へ畳みます。nullを渡した場合は例外にせず、その旨を診断ログとして出します。
+
+### Change
+
+- **フレームワーク内のログを、すべて `SymphonyDebugLogger` 経由へ統一しました。** `Runtime/` `Core/` `Editor/` の35ファイル・104箇所が `UnityEngine.Debug` を直接呼んでおり、**Editorのファイル出力の購読者が拾えないため `Cache/Log.txt` に残っていませんでした。**Consoleに出ているのに後からログを追えない状態でした。Console上の見え方（重要度とメッセージ）は変わりません。
+- **`SymphonyFrameWork.Core` アセンブリのログも同じ出力先へ載るようにしました。** CoreはRuntimeの下位にあり `SymphonyDebugLogger` を直接参照できないため、Coreへ中継口（`internal`）を置き、RuntimeとEditorのComposition Rootが出力先を注入します。**注入前に発生したCore層のログは、これまでどおりUnity標準の出力へ落ちます。**利用側から見える型は追加していません。
+
+## [4.0.0] - 2026-08-15
+サンプルをUnityのインポート対象外である Samples~ へ移しました。サンプルの13クラスが SymphonyFrameWork アセンブリから外れる破壊的変更です。
+
+### Breaking
+
+- **`Samples/` を `Samples~/` へ移しました。サンプルの13クラスが `SymphonyFrameWork` アセンブリから外れます。** これまで `Samples/` に asmdef が無かったため、サンプルスクリプトはパッケージ本体の `SymphonyFrameWork` アセンブリへ取り込まれ、**サンプルを使うかどうかに関わらず利用側の全ビルドへ出荷されていました。**さらに Package Manager の `samples` からインポートすると、同じ `SymphonyFrameWork.Samples.*` 名前空間・同じクラス名が `Assets/Samples/` にもコンパイルされ、**利用側プロジェクトが CS0101（同名の定義が複数存在する）でコンパイルできなくなっていました。**末尾チルダのフォルダはUnityのアセットパイプラインから不可視になるため、二重定義が起きなくなります。
+  - **移行方法**: サンプルのクラス（`ServiceLocatorSample_1`、`SaveDataSystemSample_Controller` など13件）を利用側のコードから直接参照している場合、その参照は解決できなくなります。`Window > Package Manager > Symphony Framework > Samples` から必要なサンプルをインポートしてください。`Assets/Samples/Symphony Framework/<version>/<サンプル名>/` へコピーされ、利用側プロジェクトのコードとしてコンパイルされます。**サンプルは利用例であり、パッケージのAPIとして参照する対象ではありません。**
+  - **すでにインポート済みで CS0101 が出ていた利用者は、この版へ更新するとエラーが解消します。**
+- **`package.json` の `samples[].path` を `Samples~/Runtime/...` へ変更しました。** Unity標準のパッケージレイアウトに合わせています。Package Managerからのインポート操作と、コピー先の `Assets/Samples/` のパスは変わりません。
+
+## [3.10.3] - 2026-08-15
+Save Systemの設定画面を開いた副作用で設定アセットの生成が始まる問題を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.2から変更していません。
+
+### Fix
+
+- **`Project Settings > SymphonyFrameWork > Save System` を開くだけで、パッケージ全体の設定アセット生成と `AssetDatabase.Refresh` が走っていた不具合を修正しました。** 設定画面の描画callbackが `SymphonyConfigManager.AllConfigCheck()` を直接呼んでいたためです。**Editor起動時のアセット変更を1回のRefreshへまとめる集約の外側で生成が起きており、生成対象は `SaveDataConfig` だけでなくSceneLoad・Audio・Editor設定を含む全アセットでした。**画面は未生成である旨と `設定アセットを生成` ボタンを表示するだけにし、生成は起動時と同じ `SymphonyEditorOrchestrator` の経路へ委譲します。ボタンを押さない限りアセットは変更されません。設定アセットが揃っている通常の状態では、画面の見た目も操作も変わりません。
+
+## [3.10.2] - 2026-08-15
+自動生成enumが、シーン名やタグ名にC#の予約語が含まれるとコンパイルできない.csを書き出す不具合を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.1から変更していません。
+
+### Fix
+
+- **シーン名・タグ名・Audio Groupの名前にC#の予約語（`class`、`int`、`event`、`base` など）を使うと、生成された`SceneListEnum`などがコンパイルエラーになる不具合を修正しました。** `EnumGenerator` が「除外しました」と警告しながら、実際にはその候補を生成対象へ残していたためです。**利用者から見ると「シーンを追加したらプロジェクトが壊れた」という形で現れ、警告文が原因を指していませんでした。**予約語は除外せず、`@` を前置した識別子（`@class`）として生成します。除外するとそのシーンが `SceneListEnum` から消えて `SceneLoader` から参照できなくなり、利用者の意図を壊すためです。**利用側は `SceneListEnum.@class` と書けます。**警告文も実際の動作に合わせました。
+- **予約語の判定表が6語しか持っておらず、`int` や `class` を含む大半の予約語を素通ししていた不具合を修正しました。** C#の予約語77語すべてを対象にします。`var`、`value`、`record` などの文脈キーワードは識別子として使えるため対象外で、これまでどおりそのまま生成します。
+- **`value__` という名前の候補を除外するようにしました。** コンパイラがenumの値の格納に使う名前で、`@` を前置しても列挙子にできません。
+- **識別子として使えない候補の判定で、nullや空文字が例外になっていたのを修正しました。** 他の無効な候補と同じく警告のうえ除外します。
+- **重複の除去を、エスケープ後の名前で行うようにしました。** `class` と `@class` が両方あると同じ列挙子が2つ生成され、上のエスケープ自体が新たなコンパイルエラーになります。有効な候補だけの場合の生成結果と並び順（最初に現れた位置を保つ）は変わりません。
+
+## [3.10.1] - 2026-08-15
+警告を出すためのnull診断APIが、真のnull参照を渡すと例外で落ちる不具合を修正しました。公開APIのシグネチャとシリアライズ形式は3.10.0から変更していません。
+
+### Fix
+
+- **`SymphonyDebugLogger.CheckComponentNull` へ真のnull参照を渡すと、警告ではなく`NullReferenceException`になっていた不具合を修正しました。** nullと判定した分岐の中で`component.name`を読んでいたためです。`UnityEngine.Object`の`== null`は「破棄済みだがマネージド参照は生きている」場合と「真のnull参照」の場合の両方でtrueになり、後者では`name`の取得自体が失敗します。**名前を読まず、未代入（`unassigned`）と破棄済み（`destroyed`）のどちらであるかを警告文へ含める形へ変えました。**破棄済みの場合も`name`は読めないため、両方とも名前を出しません。
+- **`SymphonyDebugLogger.LogAndCheckComponentNull` が、破棄済みのUnityオブジェクトを「nullではない」と報告していた不具合を修正しました。** 型引数に制約が無いため`== null`が`UnityEngine.Object`の比較演算子ではなく参照比較になっており、`Destroy`済みのComponentやGameObjectでは`false`を返していました。**戻り値を信じて参照した利用側が、警告を1つも見ないまま`MissingReferenceException`で落ちる状態でした。**対象が`UnityEngine.Object`のときだけUnityの比較演算子で判定します。Unityオブジェクト以外の参照に対する挙動は変わりません。
+
 ## [3.10.0] - 2026-08-14
 Save Data パネルへ、Inspectorの接続状態を示す色ランプと、非接続でのセーブデータ編集を追加しました。Play Modeへの持ち越し設定が1つ増えます。既存の公開APIとシリアライズ形式は3.9.7から変更していません。
 

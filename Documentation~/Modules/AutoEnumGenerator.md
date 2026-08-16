@@ -33,9 +33,22 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupの変更�
 
 **補助メニュー**: `Tools > SymphonyFrameWork > Debug > CreateResourcesFolder` は、生成先の `Resources` フォルダを手動で作り直すためのものです。通常は自動生成に任せてください。
 
+**列挙子名の解決**: シーン名・タグ名・グループ名は、そのままではC#の識別子にできないことがあります。生成前に次のように解決します。
+
+| 候補 | 生成される列挙子 | 備考 |
+| --- | --- | --- |
+| `Title` | `Title` | そのまま使えます |
+| `class`、`int` など**C#の予約語** | `@class`、`@int` | `@` を前置してエスケープします。**名前は消えません。**利用側は `SceneListEnum.@class` と書きます |
+| `var`、`value`、`record` など文脈キーワード | `var`、`value`、`record` | 識別子として使えるため、そのままです |
+| `1st Scene` のように識別子にできない文字列 | 生成されません | 警告を出して除外します |
+| `value__` | 生成されません | コンパイラがenumの値の格納に使う名前で、`@` を付けても列挙子にできません |
+
+解決後に同じ名前になる候補（`class` と `@class` など）は1つの列挙子にまとめ、最初に現れた並び順を保ちます。
+
 **注意点**:
 
 - **生成されたenumを手で編集しないでください。** 再生成で失われます。
+- **予約語を含む候補は、除外ではなくエスケープされます。** シーンを追加しただけで `SceneListEnum` からそのシーンが消える事態を避けるためです。
 - 利用側のasmdefから生成enumを直接使う場合は、`SymphonyFrameWork.Enum` を参照に追加してください。
 - `SymphonyFrameWork.asmdef` から `SymphonyFrameWork.Enum` への参照は、Editor起動時に自動で注入されます。
 
