@@ -39,6 +39,7 @@ namespace SymphonyFrameWork.Editor
         private SceneLoadWindow _sceneLoaderWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
         private SaveDataWindow _saveDataRegistryWindow;
+        private DebugHUDWindow _debugHUDWindow;
 
         /// <summary>
         ///     UXMLから管理パネルを構築する。
@@ -56,6 +57,7 @@ namespace SymphonyFrameWork.Editor
                 _sceneLoaderWindow = container.Q<SceneLoadWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
                 _saveDataRegistryWindow = container.Q<SaveDataWindow>();
+                _debugHUDWindow = container.Q<DebugHUDWindow>();
             }
             else
             {
@@ -76,10 +78,12 @@ namespace SymphonyFrameWork.Editor
             _serviceLocatorWindow?.Dispose();
             _sceneLoaderWindow?.Dispose();
             _saveDataRegistryWindow?.Dispose();
+            _debugHUDWindow?.Dispose();
             _pauseWindow = null;
             _serviceLocatorWindow = null;
             _sceneLoaderWindow = null;
             _saveDataRegistryWindow = null;
+            _debugHUDWindow = null;
         }
 
         /// <summary>

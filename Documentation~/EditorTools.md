@@ -60,13 +60,14 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | Scene Load | ロード済みシーンと進行中のロード |
 | Save Data | 全対応型の一覧、Registry／Window専用インスタンスの接続状態、非接続編集とPlay Modeへの持ち越し |
 | Pause | ポーズ状態の確認と切り替え |
+| Debug HUD | 初期化・利用可否・表示状態・追加テキスト登録数の確認とShow / Hide |
 | Auto Enum Generator | enumの手動生成ボタンと自動生成の有効・無効 |
 
 各パネルの詳細は、対応する[モジュール文書](./Modules/)にあります。**各パネルの右上にある `ドキュメント` を押すと、そのモジュールの文書がブラウザで開きます。**
 
 **注意点**:
 
-- 5つのパネルは `SymphonyFrameWork.Editor` 名前空間の登録済みUXMLカスタム要素として構築されます。
+- 6つのパネルは `SymphonyFrameWork.Editor` 名前空間の登録済みUXMLカスタム要素として構築されます。
 - Runtimeの状態を表示するパネルは、Play Mode中にRegistryへ接続します。Save DataはEdit ModeでもWindow専用インスタンスを編集・保存できます。
 - 表示はViewModelの変更通知で更新されます。ウィンドウを開いている間のポーリングは行いません。
 

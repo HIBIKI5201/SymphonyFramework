@@ -28,6 +28,7 @@ namespace SymphonyFrameWork.Debugger.HUD
 
             // 明示操作またはShortcutが届いた時点でだけ、遅延Drawerを生成する。
             _ = _debugHUD.Value;
+            PublishState();
         }
 
         /// <summary>
@@ -40,6 +41,7 @@ namespace SymphonyFrameWork.Debugger.HUD
 
             // 登録内容はFacadeへ残し、描画用GameObjectだけを破棄する。
             _debugHUD.Destroy();
+            PublishState();
         }
 
         /// <summary>
@@ -129,6 +131,10 @@ namespace SymphonyFrameWork.Debugger.HUD
         private static bool _isInitialized;
         private static SymphonyHUDShortcutListener _shortcutListener;
         private static ISystemObjectFactory _systemObjectFactory;
+        private static DebugHUDViewModel _viewModel;
+
+        /// <summary> 現在のDebug HUD表示用ViewModel。未初期化の場合はnull。 </summary>
+        internal static DebugHUDViewModel CurrentViewModel => _viewModel;
 
         /// <summary> 現在HUDが表示されている場合はtrue。 </summary>
         internal static bool IsVisible => _debugHUD != null && _debugHUD.IsAlive;
@@ -175,15 +181,29 @@ namespace SymphonyFrameWork.Debugger.HUD
             InputAction toggleAction,
             bool isDebugBuild)
         {
+            Initialize(systemObjectFactory, toggleAction, isDebugBuild, new DebugHUDViewModel());
+        }
+
+        /// <summary> ViewModelを注入してDebug HUDを初期化する。 </summary>
+        internal static void Initialize(
+            ISystemObjectFactory systemObjectFactory,
+            InputAction toggleAction,
+            bool isDebugBuild,
+            DebugHUDViewModel viewModel)
+        {
             ResetRuntimeState();
+
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
 
             if (isDebugBuild && systemObjectFactory == null)
             {
+                ResetRuntimeState();
                 throw new ArgumentNullException(nameof(systemObjectFactory));
             }
 
             _isInitialized = true;
             _isAvailable = isDebugBuild;
+            PublishState();
             if (!_isAvailable) { return; }
 
             try
@@ -197,6 +217,7 @@ namespace SymphonyFrameWork.Debugger.HUD
                 _shortcutListener = _systemObjectFactory.CreateComponent<SymphonyHUDShortcutListener>(
                     nameof(SymphonyHUDShortcutListener));
                 _shortcutListener.Configure(toggleAction, Toggle);
+                PublishState();
             }
             catch
             {
@@ -220,6 +241,8 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// </summary>
         internal static void ResetRuntimeState()
         {
+            DebugHUDViewModel viewModel = _viewModel;
+
             // Input Actionを先に停止し、遅延破棄の完了前に古いShortcutが発火することを防ぐ。
             if (_shortcutListener)
             {
@@ -235,6 +258,13 @@ namespace SymphonyFrameWork.Debugger.HUD
             _isInitialized = false;
             _shortcutListener = null;
             _systemObjectFactory = null;
+            _viewModel = null;
+
+            if (viewModel != null)
+            {
+                viewModel.SetState(default);
+                viewModel.Dispose();
+            }
         }
 
         /// <summary> 追加テキストをFacadeと生成済みDrawerへ登録する。 </summary>
@@ -243,6 +273,7 @@ namespace SymphonyFrameWork.Debugger.HUD
         {
             _extraTexts.Add(textFunc);
             if (_debugHUD.TryGetValue(out SymphonyHUDDrawer drawer)) { drawer.Add(textFunc); }
+            PublishState();
         }
 
         /// <summary> 追加テキストをFacadeと生成済みDrawerから解除する。 </summary>
@@ -254,6 +285,18 @@ namespace SymphonyFrameWork.Debugger.HUD
             {
                 drawer.Remove(textFunc);
             }
+
+            PublishState();
+        }
+
+        /// <summary> 現在のFacade状態を表示用ViewModelへ反映する。 </summary>
+        private static void PublishState()
+        {
+            _viewModel?.SetState(new DebugHUDDto(
+                _isInitialized,
+                _isAvailable,
+                IsVisible,
+                _extraTexts.Count));
         }
 
         /// <summary> 実行環境に適した方法でGameObjectを破棄する。 </summary>

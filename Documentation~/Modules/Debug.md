@@ -85,6 +85,14 @@ FPS、メモリ使用量、任意テキストをGame Viewへ重ねて表示し�
 
 HUD本体はRuntimeの機能です。ShortcutはInput SystemのInput Actionとして`Project Settings > SymphonyFrameWork > Debug HUD Shortcut`で編集できます。Gamepadなど複数プラットフォーム向けのBindingも同じActionへ追加できます。
 
+### Symphony AdministratorのDebug HUDパネル
+
+Debug HUDの初期化状態、現在の環境で利用可能か、表示中か、追加テキストの登録数を確認し、HUDを表示・非表示にできます。
+
+**入口**: `Window > SymphonyFrameWork > Symphony Administrator > Debug HUD`
+
+Edit Modeでは未接続を示す `-` が表示され、Show / Hideは操作できません。Play Modeへ入ると現在のHUDへ接続し、Shortcut、メニュー、コードのどの経路で状態が変わっても表示へ反映します。通常ビルド条件では `Available: False` となり、操作ボタンは無効です。
+
 ### ログのファイル出力
 
 `SymphonyDebugLogger` の出力をファイルへ書き出します。
