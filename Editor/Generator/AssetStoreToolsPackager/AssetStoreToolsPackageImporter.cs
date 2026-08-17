@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using SymphonyFrameWork.Debugger.Logger;
 
@@ -16,23 +15,6 @@ namespace SymphonyFrameWork.Editor
     internal static class AssetStoreToolsPackageImporter
     {
         #region 外部向けAPI
-
-        /// <summary>
-        ///     出力先フォルダにある出力済みフォルダを新しい順に取得する。
-        /// </summary>
-        /// <returns> 出力済みフォルダの絶対パス。出力先が無い場合は空。 </returns>
-        internal static IReadOnlyList<string> GetExportDirectories()
-        {
-            string exportRoot = GetExportRootPath();
-            // 出力先が未設定か未作成なら、利用可能な履歴は無いものとして扱う。
-            if (string.IsNullOrEmpty(exportRoot) || !Directory.Exists(exportRoot)) { return Array.Empty<string>(); }
-
-            // フォルダ名には出力日時が含まれるため、辞書順の降順で新しい出力を先頭へ置く。
-            return Directory
-                .GetDirectories(exportRoot)
-                .OrderByDescending(path => Path.GetFileName(path), StringComparer.Ordinal)
-                .ToArray();
-        }
 
         /// <summary>
         ///     パッケージ対象フォルダ配下から、現在導入されているリビジョンを集める。

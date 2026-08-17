@@ -117,7 +117,7 @@ public sealed class NotifyStrategy : AssetStoreToolsPackageStepStrategy
 
 **操作**:
 
-1. `Exported Packages` で取り込み元の出力済みフォルダを選ぶ（新しい順に並びます）
+1. `Select Folder` で、`PackageManifest.json` を含む取り込み元の出力済みフォルダを選ぶ。`Exported Packages Path` の外にコピーしたフォルダも指定できます
 2. 一覧に各パッケージの状態とリビジョンの変化が出ます
 
     | 状態 | 意味 | 既定の選択 |
@@ -135,6 +135,7 @@ public sealed class NotifyStrategy : AssetStoreToolsPackageStepStrategy
 **注意点**:
 
 - **`Newer` は既定で選択しません。** ローカルの方が新しいものを取り込むと、意図しない巻き戻しになるためです。必要な場合は手で選んでください。
+- `Exported Packages Path` はフォルダ選択画面の初期位置に使います。取り込み元はその配下に限定されません。
 - `PackageManifest.json` が無い出力済みフォルダは取り込めません。統合パッケージ（`Combine`）だけで出力した場合がこれにあたります。
 - 取り込むと、パッケージ同梱の `ExportedVersion.json` が更新され、次回の比較へ反映されます。
 

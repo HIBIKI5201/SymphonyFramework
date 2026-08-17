@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.1] - 2026-08-18
+PackagerのImportタブで、取り込み元ディレクトリをエクスプローラーから直接指定できるようにしました。
+
+### Fix
+
+- **Importタブの取り込み元が `Exported Packages Path` 配下の出力履歴に限定される問題を修正しました。** `Select Folder` から任意の出力済みディレクトリを選択できるため、別の場所へコピーした出力物や他プロジェクトから受け取った出力物も差分インポートできます（[#184](https://github.com/HIBIKI5201/SymphonyFramework/issues/184)）。
+
 ## [6.1.0] - 2026-08-17
 Symphony AdministratorにDebug HUDの状態確認とShow / Hide操作を追加しました。
 
