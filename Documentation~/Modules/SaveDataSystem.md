@@ -65,7 +65,7 @@ if (SaveStore.IsLoaded<PlayerData>())
 
 ### Save System設定
 
-`SaveStore` が使用するセーブローダーを選択します。
+`SaveStore` が使用するセーブローダーと、Save Data パネルへ表示する型を選択します。
 
 **入口**: `Project Settings > SymphonyFrameWork > Save System`
 
@@ -73,14 +73,28 @@ if (SaveStore.IsLoaded<PlayerData>())
 | --- | --- |
 | Loader | `SaveDataLoaderStrategy` を継承したローダー。`[SerializeReference]` で選択する |
 | Current Loader Type | 現在設定されているローダーの型名（読み取り専用） |
+| Managed Save Data Types | Save Data パネルへ表示する型のチェックボックス。名前空間の階層で並ぶ |
 
-**保存先**: `Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset`
+**保存先**: ローダーは `Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset`、管理対象のチェックは `ProjectSettings/Packages/symphonyframework/SaveDataVisibilityConfig.asset`
 
 **注意点**:
 
 - ローダーが未設定の場合、`SaveStore` は既定の `JsonUtility` ローダーへフォールバックします。警告が表示されます。
+- **`SaveDataConfig` がまだ無い状態でこの画面を開いても、生成は始まりません。** 未生成である旨と `設定アセットを生成` ボタンが表示されます。設定アセットの生成はEditor起動時にまとめて行われる処理であり、画面を開いた副作用として走らせないためです。ボタンを押すと、起動時と同じ経路（`SymphonyEditorOrchestrator`）で生成されます。
 - 独自ローダーは `SaveDataLoaderStrategy` を継承してください。共通の検証とデータ復旧は基底クラスが担当します。
 - ローダーを変更すると、その場で `SaveStore` が読み直します。
+
+#### Managed Save Data Types
+
+`SaveDataContent` を継承した型は、プロジェクト内のどのアセンブリにあってもこの一覧へ並びます。チェックを外した型は Save Data パネルへ表示されません。
+
+**既定値は、テスト用アセンブリの型が `false`、それ以外の型が `true` です。** テスト用アセンブリかどうかは、そのアセンブリが `nunit.framework` または `UnityEngine.TestRunner` を参照しているかで判定します。**この判定は既定値を決めるためだけに使います。** 意図と違う場合はチェックを操作してください。
+
+一覧は名前空間の階層で並びます。**分岐の無い名前空間は1行にまとめて表示します。** 例えば `SpaceA.ScopeB` の下にしか型が無ければ `SpaceA.ScopeB` の1行になり、`SpaceA.ScopeE` の型が加わった時点で `SpaceA` の下が `ScopeB` と `ScopeE` に分かれます。名前空間の行のチェックは、その配下の型をまとめて切り替えます。配下が混在している場合は混在表示になり、押すとすべて管理対象になります。
+
+- **設定へ保存されるのは、操作して切り替えた型だけです。** 既定のままの型は保存されないため、画面を開くだけでは設定ファイルが増えません。
+- 型を追加すると、既定値に従って自動的に一覧へ現れます。既存の設定を書き換える必要はありません。
+- **この設定はEditorの表示だけに効きます。** `SaveStore.Get<T>()` などの実行時APIは、チェックの有無に関係なく従来どおり動きます。
 
 ### Save Data パネル
 
@@ -88,9 +102,19 @@ if (SaveStore.IsLoaded<PlayerData>())
 
 | パネル | 内容 |
 | --- | --- |
-| Save Data | セーブデータの登録内容 |
+| Save Data | 管理対象のセーブデータ型、Inspectorの接続状態、保存状態 |
 
-Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
+一覧に並ぶのは、Save System設定の `Managed Save Data Types` でチェックが入っている型だけです。設定を変えると、パネルを開き直さずにその場で一覧が入れ替わります。管理対象が1つも無い場合は、設定画面への導線を表示します。
+
+一覧から型を選ぶと、Inspectorのバインド元をランプで表示します。ランプは、Registry正本へ接続中なら緑、Window専用インスタンスへ保存値を読み込み済みなら黄、新規のWindow専用インスタンスなら赤、未選択なら消灯です。ロード中は赤のまま `Loading…` を表示し、完了までInspectorを編集できません。
+
+| 操作 | 接続中（緑） | 非接続（黄・赤） |
+| --- | --- | --- |
+| Load | Registry正本を保存先から読み直す | Window専用インスタンスへ読み込む |
+| Save | Registry正本を保存する | Window専用インスタンスを保存し、Registryへは登録しない |
+| Delete | 保存値を削除してRegistry正本を既定値へ戻す | 保存値を削除してWindow専用インスタンスを作り直す |
+
+非接続のInspectorを編集すると `未保存の変更あり` が表示されます。`Play Mode へ持ち越す` を有効にすると、Play Mode突入時にその内容を保存先へ書き出します。この設定は開発者ごとの `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` に保存され、既定は無効です。
 
 ## 内部構造
 
@@ -108,9 +132,14 @@ flowchart LR
     Service --> Loader["SaveDataLoaderStrategy"]
     Service -->|状態変更event| ViewModel["SaveDataViewModel"]
     ViewModel -->|ReactiveProperty| Window["SaveDataWindow"]
+    Window -->|問い合わせ・Command| ViewStore["SaveDataViewStore"]
+    ViewStore -->|問い合わせ| Query
+    ViewStore -->|Command| Service
 ```
 
-`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataEntryInfo`、Viewには内部Dtoを返します。`SaveDataWindow`はViewModelを購読し、状態が変わったときだけ再描画します。
+`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataEntryInfo`、Viewには内部Dtoを返します。`SaveDataWindow`は表示状態を`SaveDataViewModel`から購読し、操作と問い合わせは`SaveDataViewStore`へ送ります。状態が変わったときにバインド元を評価し、解決した状態が変わった場合、または接続中のRegistry正本が差し替わった場合だけInspectorを再バインドします。
+
+`SaveDataViewStore`は表示状態を持たず、問い合わせをQueryへ、CommandをServiceへ委譲します。Window専用インスタンスのLoad／Save／DeleteはServiceのdetached操作へ渡され、通常操作と同じLoaderと例外変換を使いますが、Registryを読み書きせず、状態変更eventも発行しません。
 
 永続化データが存在するかどうか（`Exists`）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。
 

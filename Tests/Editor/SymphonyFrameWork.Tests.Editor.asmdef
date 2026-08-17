@@ -5,6 +5,7 @@
         "SymphonyFrameWork",
         "SymphonyFrameWork.Core",
         "SymphonyFrameWork.Editor",
+        "Unity.InputSystem",
         "UnityEngine.TestRunner"
     ],
     "includePlatforms": [

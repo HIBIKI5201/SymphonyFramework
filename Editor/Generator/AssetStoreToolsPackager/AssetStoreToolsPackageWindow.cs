@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Editor.SettingProvider;
 
 using UnityEditor;
@@ -30,14 +31,14 @@ namespace SymphonyFrameWork.Editor
             // 対象パスが未設定なら、操作不能なウィンドウを開かず設定不足を通知する。
             if (string.IsNullOrEmpty(assetStoreToolsPath))
             {
-                Debug.LogError("AssetStoreToolsフォルダのパスが設定されていません。");
+                SymphonyDebugLogger.LogDirect("AssetStoreToolsフォルダのパスが設定されていません。", LogKindEnum.Error);
                 return;
             }
 
             // 設定済みでもUnityが認識できないフォルダなら、出力処理へ進ませない。
             if (!AssetDatabase.IsValidFolder(assetStoreToolsPath))
             {
-                Debug.LogError($"AssetStoreToolsフォルダが存在しません: {assetStoreToolsPath}");
+                SymphonyDebugLogger.LogDirect($"AssetStoreToolsフォルダが存在しません: {assetStoreToolsPath}", LogKindEnum.Error);
                 return;
             }
             // 同じ種類のウィンドウを再利用し、複数画面から設定状態が分岐することを防ぐ。
@@ -58,9 +59,7 @@ namespace SymphonyFrameWork.Editor
         private int _selectedPipelineIndex;
 
         private PackagerTabEnum _tab = PackagerTabEnum.Export;
-        private string[] _exportDirectories = Array.Empty<string>();
-        private string[] _exportDirectoryLabels = Array.Empty<string>();
-        private int _selectedExportIndex;
+        private string _importDirectoryPath = string.Empty;
         private List<AssetStoreToolsImportCandidate> _importCandidates = new();
         private Vector2 _importScrollPosition;
         private bool _hasManifest;
@@ -101,7 +100,7 @@ namespace SymphonyFrameWork.Editor
             // Export表示中はインポート候補を描画しないため、不要な再読込を避ける。
             if (_tab != PackagerTabEnum.Import) { return; }
 
-            RefreshImportCandidates(keepSelectedIndex: true);
+            RefreshImportCandidates();
             Repaint();
         }
 
@@ -250,29 +249,46 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private void DrawImportTab()
         {
-            // 選択中の出力先を維持する。読み直しのたびに先頭へ戻ると、
-            // 別プロジェクトの出力を確認している最中に選択が失われる。
-            if (GUILayout.Button("Refresh", GUILayout.Width(100))) { RefreshImportCandidates(keepSelectedIndex: true); }
+            // 出力先設定の外にある受け取り済みフォルダも、OSの選択画面から直接指定できるようにする。
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Import Directory");
+            using (new EditorGUI.DisabledGroupScope(true))
+            {
+                EditorGUILayout.TextField(_importDirectoryPath);
+            }
+            if (GUILayout.Button("Select Folder", GUILayout.Width(100)))
+            {
+                string initialDirectory = Directory.Exists(_importDirectoryPath)
+                    ? _importDirectoryPath
+                    : AssetStoreToolsPackageImporter.GetExportRootPath();
+                string selectedDirectory = EditorUtility.OpenFolderPanel(
+                    "Select Exported Package Directory", initialDirectory, string.Empty);
+
+                // キャンセル時は現在の選択と候補を維持する。
+                if (!string.IsNullOrEmpty(selectedDirectory))
+                {
+                    _importDirectoryPath = selectedDirectory.Replace('\\', '/');
+                    RefreshImportCandidates();
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // 選択中のディレクトリから、マニフェストと現在のリビジョンを読み直す。
+            using (new EditorGUI.DisabledGroupScope(string.IsNullOrEmpty(_importDirectoryPath)))
+            {
+                if (GUILayout.Button("Refresh", GUILayout.Width(100))) { RefreshImportCandidates(); }
+            }
 
             EditorGUILayout.Space();
 
-            // 出力履歴が無ければ選択肢を描画できないため、案内だけを表示する。
-            if (_exportDirectories.Length == 0)
+            // 取り込み元が未指定なら、候補一覧を描画せず選択方法を案内する。
+            if (string.IsNullOrEmpty(_importDirectoryPath))
             {
                 EditorGUILayout.HelpBox(
-                    "出力済みのパッケージがありません。\n"
-                    + "Export タブで、Singles を含むパイプラインを選んで出力してください。",
+                    "取り込み元のディレクトリが選択されていません。\n"
+                    + "Select Folder から PackageManifest.json を含む出力済みディレクトリを選択してください。",
                     MessageType.Info);
                 return;
-            }
-
-            int selectedIndex = EditorGUILayout.Popup(
-                "Exported Packages", _selectedExportIndex, _exportDirectoryLabels);
-            // 利用者が別の出力履歴を選んだ場合は、そのマニフェストから候補を作り直す。
-            if (selectedIndex != _selectedExportIndex)
-            {
-                _selectedExportIndex = selectedIndex;
-                RefreshImportCandidates(keepSelectedIndex: true);
             }
 
             EditorGUILayout.Space();
@@ -331,11 +347,11 @@ namespace SymphonyFrameWork.Editor
                         $"Import Selected Packages ({selectedCount})", GUILayout.Height(30)))
                 {
                     AssetStoreToolsPackageImporter.Import(
-                        _exportDirectories[_selectedExportIndex], _importCandidates);
+                        _importDirectoryPath, _importCandidates);
 
                     // ここでは選択状態を戻すだけ。リビジョンの反映は非同期なので、
                     // 最終的な状態は importPackageCompleted の購読側で読み直す。
-                    RefreshImportCandidates(keepSelectedIndex: true);
+                    RefreshImportCandidates();
                 }
             }
         }
@@ -355,33 +371,19 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     出力済みフォルダの一覧とインポート候補を読み直す。
+        ///     選択中の出力済みフォルダからインポート候補を読み直す。
         /// </summary>
-        /// <param name="keepSelectedIndex">
-        ///     選択中の出力済みフォルダを維持するか。
-        ///     利用者が選択を持っている状態からの読み直しではtrueにする。
-        ///     falseにしてよいのは、タブへ入り直したときのように選択が無い場合だけ。
-        /// </param>
-        private void RefreshImportCandidates(bool keepSelectedIndex = false)
+        private void RefreshImportCandidates()
         {
-            _exportDirectories = AssetStoreToolsPackageImporter.GetExportDirectories().ToArray();
-            _exportDirectoryLabels = _exportDirectories
-                .Select(Path.GetFileName)
-                .ToArray();
-
-            // 選択維持を求められていない場合か、履歴削除で範囲外になった場合は先頭へ戻す。
-            if (!keepSelectedIndex || _selectedExportIndex >= _exportDirectories.Length) { _selectedExportIndex = 0; }
-
             _importCandidates.Clear();
             _hasManifest = false;
 
-            // 出力履歴が無ければ、配列を参照せず空の候補表示を維持する。
-            if (_exportDirectories.Length == 0) { return; }
+            // 取り込み元が未指定なら、空の候補表示を維持する。
+            if (string.IsNullOrEmpty(_importDirectoryPath)) { return; }
 
-            string exportDirectory = _exportDirectories[_selectedExportIndex];
-            _hasManifest = AssetStoreToolsVersionLogStore.LoadManifest(exportDirectory) != null;
+            _hasManifest = AssetStoreToolsVersionLogStore.LoadManifest(_importDirectoryPath) != null;
             _importCandidates.AddRange(
-                AssetStoreToolsPackageImporter.BuildCandidates(exportDirectory));
+                AssetStoreToolsPackageImporter.BuildCandidates(_importDirectoryPath));
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
         <symphony:ServiceLocateWindow/>
         <symphony:SceneLoadWindow/>
         <symphony:SaveDataWindow/>
+        <symphony:DebugHUDWindow/>
         <symphony:AutoEnumGeneratorWindow/>
     </engine:ScrollView>
 </engine:UXML>

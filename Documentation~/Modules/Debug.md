@@ -8,6 +8,7 @@ Game ViewのHUD、ログ、処理時間計測、Runtime状態の診断を提供�
 | --- | --- |
 | namespace | `SymphonyFrameWork.Debugger.HUD`、`SymphonyFrameWork.Debugger.Logger`、`SymphonyFrameWork.Debugger`、`SymphonyFrameWork.Editor.Debugger` |
 | 主な公開型 | `SymphonyDebugHUD` / `SymphonyDebugLogger` / `SymphonyStopWatch` / `LogKindEnum` / `SymphonyMcpTools` |
+| HUD Shortcut | `Shift + D + P`（`Project Settings > SymphonyFrameWork`で変更可能） |
 | メニューパス | `Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
 | 出力先 | `<Frameworkルート>/Cache/Log.txt`（`SymphonyDebugLogger`のファイル出力） |
 
@@ -33,6 +34,15 @@ SymphonyDebugLogger.AddText("Progress: 100%");
 SymphonyDebugLogger.LogText();
 ```
 
+**エラーログには`[SymphonyFrameWork v<版>]`が自動で付きます。** 不具合を報告するとき、ログ1行だけで版が分かるようにするためです。通常ログと警告ログには付きません。版は`SymphonyConstant.VERSION`から取ります。
+
+例外は`LogException`で出力します。Unity Consoleへはスタックトレース付きの例外として出し、ファイル出力へは型名と理由を1行で残します。
+
+```csharp
+try { /* 失敗しうる処理 */ }
+catch (Exception exception) { SymphonyDebugLogger.LogException(exception); }
+```
+
 `SymphonyStopWatch`はIDで計測区間を識別します。`Stop`でログへ出力されます。
 
 ```csharp
@@ -43,15 +53,45 @@ SymphonyStopWatch.Start("SceneLoad");
 SymphonyStopWatch.Stop("SceneLoad");
 ```
 
+## 実装時の注意
+
+### Debug HUDはDevelopment Buildでだけ動く
+
+`SymphonyDebugHUD`はUnity EditorとDevelopment Buildでだけ入力監視と描画を行います。Development Buildを外したPlayerでは`Show`、`Hide`、`AddText`、`RemoveText`は何もせず、HUD用GameObjectや登録コールバックも保持しません。
+
+`AddText`は表示内容だけを登録し、HUDを自動表示しません。`Shift + D + P`または`Show()`で表示してください。`Hide()`後も継続テキストは保持され、再表示時に戻ります。
+
+### nullの診断には`LogAndCheckComponentNull`を使う
+
+参照が使えるかを警告付きで確認するには、拡張メソッドの`LogAndCheckComponentNull`を使います。nullなら警告を出したうえで`true`を返します。
+
+```csharp
+using SymphonyFrameWork.Debugger.Logger;
+
+if (_renderer.LogAndCheckComponentNull()) { return; }
+```
+
+**`UnityEngine.Object`を渡した場合は、`Destroy`済みの参照もnullとして報告します。** マネージド参照が生きていても、Unityの比較演算子がnullとみなす状態なら`true`です。Unityオブジェクト以外の参照は通常の参照比較で判定します。
+
+旧APIの`CheckComponentNull`と`IsComponentNotNull`は非推奨です。移行先と削除予定は[Deprecations.md](../Deprecations.md)にあります。
+
 ## Editor機能
 
 ### SymphonyDebugHUD
 
 FPS、メモリ使用量、任意テキストをGame Viewへ重ねて表示します。
 
-**入口**: `Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide`
+**入口**: `Shift + D + P`、`Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide`
 
-HUD本体はRuntimeの機能です。このメニューはEditorからの表示・非表示の入口だけを提供します。
+HUD本体はRuntimeの機能です。ShortcutはInput SystemのInput Actionとして`Project Settings > SymphonyFrameWork > Debug HUD Shortcut`で編集できます。Gamepadなど複数プラットフォーム向けのBindingも同じActionへ追加できます。
+
+### Symphony AdministratorのDebug HUDパネル
+
+Debug HUDの初期化状態、現在の環境で利用可能か、表示中か、追加テキストの登録数を確認し、HUDを表示・非表示にできます。
+
+**入口**: `Window > SymphonyFrameWork > Symphony Administrator > Debug HUD`
+
+Edit Modeでは未接続を示す `-` が表示され、Show / Hideは操作できません。Play Modeへ入ると現在のHUDへ接続し、Shortcut、メニュー、コードのどの経路で状態が変わっても表示へ反映します。通常ビルド条件では `Available: False` となり、操作ボタンは無効です。
 
 ### ログのファイル出力
 
@@ -67,6 +107,9 @@ Frameworkの実配置パスを解決してその直下へ書くため、UPM経�
 
 - `Cache/` は生成物です。**版管理へ含めないでください。**
 - 書き込みは定期的にまとめて行われます。1行ごとにファイルを開きません。
+- **Framework自身が出すログは、すべてこの経路を通ります。** Framework内のコードは`UnityEngine.Debug`を直接呼びません。Consoleに出たFrameworkのログは`Log.txt`にも残っている、と考えて構いません。
+- **`LogException`はスタックトレースをファイルへ書きません。** 1件を1行として書き出すためで、型名と理由だけが残ります。スタックトレースはConsoleで確認してください。
+- Core層（`SymphonyFrameWork.Core`アセンブリ）はRuntimeのロガーを参照できないため、内部の中継口を経由してこの出力先へ載ります。上位層の初期化前に発生したCore層のログだけは、Unity標準の出力へ落ちて`Log.txt`に残りません。
 
 ### SymphonyMcpTools
 

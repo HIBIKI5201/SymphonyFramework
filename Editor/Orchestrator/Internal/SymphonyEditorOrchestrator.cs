@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.Editor.Debugger.Logger;
 
 using UnityEditor;
@@ -24,6 +25,35 @@ namespace SymphonyFrameWork.Editor
         {
             // InitializeOnLoadからComposition Rootだけを起動し、各モジュールの初期化順を一元管理する。
             Initialize();
+        }
+
+        /// <summary>
+        ///     設定アセットと生成物の整備を、Orchestratorの集約経路で実行する。
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         設定画面のように、Editor起動後に不足へ気づく入口のための再実行口である。
+        ///         発見用属性のcallbackから直接 <c>PackageInitializer</c> を呼ぶと、
+        ///         Asset変更が集約の外で起きて <c>AssetDatabase.Refresh</c> が余分に走る。
+        ///     </para>
+        ///     <para>
+        ///         処理中の再入は dirty flag へ積むだけにして、実行中のバッチへ合流させる。
+        ///         初期化中は初期化自身が同じ整備を行うため、ここでは何もしない。
+        ///     </para>
+        /// </remarks>
+        /// <returns> 整備を実行できた場合はtrue。初期化が完了していない場合はfalse。 </returns>
+        internal static bool RequestPackageSetup()
+        {
+            // 初期化中の呼び出しは、その初期化自身が同じ整備を行うため二重に走らせない。
+            if (_state != EditorOrchestratorStateEnum.Ready) { return false; }
+
+            _requiresAssetDatabaseRefresh |= PackageInitializer.Initialize();
+
+            // 処理中ならフラグへ積むだけにする。実行中のバッチが同じRefreshで拾う。
+            if (_isProcessingHostChanges) { return true; }
+
+            ProcessPendingHostChanges();
+            return true;
         }
 
         #endregion
@@ -111,9 +141,9 @@ namespace SymphonyFrameWork.Editor
             }
             catch (Exception exception)
             {
-                Debug.LogError(
+                SymphonyDebugLogger.LogDirect(
                     $"[{nameof(SymphonyEditorOrchestrator)}] host callbackの処理に失敗しました。" +
-                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}");
+                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}", LogKindEnum.Error);
             }
         }
 
@@ -169,15 +199,15 @@ namespace SymphonyFrameWork.Editor
                 initializingModuleName = nameof(TagsAndLayersPostProcessor);
                 ProcessPendingHostChanges();
 
-                Debug.Log("Symphony Framework Initialized");
+                SymphonyDebugLogger.LogDirect("Symphony Framework Initialized");
             }
             catch (Exception exception)
             {
                 // 部分初期化のままEditorへ残さず、成功済みのモジュールだけを逆順で戻す。
-                Debug.LogError(
+                SymphonyDebugLogger.LogDirect(
                     $"[{nameof(SymphonyEditorOrchestrator)}] " +
                     $"{initializingModuleName}の初期化に失敗しました。" +
-                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}");
+                    $" type: '{exception.GetType().FullName}', reason: '{exception.Message}'\n{exception}", LogKindEnum.Error);
                 RollbackInitialization();
             }
         }
@@ -316,7 +346,7 @@ namespace SymphonyFrameWork.Editor
                 message.AppendLine("'");
             }
 
-            Debug.LogError(message.ToString());
+            SymphonyDebugLogger.LogDirect(message.ToString(), LogKindEnum.Error);
         }
 
         /// <summary>

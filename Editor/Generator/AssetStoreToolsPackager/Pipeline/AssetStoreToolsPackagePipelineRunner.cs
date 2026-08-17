@@ -1,4 +1,5 @@
 ﻿using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,7 @@ namespace SymphonyFrameWork.Editor
             // 出力元が指定されていない場合は、空の計画を確認画面へ渡さない。
             if (directories == null || directories.Length == 0)
             {
-                Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
+                SymphonyDebugLogger.LogDirect("パッケージ化するフォルダが存在しませんでした。", LogKindEnum.Warning);
                 return null;
             }
 
@@ -42,7 +43,7 @@ namespace SymphonyFrameWork.Editor
             // 強制包含規則を確定できない場合は、提示内容と出力内容の一致を保証できないため中断する。
             if (config == null)
             {
-                Debug.LogError($"{LOG_PREFIX}\n設定を読み込めなかったためパッケージを出力しませんでした。");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定を読み込めなかったためパッケージを出力しませんでした。", LogKindEnum.Error);
                 return null;
             }
 
@@ -112,7 +113,7 @@ namespace SymphonyFrameWork.Editor
                 catch (Exception e)
                 {
                     // 失敗した手順だけを記録し、残りの手順で確認可能な計画を組み立てる。
-                    Debug.LogError($"{LOG_PREFIX}\n手順の計画に失敗しました: {step.DisplayName}\n{e}");
+                    SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n手順の計画に失敗しました: {step.DisplayName}\n{e}", LogKindEnum.Error);
                 }
             }
         }
@@ -136,7 +137,7 @@ namespace SymphonyFrameWork.Editor
                 catch (Exception e)
                 {
                     // 1手順の失敗で、独立して出力できる後続手順を巻き添えにしない。
-                    Debug.LogError($"{LOG_PREFIX}\n手順の実行に失敗しました: {step.DisplayName}\n{e}");
+                    SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n手順の実行に失敗しました: {step.DisplayName}\n{e}", LogKindEnum.Error);
                 }
             }
         }
@@ -150,7 +151,7 @@ namespace SymphonyFrameWork.Editor
             // 確認後に対象が無くなった場合も、空の出力フォルダは作らない。
             if (plan == null || plan.Entries.Count == 0)
             {
-                Debug.LogWarning("パッケージ化するフォルダが存在しませんでした。");
+                SymphonyDebugLogger.LogDirect("パッケージ化するフォルダが存在しませんでした。", LogKindEnum.Warning);
                 return;
             }
 
@@ -171,13 +172,13 @@ namespace SymphonyFrameWork.Editor
             // バージョン記録だけでも完了したことを明示し、設定漏れを正常出力と誤認させない。
             if (plan.Steps.Count == 0)
             {
-                Debug.LogWarning(
-                    $"{LOG_PREFIX}\n手順が1つも設定されていないため、出力時バージョンの書き出しだけを行いました。");
+                SymphonyDebugLogger.LogDirect(
+                    $"{LOG_PREFIX}\n手順が1つも設定されていないため、出力時バージョンの書き出しだけを行いました。", LogKindEnum.Warning);
             }
 
             RunExecuteSteps(context);
 
-            Debug.Log($"{LOG_PREFIX}\nパッケージを出力しました\npath : {context.ExportLocalPath}");
+            SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nパッケージを出力しました\npath : {context.ExportLocalPath}");
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using System.Threading;
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Debugger.HUD;
+using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.System;
 using SymphonyFrameWork.System.SaveSystem;
 using SymphonyFrameWork.System.SceneLoad;
@@ -37,6 +38,13 @@ namespace SymphonyFrameWork.Orchestrator
 
             ISystemObjectFactory systemObjectFactory = new SystemObjectFactory();
 
+            // Coreは下位アセンブリにありRuntimeのロガーを参照できない。中継口へ出力先を注入し、
+            // Core層のログもフレームワーク共通の集約先（Editorのファイル出力）へ載せる。
+            // **Shutdownでは解除しない。** Editor側も同じ中継口へ注入しており、Play Mode終了で
+            // 解除すると、Edit Modeで動くEditorウィンドウのCoreログが集約先から外れる。
+            // Editorでの解除はassembly reloadに合わせてPackageInitializerが行う。
+            CoreLogRelay.ExceptionHandler = exception => SymphonyDebugLogger.LogException(exception);
+
             try
             {
                 // 全サブシステムの終了を1つのUnityライフタイムへ集約する。
@@ -65,7 +73,13 @@ namespace SymphonyFrameWork.Orchestrator
                     systemObjectFactory);
                 RecordInitializedSubsystem(AudioManager.ResetRuntimeState);
 
-                SymphonyDebugHUD.Initialize(systemObjectFactory);
+                DebugHUDConfig debugHUDConfig =
+                    SymphonyConfigLocator.GetConfig<DebugHUDConfig>();
+                SymphonyDebugHUD.Initialize(
+                    systemObjectFactory,
+                    debugHUDConfig?.ToggleAction,
+                    Debug.isDebugBuild,
+                    new DebugHUDViewModel());
                 RecordInitializedSubsystem(SymphonyDebugHUD.ResetRuntimeState);
 
                 // package-wideな終了通知をOrchestratorだけが購読し、全サブシステムを一括して逆順に終了する。
@@ -183,10 +197,11 @@ namespace SymphonyFrameWork.Orchestrator
             // すべての終了処理を試した後に、発生した例外を1件のログへ集約する。
             if (exceptions != null)
             {
-                Debug.LogException(new AggregateException(
+                SymphonyDebugLogger.LogException(new AggregateException(
                     $"[{nameof(SymphonyOrchestrator)}] サブシステムの終了処理で例外が発生しました。",
                     exceptions));
             }
+
         }
 
         /// <summary>

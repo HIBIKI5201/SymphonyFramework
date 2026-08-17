@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEngine;
 using CompressionLevel = System.IO.Compression.CompressionLevel;
 
@@ -36,7 +38,7 @@ namespace SymphonyFrameWork.Editor
                 // 前段の出力手順がフォルダを用意できなかった場合は、空のZIPを作らない。
                 if (!Directory.Exists(context.ExportFullPath))
                 {
-                    Debug.LogError($"ZIP対象フォルダが存在しません: {context.ExportFullPath}");
+                    SymphonyDebugLogger.LogDirect($"ZIP対象フォルダが存在しません: {context.ExportFullPath}", LogKindEnum.Error);
                     return;
                 }
 
@@ -51,12 +53,12 @@ namespace SymphonyFrameWork.Editor
                     true
                 );
 
-                Debug.Log($"ZIP作成完了: {zipFullPath}");
+                SymphonyDebugLogger.LogDirect($"ZIP作成完了: {zipFullPath}");
             }
             catch (Exception e)
             {
                 // ZIP化だけの失敗として記録し、先に作成したパッケージは残す。
-                Debug.LogError($"ZIP作成失敗\n{e}");
+                SymphonyDebugLogger.LogDirect($"ZIP作成失敗\n{e}", LogKindEnum.Error);
             }
         }
 

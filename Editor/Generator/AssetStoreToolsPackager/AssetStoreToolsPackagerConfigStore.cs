@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -38,7 +39,7 @@ namespace SymphonyFrameWork.Editor
             // 対象フォルダが未設定なら、設定ファイルの読み込み先を決められない。
             if (string.IsNullOrEmpty(configPath))
             {
-                Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。", LogKindEnum.Error);
                 return null;
             }
 
@@ -55,7 +56,7 @@ namespace SymphonyFrameWork.Editor
                 // 除外設定が無視されるため、壊れたファイルとして扱う。
                 if (config == null)
                 {
-                    Debug.LogError($"{LOG_PREFIX}\n設定ファイルの内容が空です: {configPath}");
+                    SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定ファイルの内容が空です: {configPath}", LogKindEnum.Error);
                     return null;
                 }
 
@@ -63,12 +64,12 @@ namespace SymphonyFrameWork.Editor
             }
             catch (JsonException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\n設定ファイルの解析に失敗しました: {configPath}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定ファイルの解析に失敗しました: {configPath}\n{e.Message}", LogKindEnum.Error);
                 return null;
             }
             catch (IOException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\n設定ファイルの読み込みに失敗しました: {configPath}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定ファイルの読み込みに失敗しました: {configPath}\n{e.Message}", LogKindEnum.Error);
                 return null;
             }
         }
@@ -87,7 +88,7 @@ namespace SymphonyFrameWork.Editor
             // 対象フォルダが未設定なら、設定ファイルの保存先を決められない。
             if (string.IsNullOrEmpty(configPath))
             {
-                Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。", LogKindEnum.Error);
                 return false;
             }
 
@@ -103,7 +104,7 @@ namespace SymphonyFrameWork.Editor
             }
             catch (IOException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\n設定ファイルの保存に失敗しました: {configPath}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定ファイルの保存に失敗しました: {configPath}\n{e.Message}", LogKindEnum.Error);
                 return false;
             }
         }
@@ -147,7 +148,7 @@ namespace SymphonyFrameWork.Editor
                 }
                 catch (IOException e)
                 {
-                    Debug.LogError($"{LOG_PREFIX}\nignore.txtの読み込みに失敗しました: {ignorePath}\n{e.Message}");
+                    SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nignore.txtの読み込みに失敗しました: {ignorePath}\n{e.Message}", LogKindEnum.Error);
                     return null;
                 }
             }
@@ -159,12 +160,12 @@ namespace SymphonyFrameWork.Editor
             // 移行の有無に応じて、旧ファイルの後処理が必要かを利用者へ伝える。
             if (isMigrated)
             {
-                Debug.Log($"{LOG_PREFIX}\nignore.txtの内容を移行しました: {configPath}"
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nignore.txtの内容を移行しました: {configPath}"
                           + $"\n以降ignore.txtは読み込まれません。不要であれば削除してください: {ignorePath}");
             }
             else
             {
-                Debug.Log($"{LOG_PREFIX}\n設定ファイルを生成しました: {configPath}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定ファイルを生成しました: {configPath}");
             }
 
             return config.Normalize();
@@ -198,7 +199,7 @@ namespace SymphonyFrameWork.Editor
             // 設定済みの保存先が存在する場合だけ、ファイル書き込みを許可する。
             if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory)) { return true; }
 
-            Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダが存在しません: {directory}");
+            SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nAssetStoreToolsフォルダが存在しません: {directory}", LogKindEnum.Error);
             return false;
         }
 

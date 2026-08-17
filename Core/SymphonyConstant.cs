@@ -13,6 +13,15 @@
         /// <summary> Frameworkの表示名およびAssets配下のルート名。 </summary>
         public const string SYMPHONY_FRAMEWORK = "SymphonyFrameWork";
 
+        /// <summary> Frameworkのバージョン。 </summary>
+        /// <remarks>
+        ///     <c>package.json</c> の <c>version</c> と同じ値を持つ。Playerビルドに
+        ///     <c>package.json</c> は含まれないため、実行時に読み取ることができない。
+        ///     更新は <c>scripts/release_round.py bump</c> が行い、
+        ///     <c>preflight</c> が <c>package.json</c> との一致を検査する。手で書き換えないこと。
+        /// </remarks>
+        public const string VERSION = "6.1.1";
+
 #if UNITY_EDITOR
         /// <summary>
         ///     Frameworkの絶対パスを取得する。

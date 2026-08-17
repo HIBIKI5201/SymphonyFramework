@@ -1,0 +1,15 @@
+<engine:UXML xmlns:engine="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/SymphonyFrameWork/Editor/Administrator/UITK/SymphonyWIndow.uss?fileID=7433441132597879392&amp;guid=16c3f611d15eda644b63e276b16e6925&amp;type=3#SymphonyWIndow" />
+    <engine:VisualElement class="base">
+        <engine:Button text="ドキュメント" name="button-document" class="document-button" />
+        <engine:Label text="Debug HUD" class="title" />
+        <engine:VisualElement style="height: 80px; margin-top: 10px; margin-right: 10px; margin-bottom: 10px; margin-left: 10px;">
+            <engine:Label text="Initialized: - / Available: - / Visible: -" name="hud-status" class="text" style="height: 25px; width: 100%;" />
+            <engine:Label text="Registered Texts: -" name="hud-registered-texts" class="text" style="height: 25px; width: 100%; margin-top: 8px;" />
+        </engine:VisualElement>
+        <engine:VisualElement style="height: 35px; width: 70%; flex-direction: row; align-content: center; justify-content: space-around;">
+            <engine:Button text="Show" name="button-show" class="button text" style="width: 35%;" />
+            <engine:Button text="Hide" name="button-hide" class="button text" style="width: 35%;" />
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

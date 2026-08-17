@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 using SymphonyFrameWork.Core;
 using SymphonyFrameWork.Exceptions;
 using SymphonyFrameWork.System;
 
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SymphonyFrameWork.Debugger.HUD
 {
@@ -22,9 +23,12 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// </summary>
         public static void Show()
         {
-            // 遅延生成の契約が準備済みであることを確認してから、値へのアクセスでHUDを生成する。
             EnsureInitialized();
+            if (!_isAvailable) { return; }
+
+            // 明示操作またはShortcutが届いた時点でだけ、遅延Drawerを生成する。
             _ = _debugHUD.Value;
+            PublishState();
         }
 
         /// <summary>
@@ -32,9 +36,12 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// </summary>
         public static void Hide()
         {
-            // 未初期化状態での呼び出しを隠さず、生成済みの場合だけ遅延オブジェクトを破棄する。
             EnsureInitialized();
+            if (!_isAvailable) { return; }
+
+            // 登録内容はFacadeへ残し、描画用GameObjectだけを破棄する。
             _debugHUD.Destroy();
+            PublishState();
         }
 
         /// <summary>
@@ -44,11 +51,11 @@ namespace SymphonyFrameWork.Debugger.HUD
         public static void AddText(Func<string> textFunc)
         {
             EnsureInitialized();
+            if (!_isAvailable) { return; }
 
-            // 毎フレーム呼び出す処理として保持するため、nullは登録前に拒否する。
             if (textFunc == null) { throw new ArgumentNullException(nameof(textFunc)); }
 
-            _debugHUD.Value.Add(textFunc);
+            RegisterText(textFunc);
         }
 
         /// <summary>
@@ -58,11 +65,11 @@ namespace SymphonyFrameWork.Debugger.HUD
         public static void RemoveText(Func<string> textFunc)
         {
             EnsureInitialized();
+            if (!_isAvailable) { return; }
 
-            // 登録一覧の照合に使えないnullは、解除処理へ渡さず呼び出し誤りとして扱う。
             if (textFunc == null) { throw new ArgumentNullException(nameof(textFunc)); }
 
-            _debugHUD.Value.Remove(textFunc);
+            UnregisterText(textFunc);
         }
 
         /// <summary>
@@ -79,11 +86,10 @@ namespace SymphonyFrameWork.Debugger.HUD
             CancellationToken token = default)
         {
             EnsureInitialized();
+            if (!_isAvailable) { return; }
 
-            // 表示処理が成立しないnull文字列は、HUDへ登録する前に拒否する。
             if (text == null) { throw new ArgumentNullException(nameof(text)); }
 
-            // 待機APIが扱えない負の表示時間は、登録前に拒否して表示の残留を防ぐ。
             if (duration < 0)
             {
                 throw new ArgumentOutOfRangeException(
@@ -92,7 +98,6 @@ namespace SymphonyFrameWork.Debugger.HUD
                     "表示時間は0秒以上で指定してください。");
             }
 
-            // 既定色では既存のHUDスタイルを使い、明示色だけRich Textタグへ変換する。
             if (color != default)
             {
                 string colorHex = ColorUtility.ToHtmlStringRGB(color);
@@ -101,8 +106,8 @@ namespace SymphonyFrameWork.Debugger.HUD
 
             Func<string> textFunc = () => text;
 
-            // 待機中だけ表示対象に含め、終了経路にかかわらずfinallyで必ず解除する。
-            _debugHUD.Value.Add(textFunc);
+            // 待機中だけ表示対象に含める。登録だけではHUDを自動表示しない。
+            RegisterText(textFunc);
 
             try
             {
@@ -110,7 +115,8 @@ namespace SymphonyFrameWork.Debugger.HUD
             }
             finally
             {
-                _debugHUD.Value.Remove(textFunc);
+                // Shutdownと競合しても、解除処理から遅延Drawerを再生成しない。
+                UnregisterText(textFunc);
             }
         }
 
@@ -118,8 +124,26 @@ namespace SymphonyFrameWork.Debugger.HUD
 
         #region 内部処理
 
+        private static readonly List<Func<string>> _extraTexts = new();
+
         private static SymphonyLazyObject<SymphonyHUDDrawer> _debugHUD;
+        private static bool _isAvailable;
+        private static bool _isInitialized;
+        private static SymphonyHUDShortcutListener _shortcutListener;
         private static ISystemObjectFactory _systemObjectFactory;
+        private static DebugHUDViewModel _viewModel;
+
+        /// <summary> 現在のDebug HUD表示用ViewModel。未初期化の場合はnull。 </summary>
+        internal static DebugHUDViewModel CurrentViewModel => _viewModel;
+
+        /// <summary> 現在HUDが表示されている場合はtrue。 </summary>
+        internal static bool IsVisible => _debugHUD != null && _debugHUD.IsAlive;
+
+        /// <summary> 現在保持している追加テキストの数。 </summary>
+        internal static int RegisteredTextCount => _extraTexts.Count;
+
+        /// <summary> Shortcut Listenerが生成済みの場合はtrue。 </summary>
+        internal static bool HasShortcutListener => _shortcutListener;
 
         /// <summary>
         ///     SymphonyのシステムオブジェクトとしてHUD描画コンポーネントを生成する。
@@ -127,44 +151,165 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <returns> 生成したHUD描画コンポーネント。 </returns>
         private static SymphonyHUDDrawer CreateDebugHUD()
         {
-            // Orchestratorによる生成契約の注入前は、通常のGameObjectとして生成しない。
             if (_systemObjectFactory == null) { throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD)); }
 
-            return _systemObjectFactory.CreateComponent<SymphonyHUDDrawer>(nameof(SymphonyHUDDrawer));
+            SymphonyHUDDrawer drawer =
+                _systemObjectFactory.CreateComponent<SymphonyHUDDrawer>(nameof(SymphonyHUDDrawer));
+
+            // 非表示中に登録された内容も、再表示時のDrawerへ同じ順序で復元する。
+            foreach (Func<string> textFunc in _extraTexts) { drawer.Add(textFunc); }
+
+            return drawer;
         }
 
         /// <summary>
-        ///     Debug HUDが利用可能な状態か検証する。
+        ///     Debug HUDが初期化済みか検証する。
         /// </summary>
         private static void EnsureInitialized()
         {
-            // Orchestratorから遅延生成契約が注入されていない状態では、全ての公開操作を拒否する。
-            if (_debugHUD == null) { throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD)); }
+            if (!_isInitialized) { throw new SymphonyNotInitializedException(typeof(SymphonyDebugHUD)); }
         }
 
         /// <summary>
-        ///     既存HUDを破棄し、遅延生成状態を初期化する。
+        ///     既存HUDを破棄し、入力監視と遅延生成状態を初期化する。
         /// </summary>
-        /// <param name="systemObjectFactory"> HUD描画用GameObjectの生成契約。 </param>
-        internal static void Initialize(ISystemObjectFactory systemObjectFactory)
+        /// <param name="systemObjectFactory"> HUD用GameObjectの生成契約。 </param>
+        /// <param name="toggleAction"> HUD表示を切り替えるInput Action。 </param>
+        /// <param name="isDebugBuild"> EditorまたはDevelopment Buildの場合はtrue。 </param>
+        internal static void Initialize(
+            ISystemObjectFactory systemObjectFactory,
+            InputAction toggleAction,
+            bool isDebugBuild)
         {
-            // Domain Reload無効環境でも前回のHUDを残さないよう、再構築前に状態を破棄する。
+            Initialize(systemObjectFactory, toggleAction, isDebugBuild, new DebugHUDViewModel());
+        }
+
+        /// <summary> ViewModelを注入してDebug HUDを初期化する。 </summary>
+        internal static void Initialize(
+            ISystemObjectFactory systemObjectFactory,
+            InputAction toggleAction,
+            bool isDebugBuild,
+            DebugHUDViewModel viewModel)
+        {
             ResetRuntimeState();
-            _systemObjectFactory = systemObjectFactory;
-            _debugHUD = new SymphonyLazyObject<SymphonyHUDDrawer>(
-                CreateDebugHUD,
-                drawer => UnityEngine.Object.Destroy(drawer.gameObject));
+
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+
+            if (isDebugBuild && systemObjectFactory == null)
+            {
+                ResetRuntimeState();
+                throw new ArgumentNullException(nameof(systemObjectFactory));
+            }
+
+            _isInitialized = true;
+            _isAvailable = isDebugBuild;
+            PublishState();
+            if (!_isAvailable) { return; }
+
+            try
+            {
+                _systemObjectFactory = systemObjectFactory;
+                _debugHUD = new SymphonyLazyObject<SymphonyHUDDrawer>(
+                    CreateDebugHUD,
+                    drawer => DestroyGameObject(drawer.gameObject));
+
+                // Shortcutの監視だけは常駐させ、Drawerは表示要求まで生成しない。
+                _shortcutListener = _systemObjectFactory.CreateComponent<SymphonyHUDShortcutListener>(
+                    nameof(SymphonyHUDShortcutListener));
+                _shortcutListener.Configure(toggleAction, Toggle);
+                PublishState();
+            }
+            catch
+            {
+                ResetRuntimeState();
+                throw;
+            }
+        }
+
+        /// <summary> 現在の表示状態を反転する。 </summary>
+        internal static void Toggle()
+        {
+            EnsureInitialized();
+            if (!_isAvailable) { return; }
+
+            if (IsVisible) { Hide(); }
+            else { Show(); }
         }
 
         /// <summary>
-        ///     生成済みHUDと遅延生成状態を解放する。
+        ///     生成済みHUD、入力監視、登録内容を解放する。
         /// </summary>
         internal static void ResetRuntimeState()
         {
-            // 未生成時も同じ経路で破棄し、次回初期化が古いfactoryを再利用しない状態へ戻す。
+            DebugHUDViewModel viewModel = _viewModel;
+
+            // Input Actionを先に停止し、遅延破棄の完了前に古いShortcutが発火することを防ぐ。
+            if (_shortcutListener)
+            {
+                _shortcutListener.Shutdown();
+                DestroyGameObject(_shortcutListener.gameObject);
+            }
+
             _debugHUD?.Destroy();
+            _extraTexts.Clear();
+
             _debugHUD = null;
+            _isAvailable = false;
+            _isInitialized = false;
+            _shortcutListener = null;
             _systemObjectFactory = null;
+            _viewModel = null;
+
+            if (viewModel != null)
+            {
+                viewModel.SetState(default);
+                viewModel.Dispose();
+            }
+        }
+
+        /// <summary> 追加テキストをFacadeと生成済みDrawerへ登録する。 </summary>
+        /// <param name="textFunc"> 毎フレーム表示文字列を返す処理。 </param>
+        private static void RegisterText(Func<string> textFunc)
+        {
+            _extraTexts.Add(textFunc);
+            if (_debugHUD.TryGetValue(out SymphonyHUDDrawer drawer)) { drawer.Add(textFunc); }
+            PublishState();
+        }
+
+        /// <summary> 追加テキストをFacadeと生成済みDrawerから解除する。 </summary>
+        /// <param name="textFunc"> 解除する文字列生成処理。 </param>
+        private static void UnregisterText(Func<string> textFunc)
+        {
+            _extraTexts.Remove(textFunc);
+            if (_debugHUD != null && _debugHUD.TryGetValue(out SymphonyHUDDrawer drawer))
+            {
+                drawer.Remove(textFunc);
+            }
+
+            PublishState();
+        }
+
+        /// <summary> 現在のFacade状態を表示用ViewModelへ反映する。 </summary>
+        private static void PublishState()
+        {
+            _viewModel?.SetState(new DebugHUDDto(
+                _isInitialized,
+                _isAvailable,
+                IsVisible,
+                _extraTexts.Count));
+        }
+
+        /// <summary> 実行環境に適した方法でGameObjectを破棄する。 </summary>
+        /// <param name="target"> 破棄するGameObject。 </param>
+        private static void DestroyGameObject(GameObject target)
+        {
+            if (Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(target);
+                return;
+            }
+
+            UnityEngine.Object.DestroyImmediate(target);
         }
 
         #endregion

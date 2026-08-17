@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **3.9.6**
+- 現在のバージョン: **6.1.1**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -67,8 +67,13 @@ Editor拡張のパス判定とアセット保護がこの配置を前提とす�
 
 依存関係は`package.json`に定義され、UPM導入時にUnityが解決します。
 
-- Addressables `1.21.19`
-- Newtonsoft Json `3.2.1`
+| パッケージ | バージョン | 用途 |
+| --- | --- | --- |
+| Addressables | `2.9.1` | UI Toolkitアセットの非同期ロード |
+| Input System | `1.18.0` | Debug HUDのShortcut |
+| Newtonsoft Json | `3.2.2` | Save Data、診断、Asset Store ToolsのJSON処理 |
+| Test Framework | `1.6.0` | パッケージ同梱テスト |
+| Audio / IMGUI / JSON Serialize / UIElements modules | `1.0.0` | Frameworkが直接使用するUnity組み込みModule |
 
 ## 初期設定
 
@@ -79,7 +84,8 @@ Assets/
 ├─ Resources/SymphonyFrameWork/
 │  ├─ SceneLoadConfig.asset
 │  ├─ AudioConfig.asset
-│  └─ SaveDataConfig.asset
+│  ├─ SaveDataConfig.asset
+│  └─ DebugHUDConfig.asset
 └─ Scripts/SymphonyFrameWork/
    ├─ SceneListEnum.cs
    ├─ TagsEnum.cs
@@ -91,7 +97,8 @@ Assets/
 主な設定場所:
 
 - `Window > SymphonyFrameWork > Symphony Administrator`: 各機能の状態確認とenum生成
-- `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択
+- `Project Settings > SymphonyFrameWork`: Debug HUD Shortcut、アセット保護、Service Locatorのログ設定
+- `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択
 - `SceneLoadConfig.asset`: 再生開始時のシーン初期化
 - `AudioConfig.asset`: AudioMixerとグループ設定
 
@@ -127,7 +134,7 @@ Runtimeモジュールに紐づくEditor機能（Save System設定、Service Loc
 
 ## サンプル
 
-Package Managerから[`Samples/Runtime`](./Samples/Runtime)の各サンプルを利用プロジェクトへインポートできます。
+Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプルを利用プロジェクトへインポートできます。**インポートするまでプロジェクトには入りません。**
 
 - `ServiceLocatorSample`: 登録、同期取得、非同期取得、Singleton
 - `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除
@@ -174,6 +181,7 @@ Package Managerから[`Samples/Runtime`](./Samples/Runtime)の各サンプルを
 - [Unity SerializeReferenceExtensions（mackysoft）](https://github.com/mackysoft/Unity-SerializeReferenceExtensions)
 - [UniRx（neuecc）](https://github.com/neuecc/UniRx)（今後の機能実装で参考予定）
 - [DOTween（Demigiant）](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676)
+- [SRDebugger（Stompy Robot）](https://www.stompyrobot.uk/tools/srdebugger/)
 
 ## ライセンス
 

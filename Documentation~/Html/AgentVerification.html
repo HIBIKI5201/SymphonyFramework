@@ -120,7 +120,7 @@ Assets/Scripts/SymphonyFrameWork/LayersEnum.cs
 Assets/Scripts/SymphonyFrameWork/AudioGroupTypeEnum.cs</code></pre>
 <p>存在しない場合は<code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code>を開くか、Play Modeへ入って生成処理を実行します。生成物は手で編集しません。</p>
 <h2 id="3-play-mode">3. Play Mode</h2>
-<p>Package Managerから該当する<a href="../../Samples/Runtime"><code>Samples/Runtime</code></a>をインポートし、サンプルシーンをPlayするのが最短です。</p>
+<p>Package Managerから該当する<a href="../../Samples~/Runtime"><code>Samples~/Runtime</code></a>をインポートし、サンプルシーンをPlayするのが最短です。</p>
 <ul><li>Service Locator: 登録、取得、解除が成立し、シーンを跨いだ不要な参照が残らない。</li><li>Scene Loader: 対象シーンをBuild Settingsへ追加し、ロード、Active Scene切り替え、アンロードが成功する。</li><li>Save Data System: 保存、再ロード、削除が成功し、検証後にデータを削除する。</li><li>Audio Manager: AudioMixerとグループを設定し、再生と音量変更を確認する。</li><li>Pause Manager: ポーズ中に対応待機が進まず、解除後に再開する。</li></ul>
 <p>利用プロジェクトでDomain Reloadを無効にしている場合は、Play Modeの開始・終了を2回繰り返し、static状態にゴースト参照が残らないことも確認します。</p>
 <h2 id="4-editorから内部状態を確認する">4. Editorから内部状態を確認する</h2>

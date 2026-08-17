@@ -4,6 +4,7 @@ using System.Linq;
 
 using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 
 using UnityEditor;
 using UnityEditorInternal;
@@ -205,7 +206,7 @@ namespace SymphonyFrameWork.Editor
             }
             else
             {
-                Debug.LogWarning("Audio group settings not found.");
+                SymphonyDebugLogger.LogDirect("Audio group settings not found.", LogKindEnum.Warning);
                 list = Array.Empty<string>();
             }
 

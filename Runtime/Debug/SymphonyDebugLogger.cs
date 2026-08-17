@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+
+using SymphonyFrameWork.Core;
+
 using UnityEngine;
+
 using Debug = UnityEngine.Debug;
 
 namespace SymphonyFrameWork.Debugger.Logger
@@ -24,16 +28,48 @@ namespace SymphonyFrameWork.Debugger.Logger
             LogKindEnum kind = LogKindEnum.Normal,
             UnityEngine.Object context = null)
         {
+            // エラーだけはバージョンを添える。報告を受ける側が最初に必要とする情報である。
+            string output = kind == LogKindEnum.Error ? $"{VersionTag} {text}" : text;
+
             // 呼び出し側が指定した重要度をUnity Consoleの対応するログ種別へそのまま反映する。
-            switch (kind) 
+            switch (kind)
             {
-                case LogKindEnum.Normal: Debug.Log(text, context); break;
-                case LogKindEnum.Warning: Debug.LogWarning(text, context); break;
-                case LogKindEnum.Error: Debug.LogError(text, context); break;
+                case LogKindEnum.Normal: Debug.Log(output, context); break;
+                case LogKindEnum.Warning: Debug.LogWarning(output, context); break;
+                case LogKindEnum.Error: Debug.LogError(output, context); break;
             }
 
             // Runtime層ではファイル出力を担わず、Editor側の購読者へ同じ内容を通知する。
-            OnLogDirect?.Invoke(text, kind);
+            OnLogDirect?.Invoke(output, kind);
+        }
+
+        /// <summary>
+        ///     例外をログへ出力する。
+        /// </summary>
+        /// <remarks>
+        ///     Unity Consoleへはスタックトレース付きの例外として出力し、購読者へは
+        ///     型と理由を含む1行のテキストとして通知する。Consoleの表示を犠牲にせず、
+        ///     ファイル出力にも例外の内容を残すための分担である。
+        /// </remarks>
+        /// <param name="exception"> 出力する例外。 </param>
+        /// <param name="context"> Consoleから追跡可能にするUnityオブジェクト。 </param>
+        [HideInCallstack]
+        public static void LogException(Exception exception, UnityEngine.Object context = null)
+        {
+            // 呼び出し側の判定漏れでログ機構自体が落ちないよう、nullを診断として扱う。
+            if (exception == null)
+            {
+                LogDirect("nullの例外がLogExceptionへ渡されました。", LogKindEnum.Error, context);
+                return;
+            }
+
+            // Consoleでは例外として扱わせ、スタックトレースの表示とジャンプを維持する。
+            // ここへバージョンを足すには例外を包む必要があり、Consoleの先頭行が
+            // 本来の例外型でなくなる。表示を壊さないため、Consoleは素の例外のままにする。
+            Debug.LogException(exception, context);
+
+            // Runtime層ではファイル出力を担わず、Editor側の購読者へ同じ内容を通知する。
+            OnLogDirect?.Invoke($"{VersionTag} {DescribeException(exception)}", LogKindEnum.Error);
         }
 
         /// <summary>
@@ -156,7 +192,7 @@ namespace SymphonyFrameWork.Debugger.Logger
         [HideInCallstack]
         public static bool LogAndCheckComponentNull<T>(this T @object)
         {
-            bool isNull = @object == null;
+            bool isNull = IsNullReference(@object);
 
             // Playerでも欠落参照を見逃さない診断APIのため、Unity標準の警告として常に出力する。
             if (isNull) { Debug.LogWarning($"<b>{typeof(T).Name}</b> is null"); }
@@ -206,11 +242,11 @@ namespace SymphonyFrameWork.Debugger.Logger
         {
 #if UNITY_EDITOR
             // 旧APIの既存動作を維持するため、Editor限定のUnity標準警告を直接使用する。
-            // TODO(#160): componentがnullの分岐でcomponent.nameを参照している。
-            //             UnityEngine.Objectの==nullは破棄済みと真のnullの両方でtrueになり、
-            //             後者ではNullReferenceExceptionになる。警告を出す関数が落ちるため、
-            //             破棄済みと真のnullを分けて扱う。
-            if (component == null) { Debug.LogWarning($"The component {typeof(T).Name} of {component.name} is null."); }
+            // 破棄済みと真のnullではnameを読めないため、参照せずに種別だけを伝える。
+            if (component == null)
+            {
+                Debug.LogWarning($"The component {typeof(T).Name} is null. ({DescribeNullKind(component)})");
+            }
 #endif
         }
 
@@ -233,6 +269,66 @@ namespace SymphonyFrameWork.Debugger.Logger
         #endregion
 
         #region 内部処理
+
+        /// <summary>
+        ///     例外を1行のテキストへ要約する。
+        /// </summary>
+        /// <remarks>
+        ///     ファイル出力は1件を1行として書き出す。<c>ArgumentNullException</c> のように
+        ///     Message自体が複数行になる例外があるため、改行を空白へ畳んでから返す。
+        ///     スタックトレースは含めない。Consoleへは例外として別途出力している。
+        /// </remarks>
+        /// <param name="exception"> 要約する例外。 </param>
+        /// <returns> 型名と理由を含む1行のテキスト。 </returns>
+        internal static string DescribeException(Exception exception)
+        {
+            string reason = exception.Message
+                .Replace("\r\n", " ")
+                .Replace('\r', ' ')
+                .Replace('\n', ' ');
+
+            return $"{exception.GetType().FullName}: {reason}";
+        }
+
+        /// <summary>
+        ///     参照が使用できない状態かを判定する。
+        /// </summary>
+        /// <remarks>
+        ///     型引数に制約が無いため、<c>==</c> は <see cref="UnityEngine.Object" /> の
+        ///     比較演算子ではなく参照比較になる。破棄済みのUnityオブジェクトを見逃さないよう、
+        ///     Unityオブジェクトのときだけ比較演算子へ委ねる。
+        /// </remarks>
+        /// <typeparam name="T"> 判定する参照の型。 </typeparam>
+        /// <param name="object"> 判定する対象。 </param>
+        /// <returns> 真のnull、または破棄済みのUnityオブジェクトの場合はtrue。 </returns>
+        private static bool IsNullReference<T>(T @object)
+        {
+            if (@object is UnityEngine.Object unityObject) { return unityObject == null; }
+
+            return @object is null;
+        }
+
+        /// <summary>
+        ///     nullと判定された参照が、未代入と破棄済みのどちらであるかを表す語を返す。
+        /// </summary>
+        /// <remarks>
+        ///     破棄済みでも真のnullでも <c>name</c> の取得は失敗する。参照せずに種別だけを伝え、
+        ///     警告を出すためのAPIが例外で落ちないようにする。
+        /// </remarks>
+        /// <param name="object"> nullと判定済みの対象。 </param>
+        /// <returns> 未代入なら <c>unassigned</c>、破棄済みなら <c>destroyed</c>。 </returns>
+        private static string DescribeNullKind(object @object)
+            => @object is null ? "unassigned" : "destroyed";
+
+        /// <summary>
+        ///     エラーログの先頭へ付けるFrameworkのバージョン表記。
+        /// </summary>
+        /// <remarks>
+        ///     不具合の報告を受ける側が最初に必要とするのがバージョンである。
+        ///     利用者がpackage.jsonを開かなくても、ログ1行から分かる状態にする。
+        /// </remarks>
+        internal static string VersionTag { get; } =
+            $"[{SymphonyConstant.SYMPHONY_FRAMEWORK} v{SymphonyConstant.VERSION}]";
 
         /// <summary> LogDirectで出力されたログを後続処理へ通知するイベント。 </summary>
         internal static event Action<string, LogKindEnum> OnLogDirect;

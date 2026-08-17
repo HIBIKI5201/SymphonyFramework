@@ -1,6 +1,7 @@
 ﻿using System;
 
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
@@ -81,7 +82,7 @@ namespace SymphonyFrameWork.Editor
                     return ConfirmMove(sourcePath);
                 case AssetProtectionModeEnum.Disabled:
                     // 無効時も意図しない移動を追跡できるよう、移動元と移動先を記録する。
-                    Debug.Log(
+                    SymphonyDebugLogger.LogDirect(
                         $"[{nameof(SymphonyAssetProtector)}] SymphonyFrameWork配下のアセットを移動します。" +
                         $" path: '{sourcePath}', destination: '{destinationPath}'");
                     return AssetMoveResult.DidNotMove;

@@ -99,7 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="debug">Debug</h1>
 <p>Game ViewのHUD、ログ、処理時間計測、Runtime状態の診断を提供します。</p>
 <h2 id="入口">入口</h2>
-<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.Debugger.HUD</code>、<code>SymphonyFrameWork.Debugger.Logger</code>、<code>SymphonyFrameWork.Debugger</code>、<code>SymphonyFrameWork.Editor.Debugger</code></td></tr><tr><td>主な公開型</td><td><code>SymphonyDebugHUD</code> / <code>SymphonyDebugLogger</code> / <code>SymphonyStopWatch</code> / <code>LogKindEnum</code> / <code>SymphonyMcpTools</code></td></tr><tr><td>メニューパス</td><td><code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></td></tr><tr><td>出力先</td><td><code>&lt;Frameworkルート&gt;/Cache/Log.txt</code>（<code>SymphonyDebugLogger</code>のファイル出力）</td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.Debugger.HUD</code>、<code>SymphonyFrameWork.Debugger.Logger</code>、<code>SymphonyFrameWork.Debugger</code>、<code>SymphonyFrameWork.Editor.Debugger</code></td></tr><tr><td>主な公開型</td><td><code>SymphonyDebugHUD</code> / <code>SymphonyDebugLogger</code> / <code>SymphonyStopWatch</code> / <code>LogKindEnum</code> / <code>SymphonyMcpTools</code></td></tr><tr><td>HUD Shortcut</td><td><code>Shift + D + P</code>（<code>Project Settings &gt; SymphonyFrameWork</code>で変更可能）</td></tr><tr><td>メニューパス</td><td><code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></td></tr><tr><td>出力先</td><td><code>&lt;Frameworkルート&gt;/Cache/Log.txt</code>（<code>SymphonyDebugLogger</code>のファイル出力）</td></tr></tbody></table></div>
 <div class="table-scroll"><table><thead><tr><th>型</th><th>用途</th></tr></thead><tbody><tr><td><code>SymphonyDebugHUD</code></td><td>FPS、メモリ使用量、任意テキストのGame View表示</td></tr><tr><td><code>SymphonyDebugLogger</code></td><td>複数行ログとEditorでの<code>Cache/Log.txt</code>出力</td></tr><tr><td><code>SymphonyStopWatch</code></td><td>ID単位の簡易処理時間計測</td></tr><tr><td><code>SymphonyMcpTools</code></td><td>MCPや自動化スクリプトからのRuntime状態の読み取り</td></tr></tbody></table></div>
 <h2 id="クイックスタート">クイックスタート</h2>
 <p><code>SymphonyDebugLogger</code>は、1行ずつ出力する<code>LogDirect</code>と、複数行を溜めてからまとめて出力する<code>AddText</code>／<code>NewText</code>／<code>LogText</code>を持ちます。</p>
@@ -111,24 +111,43 @@ SymphonyDebugLogger.NewText(&quot;ロード結果&quot;);
 SymphonyDebugLogger.AddText(&quot;Scene: Game&quot;);
 SymphonyDebugLogger.AddText(&quot;Progress: 100%&quot;);
 SymphonyDebugLogger.LogText();</code></pre>
+<p><strong>エラーログには<code>[SymphonyFrameWork v&lt;版&gt;]</code>が自動で付きます。</strong> 不具合を報告するとき、ログ1行だけで版が分かるようにするためです。通常ログと警告ログには付きません。版は<code>SymphonyConstant.VERSION</code>から取ります。</p>
+<p>例外は<code>LogException</code>で出力します。Unity Consoleへはスタックトレース付きの例外として出し、ファイル出力へは型名と理由を1行で残します。</p>
+<pre><code class="language-csharp">try { /* 失敗しうる処理 */ }
+catch (Exception exception) { SymphonyDebugLogger.LogException(exception); }</code></pre>
 <p><code>SymphonyStopWatch</code>はIDで計測区間を識別します。<code>Stop</code>でログへ出力されます。</p>
 <pre><code class="language-csharp">using SymphonyFrameWork.Debugger;
 
 SymphonyStopWatch.Start(&quot;SceneLoad&quot;);
 // 計測したい処理
 SymphonyStopWatch.Stop(&quot;SceneLoad&quot;);</code></pre>
+<h2 id="実装時の注意">実装時の注意</h2>
+<h3 id="debug-hudはdevelopment-buildでだけ動く">Debug HUDはDevelopment Buildでだけ動く</h3>
+<p><code>SymphonyDebugHUD</code>はUnity EditorとDevelopment Buildでだけ入力監視と描画を行います。Development Buildを外したPlayerでは<code>Show</code>、<code>Hide</code>、<code>AddText</code>、<code>RemoveText</code>は何もせず、HUD用GameObjectや登録コールバックも保持しません。</p>
+<p><code>AddText</code>は表示内容だけを登録し、HUDを自動表示しません。<code>Shift + D + P</code>または<code>Show()</code>で表示してください。<code>Hide()</code>後も継続テキストは保持され、再表示時に戻ります。</p>
+<h3 id="nullの診断にはlogandcheckcomponentnullを使う">nullの診断には<code>LogAndCheckComponentNull</code>を使う</h3>
+<p>参照が使えるかを警告付きで確認するには、拡張メソッドの<code>LogAndCheckComponentNull</code>を使います。nullなら警告を出したうえで<code>true</code>を返します。</p>
+<pre><code class="language-csharp">using SymphonyFrameWork.Debugger.Logger;
+
+if (_renderer.LogAndCheckComponentNull()) { return; }</code></pre>
+<p><strong><code>UnityEngine.Object</code>を渡した場合は、<code>Destroy</code>済みの参照もnullとして報告します。</strong> マネージド参照が生きていても、Unityの比較演算子がnullとみなす状態なら<code>true</code>です。Unityオブジェクト以外の参照は通常の参照比較で判定します。</p>
+<p>旧APIの<code>CheckComponentNull</code>と<code>IsComponentNotNull</code>は非推奨です。移行先と削除予定は<a href="../Deprecations.html">Deprecations.md</a>にあります。</p>
 <h2 id="editor機能">Editor機能</h2>
 <h3 id="symphonydebughud">SymphonyDebugHUD</h3>
 <p>FPS、メモリ使用量、任意テキストをGame Viewへ重ねて表示します。</p>
-<p><strong>入口</strong>: <code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></p>
-<p>HUD本体はRuntimeの機能です。このメニューはEditorからの表示・非表示の入口だけを提供します。</p>
+<p><strong>入口</strong>: <code>Shift + D + P</code>、<code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></p>
+<p>HUD本体はRuntimeの機能です。ShortcutはInput SystemのInput Actionとして<code>Project Settings &gt; SymphonyFrameWork &gt; Debug HUD Shortcut</code>で編集できます。Gamepadなど複数プラットフォーム向けのBindingも同じActionへ追加できます。</p>
+<h3 id="symphony-administratorのdebug-hudパネル">Symphony AdministratorのDebug HUDパネル</h3>
+<p>Debug HUDの初期化状態、現在の環境で利用可能か、表示中か、追加テキストの登録数を確認し、HUDを表示・非表示にできます。</p>
+<p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator &gt; Debug HUD</code></p>
+<p>Edit Modeでは未接続を示す <code>-</code> が表示され、Show / Hideは操作できません。Play Modeへ入ると現在のHUDへ接続し、Shortcut、メニュー、コードのどの経路で状態が変わっても表示へ反映します。通常ビルド条件では <code>Available: False</code> となり、操作ボタンは無効です。</p>
 <h3 id="ログのファイル出力">ログのファイル出力</h3>
 <p><code>SymphonyDebugLogger</code> の出力をファイルへ書き出します。</p>
 <p><strong>入口</strong>: 自動実行（<code>SymphonyEditorOrchestrator</code> が起動時に開始します）</p>
 <p><strong>出力先</strong>: <code>&lt;Frameworkルート&gt;/Cache/Log.txt</code></p>
 <p>Frameworkの実配置パスを解決してその直下へ書くため、UPM経由（<code>Library/PackageCache/</code>）でもAssets直置きでも同じ位置関係になります。</p>
 <p><strong>注意点</strong>:</p>
-<ul><li><code>Cache/</code> は生成物です。<strong>版管理へ含めないでください。</strong></li><li>書き込みは定期的にまとめて行われます。1行ごとにファイルを開きません。</li></ul>
+<ul><li><code>Cache/</code> は生成物です。<strong>版管理へ含めないでください。</strong></li><li>書き込みは定期的にまとめて行われます。1行ごとにファイルを開きません。</li><li><strong>Framework自身が出すログは、すべてこの経路を通ります。</strong> Framework内のコードは<code>UnityEngine.Debug</code>を直接呼びません。Consoleに出たFrameworkのログは<code>Log.txt</code>にも残っている、と考えて構いません。</li><li><strong><code>LogException</code>はスタックトレースをファイルへ書きません。</strong> 1件を1行として書き出すためで、型名と理由だけが残ります。スタックトレースはConsoleで確認してください。</li><li>Core層（<code>SymphonyFrameWork.Core</code>アセンブリ）はRuntimeのロガーを参照できないため、内部の中継口を経由してこの出力先へ載ります。上位層の初期化前に発生したCore層のログだけは、Unity標準の出力へ落ちて<code>Log.txt</code>に残りません。</li></ul>
 <h3 id="symphonymcptools">SymphonyMcpTools</h3>
 <p>MCPや自動化スクリプトから、SymphonyのRuntime状態をJSON文字列で読み取るためのツール群です。</p>
 <p><strong>入口</strong>: メニューはありません。外部ツールから <code>SymphonyFrameWork.Editor.Debugger.SymphonyMcpTools</code> の各メソッドを呼びます。</p>

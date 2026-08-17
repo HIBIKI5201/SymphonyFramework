@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 
+using SymphonyFrameWork.Config;
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 
 using UnityEditor;
+using UnityEngine;
 
 namespace SymphonyFrameWork.Editor.SettingProvider
 {
@@ -28,11 +31,12 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         [SettingsProvider]
         public static SettingsProvider CreateCustomSettingsProvider()
         {
-            // Project単位の入口へ、個人設定を編集するIMGUI画面と検索語を登録する。
+            // Project単位の入口へ、個人設定とRuntime設定を編集するIMGUI画面を登録する。
             SettingsProvider provider = new(SELF_PATH, SettingsScope.Project)
             {
                 label = LABEL,
                 guiHandler = IMGUI,
+                deactivateHandler = ReleaseDebugHUDSerializedObject,
                 keywords = new HashSet<string>(new[]
                 {
                     "symphony",
@@ -41,6 +45,10 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                     "protection",
                     "service locator",
                     "log",
+                    "debug",
+                    "hud",
+                    "shortcut",
+                    "input action",
                 }),
             };
 
@@ -51,8 +59,11 @@ namespace SymphonyFrameWork.Editor.SettingProvider
 
         #region 内部処理
 
+        private static DebugHUDConfig _serializedDebugHUDConfig;
+        private static SerializedObject _debugHUDSerializedObject;
+
         /// <summary>
-        ///     Frameworkのアセット保護とService Locatorログ設定を描画する。
+        ///     Frameworkのアセット保護、ログ、Debug HUD Shortcut設定を描画する。
         /// </summary>
         private static void IMGUI(string searchContext)
         {
@@ -72,7 +83,6 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Service Locator Logs", EditorStyles.boldLabel);
 
-            // 3種のログ設定を一度に比較し、変更が無いフレームでは保存処理を避ける。
             bool isSetInstanceLogEnabled = EditorGUILayout.Toggle(
                 "Set Instance",
                 config.IsServiceLocatorSetInstanceLogEnabled);
@@ -87,13 +97,99 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                 isSetInstanceLogEnabled != config.IsServiceLocatorSetInstanceLogEnabled ||
                 isGetInstanceLogEnabled != config.IsServiceLocatorGetInstanceLogEnabled ||
                 isDestroyInstanceLogEnabled != config.IsServiceLocatorDestroyInstanceLogEnabled;
-            if (!hasLogOptionChanged) { return; }
+            if (hasLogOptionChanged)
+            {
+                // 個人設定を保存した後、現在のEditorセッションで使うログオプションへ反映する。
+                config.IsServiceLocatorSetInstanceLogEnabled = isSetInstanceLogEnabled;
+                config.IsServiceLocatorGetInstanceLogEnabled = isGetInstanceLogEnabled;
+                config.IsServiceLocatorDestroyInstanceLogEnabled = isDestroyInstanceLogEnabled;
+                PackageInitializer.ApplyServiceLocateLogOptions();
+            }
 
-            // 個人設定を保存した後、現在のEditorセッションで使うログオプションへ反映する。
-            config.IsServiceLocatorSetInstanceLogEnabled = isSetInstanceLogEnabled;
-            config.IsServiceLocatorGetInstanceLogEnabled = isGetInstanceLogEnabled;
-            config.IsServiceLocatorDestroyInstanceLogEnabled = isDestroyInstanceLogEnabled;
-            PackageInitializer.ApplyServiceLocateLogOptions();
+            EditorGUILayout.Space();
+            DrawDebugHUDShortcut();
+        }
+
+        /// <summary> Debug HUDの表示切り替えInput Actionを描画する。 </summary>
+        private static void DrawDebugHUDShortcut()
+        {
+            EditorGUILayout.LabelField("Debug HUD Shortcut", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "EditorとDevelopment BuildでDebug HUDの表示を切り替えるInput Actionです。"
+                + " 複数プラットフォーム向けのBindingを追加できます。",
+                MessageType.Info);
+
+            // 画面を開いただけでRuntime Configの生成を開始せず、取得できたものだけを描画する。
+            DebugHUDConfig config = SymphonyConfigLocator.GetConfig<DebugHUDConfig>();
+            if (config == null)
+            {
+                DrawMissingDebugHUDConfig();
+                return;
+            }
+
+            SerializedObject serializedObject = GetDebugHUDSerializedObject(config);
+            SerializedProperty toggleActionProperty = serializedObject.FindProperty("_toggleAction");
+
+            serializedObject.UpdateIfRequiredOrScript();
+            string serializedBeforeEdit = EditorJsonUtility.ToJson(config);
+            EditorGUILayout.PropertyField(
+                toggleActionProperty,
+                new GUIContent("Toggle Action"),
+                true);
+
+            // Input SystemのPropertyDrawerは一部の操作を内部でApplyするため、未適用分だけを反映する。
+            if (serializedObject.hasModifiedProperties) { serializedObject.ApplyModifiedProperties(); }
+
+            // 展開や選択だけでは保存せず、Actionのシリアライズ内容が変わった場合だけ再構築する。
+            if (serializedBeforeEdit == EditorJsonUtility.ToJson(config)) { return; }
+
+            config.RebuildToggleActionSerializationState();
+            EditorUtility.SetDirty(config);
+            AssetDatabase.SaveAssets();
+            serializedObject.UpdateIfRequiredOrScript();
+        }
+
+        /// <summary> 指定Configを対象とするDebug HUD設定用SerializedObjectを取得する。 </summary>
+        /// <param name="config"> 編集対象のDebug HUD設定。 </param>
+        /// <returns> 同じConfigの表示中は再利用するSerializedObject。 </returns>
+        internal static SerializedObject GetDebugHUDSerializedObject(DebugHUDConfig config)
+        {
+            if (config == null) { throw new global::System.ArgumentNullException(nameof(config)); }
+
+            if (_debugHUDSerializedObject != null && _serializedDebugHUDConfig == config)
+            {
+                return _debugHUDSerializedObject;
+            }
+
+            ReleaseDebugHUDSerializedObject();
+            _serializedDebugHUDConfig = config;
+            _debugHUDSerializedObject = new SerializedObject(config);
+            return _debugHUDSerializedObject;
+        }
+
+        /// <summary> Debug HUD設定用SerializedObjectを解放する。 </summary>
+        internal static void ReleaseDebugHUDSerializedObject()
+        {
+            _debugHUDSerializedObject?.Dispose();
+            _debugHUDSerializedObject = null;
+            _serializedDebugHUDConfig = null;
+        }
+
+        /// <summary> DebugHUDConfigが未生成の場合に、生成を要求する導線を描画する。 </summary>
+        private static void DrawMissingDebugHUDConfig()
+        {
+            EditorGUILayout.HelpBox(
+                "DebugHUDConfig がまだ生成されていません。通常はEditor起動時に生成されます。",
+                MessageType.Warning);
+
+            if (!GUILayout.Button("設定アセットを生成")) { return; }
+
+            if (!SymphonyEditorOrchestrator.RequestPackageSetup())
+            {
+                SymphonyDebugLogger.LogDirect(
+                    "Symphony Frameworkの初期化中のため、DebugHUDConfigの生成を要求できませんでした。",
+                    LogKindEnum.Warning);
+            }
         }
 
         #endregion

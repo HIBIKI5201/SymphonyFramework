@@ -26,6 +26,9 @@ namespace SymphonyFrameWork.Debugger.HUD
         /// <param name="func"> 削除する文字列生成処理。 </param>
         public void Remove(Func<string> func) => _extraTexts.Remove(func);
 
+        /// <summary> 現在登録されている追加テキストの数。 </summary>
+        internal int RegisteredTextCount => _extraTexts.Count;
+
         #endregion
 
         #region 内部処理

@@ -11,7 +11,7 @@ namespace SymphonyFrameWork.Tests
     /// <summary> Symphony AdministratorのUXMLがカスタムパネル型を解決できることを検証する。 </summary>
     public sealed class SymphonyAdministratorUxmlTests
     {
-        /// <summary> 管理ウィンドウを構成する5つのカスタムパネルを登録済み型として生成する。 </summary>
+        /// <summary> 管理ウィンドウを構成する6つのカスタムパネルを登録済み型として生成する。 </summary>
         [Test]
         public void Instantiate_AllAdministratorPanels_UsesRegisteredCustomElements()
         {
@@ -27,6 +27,7 @@ namespace SymphonyFrameWork.Tests
             SaveDataWindow saveDataWindow = container.Q<SaveDataWindow>();
             AutoEnumGeneratorWindow autoEnumGeneratorWindow =
                 container.Q<AutoEnumGeneratorWindow>();
+            DebugHUDWindow debugHUDWindow = container.Q<DebugHUDWindow>();
 
             try
             {
@@ -35,6 +36,7 @@ namespace SymphonyFrameWork.Tests
                 Assert.That(sceneLoadWindow, Is.Not.Null);
                 Assert.That(saveDataWindow, Is.Not.Null);
                 Assert.That(autoEnumGeneratorWindow, Is.Not.Null);
+                Assert.That(debugHUDWindow, Is.Not.Null);
             }
             finally
             {
@@ -42,6 +44,7 @@ namespace SymphonyFrameWork.Tests
                 serviceLocateWindow?.Dispose();
                 sceneLoadWindow?.Dispose();
                 saveDataWindow?.Dispose();
+                debugHUDWindow?.Dispose();
             }
         }
     }

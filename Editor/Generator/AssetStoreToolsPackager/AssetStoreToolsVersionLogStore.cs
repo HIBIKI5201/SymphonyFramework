@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Debugger.Logger;
 
 using System.Collections.Generic;
 using System.IO;
@@ -45,7 +46,7 @@ namespace SymphonyFrameWork.Editor
             // 対象フォルダが未設定なら、バージョンログの読み込み先を決められない。
             if (string.IsNullOrEmpty(logPath))
             {
-                Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。", LogKindEnum.Error);
                 return null;
             }
 
@@ -61,7 +62,7 @@ namespace SymphonyFrameWork.Editor
                 // 空ファイルやnullリテラルから既定値を生成すると、既存リビジョンが巻き戻る。
                 if (log == null)
                 {
-                    Debug.LogError($"{LOG_PREFIX}\nバージョンログの内容が空です: {logPath}");
+                    SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nバージョンログの内容が空です: {logPath}", LogKindEnum.Error);
                     return null;
                 }
 
@@ -69,12 +70,12 @@ namespace SymphonyFrameWork.Editor
             }
             catch (JsonException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\nバージョンログの解析に失敗しました: {logPath}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nバージョンログの解析に失敗しました: {logPath}\n{e.Message}", LogKindEnum.Error);
                 return null;
             }
             catch (IOException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\nバージョンログの読み込みに失敗しました: {logPath}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nバージョンログの読み込みに失敗しました: {logPath}\n{e.Message}", LogKindEnum.Error);
                 return null;
             }
         }
@@ -93,7 +94,7 @@ namespace SymphonyFrameWork.Editor
             // 対象フォルダが未設定なら、バージョンログの保存先を決められない。
             if (string.IsNullOrEmpty(logPath))
             {
-                Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nAssetStoreToolsフォルダのパスが設定されていません。", LogKindEnum.Error);
                 return false;
             }
 
@@ -160,7 +161,7 @@ namespace SymphonyFrameWork.Editor
                 // 空ファイルやnullリテラルは、導入済みリビジョンとして扱えない。
                 if (exportedVersion == null)
                 {
-                    Debug.LogError($"{LOG_PREFIX}\n出力時バージョンの内容が空です: {path}");
+                    SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n出力時バージョンの内容が空です: {path}", LogKindEnum.Error);
                     return false;
                 }
 
@@ -169,12 +170,12 @@ namespace SymphonyFrameWork.Editor
             }
             catch (JsonException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\n出力時バージョンの解析に失敗しました: {path}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n出力時バージョンの解析に失敗しました: {path}\n{e.Message}", LogKindEnum.Error);
                 return false;
             }
             catch (IOException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\n出力時バージョンの読み込みに失敗しました: {path}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n出力時バージョンの読み込みに失敗しました: {path}\n{e.Message}", LogKindEnum.Error);
                 return false;
             }
         }
@@ -203,18 +204,18 @@ namespace SymphonyFrameWork.Editor
                         File.ReadAllText(path));
 
                 // ファイルは存在しても内容が無ければ、候補を構築できないことを記録する。
-                if (manifest == null) { Debug.LogError($"{LOG_PREFIX}\nマニフェストの内容が空です: {path}"); }
+                if (manifest == null) { SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nマニフェストの内容が空です: {path}", LogKindEnum.Error); }
 
                 return manifest;
             }
             catch (JsonException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\nマニフェストの解析に失敗しました: {path}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nマニフェストの解析に失敗しました: {path}\n{e.Message}", LogKindEnum.Error);
                 return null;
             }
             catch (IOException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\nマニフェストの読み込みに失敗しました: {path}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nマニフェストの読み込みに失敗しました: {path}\n{e.Message}", LogKindEnum.Error);
                 return null;
             }
         }
@@ -257,7 +258,7 @@ namespace SymphonyFrameWork.Editor
             // 初期値の列挙元が存在しなければ、空ログを生成して設定誤りを隠さない。
             if (!Directory.Exists(root))
             {
-                Debug.LogError($"{LOG_PREFIX}\nAssetStoreToolsフォルダが存在しません: {root}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nAssetStoreToolsフォルダが存在しません: {root}", LogKindEnum.Error);
                 return null;
             }
 
@@ -270,7 +271,7 @@ namespace SymphonyFrameWork.Editor
             // 永続化できなかったログを返すと、メモリ上だけでリビジョン管理が始まるため失敗とする。
             if (!TryWriteJson(logPath, log.Normalize(), "バージョンログ")) { return null; }
 
-            Debug.Log($"{LOG_PREFIX}\nバージョンログを生成しました: {logPath}");
+            SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nバージョンログを生成しました: {logPath}");
             return log.Normalize();
         }
 
@@ -287,7 +288,7 @@ namespace SymphonyFrameWork.Editor
             // 保存先が無い場合は、親ディレクトリを暗黙に生成せず設定誤りとして扱う。
             if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
             {
-                Debug.LogError($"{LOG_PREFIX}\n{displayName}の書き出し先が存在しません: {directory}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n{displayName}の書き出し先が存在しません: {directory}", LogKindEnum.Error);
                 return false;
             }
 
@@ -299,7 +300,7 @@ namespace SymphonyFrameWork.Editor
             }
             catch (IOException e)
             {
-                Debug.LogError($"{LOG_PREFIX}\n{displayName}の保存に失敗しました: {path}\n{e.Message}");
+                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n{displayName}の保存に失敗しました: {path}\n{e.Message}", LogKindEnum.Error);
                 return false;
             }
         }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using SymphonyFrameWork.Debugger.Logger;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -104,7 +106,7 @@ namespace SymphonyFrameWork.Editor
                     _managerPath = tagManagerPath;
                     _lastManagerContent = File.ReadAllText(tagManagerPath);
                 }
-                else { Debug.LogWarning($"{tagManagerPath}にアセットがありません。"); }
+                else { SymphonyDebugLogger.LogDirect($"{tagManagerPath}にアセットがありません。", LogKindEnum.Warning); }
             }
 
             /// <summary> 監視対象の設定が変更されたときに発生する。 </summary>

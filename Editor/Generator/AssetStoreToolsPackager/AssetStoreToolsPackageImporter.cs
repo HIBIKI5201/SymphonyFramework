@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
+using SymphonyFrameWork.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
@@ -14,23 +15,6 @@ namespace SymphonyFrameWork.Editor
     internal static class AssetStoreToolsPackageImporter
     {
         #region 外部向けAPI
-
-        /// <summary>
-        ///     出力先フォルダにある出力済みフォルダを新しい順に取得する。
-        /// </summary>
-        /// <returns> 出力済みフォルダの絶対パス。出力先が無い場合は空。 </returns>
-        internal static IReadOnlyList<string> GetExportDirectories()
-        {
-            string exportRoot = GetExportRootPath();
-            // 出力先が未設定か未作成なら、利用可能な履歴は無いものとして扱う。
-            if (string.IsNullOrEmpty(exportRoot) || !Directory.Exists(exportRoot)) { return Array.Empty<string>(); }
-
-            // フォルダ名には出力日時が含まれるため、辞書順の降順で新しい出力を先頭へ置く。
-            return Directory
-                .GetDirectories(exportRoot)
-                .OrderByDescending(path => Path.GetFileName(path), StringComparer.Ordinal)
-                .ToArray();
-        }
 
         /// <summary>
         ///     パッケージ対象フォルダ配下から、現在導入されているリビジョンを集める。
@@ -101,8 +85,8 @@ namespace SymphonyFrameWork.Editor
                 // 一部の出力ファイルが欠けていても、残りの選択項目は継続して取り込む。
                 if (!File.Exists(packagePath))
                 {
-                    Debug.LogError(
-                        $"{LOG_PREFIX}\nパッケージが見つかりませんでした: {packagePath}");
+                    SymphonyDebugLogger.LogDirect(
+                        $"{LOG_PREFIX}\nパッケージが見つかりませんでした: {packagePath}", LogKindEnum.Error);
                     continue;
                 }
 
@@ -113,13 +97,13 @@ namespace SymphonyFrameWork.Editor
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(
-                        $"{LOG_PREFIX}\nパッケージのインポートに失敗しました: {packagePath}\n{e}");
+                    SymphonyDebugLogger.LogDirect(
+                        $"{LOG_PREFIX}\nパッケージのインポートに失敗しました: {packagePath}\n{e}", LogKindEnum.Error);
                 }
             }
 
             // 1件も開始できなかった場合は、成功を示すログを出さない。
-            if (importedCount > 0) { Debug.Log($"{LOG_PREFIX}\n{importedCount}件のパッケージをインポートしました。"); }
+            if (importedCount > 0) { SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n{importedCount}件のパッケージをインポートしました。"); }
 
             return importedCount;
         }

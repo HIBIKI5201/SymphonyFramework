@@ -127,20 +127,29 @@ await SaveStore.DeleteAsync&lt;PlayerData&gt;();</code></pre>
 <ul><li>保存型は<code>SaveDataContent</code>を継承した、デフォルトコンストラクタを持つ具象classにする。</li><li><strong>旧<code>SaveDataRegistry</code>は3.0.0で削除済みである。</strong> <code>SaveStore</code>を使う。</li><li><strong>初回取得は<code>await SaveStore.LoadAsync&lt;T&gt;()</code>を使い、戻り値でインスタンスを受け取る。</strong> <code>Get&lt;T&gt;()</code>は読み込み済みの値だけを返し、未読み込みなら<code>InvalidOperationException</code>を投げる。暗黙の同期読み込みは3.0.0で廃止した。</li><li><code>Get&lt;T&gt;()</code>を使う前に読み込み済みか分からない場合は<code>SaveStore.IsLoaded&lt;T&gt;()</code>で確認する。</li><li><code>SaveStore</code>が保持する型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。</li><li>保存先の失敗は<code>SaveDataOperationException</code>の<code>Operation</code>、<code>DataType</code>、<code>LoaderType</code>、<code>InnerException</code>で診断する。キャンセルは<code>OperationCanceledException</code>のまま伝播する。</li><li>独自<code>SaveDataLoaderStrategy</code>はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。</li><li>独自ローダーが実装する<code>LoadJsonAsync</code>／<code>SaveJsonAsync</code>／<code>DeleteCoreAsync</code>は<code>Awaitable</code>を返す。同期的に完了する場合は<code>SymphonyAwaitable.Completed()</code>と<code>SymphonyAwaitable.FromResult(json)</code>を使い、<code>null</code>を返さない。</li><li>キャッシュ済みの一覧は<code>SaveStore.GetEntries()</code>で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。</li><li><strong><code>Data != null</code>を「読み込み済み」の判定に使わない。</strong> キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは<code>SaveDataEntryInfo.IsLoaded</code>で判定する。</li></ul>
 <h2 id="editor機能">Editor機能</h2>
 <h3 id="save-system設定">Save System設定</h3>
-<p><code>SaveStore</code> が使用するセーブローダーを選択します。</p>
+<p><code>SaveStore</code> が使用するセーブローダーと、Save Data パネルへ表示する型を選択します。</p>
 <p><strong>入口</strong>: <code>Project Settings &gt; SymphonyFrameWork &gt; Save System</code></p>
-<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>Loader</td><td><code>SaveDataLoaderStrategy</code> を継承したローダー。<code>[SerializeReference]</code> で選択する</td></tr><tr><td>Current Loader Type</td><td>現在設定されているローダーの型名（読み取り専用）</td></tr></tbody></table></div>
-<p><strong>保存先</strong>: <code>Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset</code></p>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>Loader</td><td><code>SaveDataLoaderStrategy</code> を継承したローダー。<code>[SerializeReference]</code> で選択する</td></tr><tr><td>Current Loader Type</td><td>現在設定されているローダーの型名（読み取り専用）</td></tr><tr><td>Managed Save Data Types</td><td>Save Data パネルへ表示する型のチェックボックス。名前空間の階層で並ぶ</td></tr></tbody></table></div>
+<p><strong>保存先</strong>: ローダーは <code>Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset</code>、管理対象のチェックは <code>ProjectSettings/Packages/symphonyframework/SaveDataVisibilityConfig.asset</code></p>
 <p><strong>注意点</strong>:</p>
-<ul><li>ローダーが未設定の場合、<code>SaveStore</code> は既定の <code>JsonUtility</code> ローダーへフォールバックします。警告が表示されます。</li><li>独自ローダーは <code>SaveDataLoaderStrategy</code> を継承してください。共通の検証とデータ復旧は基底クラスが担当します。</li><li>ローダーを変更すると、その場で <code>SaveStore</code> が読み直します。</li></ul>
+<ul><li>ローダーが未設定の場合、<code>SaveStore</code> は既定の <code>JsonUtility</code> ローダーへフォールバックします。警告が表示されます。</li><li><strong><code>SaveDataConfig</code> がまだ無い状態でこの画面を開いても、生成は始まりません。</strong> 未生成である旨と <code>設定アセットを生成</code> ボタンが表示されます。設定アセットの生成はEditor起動時にまとめて行われる処理であり、画面を開いた副作用として走らせないためです。ボタンを押すと、起動時と同じ経路（<code>SymphonyEditorOrchestrator</code>）で生成されます。</li><li>独自ローダーは <code>SaveDataLoaderStrategy</code> を継承してください。共通の検証とデータ復旧は基底クラスが担当します。</li><li>ローダーを変更すると、その場で <code>SaveStore</code> が読み直します。</li></ul>
+<h4 id="managed-save-data-types">Managed Save Data Types</h4>
+<p><code>SaveDataContent</code> を継承した型は、プロジェクト内のどのアセンブリにあってもこの一覧へ並びます。チェックを外した型は Save Data パネルへ表示されません。</p>
+<p><strong>既定値は、テスト用アセンブリの型が <code>false</code>、それ以外の型が <code>true</code> です。</strong> テスト用アセンブリかどうかは、そのアセンブリが <code>nunit.framework</code> または <code>UnityEngine.TestRunner</code> を参照しているかで判定します。<strong>この判定は既定値を決めるためだけに使います。</strong> 意図と違う場合はチェックを操作してください。</p>
+<p>一覧は名前空間の階層で並びます。<strong>分岐の無い名前空間は1行にまとめて表示します。</strong> 例えば <code>SpaceA.ScopeB</code> の下にしか型が無ければ <code>SpaceA.ScopeB</code> の1行になり、<code>SpaceA.ScopeE</code> の型が加わった時点で <code>SpaceA</code> の下が <code>ScopeB</code> と <code>ScopeE</code> に分かれます。名前空間の行のチェックは、その配下の型をまとめて切り替えます。配下が混在している場合は混在表示になり、押すとすべて管理対象になります。</p>
+<ul><li><strong>設定へ保存されるのは、操作して切り替えた型だけです。</strong> 既定のままの型は保存されないため、画面を開くだけでは設定ファイルが増えません。</li><li>型を追加すると、既定値に従って自動的に一覧へ現れます。既存の設定を書き換える必要はありません。</li><li><strong>この設定はEditorの表示だけに効きます。</strong> <code>SaveStore.Get&lt;T&gt;()</code> などの実行時APIは、チェックの有無に関係なく従来どおり動きます。</li></ul>
 <h3 id="save-data-パネル">Save Data パネル</h3>
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
-<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Save Data</td><td>セーブデータの登録内容</td></tr></tbody></table></div>
-<p>Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
+<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Save Data</td><td>管理対象のセーブデータ型、Inspectorの接続状態、保存状態</td></tr></tbody></table></div>
+<p>一覧に並ぶのは、Save System設定の <code>Managed Save Data Types</code> でチェックが入っている型だけです。設定を変えると、パネルを開き直さずにその場で一覧が入れ替わります。管理対象が1つも無い場合は、設定画面への導線を表示します。</p>
+<p>一覧から型を選ぶと、Inspectorのバインド元をランプで表示します。ランプは、Registry正本へ接続中なら緑、Window専用インスタンスへ保存値を読み込み済みなら黄、新規のWindow専用インスタンスなら赤、未選択なら消灯です。ロード中は赤のまま <code>Loading…</code> を表示し、完了までInspectorを編集できません。</p>
+<div class="table-scroll"><table><thead><tr><th>操作</th><th>接続中（緑）</th><th>非接続（黄・赤）</th></tr></thead><tbody><tr><td>Load</td><td>Registry正本を保存先から読み直す</td><td>Window専用インスタンスへ読み込む</td></tr><tr><td>Save</td><td>Registry正本を保存する</td><td>Window専用インスタンスを保存し、Registryへは登録しない</td></tr><tr><td>Delete</td><td>保存値を削除してRegistry正本を既定値へ戻す</td><td>保存値を削除してWindow専用インスタンスを作り直す</td></tr></tbody></table></div>
+<p>非接続のInspectorを編集すると <code>未保存の変更あり</code> が表示されます。<code>Play Mode へ持ち越す</code> を有効にすると、Play Mode突入時にその内容を保存先へ書き出します。この設定は開発者ごとの <code>UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset</code> に保存され、既定は無効です。</p>
 <h2 id="内部構造">内部構造</h2>
 <p>Save DataのRuntime内部も同じ形で、処理順、読み取り変換、表示状態を分離しています。</p>
-<figure class="mermaid-diagram"><img src="../Diagrams/65c4db80239f59f8.svg" alt="flowchart の図" /></figure>
-<p><code>SaveDataQuery</code>だけがRegistry／Entityを読み取り、利用側には<code>SaveDataEntryInfo</code>、Viewには内部Dtoを返します。<code>SaveDataWindow</code>はViewModelを購読し、状態が変わったときだけ再描画します。</p>
+<figure class="mermaid-diagram"><img src="../Diagrams/ff0d592655614e89.svg" alt="flowchart の図" /></figure>
+<p><code>SaveDataQuery</code>だけがRegistry／Entityを読み取り、利用側には<code>SaveDataEntryInfo</code>、Viewには内部Dtoを返します。<code>SaveDataWindow</code>は表示状態を<code>SaveDataViewModel</code>から購読し、操作と問い合わせは<code>SaveDataViewStore</code>へ送ります。状態が変わったときにバインド元を評価し、解決した状態が変わった場合、または接続中のRegistry正本が差し替わった場合だけInspectorを再バインドします。</p>
+<p><code>SaveDataViewStore</code>は表示状態を持たず、問い合わせをQueryへ、CommandをServiceへ委譲します。Window専用インスタンスのLoad／Save／DeleteはServiceのdetached操作へ渡され、通常操作と同じLoaderと例外変換を使いますが、Registryを読み書きせず、状態変更eventも発行しません。</p>
 <p>永続化データが存在するかどうか（<code>Exists</code>）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。</p>
 <h2 id="関連">関連</h2>
 <ul><li><a href="Utility.html">Utility</a></li><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
