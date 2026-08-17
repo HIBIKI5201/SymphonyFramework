@@ -73,7 +73,12 @@ namespace SymphonyFrameWork.Orchestrator
                     systemObjectFactory);
                 RecordInitializedSubsystem(AudioManager.ResetRuntimeState);
 
-                SymphonyDebugHUD.Initialize(systemObjectFactory);
+                DebugHUDConfig debugHUDConfig =
+                    SymphonyConfigLocator.GetConfig<DebugHUDConfig>();
+                SymphonyDebugHUD.Initialize(
+                    systemObjectFactory,
+                    debugHUDConfig?.ToggleAction,
+                    Debug.isDebugBuild);
                 RecordInitializedSubsystem(SymphonyDebugHUD.ResetRuntimeState);
 
                 // package-wideな終了通知をOrchestratorだけが購読し、全サブシステムを一括して逆順に終了する。

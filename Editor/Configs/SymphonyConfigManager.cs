@@ -31,6 +31,7 @@ namespace SymphonyFrameWork.Editor
             hasAssetChanges |= FileCheck<SceneLoadConfig>();
             hasAssetChanges |= FileCheck<AudioConfig>();
             hasAssetChanges |= FileCheck<SaveDataConfig>();
+            hasAssetChanges |= FileCheck<DebugHUDConfig>();
 
             // 個人設定はEditorPrefsではなく、UserSettings/SymphonyFrameWork配下へ保存する。
             // ScriptableSingletonはinstanceの取得時に既存アセットをロードし、無ければ保存可能なインスタンスを用意する。

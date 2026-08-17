@@ -23,7 +23,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [FolderGenerator](./Modules/ProjectStructureTools.md#foldergenerator) | `Tools > SymphonyFrameWork > FolderGenerator` |
 | [AssemblyGenerator](./Modules/ProjectStructureTools.md#assemblygenerator) | メニューなし。他のEditor機能から呼ばれる |
 | [SymphonyPackageLoader](./Modules/ProjectStructureTools.md#symphonypackageloader) | `Tools > SymphonyFrameWork > SymphonyPackageLoader` |
-| [SymphonyDebugHUD](./Modules/Debug.md#symphonydebughud) | `Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
+| [SymphonyDebugHUD](./Modules/Debug.md#symphonydebughud) | `Shift + D + P`、`Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
 | [ログのファイル出力](./Modules/Debug.md#ログのファイル出力) | 自動実行 |
 | [SymphonyMcpTools](./Modules/Debug.md#symphonymcptools) | メニューなし。外部ツールから呼ぶ |
 | [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFrameWork` |
@@ -38,7 +38,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset` | enum自動生成の有効・無効 | 含める（プロジェクト共有） |
 | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` | Packagerの入出力パス | 含める（プロジェクト共有） |
 | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Service Locatorのログ設定、Save DataのPlay Mode持ち越し | **含めない（開発者ごと）** |
-| `Assets/Resources/SymphonyFrameWork/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` | 含める |
+| `Assets/Resources/SymphonyFrameWork/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` / `DebugHUDConfig` | 含める |
 | `<Asset Store Tools Path>/PackagerConfig.json` | Packagerの除外フォルダと強制包含拡張子 | 含める |
 | `<Asset Store Tools Path>/PackageVersions.json` | ディレクトリごとの現在リビジョン | 含める |
 | `<Asset Store Tools Path>/<ディレクトリ>/ExportedVersion.json` | そのパッケージを出力した時点のリビジョン | 含める |
@@ -102,7 +102,7 @@ SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
 
 ## Framework設定
 
-Framework全体の開発者ごとの設定です。
+Framework全体の個人設定とプロジェクト共有設定です。
 
 **入口**: `Project Settings > SymphonyFrameWork`
 
@@ -111,12 +111,20 @@ Framework全体の開発者ごとの設定です。
 | 項目 | 内容 |
 | --- | --- |
 | Asset Protection Mode | Framework配下のアセット移動に対する保護の強さ。`Enabled` / `Warning` / `Disabled` |
+| Service Locator Logs | 登録、取得、破棄のEditorログを開発者ごとに切り替える |
+| Debug HUD Shortcut | EditorとDevelopment BuildでHUD表示を切り替えるInput Action。既定は`Shift + D + P` |
 
-**保存先**: `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`
+**保存先**:
+
+| 設定 | ファイル |
+| --- | --- |
+| Asset Protection / Service Locator Logs | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` |
+| Debug HUD Shortcut | `Assets/Resources/SymphonyFrameWork/DebugHUDConfig.asset` |
 
 **注意点**:
 
 - `UserSettings/` は開発者ごとの設定です。**版管理へ含めないでください。** 他の開発者の保護モードやログ設定を上書きします。
+- `DebugHUDConfig.asset` はプラットフォームごとのBindingをチームで共有する設定です。版管理へ含めてください。
 
 ---
 

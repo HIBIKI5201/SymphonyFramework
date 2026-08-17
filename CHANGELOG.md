@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.0.0] - 2026-08-17
+Debug HUDを設定可能なInput Actionで表示し、EditorとDevelopment Buildだけで動作するようにしました。
+
+### Breaking
+
+- **通常のPlayerビルドでは `SymphonyDebugHUD` が動作しなくなりました。** `Show` / `Hide` / `AddText` / `RemoveText` は初期化後も何も行わず、HUD用GameObjectや入力監視を生成しません。製品版へデバッグ情報を混入させないための変更です。HUDを確認するときは、Unity EditorまたはDevelopment Buildを使用してください。
+- **`AddText` はHUDを自動表示しなくなりました。** 表示内容だけを登録し、HUDが非表示でも登録を保持します。従来の自動表示に依存していたコードでは、必要なタイミングで `SymphonyDebugHUD.Show()` を呼ぶか、設定したShortcutで表示してください。
+
+### Add
+
+- **Debug HUDの表示を切り替えるInput Actionを追加しました。** 既定値は `Shift + D + P` です。`Project Settings > SymphonyFrameWork > Framework Settings > Debug HUD Shortcut` から、Keyboard・GamepadなどInput Systemが扱う任意のBindingへ変更できます（[#103](https://github.com/HIBIKI5201/SymphonyFramework/issues/103)）。
+- **Debug HUDの参考ライブラリとして [SRDebugger](https://www.stompyrobot.uk/tools/srdebugger/) をREADMEへ追加しました**（[#108](https://github.com/HIBIKI5201/SymphonyFramework/issues/108)）。
+
+### Change
+
+- **`Hide` 後も `AddText` で登録した内容を保持するようにしました。** 再表示すると、非表示中に追加・削除した内容を含む最新の一覧が復元されます。
+- **直接利用しているUnity Packageを `package.json` の `dependencies` へ明記しました。** Addressables、Input System、Audio、IMGUI、JSON Serialize、UIElements、Newtonsoft Json、Test Frameworkの検証済みバージョンを固定し、Unity Editorの標準同梱内容が変わっても依存解決できるようにしました。
+
 ## [5.1.0] - 2026-08-16
 Save Dataパネルへ表示するセーブデータ型を、Project Settingsのチェックボックスで選べるようにしました。公開APIとシリアライズ形式は 5.0.1 から変更していません。
 

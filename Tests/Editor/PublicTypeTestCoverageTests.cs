@@ -107,7 +107,6 @@ namespace SymphonyFrameWork.Tests
             "SymphonyConfigLocator",
             "SymphonyConfigManager",
             "SymphonyConstant",
-            "SymphonyDebugHUD",
             "SymphonyDebugLogger",
             "SymphonyDocumentPageEnum",
             "SymphonyDocumentation",

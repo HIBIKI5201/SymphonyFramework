@@ -99,7 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="symphony-framework">Symphony Framework</h1>
 <p>Symphony Frameworkは、Unityゲームで何度も作ることになる「シーン遷移」「サービス共有」「セーブ」「オーディオ」「ポーズ」を、同じ使い方で扱えるようにまとめたフレームワークです。</p>
 <p>最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。</p>
-<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>5.1.0</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
+<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>6.0.0</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
 <h2 id="symphony-frameworkでできること">Symphony Frameworkでできること</h2>
 <div class="table-scroll"><table><thead><tr><th>やりたいこと</th><th>使う機能</th></tr></thead><tbody><tr><td>シーンを非同期で読み込み、進捗やActive Sceneを管理したい</td><td><a href="Modules/SceneLoader.html">Scene Loader</a></td></tr><tr><td>シーンを跨いでサービスやComponentを共有したい</td><td><a href="Modules/ServiceLocator.html">Service Locator</a></td></tr><tr><td>データ型ごとに保存・読み込み・削除したい</td><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td></tr><tr><td>AudioMixerGroupごとの再生元と音量をまとめたい</td><td><a href="Modules/AudioManager.html">Audio Manager</a></td></tr><tr><td>ゲーム全体を止め、待機やTweenもポーズへ追従させたい</td><td><a href="Modules/PauseManager.html">Pause Manager</a></td></tr><tr><td>実行中の状態、FPS、ログ、処理時間を確認したい</td><td><a href="Modules/Debug.html">Debug</a></td></tr><tr><td>Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい</td><td><a href="EditorTools.html">Editor機能</a></td></tr></tbody></table></div>
 <p>すべてを導入時に設定する必要はありません。使いたい機能のモジュール文書とサンプルから始められます。</p>
@@ -123,14 +123,15 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>Editor拡張のパス判定とアセット保護がこの配置を前提とするため、フォルダ名は変更しないでください。</p>
 <h3 id="依存パッケージ">依存パッケージ</h3>
 <p>依存関係は<code>package.json</code>に定義され、UPM導入時にUnityが解決します。</p>
-<ul><li>Addressables <code>1.21.19</code></li><li>Newtonsoft Json <code>3.2.1</code></li></ul>
+<div class="table-scroll"><table><thead><tr><th>パッケージ</th><th>バージョン</th><th>用途</th></tr></thead><tbody><tr><td>Addressables</td><td><code>2.9.1</code></td><td>UI Toolkitアセットの非同期ロード</td></tr><tr><td>Input System</td><td><code>1.18.0</code></td><td>Debug HUDのShortcut</td></tr><tr><td>Newtonsoft Json</td><td><code>3.2.2</code></td><td>Save Data、診断、Asset Store ToolsのJSON処理</td></tr><tr><td>Test Framework</td><td><code>1.6.0</code></td><td>パッケージ同梱テスト</td></tr><tr><td>Audio / IMGUI / JSON Serialize / UIElements modules</td><td><code>1.0.0</code></td><td>Frameworkが直接使用するUnity組み込みModule</td></tr></tbody></table></div>
 <h2 id="初期設定">初期設定</h2>
 <p>導入後のコンパイルで、次の設定アセットとコードが利用プロジェクト側へ生成されます。</p>
 <pre><code class="language-text">Assets/
 ├─ Resources/SymphonyFrameWork/
 │  ├─ SceneLoadConfig.asset
 │  ├─ AudioConfig.asset
-│  └─ SaveDataConfig.asset
+│  ├─ SaveDataConfig.asset
+│  └─ DebugHUDConfig.asset
 └─ Scripts/SymphonyFrameWork/
    ├─ SceneListEnum.cs
    ├─ TagsEnum.cs
@@ -138,7 +139,7 @@ th { background: var(--code-bg); white-space: nowrap; }
    ├─ AudioGroupTypeEnum.cs
    └─ SymphonyFrameWork.Enum.asmdef</code></pre>
 <p>主な設定場所:</p>
-<ul><li><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code>: 各機能の状態確認とenum生成</li><li><code>Project Settings &gt; SymphonyFrameWork &gt; Save System</code>: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択</li><li><code>SceneLoadConfig.asset</code>: 再生開始時のシーン初期化</li><li><code>AudioConfig.asset</code>: AudioMixerとグループ設定</li></ul>
+<ul><li><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code>: 各機能の状態確認とenum生成</li><li><code>Project Settings &gt; SymphonyFrameWork</code>: Debug HUD Shortcut、アセット保護、Service Locatorのログ設定</li><li><code>Project Settings &gt; SymphonyFrameWork &gt; Save System</code>: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択</li><li><code>SceneLoadConfig.asset</code>: 再生開始時のシーン初期化</li><li><code>AudioConfig.asset</code>: AudioMixerとグループ設定</li></ul>
 <p>asmdefを使うゲーム側コードは<code>SymphonyFrameWork</code>を参照してください。自動生成enumを直接使う場合だけ<code>SymphonyFrameWork.Enum</code>も追加します。</p>
 <h2 id="機能ごとの使い方">機能ごとの使い方</h2>
 <div class="table-scroll"><table><thead><tr><th>モジュール</th><th>内容</th></tr></thead><tbody><tr><td><a href="Modules/ServiceLocator.html">Service Locator</a></td><td>登録、取得、注入、Service Locate パネル、ログ設定</td></tr><tr><td><a href="Modules/SceneLoader.html">Scene Loader</a></td><td>非同期ロード、進捗、初期化、Scene Load パネル</td></tr><tr><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td><td>保存、ローダー、Save System設定、Save Data パネル</td></tr><tr><td><a href="Modules/AudioManager.html">Audio Manager</a></td><td>AudioSource取得、音量制御、AudioConfig</td></tr><tr><td><a href="Modules/PauseManager.html">Pause Manager</a></td><td>ポーズ、通知、ポーズ対応待機、Pause パネル</td></tr><tr><td><a href="Modules/Debug.html">Debug</a></td><td><code>SymphonyDebugHUD</code>、<code>SymphonyDebugLogger</code>、<code>SymphonyStopWatch</code>、ログのファイル出力</td></tr><tr><td><a href="Modules/Utility.html">Utility</a></td><td><code>SymphonyAwaitable</code>、<code>SymphonyTween</code>、<code>SymphonyStringUtil</code>、<code>SymphonyComponentUtil</code>、<code>SymphonyVisualElement</code></td></tr><tr><td><a href="Modules/InspectorAttributes.html">Inspector属性</a></td><td><code>[ReadOnly]</code>、<code>[DisplayText]</code>、<code>[TagSelector]</code>、<code>[SceneNameSelector]</code>、<code>[SubclassSelector]</code></td></tr></tbody></table></div>
@@ -160,7 +161,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h2 id="コントリビューター">コントリビューター</h2>
 <ul><li><a href="https://github.com/5unad0ke1">5unad0ke1</a></li></ul>
 <h2 id="参考謝辞">参考・謝辞</h2>
-<ul><li><a href="https://github.com/mackysoft/Unity-SerializeReferenceExtensions">Unity SerializeReferenceExtensions（mackysoft）</a></li><li><a href="https://github.com/neuecc/UniRx">UniRx（neuecc）</a>（今後の機能実装で参考予定）</li><li><a href="https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676">DOTween（Demigiant）</a></li></ul>
+<ul><li><a href="https://github.com/mackysoft/Unity-SerializeReferenceExtensions">Unity SerializeReferenceExtensions（mackysoft）</a></li><li><a href="https://github.com/neuecc/UniRx">UniRx（neuecc）</a>（今後の機能実装で参考予定）</li><li><a href="https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676">DOTween（Demigiant）</a></li><li><a href="https://www.stompyrobot.uk/tools/srdebugger/">SRDebugger（Stompy Robot）</a></li></ul>
 <h2 id="ライセンス">ライセンス</h2>
 <p>Copyright (c) 2026 HIBIKI_5201</p>
 <p>このプロジェクトはMIT Licenseで公開されています。詳細は<a href="../../LICENSE.txt">LICENSE.txt</a>を参照してください。</p>

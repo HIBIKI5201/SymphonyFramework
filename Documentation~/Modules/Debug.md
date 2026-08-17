@@ -8,6 +8,7 @@ Game ViewのHUD、ログ、処理時間計測、Runtime状態の診断を提供�
 | --- | --- |
 | namespace | `SymphonyFrameWork.Debugger.HUD`、`SymphonyFrameWork.Debugger.Logger`、`SymphonyFrameWork.Debugger`、`SymphonyFrameWork.Editor.Debugger` |
 | 主な公開型 | `SymphonyDebugHUD` / `SymphonyDebugLogger` / `SymphonyStopWatch` / `LogKindEnum` / `SymphonyMcpTools` |
+| HUD Shortcut | `Shift + D + P`（`Project Settings > SymphonyFrameWork`で変更可能） |
 | メニューパス | `Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
 | 出力先 | `<Frameworkルート>/Cache/Log.txt`（`SymphonyDebugLogger`のファイル出力） |
 
@@ -54,6 +55,12 @@ SymphonyStopWatch.Stop("SceneLoad");
 
 ## 実装時の注意
 
+### Debug HUDはDevelopment Buildでだけ動く
+
+`SymphonyDebugHUD`はUnity EditorとDevelopment Buildでだけ入力監視と描画を行います。Development Buildを外したPlayerでは`Show`、`Hide`、`AddText`、`RemoveText`は何もせず、HUD用GameObjectや登録コールバックも保持しません。
+
+`AddText`は表示内容だけを登録し、HUDを自動表示しません。`Shift + D + P`または`Show()`で表示してください。`Hide()`後も継続テキストは保持され、再表示時に戻ります。
+
 ### nullの診断には`LogAndCheckComponentNull`を使う
 
 参照が使えるかを警告付きで確認するには、拡張メソッドの`LogAndCheckComponentNull`を使います。nullなら警告を出したうえで`true`を返します。
@@ -74,9 +81,9 @@ if (_renderer.LogAndCheckComponentNull()) { return; }
 
 FPS、メモリ使用量、任意テキストをGame Viewへ重ねて表示します。
 
-**入口**: `Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide`
+**入口**: `Shift + D + P`、`Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide`
 
-HUD本体はRuntimeの機能です。このメニューはEditorからの表示・非表示の入口だけを提供します。
+HUD本体はRuntimeの機能です。ShortcutはInput SystemのInput Actionとして`Project Settings > SymphonyFrameWork > Debug HUD Shortcut`で編集できます。Gamepadなど複数プラットフォーム向けのBindingも同じActionへ追加できます。
 
 ### ログのファイル出力
 

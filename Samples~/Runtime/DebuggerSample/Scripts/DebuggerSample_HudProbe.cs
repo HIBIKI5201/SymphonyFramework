@@ -25,7 +25,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
 
             try
             {
-                // AddTextはHUDの実体を遅延生成するため、Showを呼んでいなくてもここで表示される。
+                // AddTextは表示内容だけを登録し、ShortcutまたはShowが届くまでHUDを生成しない。
                 SymphonyDebugHUD.AddText(_textFunc);
             }
             catch (SymphonyNotInitializedException)
@@ -63,17 +63,6 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
             }
 
             return true;
-        }
-
-        /// <summary>
-        ///     HUDが非表示にされたことを通知し、登録状態を解除済みへ戻す。
-        ///     SymphonyDebugHUD.HideはHUDのGameObjectごと破棄するため、
-        ///     登録済みのデリゲートも失われる。ここで状態を合わせておかないと、
-        ///     後続のRemoveTextが解除目的でHUDを作り直してしまう。
-        /// </summary>
-        public void NotifyHudHidden()
-        {
-            _isRegistered = false;
         }
 
         private readonly StringBuilder _textBuilder = new();

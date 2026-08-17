@@ -99,7 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="debug">Debug</h1>
 <p>Game ViewのHUD、ログ、処理時間計測、Runtime状態の診断を提供します。</p>
 <h2 id="入口">入口</h2>
-<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.Debugger.HUD</code>、<code>SymphonyFrameWork.Debugger.Logger</code>、<code>SymphonyFrameWork.Debugger</code>、<code>SymphonyFrameWork.Editor.Debugger</code></td></tr><tr><td>主な公開型</td><td><code>SymphonyDebugHUD</code> / <code>SymphonyDebugLogger</code> / <code>SymphonyStopWatch</code> / <code>LogKindEnum</code> / <code>SymphonyMcpTools</code></td></tr><tr><td>メニューパス</td><td><code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></td></tr><tr><td>出力先</td><td><code>&lt;Frameworkルート&gt;/Cache/Log.txt</code>（<code>SymphonyDebugLogger</code>のファイル出力）</td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.Debugger.HUD</code>、<code>SymphonyFrameWork.Debugger.Logger</code>、<code>SymphonyFrameWork.Debugger</code>、<code>SymphonyFrameWork.Editor.Debugger</code></td></tr><tr><td>主な公開型</td><td><code>SymphonyDebugHUD</code> / <code>SymphonyDebugLogger</code> / <code>SymphonyStopWatch</code> / <code>LogKindEnum</code> / <code>SymphonyMcpTools</code></td></tr><tr><td>HUD Shortcut</td><td><code>Shift + D + P</code>（<code>Project Settings &gt; SymphonyFrameWork</code>で変更可能）</td></tr><tr><td>メニューパス</td><td><code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></td></tr><tr><td>出力先</td><td><code>&lt;Frameworkルート&gt;/Cache/Log.txt</code>（<code>SymphonyDebugLogger</code>のファイル出力）</td></tr></tbody></table></div>
 <div class="table-scroll"><table><thead><tr><th>型</th><th>用途</th></tr></thead><tbody><tr><td><code>SymphonyDebugHUD</code></td><td>FPS、メモリ使用量、任意テキストのGame View表示</td></tr><tr><td><code>SymphonyDebugLogger</code></td><td>複数行ログとEditorでの<code>Cache/Log.txt</code>出力</td></tr><tr><td><code>SymphonyStopWatch</code></td><td>ID単位の簡易処理時間計測</td></tr><tr><td><code>SymphonyMcpTools</code></td><td>MCPや自動化スクリプトからのRuntime状態の読み取り</td></tr></tbody></table></div>
 <h2 id="クイックスタート">クイックスタート</h2>
 <p><code>SymphonyDebugLogger</code>は、1行ずつ出力する<code>LogDirect</code>と、複数行を溜めてからまとめて出力する<code>AddText</code>／<code>NewText</code>／<code>LogText</code>を持ちます。</p>
@@ -122,6 +122,9 @@ SymphonyStopWatch.Start(&quot;SceneLoad&quot;);
 // 計測したい処理
 SymphonyStopWatch.Stop(&quot;SceneLoad&quot;);</code></pre>
 <h2 id="実装時の注意">実装時の注意</h2>
+<h3 id="debug-hudはdevelopment-buildでだけ動く">Debug HUDはDevelopment Buildでだけ動く</h3>
+<p><code>SymphonyDebugHUD</code>はUnity EditorとDevelopment Buildでだけ入力監視と描画を行います。Development Buildを外したPlayerでは<code>Show</code>、<code>Hide</code>、<code>AddText</code>、<code>RemoveText</code>は何もせず、HUD用GameObjectや登録コールバックも保持しません。</p>
+<p><code>AddText</code>は表示内容だけを登録し、HUDを自動表示しません。<code>Shift + D + P</code>または<code>Show()</code>で表示してください。<code>Hide()</code>後も継続テキストは保持され、再表示時に戻ります。</p>
 <h3 id="nullの診断にはlogandcheckcomponentnullを使う">nullの診断には<code>LogAndCheckComponentNull</code>を使う</h3>
 <p>参照が使えるかを警告付きで確認するには、拡張メソッドの<code>LogAndCheckComponentNull</code>を使います。nullなら警告を出したうえで<code>true</code>を返します。</p>
 <pre><code class="language-csharp">using SymphonyFrameWork.Debugger.Logger;
@@ -132,8 +135,8 @@ if (_renderer.LogAndCheckComponentNull()) { return; }</code></pre>
 <h2 id="editor機能">Editor機能</h2>
 <h3 id="symphonydebughud">SymphonyDebugHUD</h3>
 <p>FPS、メモリ使用量、任意テキストをGame Viewへ重ねて表示します。</p>
-<p><strong>入口</strong>: <code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></p>
-<p>HUD本体はRuntimeの機能です。このメニューはEditorからの表示・非表示の入口だけを提供します。</p>
+<p><strong>入口</strong>: <code>Shift + D + P</code>、<code>Tools &gt; SymphonyFrameWork &gt; SymphonyDebugHUD &gt; Show</code> / <code>Hide</code></p>
+<p>HUD本体はRuntimeの機能です。ShortcutはInput SystemのInput Actionとして<code>Project Settings &gt; SymphonyFrameWork &gt; Debug HUD Shortcut</code>で編集できます。Gamepadなど複数プラットフォーム向けのBindingも同じActionへ追加できます。</p>
 <h3 id="ログのファイル出力">ログのファイル出力</h3>
 <p><code>SymphonyDebugLogger</code> の出力をファイルへ書き出します。</p>
 <p><strong>入口</strong>: 自動実行（<code>SymphonyEditorOrchestrator</code> が起動時に開始します）</p>

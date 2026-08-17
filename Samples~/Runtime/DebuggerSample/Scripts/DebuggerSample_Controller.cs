@@ -131,14 +131,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
         public void HideHud()
         {
             SymphonyDebugHUD.Hide();
-
-            // HideはHUDのGameObjectごと破棄するため、登録済みの追加テキストも一緒に失われる。
-            if (_hasHudProbe)
-            {
-                _hudProbe.NotifyHudHidden();
-            }
-
-            AddCommentary("HUDを非表示にしました。登録済みの追加テキストも破棄されるため、再表示後は登録し直してください。");
+            AddCommentary("HUDを非表示にしました。登録済みの追加テキストは再表示後も維持されます。");
         }
 
         /// <summary> HUDへ常時表示の追加テキストを登録する。 </summary>
@@ -152,7 +145,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
             }
 
             AddCommentary(_hudProbe.Register()
-                ? "AddText(Func<string>)で追加テキストを登録しました。HUDが非表示なら同時に生成されます。"
+                ? "AddText(Func<string>)で追加テキストを登録しました。ShortcutまたはShowでHUDを表示できます。"
                 : "登録済み、またはHUDが初期化されていないため登録できませんでした。");
         }
 
@@ -245,7 +238,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
             GUILayout.Label("実況解説");
             GUILayout.Label("1. SymphonyStopWatchと~ForEditor系APIはEditor限定で、Playerビルドでは呼び出しごと消えます。");
             GUILayout.Label("2. LogDirectのログはEditorでのみパッケージ直下のCache/Log.txtへキャッシュ出力されます。");
-            GUILayout.Label("3. Hide HUDは追加テキストの登録ごと破棄します。再表示後は登録し直してください。");
+            GUILayout.Label("3. HUDはEditorとDevelopment Build限定です。Shift + D + Pでも表示を切り替えられます。");
             GUILayout.Space(8f);
 
             GUILayout.Label($"Pending Log Lines   : {_pendingLogLineCount}");

@@ -85,6 +85,7 @@ namespace SymphonyFrameWork.Tests
             Assert.That(() => SymphonyEditorOrchestrator.RequestPackageSetup(), Throws.Nothing);
 
             Assert.That(SymphonyConfigLocator.GetConfig<SaveDataConfig>(), Is.Not.Null);
+            Assert.That(SymphonyConfigLocator.GetConfig<DebugHUDConfig>(), Is.Not.Null);
         }
     }
 }
