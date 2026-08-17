@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.1] - 2026-08-17
+Debug HUDのInput Actionを編集できず、Play Mode初期化時にBinding配列のAssertが出る不具合を修正しました。
+
+### Fix
+
+- **`Project Settings > SymphonyFrameWork > Debug HUD Shortcut` のInput Actionをクリックしても、展開やBindingの選択が反応しない不具合を修正しました。** SettingsProviderがIMGUIフレームごとに `SerializedObject` を作り直し、Input SystemのPropertyDrawerが保持するTreeView状態を失っていたことが原因です。同じ設定画面を表示している間は編集状態を再利用し、閉じたときに解放するようにしました。
+- **設定画面を開いた後のPlay Mode初期化で `For singleton action, bindings array must match that of the action` が出る不具合を修正しました。** 変更が無いフレームでもBinding配列を適用し、Domain Reload無効環境でInput Systemの内部ActionMapだけが古い配列を参照していました。内容が変わった場合だけ保存し、保存後はAction IDとBindingを維持した新しいActionへ再構築します。
+
 ## [6.0.0] - 2026-08-17
 Debug HUDを設定可能なInput Actionで表示し、EditorとDevelopment Buildだけで動作するようにしました。
 
