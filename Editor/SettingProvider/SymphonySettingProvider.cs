@@ -36,6 +36,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             {
                 label = LABEL,
                 guiHandler = IMGUI,
+                deactivateHandler = ReleaseDebugHUDSerializedObject,
                 keywords = new HashSet<string>(new[]
                 {
                     "symphony",
@@ -57,6 +58,9 @@ namespace SymphonyFrameWork.Editor.SettingProvider
         #endregion
 
         #region 内部処理
+
+        private static DebugHUDConfig _serializedDebugHUDConfig;
+        private static SerializedObject _debugHUDSerializedObject;
 
         /// <summary>
         ///     Frameworkのアセット保護、ログ、Debug HUD Shortcut設定を描画する。
@@ -123,23 +127,52 @@ namespace SymphonyFrameWork.Editor.SettingProvider
                 return;
             }
 
-            SerializedObject serializedObject = new(config);
+            SerializedObject serializedObject = GetDebugHUDSerializedObject(config);
             SerializedProperty toggleActionProperty = serializedObject.FindProperty("_toggleAction");
 
-            serializedObject.Update();
-            EditorGUI.BeginChangeCheck();
+            serializedObject.UpdateIfRequiredOrScript();
+            string serializedBeforeEdit = EditorJsonUtility.ToJson(config);
             EditorGUILayout.PropertyField(
                 toggleActionProperty,
                 new GUIContent("Toggle Action"),
                 true);
 
-            if (EditorGUI.EndChangeCheck())
+            // Input SystemのPropertyDrawerは一部の操作を内部でApplyするため、未適用分だけを反映する。
+            if (serializedObject.hasModifiedProperties) { serializedObject.ApplyModifiedProperties(); }
+
+            // 展開や選択だけでは保存せず、Actionのシリアライズ内容が変わった場合だけ再構築する。
+            if (serializedBeforeEdit == EditorJsonUtility.ToJson(config)) { return; }
+
+            config.RebuildToggleActionSerializationState();
+            EditorUtility.SetDirty(config);
+            AssetDatabase.SaveAssets();
+            serializedObject.UpdateIfRequiredOrScript();
+        }
+
+        /// <summary> 指定Configを対象とするDebug HUD設定用SerializedObjectを取得する。 </summary>
+        /// <param name="config"> 編集対象のDebug HUD設定。 </param>
+        /// <returns> 同じConfigの表示中は再利用するSerializedObject。 </returns>
+        internal static SerializedObject GetDebugHUDSerializedObject(DebugHUDConfig config)
+        {
+            if (config == null) { throw new global::System.ArgumentNullException(nameof(config)); }
+
+            if (_debugHUDSerializedObject != null && _serializedDebugHUDConfig == config)
             {
-                serializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(config);
-                AssetDatabase.SaveAssets();
+                return _debugHUDSerializedObject;
             }
-            else { serializedObject.ApplyModifiedPropertiesWithoutUndo(); }
+
+            ReleaseDebugHUDSerializedObject();
+            _serializedDebugHUDConfig = config;
+            _debugHUDSerializedObject = new SerializedObject(config);
+            return _debugHUDSerializedObject;
+        }
+
+        /// <summary> Debug HUD設定用SerializedObjectを解放する。 </summary>
+        internal static void ReleaseDebugHUDSerializedObject()
+        {
+            _debugHUDSerializedObject?.Dispose();
+            _debugHUDSerializedObject = null;
+            _serializedDebugHUDConfig = null;
         }
 
         /// <summary> DebugHUDConfigが未生成の場合に、生成を要求する導線を描画する。 </summary>

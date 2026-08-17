@@ -30,6 +30,29 @@ namespace SymphonyFrameWork.Config
             return action;
         }
 
+        /// <summary>
+        ///     シリアライズ済みActionを再構築し、古い内部ActionMapキャッシュを破棄する。
+        /// </summary>
+        /// <remarks>
+        ///     Domain Reload無効時にSerializedObjectからBinding配列を変更すると、Input Systemが
+        ///     非シリアライズで保持するActionMapだけが旧配列を参照し続けるため、保存直後に呼ぶ。
+        /// </remarks>
+        internal void RebuildToggleActionSerializationState()
+        {
+            if (_toggleAction == null) { return; }
+
+            string serializedAction = JsonUtility.ToJson(_toggleAction);
+            InputAction rebuiltAction = JsonUtility.FromJson<InputAction>(serializedAction);
+            if (rebuiltAction == null)
+            {
+                throw new global::System.InvalidOperationException(
+                    "Debug HUDのInput Actionを再構築できませんでした。");
+            }
+
+            _toggleAction.Dispose();
+            _toggleAction = rebuiltAction;
+        }
+
         #endregion
 
         #region 内部処理

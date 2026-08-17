@@ -114,7 +114,6 @@ namespace SymphonyFrameWork.Tests
             "SymphonyLocateObject",
             "SymphonyNotInitializedException",
             "SymphonyPackageLoader",
-            "SymphonySettingProvider",
             "SymphonyStopWatch",
             "SymphonyTween",
             "SymphonyUserSettingConfig",
