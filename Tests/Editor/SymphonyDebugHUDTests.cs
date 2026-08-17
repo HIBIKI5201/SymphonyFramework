@@ -131,6 +131,36 @@ namespace SymphonyFrameWork.Tests
             Assert.That(SymphonyDebugHUD.IsVisible, Is.False);
         }
 
+        /// <summary> 初期化とShowをViewModelの状態へ反映する。 </summary>
+        [Test]
+        public void InitializeAndShow_UpdatesCurrentViewModelState()
+        {
+            InitializeDevelopmentBuild();
+
+            DebugHUDDto initialized = SymphonyDebugHUD.CurrentViewModel.State.Value;
+            Assert.That(initialized.IsInitialized, Is.True);
+            Assert.That(initialized.IsAvailable, Is.True);
+            Assert.That(initialized.IsVisible, Is.False);
+
+            SymphonyDebugHUD.Show();
+
+            Assert.That(SymphonyDebugHUD.CurrentViewModel.State.Value.IsVisible, Is.True);
+        }
+
+        /// <summary> AddTextとRemoveTextをViewModelの登録数へ反映する。 </summary>
+        [Test]
+        public void AddAndRemoveText_UpdatesRegisteredTextCount()
+        {
+            InitializeDevelopmentBuild();
+            Func<string> textFunc = () => "state";
+
+            SymphonyDebugHUD.AddText(textFunc);
+            Assert.That(SymphonyDebugHUD.CurrentViewModel.State.Value.RegisteredTextCount, Is.EqualTo(1));
+
+            SymphonyDebugHUD.RemoveText(textFunc);
+            Assert.That(SymphonyDebugHUD.CurrentViewModel.State.Value.RegisteredTextCount, Is.Zero);
+        }
+
         /// <summary> ResetはListener、Drawer、登録内容をすべて解放する。 </summary>
         [Test]
         public void ResetRuntimeState_AfterInitialization_ReleasesOwnedState()

@@ -78,7 +78,8 @@ namespace SymphonyFrameWork.Orchestrator
                 SymphonyDebugHUD.Initialize(
                     systemObjectFactory,
                     debugHUDConfig?.ToggleAction,
-                    Debug.isDebugBuild);
+                    Debug.isDebugBuild,
+                    new DebugHUDViewModel());
                 RecordInitializedSubsystem(SymphonyDebugHUD.ResetRuntimeState);
 
                 // package-wideな終了通知をOrchestratorだけが購読し、全サブシステムを一括して逆順に終了する。

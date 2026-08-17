@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.1.0] - 2026-08-17
+Symphony AdministratorにDebug HUDの状態確認とShow / Hide操作を追加しました。
+
+### Add
+
+- **Symphony AdministratorへDebug HUDパネルを追加しました。** Play Mode中の初期化、利用可否、表示状態、追加テキスト登録数を確認し、Show / Hideを操作できます。Edit Modeと通常ビルド条件では安全に操作を無効化します。
+
+### Change
+
+- **Debug HUDの状態変更をinternal ViewModelから通知するようにしました。** Shortcut、メニュー、公開APIのどの経路で表示や登録数が変わっても、Administratorを開いたまま最新状態へ追従します。Domain Reload無効でもPlay Mode終了時に購読と状態を解放します。
+
 ## [6.0.1] - 2026-08-17
 Debug HUDのInput Actionを編集できず、Play Mode初期化時にBinding配列のAssertが出る不具合を修正しました。
 
