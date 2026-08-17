@@ -2,7 +2,9 @@
 
 using SymphonyFrameWork.Editor;
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace SymphonyFrameWork.Tests
 {
@@ -202,6 +204,35 @@ namespace SymphonyFrameWork.Tests
                 AssetStoreToolsImportPlanner.Build(CreateManifest("Foo", 1), null);
 
             Assert.That(candidates[0].State, Is.EqualTo(AssetStoreToolsImportStateEnum.New));
+        }
+
+        /// <summary> 設定済み出力先の外にある任意ディレクトリからも候補を読み込める。 </summary>
+        [Test]
+        public void BuildCandidates_ArbitraryDirectory_LoadsManifest()
+        {
+            string directoryPath = Path.Combine(
+                Path.GetTempPath(),
+                $"SymphonyFramework_{nameof(BuildCandidates_ArbitraryDirectory_LoadsManifest)}_{Guid.NewGuid():N}");
+
+            try
+            {
+                Directory.CreateDirectory(directoryPath);
+                AssetStoreToolsPackageManifest manifest = CreateManifest("ArbitraryPackage", 7);
+                Assert.That(
+                    AssetStoreToolsVersionLogStore.TryWriteManifest(directoryPath, manifest),
+                    Is.True);
+
+                IReadOnlyList<AssetStoreToolsImportCandidate> candidates =
+                    AssetStoreToolsPackageImporter.BuildCandidates(directoryPath);
+
+                Assert.That(candidates.Count, Is.EqualTo(1));
+                Assert.That(candidates[0].Name, Is.EqualTo("ArbitraryPackage"));
+                Assert.That(candidates[0].ManifestVersion, Is.EqualTo(7));
+            }
+            finally
+            {
+                if (Directory.Exists(directoryPath)) { Directory.Delete(directoryPath, recursive: true); }
+            }
         }
 
         /// <summary> 1件だけ持つマニフェストを生成する。 </summary>
