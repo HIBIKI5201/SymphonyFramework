@@ -77,8 +77,11 @@ if (SceneLoader.TryGetSceneInfo("Game", out SceneLoadInfo gameScene))
 | パネル | 内容 |
 | --- | --- |
 | Scene Load | ロード済みシーンと進行中のロード |
+| Main Toolbar の `Scene Init` | 次回のPlay Mode開始時に初期シーン処理を実行するか切り替える |
 
-Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
+`Scene Load` パネルはPlay Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
+
+`Scene Init` はUnity 6000.3以降で使用できます。変更は`Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset`へ保存され、Inspectorの「エディタでの再生時にシーンをリセットしてロードを実行するか」と同じ設定へ反映されます。Play Mode開始後の変更は実行中のシーンを切り替えず、次のPlay Mode開始から反映されます。
 
 ## 内部構造
 
