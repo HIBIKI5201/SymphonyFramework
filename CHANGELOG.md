@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.2.0] - 2026-08-18
+メインツールバーから初期シーン処理を切り替えられるようにしました。
+
+### Add
+
+- **Unity 6000.3以降のメインツールバーへ `Scene Init` トグルを追加しました。** `SceneLoadConfig.asset` を選択せずに、次回のPlay Mode開始時に初期シーン処理を実行するか切り替えられます。Unityの公式Main Toolbar APIを登録口にしているため、外部のToolbar拡張パッケージやUnity内部型への反射には依存しません（[#189](https://github.com/HIBIKI5201/SymphonyFramework/issues/189)）。
+
 ## [6.1.1] - 2026-08-18
 PackagerのImportタブで、取り込み元ディレクトリをエクスプローラーから直接指定できるようにしました。
 
