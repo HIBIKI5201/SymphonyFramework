@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace SymphonyFrameWork.Core
@@ -37,6 +38,10 @@ namespace SymphonyFrameWork.Core
 
         /// <summary> 自動生成enumの出力ディレクトリ。 </summary>
         public static string ENUM_PATH = "Assets/Scripts/" + SymphonyConstant.SYMPHONY_FRAMEWORK;
+
+        /// <summary> Debugログファイルのプロジェクトルート相対パス。 </summary>
+        public const string DEBUG_LOG_FILE_PATH =
+            "Library/" + SymphonyConstant.SYMPHONY_FRAMEWORK + "/Cache/Log.txt";
 
         /// <summary> Asset Store Toolsの既定ルートパス。 </summary>
         public const string ASSET_STORE_TOOLS_PATH = "Assets/AssetStoreTools";
@@ -84,6 +89,22 @@ namespace SymphonyFrameWork.Core
 
         /// <summary> レイヤーenumの基底ファイル名。 </summary>
         public const string LayersEnumFileName = "Layers";
+
+        #endregion
+
+        #region 内部処理
+
+        /// <summary>
+        ///     Debugログファイルの絶対パスを解決する。
+        /// </summary>
+        /// <param name="assetsPath"> プロジェクトのAssetsディレクトリ絶対パス。 </param>
+        /// <returns> Debugログファイルの絶対パス。 </returns>
+        internal static string ResolveDebugLogFileAbsolutePath(string assetsPath)
+        {
+            // Assetsの親をプロジェクトルートとし、公開した相対パスを絶対パスへ変換する。
+            string projectRootPath = Path.GetFullPath(Path.Combine(assetsPath, ".."));
+            return Path.GetFullPath(Path.Combine(projectRootPath, DEBUG_LOG_FILE_PATH));
+        }
 
         #endregion
     }

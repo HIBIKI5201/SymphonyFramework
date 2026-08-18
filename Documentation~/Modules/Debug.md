@@ -10,12 +10,12 @@ Game ViewのHUD、ログ、処理時間計測、Runtime状態の診断を提供�
 | 主な公開型 | `SymphonyDebugHUD` / `SymphonyDebugLogger` / `SymphonyStopWatch` / `LogKindEnum` / `SymphonyMcpTools` |
 | HUD Shortcut | `Shift + D + P`（`Project Settings > SymphonyFrameWork`で変更可能） |
 | メニューパス | `Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
-| 出力先 | `<Frameworkルート>/Cache/Log.txt`（`SymphonyDebugLogger`のファイル出力） |
+| 出力先 | `<Project>/Library/SymphonyFrameWork/Cache/Log.txt`（`SymphonyDebugLogger`のファイル出力） |
 
 | 型 | 用途 |
 | --- | --- |
 | `SymphonyDebugHUD` | FPS、メモリ使用量、任意テキストのGame View表示 |
-| `SymphonyDebugLogger` | 複数行ログとEditorでの`Cache/Log.txt`出力 |
+| `SymphonyDebugLogger` | 複数行ログとEditorでのファイル出力 |
 | `SymphonyStopWatch` | ID単位の簡易処理時間計測 |
 | `SymphonyMcpTools` | MCPや自動化スクリプトからのRuntime状態の読み取り |
 
@@ -99,13 +99,13 @@ Edit Modeでは未接続を示す `-` が表示され、Show / Hideは操作で�
 
 **入口**: 自動実行（`SymphonyEditorOrchestrator` が起動時に開始します）
 
-**出力先**: `<Frameworkルート>/Cache/Log.txt`
+**出力先**: `<Project>/Library/SymphonyFrameWork/Cache/Log.txt`
 
-Frameworkの実配置パスを解決してその直下へ書くため、UPM経由（`Library/PackageCache/`）でもAssets直置きでも同じ位置関係になります。
+UPM経由でもAssets直置きでも、プロジェクトの`Library`配下にある同じファイルへ書き込みます。パッケージ本体や`Assets`配下には生成しません。
 
 **注意点**:
 
-- `Cache/` は生成物です。**版管理へ含めないでください。**
+- `Library/SymphonyFrameWork/Cache/` は生成物です。`Library`とともに版管理の対象外にしてください。
 - 書き込みは定期的にまとめて行われます。1行ごとにファイルを開きません。
 - **Framework自身が出すログは、すべてこの経路を通ります。** Framework内のコードは`UnityEngine.Debug`を直接呼びません。Consoleに出たFrameworkのログは`Log.txt`にも残っている、と考えて構いません。
 - **`LogException`はスタックトレースをファイルへ書きません。** 1件を1行として書き出すためで、型名と理由だけが残ります。スタックトレースはConsoleで確認してください。
@@ -119,9 +119,19 @@ MCPや自動化スクリプトから、SymphonyのRuntime状態をJSON文字列�
 
 Service Locator、Scene Loader、Save Dataなどの状態を取得できます。戻り値は必ず有効なJSON文字列です。Play Mode外や未初期化の場合も、その旨を含むJSONを返します。
 
+`GetLogFileJson()`は、ファイルへ書き込み待ちのログを先にフラッシュし、直近200行を返します。取得件数は引数で1〜1000行に変更できます。
+
+```csharp
+string logJson = SymphonyMcpTools.GetLogFileJson();
+string latest50LinesJson = SymphonyMcpTools.GetLogFileJson(50);
+```
+
+結果にはログの絶対パス、全行数、返した行数、省略の有無、行の配列が含まれます。ファイルがまだ無い場合は`exists: false`と空配列、読み取りに失敗した場合は`error`を含むJSONを返します。
+
 **注意点**:
 
 - 読み取り専用です。Runtimeの状態を変更しません。
+- ログにパスワード、トークン、個人情報、セーブデータの機密値を出力しないでください。MCPから取得する場合も同じ内容が外部自動化へ渡ります。
 - 人が状態を確認する場合はSymphony Administratorを使ってください。
 
 ## 関連

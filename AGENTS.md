@@ -42,7 +42,7 @@
 6. 初期化は`SymphonyOrchestrator`が自動実行する。Bootstrap用GameObjectや専用シーンを作らない。
 7. Runtimeコードから`SymphonyFrameWork.Editor`を参照しない。
 8. 登録APIと解除APIを同じライフサイクルの対として実装する。
-9. パッケージ直下の`Cache/Log.txt`はEditor用の生成キャッシュである。編集もコミットもせず、不要なら削除してよい。
+9. `Library/SymphonyFrameWork/Cache/Log.txt`はEditor用の生成キャッシュである。編集もコミットもせず、不要なら削除してよい。
 
 ## 2. 文書の読み方
 
