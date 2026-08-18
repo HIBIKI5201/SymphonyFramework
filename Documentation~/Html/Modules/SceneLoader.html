@@ -143,8 +143,9 @@ if (SceneLoader.TryGetSceneInfo(&quot;Game&quot;, out SceneLoadInfo gameScene))
 <ul><li>対象シーンがBuild SettingsのScene Listにあることを、シーン名をコードへ書く前に確認する。</li><li>シーン遷移は原則<code>SceneLoader</code>を使う。<code>SceneManager.LoadScene</code>を直接使うと、優先度管理、依存注入、<code>IInitializeAsync</code>が働かない。</li><li><code>LoadSceneMode.Single</code>は対象をAdditiveでロードした後、他の追跡シーンをアンロードする。現在のシーンを残す場合は<code>Additive</code>を使う。</li><li>依存注入または<code>IInitializeAsync</code>の失敗は<code>SceneInitializationException</code>。Build Settings未登録など通常のロード失敗はfalseで返る。</li><li>追跡中のScene名が分からない状態で一覧を調べる場合は<code>SceneLoader.GetSceneInfos()</code>を使う。既知のScene名だけを調べる場合は<code>TryGetSceneInfo</code>を使い、戻る<code>SceneLoadInfo</code>を取得時点のスナップショットとして扱う。</li></ul>
 <h2 id="editor機能">Editor機能</h2>
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
-<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Scene Load</td><td>ロード済みシーンと進行中のロード</td></tr></tbody></table></div>
-<p>Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
+<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Scene Load</td><td>ロード済みシーンと進行中のロード</td></tr><tr><td>Main Toolbar の <code>Symphony Framework &gt; Scene Init</code></td><td>次回のPlay Mode開始時に初期シーン処理を実行するか切り替える</td></tr></tbody></table></div>
+<p><code>Scene Load</code> パネルはPlay Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
+<p><code>Scene Init</code> はUnity 6000.3以降で使用できます。メインツールバー右側の音符アイコン付き<code>Symphony Framework</code>プルダウンから選びます。変更は<code>Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset</code>へ保存され、Inspectorの「エディタでの再生時にシーンをリセットしてロードを実行するか」と同じ設定へ反映されます。Play Mode開始後の変更は実行中のシーンを切り替えず、次のPlay Mode開始から反映されます。</p>
 <h2 id="内部構造">内部構造</h2>
 <p>Scene Loadの内部では、Commandと読み取りを分離しています。</p>
 <figure class="mermaid-diagram"><img src="../Diagrams/c41415631af8d85b.svg" alt="flowchart の図" /></figure>

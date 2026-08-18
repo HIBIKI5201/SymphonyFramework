@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.1.1**
+- 現在のバージョン: **6.2.1**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -125,6 +125,7 @@ asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してくだ�
 
 | 機能 | 内容 |
 | --- | --- |
+| [Main Toolbar](./Documentation~/EditorTools.md#メインツールバー拡張) | 音符アイコン付き`Symphony Framework > Scene Init`から次回再生時の初期シーン処理を切り替える（Unity 6000.3以降） |
 | [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Service Locator、Scene Loader、Save Data、Pauseの状態確認 |
 | [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md) | Scene、Tag、Layer、Audio Groupのenum生成 |
 | [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md) | Asset Store Toolsの出力、差分インポート、出力パイプライン |
