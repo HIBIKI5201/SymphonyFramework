@@ -12,7 +12,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 
 | 機能 | 入口 |
 | --- | --- |
-| [メインツールバー拡張](#メインツールバー拡張) | Main Toolbar の `Symphony Framework` グループ |
+| [メインツールバー拡張](#メインツールバー拡張) | Main Toolbar の音符アイコン付き`Symphony Framework`プルダウン |
 | [Symphony Administrator](#symphony-administrator) | `Window > SymphonyFrameWork > Symphony Administrator` |
 | [ドキュメント表示](#ドキュメント表示) | `Window > SymphonyFrameWork > Documentation`、各Project Settings画面の `ドキュメントを開く` |
 | [Framework設定](#framework設定) | `Project Settings > SymphonyFrameWork` |
@@ -49,13 +49,13 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 
 ## メインツールバー拡張
 
-Unity 6000.3以降の公式Main Toolbar APIを使用し、日常的なEditor操作をメインツールバーへ追加します。外部のToolbar拡張パッケージやUnity内部型への反射には依存しません。
+Unity 6000.3以降の公式Main Toolbar APIを使用し、日常的なEditor操作を音符アイコン付き`Symphony Framework`プルダウンへまとめます。外部のToolbar拡張パッケージやUnity内部型への反射には依存しません。
 
 | 項目 | 内容 |
 | --- | --- |
 | `Scene Init` | 次回のPlay Mode開始時に初期シーン処理を実行するか切り替える |
 
-`Scene Init` は`Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset`の設定を変更するため、プロジェクト共有の差分になります。項目を非表示にした場合は、メインツールバーのコンテキストメニューにある`Symphony Framework`グループから再表示できます。
+`Scene Init`は選択のたびにチェック状態を反転します。`Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset`の設定を変更するため、プロジェクト共有の差分になります。プルダウンを非表示にした場合は、メインツールバーのコンテキストメニューにある`Symphony Framework`グループから再表示できます。
 
 ---
 
