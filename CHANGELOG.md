@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.3.1] - 2026-08-18
+DebugログをAssetsやPackageCacheではなくプロジェクトのLibrary配下へ出力するよう修正しました。
+
+### Fix
+
+- **`SymphonyDebugLogger`のファイル出力先を`Library/SymphonyFrameWork/Cache/Log.txt`へ変更しました。** Assets直置きの開発環境ではパッケージ内へ生成物と`.meta`が作られ、UPMでは読み取り専用のPackageCacheへ書き込む構造だったためです。導入形態にかかわらずプロジェクトの`Library`配下へ統一し、ログがアセットインポートや版管理の対象にならないようにしました（[#193](https://github.com/HIBIKI5201/SymphonyFramework/issues/193)）。
+
+## [6.3.0] - 2026-08-18
+MCPからDebugログの直近行をJSONで取得できるEditor診断APIを追加しました。
+
+### Add
+
+- **`SymphonyMcpTools.GetLogFileJson(int maxLines = 200)`を追加しました。** uLoopMCPなどのEditor自動化から、ログのパス、全行数、省略の有無、直近のログ行を有効なJSONとして取得できます。レスポンスの肥大化を防ぐため1〜1000行に制限し、読み取り前に待機中のログをファイルへ反映します。
+- **`EditorSymphonyConstant.DEBUG_LOG_FILE_PATH`を追加しました。** Editor診断コードとファイル出力が、プロジェクトルートからの同じ相対パスを参照できます。
+
 ## [6.2.1] - 2026-08-18
 メインツールバーの操作をアイコン付きプルダウンへまとめ、項目を機能単位で拡張できるようにしました。
 

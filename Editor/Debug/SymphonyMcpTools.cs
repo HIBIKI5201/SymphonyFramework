@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
+using SymphonyFrameWork.Core;
+using SymphonyFrameWork.Editor.Debugger.Logger;
 using SymphonyFrameWork.System;
 using SymphonyFrameWork.System.SaveSystem;
 using SymphonyFrameWork.System.SceneLoad;
@@ -209,9 +212,42 @@ namespace SymphonyFrameWork.Editor.Debugger
             }
         }
 
+        /// <summary>
+        ///     Debugログファイルの直近の行をJSONで取得する。
+        /// </summary>
+        /// <param name="maxLines"> 取得する最大行数。1以上1000以下。 </param>
+        /// <returns> 必ず有効なJSON文字列。 </returns>
+        public static string GetLogFileJson(int maxLines = DEFAULT_LOG_LINE_COUNT)
+        {
+            string logFilePath = null;
+
+            try
+            {
+                // 呼び出し直前までの待機ログをファイルへ反映してから読み取る。
+                SymphonyDebugLogFileWriter.Flush();
+                logFilePath = EditorSymphonyConstant.ResolveDebugLogFileAbsolutePath(
+                    Application.dataPath);
+                return ReadLogFileJson(logFilePath, maxLines);
+            }
+            catch (Exception exception)
+            {
+                // パス解決やフラッシュの失敗も、MCPが解析できるJSONへ変換する。
+                return SerializeLogError(logFilePath, false, exception.GetBaseException().Message);
+            }
+        }
+
         #endregion
 
         #region 内部処理
+
+        /// <summary> MCPで取得する既定のログ行数。 </summary>
+        private const int DEFAULT_LOG_LINE_COUNT = 200;
+
+        /// <summary> MCPで一度に取得できる最小ログ行数。 </summary>
+        private const int MIN_LOG_LINE_COUNT = 1;
+
+        /// <summary> MCPで一度に取得できる最大ログ行数。 </summary>
+        private const int MAX_LOG_LINE_COUNT = 1000;
 
         /// <summary>
         ///     型の診断用表示名を取得する。
@@ -293,6 +329,102 @@ namespace SymphonyFrameWork.Editor.Debugger
             {
                 // 例外情報自体をシリアライズできない場合も、JSON契約だけは維持する。
                 return "{\"initialized\":false,\"error\":\"State inspection failed.\"}";
+            }
+        }
+
+        /// <summary>
+        ///     Debugログの読み取り失敗をJSONへ変換する。
+        /// </summary>
+        /// <param name="logFilePath"> 読み取り対象の絶対パス。 </param>
+        /// <param name="exists"> ログファイルが存在するか。 </param>
+        /// <param name="error"> 失敗理由。 </param>
+        /// <returns> エラーを含む有効なJSON文字列。 </returns>
+        private static string SerializeLogError(string logFilePath, bool exists, string error)
+        {
+            try
+            {
+                // 正常系と同じフィールドを保ち、失敗時だけerrorを追加する。
+                return Serialize(new
+                {
+                    exists,
+                    path = logFilePath,
+                    totalLineCount = 0,
+                    returnedLineCount = 0,
+                    truncated = false,
+                    lines = Array.Empty<string>(),
+                    error
+                });
+            }
+            catch
+            {
+                // 例外情報自体をシリアライズできない場合も、JSON契約だけは維持する。
+                return "{\"exists\":false,\"error\":\"Log file inspection failed.\"}";
+            }
+        }
+
+        /// <summary>
+        ///     指定したDebugログファイルの直近の行をJSONで読み取る。
+        /// </summary>
+        /// <param name="logFilePath"> 読み取り対象の絶対パス。 </param>
+        /// <param name="maxLines"> 取得する最大行数。 </param>
+        /// <returns> 必ず有効なJSON文字列。 </returns>
+        internal static string ReadLogFileJson(string logFilePath, int maxLines)
+        {
+            // MCPレスポンスの肥大化を防ぐため、受け付ける行数を明示的に制限する。
+            if (maxLines < MIN_LOG_LINE_COUNT || maxLines > MAX_LOG_LINE_COUNT)
+            {
+                return SerializeLogError(
+                    logFilePath,
+                    File.Exists(logFilePath),
+                    $"maxLines must be between {MIN_LOG_LINE_COUNT} and {MAX_LOG_LINE_COUNT}.");
+            }
+
+            try
+            {
+                // ログがまだ生成されていない状態は、空の正常な読み取り結果として返す。
+                if (!File.Exists(logFilePath))
+                {
+                    return Serialize(new
+                    {
+                        exists = false,
+                        path = logFilePath,
+                        totalLineCount = 0,
+                        returnedLineCount = 0,
+                        truncated = false,
+                        lines = Array.Empty<string>()
+                    });
+                }
+
+                // ファイル全体をメモリへ載せず、直近maxLines行だけをキューへ保持する。
+                Queue<string> latestLines = new(maxLines);
+                int totalLineCount = 0;
+
+                foreach (string line in File.ReadLines(logFilePath))
+                {
+                    totalLineCount++;
+                    latestLines.Enqueue(line);
+
+                    if (latestLines.Count > maxLines) { latestLines.Dequeue(); }
+                }
+
+                string[] lines = latestLines.ToArray();
+                return Serialize(new
+                {
+                    exists = true,
+                    path = logFilePath,
+                    totalLineCount,
+                    returnedLineCount = lines.Length,
+                    truncated = totalLineCount > lines.Length,
+                    lines
+                });
+            }
+            catch (Exception exception)
+            {
+                // 読み取り競合や権限不足をMCP境界外へ漏らさない。
+                return SerializeLogError(
+                    logFilePath,
+                    File.Exists(logFilePath),
+                    exception.GetBaseException().Message);
             }
         }
 

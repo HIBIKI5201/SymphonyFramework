@@ -43,7 +43,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | `<Asset Store Tools Path>/PackagerConfig.json` | Packagerの除外フォルダと強制包含拡張子 | 含める |
 | `<Asset Store Tools Path>/PackageVersions.json` | ディレクトリごとの現在リビジョン | 含める |
 | `<Asset Store Tools Path>/<ディレクトリ>/ExportedVersion.json` | そのパッケージを出力した時点のリビジョン | 含める |
-| `<Frameworkルート>/Cache/Log.txt` | `SymphonyDebugLogger`の出力 | **含めない（生成物）** |
+| `Library/SymphonyFrameWork/Cache/Log.txt` | `SymphonyDebugLogger`の出力 | **含めない（生成物）** |
 
 ---
 
