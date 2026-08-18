@@ -24,8 +24,6 @@ namespace SymphonyFrameWork.Editor
             // SerializedProperty経由の変更を正しく追跡するため、描画前に最新の値を同期する。
             serializedObject.Update();
 
-            EditorGUI.BeginChangeCheck();
-
             SerializedProperty isResetAndLoadOnPlay = serializedObject.FindProperty("_isResetAndLoadOnPlay");
             SerializedProperty initializeSceneList = serializedObject.FindProperty("_initializeSceneList");
 
@@ -61,15 +59,7 @@ namespace SymphonyFrameWork.Editor
             GUILayout.EndHorizontal();
 
             // Undoとアセット保存へ反映できるよう、描画中の変更を確定する。
-            bool changed = EditorGUI.EndChangeCheck();
-            bool applied = serializedObject.ApplyModifiedProperties();
-#if UNITY_6000_3_OR_NEWER
-            // Inspectorから同じ設定を変更した場合も、開いたままのツールバーへ現在値を反映する。
-            if (changed && applied)
-            {
-                SymphonyMainToolbar.RefreshSceneInitializationToggle();
-            }
-#endif
+            serializedObject.ApplyModifiedProperties();
         }
 
         #endregion

@@ -1,80 +1,58 @@
 ﻿#if UNITY_6000_3_OR_NEWER
-using SymphonyFrameWork.Config;
+using SymphonyFrameWork.Core;
 
 using UnityEditor;
 using UnityEditor.Toolbars;
+using UnityEngine;
 
 namespace SymphonyFrameWork.Editor
 {
     /// <summary>
-    ///     Symphony Frameworkのメインツールバー要素を登録する。
+    ///     Symphony Frameworkのメインツールバー入口を登録する。
     /// </summary>
     internal static class SymphonyMainToolbar
     {
         #region 外部向けAPI
 
-        /// <summary> 初期シーン処理トグルの登録パス。 </summary>
-        internal const string SceneInitializationElementPath =
-            "Symphony Framework/Scene Init";
+        /// <summary> プルダウンの登録パス。 </summary>
+        internal const string ToolbarMenuElementPath =
+            "Symphony Framework/Menu";
+
+        /// <summary> プルダウンへ表示する名前。 </summary>
+        internal const string ToolbarMenuLabel = "Symphony Framework";
 
         /// <summary>
-        ///     初期シーン処理の有効状態を表すトグルを生成する。
+        ///     Symphony Frameworkの操作をまとめたプルダウンを生成する。
         /// </summary>
-        /// <returns> メインツールバーへ表示するトグル。 </returns>
+        /// <returns> メインツールバーへ表示するプルダウン。 </returns>
         [MainToolbarElement(
-            SceneInitializationElementPath,
+            ToolbarMenuElementPath,
             defaultDockPosition = MainToolbarDockPosition.Right)]
-        internal static MainToolbarElement CreateSceneInitializationToggle()
+        internal static MainToolbarDropdown CreateToolbarMenu()
         {
-            SceneLoadConfig config =
-                SymphonyConfigLocator.GetConfig<SceneLoadConfig>();
-            bool isEnabled = config != null && config.IsResetAndLoadOnPlay;
+            Texture2D icon = LoadToolbarIcon(EditorGUIUtility.isProSkin);
             MainToolbarContent content = new(
-                "Scene Init",
-                "次回のPlay Mode開始時に初期シーン処理を実行するか切り替えます。");
+                ToolbarMenuLabel,
+                icon,
+                "Symphony FrameworkのEditor操作を開きます。");
 
-            MainToolbarToggle toggle = new(
-                content,
-                isEnabled,
-                SetSceneInitializationEnabled)
-            {
-                // Configが未生成でもツールバー全体の構築を止めず、操作だけを無効化する。
-                enabled = config != null,
-            };
-            return toggle;
+            return new MainToolbarDropdown(content, ShowMenu);
         }
 
         /// <summary>
-        ///     初期シーン処理の有効状態をConfigへ適用する。
+        ///     現在のEditorテーマに対応するツールバーアイコンを読み込む。
         /// </summary>
-        /// <param name="config"> 変更するScene Load設定。 </param>
-        /// <param name="value"> 適用する有効状態。 </param>
-        /// <returns> Configへ値を適用できた場合はtrue。 </returns>
-        internal static bool ApplySceneInitializationValue(
-            SceneLoadConfig config,
-            bool value)
+        /// <param name="isProSkin"> 暗色テーマの場合はtrue。 </param>
+        /// <returns> 対応するアイコン。読み込めない場合はnull。 </returns>
+        internal static Texture2D LoadToolbarIcon(bool isProSkin)
         {
-            if (config == null) { return false; }
-
-            SerializedObject serializedConfig = new(config);
-            serializedConfig.Update();
-            SerializedProperty property = serializedConfig.FindProperty(
-                "_isResetAndLoadOnPlay");
-            if (property == null) { return false; }
-
-            Undo.RecordObject(config, "Toggle Symphony Scene Initialization");
-            property.boolValue = value;
-            serializedConfig.ApplyModifiedProperties();
-            EditorUtility.SetDirty(config);
-            return true;
-        }
-
-        /// <summary>
-        ///     初期シーン処理トグルを現在のConfigから再構築する。
-        /// </summary>
-        internal static void RefreshSceneInitializationToggle()
-        {
-            MainToolbar.Refresh(SceneInitializationElementPath);
+            string fileName = isProSkin
+                ? "music-2-dark.png"
+                : "music-2-light.png";
+            string path = EditorSymphonyConstant.FRAMEWORK_PATH
+                + "/Editor/Toolbar/Icons/"
+                + fileName;
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
         #endregion
@@ -82,20 +60,27 @@ namespace SymphonyFrameWork.Editor
         #region 内部処理
 
         /// <summary>
-        ///     ツールバー操作をScene Load設定へ保存する。
+        ///     登録済みの操作を現在状態からメニューへ構築する。
         /// </summary>
-        /// <param name="value"> 適用する有効状態。 </param>
-        private static void SetSceneInitializationEnabled(bool value)
+        /// <param name="position"> プルダウンを表示するツールバー上の位置。 </param>
+        private static void ShowMenu(Rect position)
         {
-            SceneLoadConfig config =
-                SymphonyConfigLocator.GetConfig<SceneLoadConfig>();
-            if (ApplySceneInitializationValue(config, value))
+            GenericMenu menu = new();
+            foreach (ISymphonyToolbarMenuItem item
+                     in SymphonyToolbarMenuCatalog.CreateItems())
             {
-                AssetDatabase.SaveAssets();
+                GUIContent content = new(item.Path);
+                if (item.IsEnabled)
+                {
+                    menu.AddItem(content, item.IsChecked, item.Execute);
+                }
+                else
+                {
+                    menu.AddDisabledItem(content, item.IsChecked);
+                }
             }
 
-            // 保存成否を含む現在値から表示を再生成し、操作値だけが残らないようにする。
-            RefreshSceneInitializationToggle();
+            menu.DropDown(position);
         }
 
         #endregion
