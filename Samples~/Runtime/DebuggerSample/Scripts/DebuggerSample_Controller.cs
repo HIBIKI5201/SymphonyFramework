@@ -237,7 +237,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
             GUILayout.BeginArea(innerRect);
             GUILayout.Label("実況解説");
             GUILayout.Label("1. SymphonyStopWatchと~ForEditor系APIはEditor限定で、Playerビルドでは呼び出しごと消えます。");
-            GUILayout.Label("2. LogDirectのログはEditorでのみパッケージ直下のCache/Log.txtへキャッシュ出力されます。");
+            GUILayout.Label("2. LogDirectのログはEditorでのみLibrary/SymphonyFrameWork/Cache/Log.txtへキャッシュ出力されます。");
             GUILayout.Label("3. HUDはEditorとDevelopment Build限定です。Shift + D + Pでも表示を切り替えられます。");
             GUILayout.Space(8f);
 

@@ -130,8 +130,9 @@ Assets/Scripts/SymphonyFrameWork/AudioGroupTypeEnum.cs</code></pre>
 string serviceLocatorJson = SymphonyMcpTools.GetServiceLocatorJson();
 string sceneLoaderJson = SymphonyMcpTools.GetSceneLoaderJson();
 string saveDataJson = SymphonyMcpTools.GetSaveDataJson();
-string pauseJson = SymphonyMcpTools.GetPauseJson();</code></pre>
-<ul><li>未初期化時は例外ではなく<code>&quot;initialized&quot;: false</code>を含むJSONを返す。</li><li>読み取り失敗時は<code>&quot;error&quot;</code>を含むJSONを返す。</li><li>Save Dataの出力に<code>SaveDataContent</code>の内容は含まれない。</li><li><code>SymphonyMcpTools</code>はEditorアセンブリ専用であり、Playerビルドから参照できない。</li><li>Service Locatorの<code>effectiveLocateType</code>は、登録時の値ではなく現在の状態から導いた実効値。</li></ul>
+string pauseJson = SymphonyMcpTools.GetPauseJson();
+string logJson = SymphonyMcpTools.GetLogFileJson();</code></pre>
+<ul><li>未初期化時は例外ではなく<code>&quot;initialized&quot;: false</code>を含むJSONを返す。</li><li>読み取り失敗時は<code>&quot;error&quot;</code>を含むJSONを返す。</li><li>Save Dataの出力に<code>SaveDataContent</code>の内容は含まれない。</li><li><code>SymphonyMcpTools</code>はEditorアセンブリ専用であり、Playerビルドから参照できない。</li><li>Service Locatorの<code>effectiveLocateType</code>は、登録時の値ではなく現在の状態から導いた実効値。</li><li><code>GetLogFileJson()</code>は書き込み待ちのログをフラッシュし、既定で直近200行を返す。引数で1〜1000行を指定できる。</li></ul>
 <h2 id="5-ビルド">5. ビルド</h2>
 <ul><li>フレームワーク管理用のBootstrapシーンは不要。</li><li><code>SceneLoader</code>で遷移するシーンはBuild Settingsへ含める。</li><li><code>Scene &#x27;X&#x27; couldn&#x27;t be loaded</code>が出た場合は、最初にScene Listへの登録を確認する。</li><li>Runtime asmdefから<code>SymphonyFrameWork.Editor</code>を参照していないことを確認する。</li></ul>
 <h2 id="6-後始末">6. 後始末</h2>

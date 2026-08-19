@@ -25,6 +25,9 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
         /// </summary>
         internal static void Initialize()
         {
+            // 導入形態にかかわらず、プロジェクトのLibrary配下へログを出力する。
+            s_LogFilePath = EditorSymphonyConstant.ResolveDebugLogFileAbsolutePath(Application.dataPath);
+
             // 再初期化でも購読が重複しないよう、解除してから登録する。
             SymphonyDebugLogger.OnLogDirect -= EnqueueLog;
             SymphonyDebugLogger.OnLogDirect += EnqueueLog;
@@ -49,6 +52,18 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
             s_FlushTimer = null;
         }
 
+        /// <summary>
+        ///     蓄積されたログを直ちにファイルへ書き込む。
+        /// </summary>
+        internal static void Flush()
+        {
+            // Timerとログ通知による同時書き込みを一つの排他区間へまとめる。
+            lock (s_FileLock)
+            {
+                FlushLocked();
+            }
+        }
+
         #endregion
 
         #region 内部処理
@@ -59,18 +74,10 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
         /// <summary> 貯めたログを書き込む間隔（秒）。 </summary>
         private const double FLUSH_INTERVAL_SECONDS = 5.0;
 
-        /// <summary> ログファイルの出力先。 </summary>
-        /// <remarks>
-        ///     SymphonyConstant.GetFrameworkAbsolutePath()でFramework自身の実配置パス
-        ///     （Assets直置き、またはUPM経由のPackages/Library/PackageCache）を解決し、
-        ///     その直下のCacheフォルダへ出力する。
-        /// </remarks>
-        private static readonly string s_LogFilePath =
-            Path.Combine(SymphonyConstant.GetFrameworkAbsolutePath(), "Cache", "Log.txt");
-
         private static readonly object s_FileLock = new();
         private static readonly List<string> s_PendingLines = new();
         private static Timer s_FlushTimer;
+        private static string s_LogFilePath;
 
         /// <summary>
         ///     ログをファイル出力用のバッファへ蓄積する。
@@ -87,18 +94,6 @@ namespace SymphonyFrameWork.Editor.Debugger.Logger
 
                 // 上限へ達した場合は周期Timerを待たず、バッファの増加を抑える。
                 if (s_PendingLines.Count >= MAX_BUFFERED_LINES) { FlushLocked(); }
-            }
-        }
-
-        /// <summary>
-        ///     蓄積されたログをファイルへ書き込む。
-        /// </summary>
-        private static void Flush()
-        {
-            // Timerとログ通知による同時書き込みを一つの排他区間へまとめる。
-            lock (s_FileLock)
-            {
-                FlushLocked();
             }
         }
 

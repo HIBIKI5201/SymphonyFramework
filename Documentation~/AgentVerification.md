@@ -67,6 +67,7 @@ string serviceLocatorJson = SymphonyMcpTools.GetServiceLocatorJson();
 string sceneLoaderJson = SymphonyMcpTools.GetSceneLoaderJson();
 string saveDataJson = SymphonyMcpTools.GetSaveDataJson();
 string pauseJson = SymphonyMcpTools.GetPauseJson();
+string logJson = SymphonyMcpTools.GetLogFileJson();
 ```
 
 - 未初期化時は例外ではなく`"initialized": false`を含むJSONを返す。
@@ -74,6 +75,7 @@ string pauseJson = SymphonyMcpTools.GetPauseJson();
 - Save Dataの出力に`SaveDataContent`の内容は含まれない。
 - `SymphonyMcpTools`はEditorアセンブリ専用であり、Playerビルドから参照できない。
 - Service Locatorの`effectiveLocateType`は、登録時の値ではなく現在の状態から導いた実効値。
+- `GetLogFileJson()`は書き込み待ちのログをフラッシュし、既定で直近200行を返す。引数で1〜1000行を指定できる。
 
 ## 5. ビルド
 

@@ -14,7 +14,7 @@ namespace SymphonyFrameWork.Tests
     /// </summary>
     /// <remarks>
     ///     <c>UnityEngine.Debug</c> を直接呼ぶと、Editorの購読者が拾えず
-    ///     <c>Cache/Log.txt</c> へ残らない。統一の維持は目視では続かないため、配置を機械的に見る。
+    ///     Debugログファイルへ残らない。統一の維持は目視では続かないため、配置を機械的に見る。
     /// </remarks>
     public sealed class FrameworkLoggingTests
     {
@@ -51,7 +51,7 @@ namespace SymphonyFrameWork.Tests
                 violations,
                 Is.Empty,
                 "ログは SymphonyDebugLogger 経由に統一します。"
-                + " Unity標準のDebugを直接呼ぶと Cache/Log.txt へ残りません。"
+                + " Unity標準のDebugを直接呼ぶとDebugログファイルへ残りません。"
                 + $"\n{string.Join("\n", violations)}");
         }
 
