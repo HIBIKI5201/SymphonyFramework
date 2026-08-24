@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.3.2] - 2026-08-24
+非アクティブな直下の子を既定の子Component検索から除外するよう修正しました。
+
+### Fix
+
+- **`SymphonyComponentUtil.GetComponentInChildrenExcludeSelf`が、`includeInactive: false`でも非アクティブな直下の子を返す不具合を修正しました。** Unityの`GetComponentInChildren`が検索起点自身を`includeInactive`にかかわらず含めるため、直下の子を検索起点にする前に`activeInHierarchy`を確認します。`includeInactive: true`の挙動は変わりません（[#179](https://github.com/HIBIKI5201/SymphonyFramework/issues/179)）。
+
 ## [6.3.1] - 2026-08-18
 DebugログをAssetsやPackageCacheではなくプロジェクトのLibrary配下へ出力するよう修正しました。
 
