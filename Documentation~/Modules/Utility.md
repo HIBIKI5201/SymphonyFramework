@@ -25,6 +25,7 @@
 
 - **`Awaitable`は1回しか`await`できず、保存も共有もできない。** フィールドへ持たず、その場で待機する。複数待機は`SymphonyAwaitable.WhenAll`、`Task`と混ぜる場合は`SymphonyAwaitable.AsTask`を使う。
 - 同期的に完了する`Awaitable`を返す場合は`SymphonyAwaitable.Completed()`と`SymphonyAwaitable.FromResult(value)`を使い、`null`を返さない。
+- `SymphonyComponentUtil.GetComponentInChildrenExcludeSelf`は、既定では非アクティブな子を検索しない。非アクティブな子も含める場合だけ`includeInactive: true`を指定する。
 
 ## 関連
 

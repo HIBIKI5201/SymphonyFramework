@@ -100,26 +100,19 @@ namespace SymphonyFrameWork.Tests
             Assert.That(target.transform.GetComponentInChildrenExcludeSelf<BoxCollider>(), Is.Null);
         }
 
-        /// <summary>
-        ///     直下の非アクティブな子は、既定でも返る（現在の挙動）。
-        /// </summary>
-        /// <remarks>
-        ///     <c>GetComponentInChildren</c> が検索の起点自身を <c>includeInactive</c> の値に関わらず
-        ///     対象へ含めるためで、XMLドキュメントの契約と食い違う。Issue #179 で扱う。
-        ///     修正したらこのテストを「返らない」へ書き換える。
-        /// </remarks>
+        /// <summary> 直下の非アクティブな子は、既定では検索しない。 </summary>
         [Test]
-        public void GetComponentInChildrenExcludeSelf_InactiveDirectChild_IsReturnedByUnitySemantics()
+        public void GetComponentInChildrenExcludeSelf_InactiveDirectChild_IsSkippedByDefault()
         {
             GameObject target = Create("target");
             GameObject child = Create("child");
             child.transform.SetParent(target.transform);
-            BoxCollider onInactiveChild = child.AddComponent<BoxCollider>();
+            child.AddComponent<BoxCollider>();
             child.SetActive(false);
 
             Assert.That(
                 target.transform.GetComponentInChildrenExcludeSelf<BoxCollider>(),
-                Is.SameAs(onInactiveChild));
+                Is.Null);
         }
 
         /// <summary> 指定すれば非アクティブな子も検索する。 </summary>
