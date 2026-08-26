@@ -62,6 +62,8 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 
 **出力先**: `<Exported Packages Path>/Export_AssetStoreToolsPackage_<日時>/`
 
+出力が完了すると、Console の完了ログに従来の相対パスがリンクとして表示されます。リンクをクリックすると、OS のファイルブラウザーで出力先フォルダを開けます。
+
 **注意点**:
 
 - **パイプラインが1つもアサインされていない場合、Export ボタンは表示されません。** `Open Project Settings` から設定画面へ移動し、`Create Default Pipeline` を押してください。

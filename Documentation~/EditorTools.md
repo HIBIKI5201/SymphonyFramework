@@ -18,7 +18,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [Framework設定](#framework設定) | `Project Settings > SymphonyFrameWork` |
 | [Save System設定](./Modules/SaveDataSystem.md#editor機能) | `Project Settings > SymphonyFrameWork > Save System` |
 | [Asset Store Tools Packager設定](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager設定) | `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` |
-| [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager) | `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder` |
+| [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager) | `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder`。出力完了ログのリンクから出力先を開ける |
 | [出力手順のパイプライン](./Modules/AssetStoreToolsPackager.md#出力手順のパイプライン) | `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline` |
 | [AutoEnumGenerator](./Modules/AutoEnumGenerator.md) | 自動実行。手動生成はSymphony Administratorから |
 | [FolderGenerator](./Modules/ProjectStructureTools.md#foldergenerator) | `Tools > SymphonyFrameWork > FolderGenerator` |
