@@ -119,6 +119,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p><strong>操作</strong>:</p>
 <ol><li>出力するフォルダをチェックボックスで選ぶ。<code>PackagerConfig.json</code> の <code>Ignored Directories</code> に入っているフォルダは <code>(Ignored)</code> と表示され、選択できません</li><li><code>Export Pipeline</code> で出力手順を選ぶ。選択肢は Project Settings の <code>Export Pipelines</code> にアサインしたアセットで、表示名はアセット名です</li><li><code>Export Selected Directories</code> を押すと、<strong>出力せずに確認ウィンドウが開きます。</strong> パイプライン名、手順の並び、パッケージへ含まれるアセットの階層が表示されます</li><li><code>Export</code> で実行、<code>Cancel</code> で中止</li></ol>
 <p><strong>出力先</strong>: <code>&lt;Exported Packages Path&gt;/Export_AssetStoreToolsPackage_&lt;日時&gt;/</code></p>
+<p>出力が完了すると、Console の完了ログに従来の相対パスがリンクとして表示されます。リンクをクリックすると、OS のファイルブラウザーで出力先フォルダを開けます。</p>
 <p><strong>注意点</strong>:</p>
 <ul><li><strong>パイプラインが1つもアサインされていない場合、Export ボタンは表示されません。</strong> <code>Open Project Settings</code> から設定画面へ移動し、<code>Create Default Pipeline</code> を押してください。</li><li>Export タブへ切り替えたとき、パイプラインの一覧を読み直します。ウィンドウを開いたまま Project Settings を変更することがあるためです。反映されない場合は <code>Refresh</code> を押してください。</li><li><strong>3.6.0 までの <code>Export Mode</code> / <code>Create ZIP File</code> / <code>Used Dependencies</code> は 3.7.0 で無くなりました。</strong> 同じ内容は <code>Create Default Pipeline</code> が生成するテンプレートで表現されます（→<a href="../Deprecations.html">非推奨APIと削除予定</a>）。</li></ul>
 <h4 id="出力手順のパイプライン">出力手順のパイプライン</h4>

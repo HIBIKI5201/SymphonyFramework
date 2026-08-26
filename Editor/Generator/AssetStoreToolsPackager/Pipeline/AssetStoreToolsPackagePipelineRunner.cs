@@ -143,6 +143,29 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
+        ///     出力完了ログのメッセージを組み立てる。
+        /// </summary>
+        /// <param name="exportFullPath"> 出力先フォルダの絶対パス。 </param>
+        /// <param name="exportLocalPath"> ログへ表示する出力先パス。 </param>
+        /// <returns> 出力先をリンクとして含むメッセージ。URIへ変換できない場合はプレーンテキスト。 </returns>
+        internal static string BuildExportCompletionMessage(
+            string exportFullPath,
+            string exportLocalPath)
+        {
+            // ログへ渡すパスを、Consoleのリッチテキストとして解釈されない表現へ変換する。
+            string escapedLocalPath = EscapeRichText(exportLocalPath);
+
+            // 絶対ファイルURIを作れない場合も、出力済みという事実と従来の表示パスは残す。
+            if (!Uri.TryCreate(exportFullPath, UriKind.Absolute, out Uri exportUri) || !exportUri.IsFile)
+            {
+                return $"{LOG_PREFIX}\nパッケージを出力しました\npath : {escapedLocalPath}";
+            }
+
+            string escapedAbsoluteUri = EscapeRichText(exportUri.AbsoluteUri);
+            return $"{LOG_PREFIX}\nパッケージを出力しました\npath : <a href=\"{escapedAbsoluteUri}\">{escapedLocalPath}</a>";
+        }
+
+        /// <summary>
         ///     確定済みの計画に従ってパイプラインを実行する。
         /// </summary>
         /// <param name="plan"> 出力する計画。 </param>
@@ -178,7 +201,9 @@ namespace SymphonyFrameWork.Editor
 
             RunExecuteSteps(context);
 
-            SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nパッケージを出力しました\npath : {context.ExportLocalPath}");
+            SymphonyDebugLogger.LogDirect(BuildExportCompletionMessage(
+                context.ExportFullPath,
+                context.ExportLocalPath));
         }
 
         /// <summary>
@@ -233,6 +258,21 @@ namespace SymphonyFrameWork.Editor
         private const string LOG_PREFIX = "[" + nameof(AssetStoreToolsPackager) + "]";
 
         private const string PACKAGE_NAME = "AssetStoreToolsPackage";
+
+        /// <summary>
+        ///     Consoleのリッチテキストで特別な意味を持つ文字をエスケープする。
+        /// </summary>
+        /// <param name="value"> エスケープする文字列。 </param>
+        /// <returns> リッチテキストへ安全に埋め込める文字列。 </returns>
+        private static string EscapeRichText(string value)
+        {
+            // アンパサンドを先に置換し、後続の文字参照を二重にエスケープしない。
+            return (value ?? string.Empty)
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\"", "&quot;");
+        }
 
         /// <summary>
         ///     絞り込み前の収集対象に含めるか判定する。

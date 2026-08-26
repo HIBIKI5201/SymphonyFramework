@@ -4,6 +4,7 @@ using SymphonyFrameWork.Editor;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -201,6 +202,72 @@ namespace SymphonyFrameWork.Tests
             AssetStoreToolsPackagePipelineRunner.RunPlanSteps(plan);
 
             Assert.That(following.IsPlanned, Is.True);
+        }
+
+        /// <summary>
+        ///     絶対パスをfile URIへ変換し、空白と番号記号を符号化する。
+        /// </summary>
+        [Test]
+        public void BuildExportCompletionMessage_AbsolutePath_ContainsFileUri()
+        {
+            string exportFullPath = Path.Combine(Path.GetTempPath(), "Export Folder #1");
+
+            string message = AssetStoreToolsPackagePipelineRunner.BuildExportCompletionMessage(
+                exportFullPath,
+                "Export Folder #1");
+
+            Assert.That(message, Does.Contain("href=\"file:"));
+            Assert.That(message, Does.Contain("Export%20Folder%20%231"));
+        }
+
+        /// <summary>
+        ///     リンクの表示文字列には従来の相対パスを使用する。
+        /// </summary>
+        [Test]
+        public void BuildExportCompletionMessage_LocalPath_DisplaysExistingPath()
+        {
+            string exportFullPath = Path.Combine(Path.GetTempPath(), "ExportedPackages", "Package");
+            string exportLocalPath = Path.Combine("Assets", "ExportedPackages", "Package");
+
+            string message = AssetStoreToolsPackagePipelineRunner.BuildExportCompletionMessage(
+                exportFullPath,
+                exportLocalPath);
+
+            Assert.That(message, Does.Contain($">{exportLocalPath}</a>"));
+        }
+
+        /// <summary>
+        ///     URI属性と表示パスのマークアップ文字をエスケープする。
+        /// </summary>
+        [Test]
+        public void BuildExportCompletionMessage_MarkupCharacters_EscapesRichText()
+        {
+            string exportFullPath = Path.Combine(Path.GetTempPath(), "Export & Package");
+            string exportLocalPath = "Export & <Package> \"Quoted\"";
+
+            string message = AssetStoreToolsPackagePipelineRunner.BuildExportCompletionMessage(
+                exportFullPath,
+                exportLocalPath);
+
+            Assert.That(message, Does.Contain("Export%20&amp;%20Package"));
+            Assert.That(message, Does.Contain(">Export &amp; &lt;Package&gt; &quot;Quoted&quot;</a>"));
+            Assert.That(message, Does.Not.Contain(exportLocalPath));
+        }
+
+        /// <summary>
+        ///     絶対ファイルURIへ変換できない場合はプレーンテキストへフォールバックする。
+        /// </summary>
+        [Test]
+        public void BuildExportCompletionMessage_InvalidFullPath_FallsBackToPlainText()
+        {
+            const string exportLocalPath = "Assets/ExportedPackages/Package";
+
+            string message = AssetStoreToolsPackagePipelineRunner.BuildExportCompletionMessage(
+                "relative/path",
+                exportLocalPath);
+
+            Assert.That(message, Does.Contain($"path : {exportLocalPath}"));
+            Assert.That(message, Does.Not.Contain("<a href="));
         }
 
         /// <summary> DisplayNameを持たない手順は型名を表示名にする。 </summary>
