@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.8.0] - 2026-08-30
+ピュアC#の型をコンストラクタ注入で生成できるようにしました。
+
+### Add
+
+- **`ServiceInjector.CreateInstance<T>()`と`CreateInstance(Type)`を追加しました。** コンストラクタの引数をService Locatorの登録から解決してインスタンスを生成します。従来は`IInjectable<T...>`を実装して`Inject`メソッドを書き、フィールドへ代入する手作業を型ごとに繰り返す必要がありましたが、コンストラクタで受け取れば`readonly`にでき、未注入の状態が存在しなくなります（[#109](https://github.com/HIBIKI5201/SymphonyFramework/issues/109)）。
+- **`public`なコンストラクタのうち引数が最も多いものを使います。** 引数の数が同じものが並ぶ場合は`InvalidOperationException`で、どちらを使うか推測しません。登録が無い引数は既定値があればそれを使い、既定値も無い場合は`ServiceNotRegisteredException`にしてインスタンスを生成しません。**全引数を解決してからコンストラクタを1回だけ呼ぶ**ため、半端に構築された対象が残りません。
+- **`Scene Locator Sample`へコンストラクタ注入の実演を追加しました。** シーケンスの最後で`ServiceLocatorSample_Consumer`を生成し、依存2件と既定値1件の解決結果を実況ログへ出します。
+
+### Change
+
+- **`IInjectable<T...>`と`ServiceInjector.Inject(...)`は従来どおりです。** Unityが生成する`MonoBehaviour`はコンストラクタ注入ができないため、3つの経路を「生成を誰が握るか」で使い分ける形にしました。使い分けはモジュール文書の表にあります。
+
 ## [6.7.1] - 2026-08-30
 Scene Blockのロード状態をSymphony Administratorへ表示し、依存グラフの検証結果をInspectorへ出すようにしました。
 

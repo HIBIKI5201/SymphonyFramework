@@ -88,11 +88,72 @@ namespace SymphonyFrameWork.System.ServiceLocate
                 ServiceLocator.GetRequiredInstance<T3>());
         }
 
+        /// <summary>
+        ///     依存をService Locatorから解決してインスタンスを生成する。
+        /// </summary>
+        /// <typeparam name="T"> 生成する型。 </typeparam>
+        /// <returns> 生成したインスタンス。 </returns>
+        /// <exception cref="ArgumentException"> Tがインスタンスを生成できない型の場合。 </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     publicなコンストラクタが無い場合、または引数が最多のものを1つに決められない場合。
+        /// </exception>
+        /// <exception cref="ServiceNotRegisteredException"> 解決できず既定値も無い引数がある場合。 </exception>
+        public static T CreateInstance<T>() where T : class =>
+            (T)CreateInstance(typeof(T));
+
+        /// <summary>
+        ///     依存をService Locatorから解決してインスタンスを生成する。
+        /// </summary>
+        /// <param name="type"> 生成する型。 </param>
+        /// <returns> 生成したインスタンス。 </returns>
+        /// <exception cref="ArgumentNullException"> typeがnullの場合。 </exception>
+        /// <exception cref="ArgumentException"> typeがインスタンスを生成できない型の場合。 </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     publicなコンストラクタが無い場合、または引数が最多のものを1つに決められない場合。
+        /// </exception>
+        /// <exception cref="ServiceNotRegisteredException"> 解決できず既定値も無い引数がある場合。 </exception>
+        /// <remarks>
+        ///     **publicなコンストラクタのうち、引数が最も多いものを使う。**
+        ///     引数はService Locatorの登録から解決し、登録が無い引数は既定値があればそれを使う。
+        ///     生成したインスタンスはService Locatorへ登録しない。
+        /// </remarks>
+        public static object CreateInstance(Type type)
+        {
+            // 生成できない型は、依存の解決を始める前に拒否する。
+            ServiceConstructionPlanner.ValidateCreatableType(type, nameof(type));
+
+            ConstructorInfo constructor = ServiceConstructionPlanner.SelectConstructor(type);
+
+            // 全引数を解決してから1回だけ呼び、半端に構築された対象を残さない。
+            object[] arguments = ServiceConstructionPlanner.ResolveArguments(
+                constructor,
+                ResolveService);
+
+            // Reflectionのラッパー例外を除き、コンストラクタの失敗を元のスタックトレースで伝播する。
+            try
+            {
+                return constructor.Invoke(arguments);
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException != null)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                throw;
+            }
+        }
+
         #endregion
 
         #region 内部処理
 
         private static readonly Dictionary<Type, MethodInfo> _injectMethods = BuildInjectMethodMap();
+
+        /// <summary>
+        ///     コンストラクタ引数をService Locatorの登録から解決する。
+        /// </summary>
+        /// <param name="serviceType"> 解決する引数の型。 </param>
+        /// <returns> 登録済みインスタンス。登録が無い場合はnull。 </returns>
+        private static object ResolveService(Type serviceType) =>
+            ServiceLocator.TryGetInstance(serviceType, out object instance) ? instance : null;
 
         /// <summary>
         ///     IInjectable&lt;...&gt;の各アリティと、対応するInjectメソッドの対応表を構築する。
