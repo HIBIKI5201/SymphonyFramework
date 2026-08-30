@@ -89,6 +89,15 @@ public sealed class BlockSwitcher : MonoBehaviour
 - 進捗は層ごとではなくブロック全体で 0 から 1 へ通知します。
 - `SceneBlockLoader` は Additive のロードだけを行います。既存のシーンを一掃する場合は `SceneLoader` 側の API を使ってください。
 
+## Editor機能
+
+| 機能 | 内容 |
+| --- | --- |
+| Symphony Administrator の Scene Block パネル | Play Mode中、追跡しているブロックの名前、状態、進捗、実行層の数、保持しているシーン名を一覧表示する |
+| `SceneBlockAsset` のInspector | 依存グラフの検証結果を表示する。解決できる場合は**何段階でロードするか**と各段階のシーン名、解決できない場合は検出した異常をすべて並べる |
+
+**Inspectorの表示はPlay Modeに入る前に確認できます。** 循環依存や存在しないシーンへの依存は、実行してロードするまで待たずにここで分かります。
+
 ## 内部構造
 
 `SceneBlockLoader` は `SceneLoader` の内部Serviceを土台にして動きます。`SymphonyOrchestrator` が `SceneLoader` の初期化後に `SceneBlockLoader` を初期化し、終了処理は登録の逆順で実行します。

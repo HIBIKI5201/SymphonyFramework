@@ -17,6 +17,9 @@
         /// <summary> Scene Loaderモジュール。 </summary>
         SceneLoader,
 
+        /// <summary> Scene Blockモジュール。 </summary>
+        SceneBlock,
+
         /// <summary> Save Data Systemモジュール。 </summary>
         SaveDataSystem,
 
