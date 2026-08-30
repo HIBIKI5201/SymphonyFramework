@@ -459,6 +459,32 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal static ServiceLocateViewModel CurrentViewModel => _viewModel;
 
         /// <summary>
+        ///     型を指定して登録済みインスタンスを取得する。
+        /// </summary>
+        /// <param name="serviceType"> 取得するサービス型。 </param>
+        /// <param name="instance"> 取得できた登録済みインスタンス。 </param>
+        /// <returns> 取得できた場合はtrue。 </returns>
+        /// <remarks>
+        ///     型引数を持てないコンストラクタ注入のための内部専用の入口である。
+        ///     未初期化と破棄済みUnity Objectの扱いは <see cref="GetInstance{T}" /> と同じにする。
+        ///     公開APIへは広げない。
+        /// </remarks>
+        internal static bool TryGetInstance(Type serviceType, out object instance)
+        {
+            instance = null;
+
+            // 未初期化時は登録が存在しないものとして扱う。
+            if (!IsInitialized || serviceType == null) { return false; }
+
+            // 通常のnullと破棄済みUnity Objectを、どちらも未取得として返す。
+            if (!_query.TryGetInstance(serviceType, out object registeredInstance)) { return false; }
+            if (!IsAvailableInstance(registeredInstance)) { return false; }
+
+            instance = registeredInstance;
+            return true;
+        }
+
+        /// <summary>
         ///     Compositionが生成した所有先を使用してLocator状態を初期化する。
         /// </summary>
         /// <param name="host"> Singleton Componentの所有と解放を行うHost。 </param>

@@ -94,7 +94,6 @@ namespace SymphonyFrameWork.Tests
             "SceneLoadWindow",
             "SceneLoader",
             "SceneNameSelectorDrawer",
-            "ServiceInjector",
             "ServiceLocateComponent",
             "ServiceLocateWindow",
             "ServiceLocator",

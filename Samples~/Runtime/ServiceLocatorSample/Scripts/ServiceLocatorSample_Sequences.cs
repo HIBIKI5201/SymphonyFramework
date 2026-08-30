@@ -47,6 +47,10 @@ namespace SymphonyFrameWork.Samples.ServiceLocatorSample
             Debug.Log($"wait for register ServiceLocatorSample_2");
             ServiceLocatorSample_2 serviceLocatorSample_2 = await ServiceLocator.GetInstanceAsync<ServiceLocatorSample_2>(10, destroyCancellationToken);
             Debug.Log($"ServiceLocatorSample_2 was registered | {serviceLocatorSample_2.name}, id: {serviceLocatorSample_2.GetInstanceID()}");
+
+            // コンストラクタ注入では、依存を渡す側のコードを型ごとに書かなくてよい。
+            ServiceLocatorSample_Consumer consumer = ServiceInjector.CreateInstance<ServiceLocatorSample_Consumer>();
+            Debug.Log($"Constructor injection | {consumer.Describe()}");
         }
     }
 }
