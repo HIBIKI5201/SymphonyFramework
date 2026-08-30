@@ -1,6 +1,6 @@
 {
   "name": "symphonyframework",
-  "version": "6.6.0",
+  "version": "6.7.0",
   "displayName": "Symphony Framework",
   "description": "This is Symphony Framework",
   "unity": "6000.0",
@@ -34,6 +34,11 @@
       "displayName": "Scene Loader Sample",
       "description": "SceneLoader を使用した追加ロード、優先度によるActive Scene切り替え、ロード完了待機のサンプルが含まれています。",
       "path": "Samples~/Runtime/SceneLoaderSample"
+    },
+    {
+      "displayName": "Scene Block Sample",
+      "description": "SceneBlockLoader を使用したブロック単位の依存順ロード、ブロック切り替え時の共有シーンの保持、SceneLoader による単体ロードとの共存のサンプルが含まれています。",
+      "path": "Samples~/Runtime/SceneBlockSample"
     },
     {
       "displayName": "Pause Manager Sample",

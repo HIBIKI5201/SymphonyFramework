@@ -346,6 +346,13 @@ namespace SymphonyFrameWork.System.SceneLoad
         /// <summary> Compositionが所有する現在のScene Load ViewModel。 </summary>
         internal static SceneLoadViewModel CurrentViewModel => _viewModel;
 
+        /// <summary> Compositionが所有する現在のScene Load Service。 </summary>
+        /// <remarks>
+        ///     Scene Blockのように、Scene Loadの操作を土台にする別サブシステムへ
+        ///     Compositionが注入するための読み取り専用accessorである。公開APIには広げない。
+        /// </remarks>
+        internal static SceneLoadService CurrentService => _service;
+
         /// <summary>
         ///     OrchestratorからScene Loaderを初期化する。
         /// </summary>

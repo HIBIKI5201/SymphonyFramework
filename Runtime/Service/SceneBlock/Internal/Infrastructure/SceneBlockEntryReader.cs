@@ -98,6 +98,53 @@ namespace SymphonyFrameWork.System.SceneBlock
         }
 
         /// <summary>
+        ///     シーン名ごとのActive Scene選択の優先度を読み取る。
+        /// </summary>
+        /// <param name="entries"> ブロックが持つエントリ一覧。 </param>
+        /// <returns> シーン名から優先度への対応。 </returns>
+        /// <exception cref="ArgumentNullException"> entriesがnullの場合。 </exception>
+        internal static IReadOnlyDictionary<string, int> ReadPriorities(
+            IReadOnlyList<SceneBlockEntry> entries)
+        {
+            if (entries == null) { throw new ArgumentNullException(nameof(entries)); }
+
+            Dictionary<string, int> priorities = new(StringComparer.Ordinal);
+            foreach (SceneBlockEntry entry in entries)
+            {
+                if (entry == null || string.IsNullOrWhiteSpace(entry.SceneName)) { continue; }
+
+                // 重複エントリは検証で弾かれるため、ここでは先に現れた値を採用する。
+                if (!priorities.ContainsKey(entry.SceneName))
+                {
+                    priorities.Add(entry.SceneName, entry.Priority);
+                }
+            }
+
+            return priorities;
+        }
+
+        /// <summary>
+        ///     ブロックのアンロードでも残すシーン名を読み取る。
+        /// </summary>
+        /// <param name="entries"> ブロックが持つエントリ一覧。 </param>
+        /// <returns> 残す対象のシーン名。 </returns>
+        /// <exception cref="ArgumentNullException"> entriesがnullの場合。 </exception>
+        internal static IReadOnlyCollection<string> ReadPersistentSceneNames(
+            IReadOnlyList<SceneBlockEntry> entries)
+        {
+            if (entries == null) { throw new ArgumentNullException(nameof(entries)); }
+
+            HashSet<string> sceneNames = new(StringComparer.Ordinal);
+            foreach (SceneBlockEntry entry in entries)
+            {
+                if (entry == null || string.IsNullOrWhiteSpace(entry.SceneName)) { continue; }
+                if (entry.IsPersistent) { sceneNames.Add(entry.SceneName); }
+            }
+
+            return sceneNames;
+        }
+
+        /// <summary>
         ///     依存グラフの異常を、利用側が読める説明へ変換する。
         /// </summary>
         /// <param name="error"> 変換する異常。 </param>

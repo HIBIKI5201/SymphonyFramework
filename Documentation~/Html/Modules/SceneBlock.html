@@ -97,9 +97,9 @@ th { background: var(--code-bg); white-space: nowrap; }
 <body>
 <nav class="doc-nav"><a href="../index.html">Symphony Framework Documentation</a></nav>
 <h1 id="scene-block">Scene Block</h1>
-<p>まとめてロードする複数シーンと、その依存関係を1つのアセットとして定義します。定義はRuntime、検証はアセットを読み込むフレームワーク側が行います。</p>
+<p>まとめてロードする複数シーンと、その依存関係を1つのアセットとして定義し、依存順にロードします。<code>SceneLoader</code>による単体シーンのロードと併用できます。</p>
 <h2 id="入口">入口</h2>
-<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System.SceneBlock</code></td></tr><tr><td>主な公開型</td><td><code>SceneBlockAsset</code> / <code>SceneBlockEntry</code> / <code>SceneBlockPlanException</code></td></tr><tr><td>メニューパス</td><td><code>Assets &gt; Create &gt; Symphony Framework &gt; Scene Block</code></td></tr><tr><td>設定の保存先</td><td>利用側プロジェクトの <code>SceneBlockAsset</code> アセット</td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System.SceneBlock</code></td></tr><tr><td>主な公開型</td><td><code>SceneBlockLoader</code> / <code>SceneBlockAsset</code> / <code>SceneBlockEntry</code> / <code>SceneBlockInfo</code> / <code>SceneBlockLoadStateEnum</code> / <code>SceneBlockPlanException</code></td></tr><tr><td>メニューパス</td><td><code>Assets &gt; Create &gt; Symphony Framework &gt; Scene Block</code></td></tr><tr><td>設定の保存先</td><td>利用側プロジェクトの <code>SceneBlockAsset</code> アセット</td></tr></tbody></table></div>
 <h2 id="クイックスタート">クイックスタート</h2>
 <p><code>Assets &gt; Create &gt; Symphony Framework &gt; Scene Block</code> でアセットを作り、Inspectorでエントリを並べます。</p>
 <div class="table-scroll"><table><thead><tr><th>フィールド</th><th>内容</th></tr></thead><tbody><tr><td>Block Name</td><td>ブロックの識別名。空の場合はアセット名を使う</td></tr><tr><td>Entries</td><td>このブロックがロードするシーンの一覧</td></tr><tr><td>Entries &gt; Scene Name</td><td>ロードするシーン名。Build Settings のシーンから選ぶ</td></tr><tr><td>Entries &gt; Depends On</td><td><strong>このシーンより先にロードを完了させるシーン名。</strong> 同じブロック内のシーンを指す</td></tr><tr><td>Entries &gt; Priority</td><td>Active Scene 選択に使用する優先度。<code>SceneLoadRequest</code> の優先度と同じ意味</td></tr><tr><td>Entries &gt; Is Persistent</td><td>ブロックをアンロードしてもこのシーンを残す</td></tr></tbody></table></div>
@@ -109,22 +109,34 @@ th { background: var(--code-bg); white-space: nowrap; }
 ├─ Town_Props  Depends On: [Town_Base]    Priority: 0
 ├─ Town_Npc    Depends On: [Town_Base]    Priority: 0
 └─ Town_Ui     Depends On: [Town_Props]   Priority: 0</code></pre>
-<p>依存関係が解決できないアセットを読み込むと、<code>SceneBlockPlanException</code> が発生します。</p>
-<pre><code class="language-csharp">try
+<p>アセットを <code>SceneBlockLoader</code> へ渡すとロードできます。</p>
+<pre><code class="language-csharp">using SymphonyFrameWork.System.SceneBlock;
+using UnityEngine;
+
+public sealed class BlockSwitcher : MonoBehaviour
 {
-    // ブロックを読み込む処理
-}
-catch (SceneBlockPlanException exception)
-{
-    foreach (string description in exception.Descriptions)
+    [SerializeField] private SceneBlockAsset _townBlock;
+    [SerializeField] private SceneBlockAsset _dungeonBlock;
+
+    private async Awaitable EnterDungeonAsync()
     {
-        Debug.LogError(description);
+        // 先に次をロードしてから前をアンロードすると、共通シーンの保持が途切れない。
+        await SceneBlockLoader.LoadAsync(_dungeonBlock, token: destroyCancellationToken);
+        await SceneBlockLoader.UnloadAsync(_townBlock, token: destroyCancellationToken);
     }
 }</code></pre>
+<div class="table-scroll"><table><thead><tr><th>メソッド</th><th>内容</th></tr></thead><tbody><tr><td><code>LoadAsync</code></td><td>ブロックの全シーンを依存順にロードする。進捗はブロック全体で0から1へ通知する</td></tr><tr><td><code>UnloadAsync</code></td><td>ブロックの保持を解き、保持が残らないシーンだけをアンロードする</td></tr><tr><td><code>IsLoaded</code></td><td>ブロックが追跡中か確認する</td></tr><tr><td><code>TryGetBlockInfo</code> / <code>GetBlockInfos</code></td><td>ブロック名、状態、進捗、保持シーン、層の数を取得する</td></tr></tbody></table></div>
+<h3 id="シーンを保持する規則">シーンを保持する規則</h3>
+<p><strong>シーンごとに「どのブロックが保持しているか」を追跡し、保持が空になったときだけアンロードします。</strong></p>
+<div class="table-scroll"><table><thead><tr><th>状況</th><th>ロード時</th><th>アンロード時</th></tr></thead><tbody><tr><td>どのブロックも保持しておらず、ロードもされていない</td><td>ロードして保持へ加える</td><td>保持が空になればアンロードする</td></tr><tr><td>他のブロックが保持している</td><td>ロードせず保持だけ加える</td><td>保持が残るのでアンロードしない</td></tr><tr><td>ブロック外でロード済み</td><td>ロードせず保持だけ加える</td><td><strong>アンロードしない</strong></td></tr><tr><td><code>Is Persistent</code> が有効</td><td>通常どおりロードする</td><td><strong>アンロードしない</strong></td></tr></tbody></table></div>
+<p><strong>ブロックのロードを開始した時点で既にロードされていたシーンは、利用側の所有物として扱います。</strong> <code>SceneLoader.LoadSceneAsync</code> で直接ロードしたシーンや、起動時の初期シーンがこれに当たります。そのシーンはどのブロックのアンロードでも落ちないため、落とす場合は <code>SceneLoader.UnloadSceneAsync</code> を呼んでください。</p>
 <h2 id="実装時の注意">実装時の注意</h2>
-<ul><li><strong><code>Depends On</code> は「先に読むシーン」を書きます。</strong> 「このシーンの後に読むシーン」ではありません。<code>A</code> の後に <code>B</code> を読みたい場合は、<code>B</code> のエントリへ <code>A</code> を書きます。</li><li><strong>依存の相手は同じブロックのエントリに存在している必要があります。</strong> 存在しないシーン名を書くと <code>SceneBlockPlanException</code> になります。</li><li><strong><code>SceneBlockPlanException</code> は検出した異常をすべて報告します。</strong> <code>Descriptions</code> に全件が入り、<code>Message</code> にも件数と全文が含まれます。1件直すたびに読み込み直す必要はありません。</li><li>検出する異常は、シーン名の重複、自分自身への依存、存在しないシーンへの依存、循環依存、シーン名や依存が空の4種類です。</li><li><strong>同じシーンを複数のブロックへ書けます。</strong> 1つのシーンが複数のブロックに属することは異常ではありません。</li><li>エントリの並び順はロード順に影響しません。順序は <code>Depends On</code> だけで決まります。</li><li>ブロックが読むシーンは、利用側の Build Settings に登録されている必要があります。</li></ul>
+<ul><li><strong><code>Depends On</code> は「先に読むシーン」を書きます。</strong> 「このシーンの後に読むシーン」ではありません。<code>A</code> の後に <code>B</code> を読みたい場合は、<code>B</code> のエントリへ <code>A</code> を書きます。</li><li><strong>依存の相手は同じブロックのエントリに存在している必要があります。</strong> 存在しないシーン名を書くと <code>SceneBlockPlanException</code> になります。</li><li><strong><code>SceneBlockPlanException</code> は検出した異常をすべて報告します。</strong> <code>Descriptions</code> に全件が入り、<code>Message</code> にも件数と全文が含まれます。1件直すたびに読み込み直す必要はありません。</li><li>検出する異常は、シーン名の重複、自分自身への依存、存在しないシーンへの依存、循環依存、シーン名や依存が空の4種類です。</li><li><strong>同じシーンを複数のブロックへ書けます。</strong> 1つのシーンが複数のブロックに属することは異常ではありません。</li><li>エントリの並び順はロード順に影響しません。順序は <code>Depends On</code> だけで決まります。</li><li>ブロックが読むシーンは、利用側の Build Settings に登録されている必要があります。</li><li><strong>ブロックを切り替えるときは「次をロード → 前をアンロード」の順にしてください。</strong> 逆順にすると、両方のブロックに属するシーンの保持が一度空になり、アンロードと再ロードが走ります。</li><li><strong>ロードに失敗したりキャンセルしたりしても、ロード済みのシーンは巻き戻しません。</strong> 保持は成立した分だけ記録され、ブロックの状態は <code>Loading</code> のまま残ります。<code>UnloadAsync</code> を呼べば片付きます。</li><li><strong>同じ名前のブロックを2つロードすると <code>InvalidOperationException</code> になります。</strong> 保持がどちらのアセットのものか判別できなくなるためです。同じアセットの再ロードは何もせず成功します。</li><li>進捗は層ごとではなくブロック全体で 0 から 1 へ通知します。</li><li><code>SceneBlockLoader</code> は Additive のロードだけを行います。既存のシーンを一掃する場合は <code>SceneLoader</code> 側の API を使ってください。</li></ul>
+<h2 id="内部構造">内部構造</h2>
+<p><code>SceneBlockLoader</code> は <code>SceneLoader</code> の内部Serviceを土台にして動きます。<code>SymphonyOrchestrator</code> が <code>SceneLoader</code> の初期化後に <code>SceneBlockLoader</code> を初期化し、終了処理は登録の逆順で実行します。</p>
+<div class="table-scroll"><table><thead><tr><th>層</th><th>型</th><th>役割</th></tr></thead><tbody><tr><td>Adaptor</td><td><code>SceneBlockLoader</code></td><td>公開エントリポイント</td></tr><tr><td>Application</td><td><code>SceneBlockService</code></td><td>層順のロードと保持規則の実行</td></tr><tr><td>Application</td><td><code>SceneBlockRegistry</code></td><td>ブロックの追跡と、シーンごとの保持元の記録</td></tr><tr><td>Domain</td><td><code>SceneBlockLoadEntity</code></td><td>ブロック1件の実行計画と状態</td></tr><tr><td>Domain</td><td><code>SceneBlockGraphPlanner</code></td><td>依存グラフの検証とトポロジカル層の算出</td></tr></tbody></table></div>
 <h2 id="関連">関連</h2>
-<ul><li><a href="SceneLoader.html">Scene Loader</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
+<ul><li><a href="SceneLoader.html">Scene Loader</a></li><li>Scene Block Sample（Package Managerからインポートできます）</li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Modules/SceneBlock.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>
 </html>
