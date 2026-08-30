@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.5.1**
+- 現在のバージョン: **6.6.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -110,6 +110,7 @@ asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してくだ�
 | --- | --- |
 | [Service Locator](./Documentation~/Modules/ServiceLocator.md) | 登録、取得、注入、Service Locate パネル、ログ設定 |
 | [Scene Loader](./Documentation~/Modules/SceneLoader.md) | 非同期ロード、進捗、初期化、Scene Load パネル |
+| [Scene Block](./Documentation~/Modules/SceneBlock.md) | 複数シーンの依存定義、依存グラフの検証 |
 | [Save Data System](./Documentation~/Modules/SaveDataSystem.md) | 保存、ローダー、Save System設定、Save Data パネル |
 | [Audio Manager](./Documentation~/Modules/AudioManager.md) | AudioSource取得、音量制御、AudioConfig |
 | [Pause Manager](./Documentation~/Modules/PauseManager.md) | ポーズ、通知、ポーズ対応待機、Pause パネル |
@@ -153,6 +154,7 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
 - Modules/
   - [Service Locator](./Documentation~/Modules/ServiceLocator.md)
   - [Scene Loader](./Documentation~/Modules/SceneLoader.md)
+  - [Scene Block](./Documentation~/Modules/SceneBlock.md)
   - [Save Data System](./Documentation~/Modules/SaveDataSystem.md)
   - [Audio Manager](./Documentation~/Modules/AudioManager.md)
   - [Pause Manager](./Documentation~/Modules/PauseManager.md)
