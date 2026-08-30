@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.6.0] - 2026-08-30
+Scene Blockのシーン構成をアセットとして定義できるようにしました。
+
+### Add
+
+- **`SceneBlockAsset`と`SceneBlockEntry`を追加しました。** `Assets > Create > Symphony Framework > Scene Block`で作成し、まとめてロードする複数シーンと依存関係をInspectorで定義できます。エントリごとにシーン名、先にロードするシーン（`Depends On`）、Active Scene選択の優先度、ブロックのアンロードで残すかを持ちます。依存は「このシーンより先に読むシーン」を各エントリが宣言する形にし、エントリを足すときに既存のエントリを編集しなくて済むようにしました（[#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202)）。
+- **`SceneBlockPlanException`を追加しました。** シーン名の重複、自分自身への依存、存在しないシーンへの依存、循環依存、シーン名や依存が空、のいずれかがあるアセットを読み込むと発生します。**1件目で打ち切らず、検出した異常をすべて`Descriptions`へ載せます。** 直すたびに読み込み直す回数を減らすためです。
+- **6.4.1で追加した`SceneBlockGraphPlanner`へ、Authoringのエントリ一覧から到達する経路を用意しました。** 依存グラフの検証とトポロジカル層の算出は、Unity APIへ触れない内部型が担当します。
+
 ## [6.5.1] - 2026-08-30
 Scene Blockの依存グラフを検証する内部DomainモデルとDAG Plannerを追加しました。
 
