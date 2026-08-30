@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.5.1] - 2026-08-30
+Scene Blockの依存グラフを検証する内部DomainモデルとDAG Plannerを追加しました。
+
+### Add
+
+- **`SymphonyFrameWork.System.SceneBlock`名前空間へ、Scene Block実行順を決定する内部DomainモデルとDAG Plannerを追加しました。** `SceneBlockGraphPlanner.Plan`が、ノード識別子と依存辺（`SceneBlockEdge`）からKahnのアルゴリズムでトポロジカル層を算出します。重複ノード、自己依存、欠落参照、循環依存を`SceneBlockPlanResult`のエラー一覧として決定的な順序で報告し、Unity APIに依存しないためEditModeテストだけで全異常系を固定できます。現時点では`internal`のDomain層のみで、`SceneBlock` ScriptableObjectや`SceneLoadService`統合、公開APIは含みません（[#110](https://github.com/HIBIKI5201/SymphonyFramework/issues/110)）。
+
 ## [6.5.0] - 2026-08-30
 セレクター属性のドロップダウンへ並べる候補を、利用側のメソッドで絞り込めるようにしました。
 
