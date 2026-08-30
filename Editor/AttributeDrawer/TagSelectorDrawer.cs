@@ -1,6 +1,5 @@
 ﻿using SymphonyFrameWork.Attribute;
 using System;
-using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -27,13 +26,34 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
+            // 属性がフィルターを指定している場合だけ候補を絞る。指定ミスは値を変えずに表示で知らせる。
+            if (!SelectorFilterUtility.TryCreateMask(
+                    Tags,
+                    ((TagSelectorAttribute)attribute).FilterMethodName,
+                    property.serializedObject.targetObject,
+                    out bool[] mask,
+                    out string errorMessage))
+            {
+                EditorGUI.LabelField(position, label.text, errorMessage);
+                return;
+            }
+
+            string[] selectableTags = SelectorFilterUtility.ApplyMask(Tags, mask);
+
+            // フィルターが全候補を落とした場合はPopupの範囲外参照を避け、シリアライズ済みの値を残す。
+            if (selectableTags.Length == 0)
+            {
+                EditorGUI.LabelField(position, label.text, "条件に一致するタグがありません。");
+                return;
+            }
+
             // 保存済みの値がタグ一覧から外れている場合は、先頭のタグを既定値とする。
-            int index = Array.IndexOf(Tags, property.stringValue);
+            int index = Array.IndexOf(selectableTags, property.stringValue);
             if (index < 0) { index = 0; }
 
             // Popupの選択結果をシリアライズ対象のタグ名へ反映する。
-            int selectedIndex = EditorGUI.Popup(position, label.text, index, Tags);
-            property.stringValue = Tags[selectedIndex];
+            int selectedIndex = EditorGUI.Popup(position, label.text, index, selectableTags);
+            property.stringValue = selectableTags[selectedIndex];
         }
 
         #endregion

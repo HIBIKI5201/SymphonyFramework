@@ -100,9 +100,41 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>利用側のフィールドへ付けて、Inspectorの表示を変える属性です。属性の定義はRuntime、描画はEditorにあります。</p>
 <h2 id="入口">入口</h2>
 <div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.Attribute</code>、<code>SymphonyFrameWork.Editor</code></td></tr><tr><td>主な公開型</td><td><code>[ReadOnly]</code> / <code>[DisplayText]</code> / <code>[TagSelector]</code> / <code>[SceneNameSelector]</code> / <code>[SubclassSelector]</code> と対応するDrawer</td></tr><tr><td>メニューパス</td><td>利用側のフィールドへ属性を付ける</td></tr><tr><td>設定の保存先</td><td>なし</td></tr></tbody></table></div>
+<h2 id="クイックスタート">クイックスタート</h2>
+<p><code>[TagSelector]</code> / <code>[SceneNameSelector]</code> / <code>[SubclassSelector]</code> は、引数を渡さなければプロジェクトの候補をすべてドロップダウンへ並べます。候補を絞り込むメソッドの名前を渡すと、<code>true</code> を返した候補だけが残ります。属性の引数はコンパイル時定数に限られるため、デリゲートではなく<strong>メソッド名</strong>で指定します。<code>nameof</code> を使えば、綴りの誤りをコンパイル時に見つけられます。</p>
+<pre><code class="language-csharp">using SymphonyFrameWork.Attribute;
+using System;
+using UnityEngine;
+
+public sealed class EnemySpawner : MonoBehaviour
+{
+    [SerializeField, TagSelector]
+    private string _ownerTag;
+
+    [SerializeField, TagSelector(nameof(IsEnemyTag))]
+    private string _targetTag;
+
+    [SerializeField, SceneNameSelector(nameof(IsBattleScene))]
+    private string _battleScene;
+
+    [SerializeReference, SubclassSelector(filterMethodName: nameof(IsRuntimeStrategy))]
+    private ISpawnStrategy _strategy;
+
+    [SerializeField]
+    private string _scenePrefix = &quot;Battle_&quot;;
+
+    private static bool IsEnemyTag(string tag) =&gt; tag.StartsWith(&quot;Enemy&quot;);
+
+    private static bool IsRuntimeStrategy(Type type) =&gt; !type.Name.StartsWith(&quot;Debug&quot;);
+
+    private bool IsBattleScene(string sceneName) =&gt; sceneName.StartsWith(_scenePrefix);
+}</code></pre>
+<p>フィルターメソッドの条件は次のとおりです。</p>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>宣言場所</td><td>そのフィールドを持つMonoBehaviourまたはScriptableObjectの型か、その基底型</td></tr><tr><td>シグネチャ</td><td><code>bool &lt;名前&gt;(string)</code>。<code>[SubclassSelector]</code> だけは <code>bool &lt;名前&gt;(Type)</code></td></tr><tr><td>アクセス修飾子</td><td>問わない。<code>private</code> でよい</td></tr><tr><td>static / instance</td><td>どちらでもよい。instanceの場合は編集中のオブジェクトを対象に呼ぶ</td></tr><tr><td>戻り値</td><td><code>true</code> を返した候補だけがドロップダウンへ残る</td></tr></tbody></table></div>
+<h2 id="実装時の注意">実装時の注意</h2>
+<ul><li><strong><code>[SubclassSelector]</code> は <code>[SerializeReference]</code> と組み合わせて使います。</strong> 単独では効果がありません。</li><li><strong>フィルターメソッドは、フィールドを持つ<code>[Serializable]</code>クラスではなくホスト側の型へ書きます。</strong> 入れ子のクラスに書いても見つかりません。</li><li><strong>メソッドが見つからない、シグネチャが違う、フィルターが例外を投げた場合は、ドロップダウンの代わりに理由がInspectorへ表示されます。</strong> 毎フレーム描画されるためログは出しません。表示が出ている間もシリアライズ済みの値は書き換わりません。</li><li><strong>フィルターが候補をすべて落とした場合も、ドロップダウンは表示されず値は保持されます。</strong></li><li><code>[SubclassSelector]</code> の先頭にある未設定（<code>&lt;null&gt;</code>）の候補は、フィルターへ渡されず常に残ります。</li><li><strong>複数のオブジェクトを同時に選択している場合、instanceのフィルターは先頭のオブジェクトの状態で判定します。</strong> オブジェクトごとに結果が変わるフィルターは、複数選択時に意図しない候補が出ることがあります。</li><li>候補は描画のたびに判定されるため、フィルターの中で重い処理やI/Oを行わないでください。</li></ul>
 <h2 id="editor機能">Editor機能</h2>
 <div class="table-scroll"><table><thead><tr><th>属性</th><th>効果</th></tr></thead><tbody><tr><td><code>[ReadOnly]</code></td><td>Inspectorで編集できないようにする</td></tr><tr><td><code>[DisplayText]</code></td><td>フィールドの上に説明テキストを表示する</td></tr><tr><td><code>[TagSelector]</code></td><td>文字列フィールドをタグのドロップダウンにする</td></tr><tr><td><code>[SceneNameSelector]</code></td><td>文字列フィールドをシーン名のドロップダウンにする</td></tr><tr><td><code>[SubclassSelector]</code></td><td><code>[SerializeReference]</code> フィールドで、派生型をドロップダウンから選べるようにする</td></tr></tbody></table></div>
-<p><code>[SubclassSelector]</code> は <code>[SerializeReference]</code> と組み合わせて使います。単独では効果がありません。</p>
 <p>対応するDrawerは<code>ReadOnlyDrawer</code>、<code>DisplayTextDecoratorDrawer</code>、<code>TagSelectorDrawer</code>、<code>SceneNameSelectorDrawer</code>、<code>SubclassSelectorDrawer</code>です。</p>
 <h2 id="関連">関連</h2>
 <ul><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
