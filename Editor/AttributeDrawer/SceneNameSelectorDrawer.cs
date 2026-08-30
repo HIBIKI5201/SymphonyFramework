@@ -34,13 +34,34 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            // 保存済みの値がBuild Settingsから外れている場合は、先頭のシーンを既定値とする。
-            int index = Array.IndexOf(SceneList, property.stringValue);
+            // 属性がフィルターを指定している場合だけ候補を絞る。指定ミスは値を変えずに表示で知らせる。
+            if (!SelectorFilterUtility.TryCreateMask(
+                    SceneList,
+                    ((SceneNameSelectorAttribute)attribute).FilterMethodName,
+                    property.serializedObject.targetObject,
+                    out bool[] mask,
+                    out string errorMessage))
+            {
+                EditorGUI.LabelField(position, label.text, errorMessage);
+                return;
+            }
+
+            string[] selectableScenes = SelectorFilterUtility.ApplyMask(SceneList, mask);
+
+            // フィルターが全候補を落とした場合も、Popupを描かずシリアライズ済みの値を残す。
+            if (selectableScenes.Length == 0)
+            {
+                EditorGUI.LabelField(position, label.text, "条件に一致するシーンがありません。");
+                return;
+            }
+
+            // 保存済みの値が候補から外れている場合は、先頭のシーンを既定値とする。
+            int index = Array.IndexOf(selectableScenes, property.stringValue);
             if (index < 0) { index = 0; }
 
             // Popupの選択結果をシリアライズ対象のシーン名へ反映する。
-            int selectedIndex = EditorGUI.Popup(position, label.text, index, SceneList);
-            property.stringValue = SceneList[selectedIndex];
+            int selectedIndex = EditorGUI.Popup(position, label.text, index, selectableScenes);
+            property.stringValue = selectableScenes[selectedIndex];
         }
 
         #endregion
