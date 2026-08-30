@@ -8,6 +8,7 @@ using SymphonyFrameWork.Debugger.HUD;
 using SymphonyFrameWork.Debugger.Logger;
 using SymphonyFrameWork.System;
 using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFrameWork.System.SceneBlock;
 using SymphonyFrameWork.System.SceneLoad;
 using SymphonyFrameWork.System.ServiceLocate;
 
@@ -67,6 +68,10 @@ namespace SymphonyFrameWork.Orchestrator
 
                 SceneLoader.Initialize();
                 RecordInitializedSubsystem(SceneLoader.ResetRuntimeState);
+
+                // Scene BlockはScene Loadの操作を土台にするため、必ずその後段で初期化する。
+                SceneBlockLoader.Initialize(SceneLoader.CurrentService);
+                RecordInitializedSubsystem(SceneBlockLoader.ResetRuntimeState);
 
                 AudioManager.Initialize(
                     SymphonyConfigLocator.GetConfig<AudioConfig>(),
