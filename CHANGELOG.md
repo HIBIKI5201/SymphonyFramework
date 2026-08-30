@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.5.0] - 2026-08-30
+セレクター属性のドロップダウンへ並べる候補を、利用側のメソッドで絞り込めるようにしました。
+
+### Add
+
+- **`[SceneNameSelector]`、`[TagSelector]`、`[SubclassSelector]`へフィルターメソッド名の引数を追加しました。** 従来はプロジェクトのシーン・タグ・派生型がすべて並び、候補を絞るには利用側でPropertyDrawerを書き直すしかありませんでした。属性の引数はコンパイル時定数に限られデリゲートを渡せないため、`[TagSelector(nameof(IsEnemyTag))]`のようにメソッド名で指定し、Drawerが描画時に解決します。メソッドはフィールドを持つ型かその基底型へ`bool(string)`（`[SubclassSelector]`は`bool(Type)`）として定義し、staticとinstanceのどちらでもよく`private`で構いません。引数を渡さない既存の使い方と保存済みの値は変わりません（[#199](https://github.com/HIBIKI5201/SymphonyFramework/issues/199)）。
+
+### Change
+
+- **フィルターの指定ミスと、候補が空になった場合はドロップダウンを描かず、Inspectorへ理由を表示するようにしました。** `OnGUI`は毎フレーム走るためログでは埋もれます。表示している間はシリアライズ済みの値を書き換えないため、条件を直せば元の値のまま選び直せます。あわせて`TagSelectorDrawer`へ候補が空のときの分岐を追加しました。フィルターを指定しない場合は候補が空にならないため、既存の表示は変わりません。
+
 ## [6.4.0] - 2026-08-26
 Asset Store Tools Packagerの出力完了ログから出力先フォルダを開けるようにしました。
 

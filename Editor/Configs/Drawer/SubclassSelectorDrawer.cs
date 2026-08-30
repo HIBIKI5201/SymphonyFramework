@@ -35,7 +35,6 @@ namespace SymphonyFrameWork.Editor
             // 先頭行をラベルと型選択Popupに分割し、参照先のフィールド描画領域を残す。
             Rect firstLineRect = position;
             firstLineRect.height = EditorGUIUtility.singleLineHeight;
-            Rect controlRect = EditorGUI.PrefixLabel(firstLineRect, label);
 
             // SerializedPropertyのパスから宣言型を復元できない場合は、既存値を壊さないよう標準描画へ戻す。
             Type baseType = GetType(property);
@@ -45,9 +44,10 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
+            SubclassSelectorAttribute selectorAttribute = (SubclassSelectorAttribute)attribute;
+
             // 宣言型とMonoBehaviourの許可条件が同じ場合だけ候補一覧を再利用する。
-            (Type baseType, bool) cacheKey =
-                (baseType, ((SubclassSelectorAttribute)attribute).IsIncludeMono());
+            (Type baseType, bool) cacheKey = (baseType, selectorAttribute.IsIncludeMono());
             if (!s_TypeCache.TryGetValue(
                 cacheKey,
                 out (Type[] types, string[] names, string[] fullNames) cachedData))
@@ -56,6 +56,27 @@ namespace SymphonyFrameWork.Editor
                 s_TypeCache.Add(cacheKey, cachedData);
             }
             (Type[] inheritedTypes, string[] typePopupNameArray, string[] typeFullNameArray) = cachedData;
+
+            // フィルターはtargetObjectの状態に依存し得るため、共有キャッシュではなく取り出した後の並列配列へ適用する。
+            if (!SelectorFilterUtility.TryCreateMask(
+                    inheritedTypes,
+                    selectorAttribute.FilterMethodName,
+                    property.serializedObject.targetObject,
+                    out bool[] mask,
+                    out string errorMessage))
+            {
+                // フィルターの指定ミスでは型選択だけを止め、参照先のフィールドは従来どおり描く。
+                EditorGUI.LabelField(firstLineRect, label.text, errorMessage);
+                DrawManagedReferenceFields(position, property);
+                return;
+            }
+
+            // 3配列は添字が対応しているため、同じマスクで同時に絞る。
+            inheritedTypes = SelectorFilterUtility.ApplyMask(inheritedTypes, mask);
+            typePopupNameArray = SelectorFilterUtility.ApplyMask(typePopupNameArray, mask);
+            typeFullNameArray = SelectorFilterUtility.ApplyMask(typeFullNameArray, mask);
+
+            Rect controlRect = EditorGUI.PrefixLabel(firstLineRect, label);
 
             // 保存済みの型が候補から外れている場合は、先頭のnull選択へフォールバックする。
             int currentTypeIndex = Array.IndexOf(typeFullNameArray, property.managedReferenceFullTypename);
@@ -72,16 +93,7 @@ namespace SymphonyFrameWork.Editor
                     selectedType == null ? null : Activator.CreateInstance(selectedType);
             }
 
-            // 参照先がある場合だけ具象型のフィールドを次の行へ描画し、null時の空領域を作らない。
-            if (property.managedReferenceValue != null)
-            {
-                Rect fieldPosition = new(
-                    position.x,
-                    position.y + EditorGUIUtility.singleLineHeight,
-                    position.width,
-                    position.height - EditorGUIUtility.singleLineHeight);
-                EditorGUI.PropertyField(fieldPosition, property, GUIContent.none, true);
-            }
+            DrawManagedReferenceFields(position, property);
         }
 
         /// <summary>
@@ -122,6 +134,24 @@ namespace SymphonyFrameWork.Editor
         private static readonly Dictionary<
             (Type, bool),
             (Type[] types, string[] names, string[] fullNames)> s_TypeCache = new();
+
+        /// <summary>
+        ///     参照先がある場合だけ、具象型のフィールドを型選択の次の行へ描画する。
+        /// </summary>
+        /// <param name="position"> プロパティ全体の描画範囲。 </param>
+        /// <param name="property"> 描画対象のプロパティ。 </param>
+        private static void DrawManagedReferenceFields(Rect position, SerializedProperty property)
+        {
+            // 参照先が無い場合はGetPropertyHeightも1行しか確保しないため、何も描かない。
+            if (property.managedReferenceValue == null) { return; }
+
+            Rect fieldPosition = new(
+                position.x,
+                position.y + EditorGUIUtility.singleLineHeight,
+                position.width,
+                position.height - EditorGUIUtility.singleLineHeight);
+            EditorGUI.PropertyField(fieldPosition, property, GUIContent.none, true);
+        }
 
         /// <summary>
         ///     指定された基底クラスを継承する全ての型情報を収集し、キャッシュデータを作成する。
