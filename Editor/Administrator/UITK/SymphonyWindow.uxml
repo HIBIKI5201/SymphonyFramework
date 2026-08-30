@@ -4,6 +4,7 @@
         <symphony:PauseWindow/>
         <symphony:ServiceLocateWindow/>
         <symphony:SceneLoadWindow/>
+        <symphony:SceneBlockWindow/>
         <symphony:SaveDataWindow/>
         <symphony:DebugHUDWindow/>
         <symphony:AutoEnumGeneratorWindow/>

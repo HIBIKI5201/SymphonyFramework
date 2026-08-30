@@ -44,10 +44,7 @@ namespace SymphonyFrameWork.System.SceneBlock
         /// <returns> ブロック名のOrdinal順に並んだスナップショット。 </returns>
         internal IReadOnlyList<SceneBlockInfo> GetInfos()
         {
-            List<string> blockNames = new(_registry.Entities.Keys);
-
-            // 辞書の列挙順に依存しない表示にするため、ブロック名で並びを固定する。
-            blockNames.Sort(StringComparer.Ordinal);
+            List<string> blockNames = SortedBlockNames();
 
             List<SceneBlockInfo> blockInfos = new(blockNames.Count);
             foreach (string blockName in blockNames)
@@ -58,11 +55,49 @@ namespace SymphonyFrameWork.System.SceneBlock
             return blockInfos;
         }
 
+        /// <summary>
+        ///     追跡中の全ブロックの表示用更新データを取得する。
+        /// </summary>
+        /// <returns> ブロック名のOrdinal順に並んだ更新データ。 </returns>
+        internal IReadOnlyList<SceneBlockDto> GetDtos()
+        {
+            List<string> blockNames = SortedBlockNames();
+
+            List<SceneBlockDto> blockDtos = new(blockNames.Count);
+            foreach (string blockName in blockNames)
+            {
+                SceneBlockLoadEntity entity = _registry.Entities[blockName];
+
+                // 公開API向けInfoと同じ値を、View向けの型として別に組み立てる。
+                blockDtos.Add(new SceneBlockDto(
+                    entity.BlockName,
+                    entity.State,
+                    entity.Progress,
+                    _registry.GetHeldSceneNames(entity.BlockName),
+                    entity.Layers.Count));
+            }
+
+            return blockDtos;
+        }
+
         #endregion
 
         #region 内部処理
 
         private readonly SceneBlockRegistry _registry;
+
+        /// <summary>
+        ///     追跡中のブロック名をOrdinal順で取得する。
+        /// </summary>
+        /// <returns> 並びを固定したブロック名。 </returns>
+        private List<string> SortedBlockNames()
+        {
+            // 辞書の列挙順に依存しない表示にするため、ブロック名で並びを固定する。
+            List<string> blockNames = new(_registry.Entities.Keys);
+            blockNames.Sort(StringComparer.Ordinal);
+
+            return blockNames;
+        }
 
         /// <summary>
         ///     Entityと保持情報から公開用スナップショットを作る。

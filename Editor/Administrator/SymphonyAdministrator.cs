@@ -37,6 +37,7 @@ namespace SymphonyFrameWork.Editor
         private PauseWindow _pauseWindow;
         private ServiceLocateWindow _serviceLocatorWindow;
         private SceneLoadWindow _sceneLoaderWindow;
+        private SceneBlockWindow _sceneBlockWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
         private SaveDataWindow _saveDataRegistryWindow;
         private DebugHUDWindow _debugHUDWindow;
@@ -55,6 +56,7 @@ namespace SymphonyFrameWork.Editor
                 _pauseWindow = container.Q<PauseWindow>();
                 _serviceLocatorWindow = container.Q<ServiceLocateWindow>();
                 _sceneLoaderWindow = container.Q<SceneLoadWindow>();
+                _sceneBlockWindow = container.Q<SceneBlockWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
                 _saveDataRegistryWindow = container.Q<SaveDataWindow>();
                 _debugHUDWindow = container.Q<DebugHUDWindow>();
@@ -77,11 +79,13 @@ namespace SymphonyFrameWork.Editor
             _pauseWindow?.Dispose();
             _serviceLocatorWindow?.Dispose();
             _sceneLoaderWindow?.Dispose();
+            _sceneBlockWindow?.Dispose();
             _saveDataRegistryWindow?.Dispose();
             _debugHUDWindow?.Dispose();
             _pauseWindow = null;
             _serviceLocatorWindow = null;
             _sceneLoaderWindow = null;
+            _sceneBlockWindow = null;
             _saveDataRegistryWindow = null;
             _debugHUDWindow = null;
         }

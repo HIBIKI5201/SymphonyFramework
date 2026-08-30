@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.7.1] - 2026-08-30
+Scene Blockのロード状態をSymphony Administratorへ表示し、依存グラフの検証結果をInspectorへ出すようにしました。
+
+### Add
+
+- **Symphony Administratorへ Scene Block パネルを追加しました。** Play Mode中、追跡しているブロックの名前、状態、進捗、実行層の数、保持しているシーン名を一覧表示します。Runtimeの状態はViewModelの`ReactiveProperty`を購読して反映し、Editor更新ごとのpollingは行いません（[#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202)）。
+- **`SceneBlockAsset`のInspectorへ依存グラフの検証結果を表示するようにしました。** 解決できる場合は何段階でロードするかと各段階のシーン名、解決できない場合は検出した異常をすべて並べます。**Play Modeに入る前に循環依存や欠落参照へ気づけます。** 判定はRuntimeと同じ内部型を使い、Editorへ規則を複製していません。
+- **ドキュメントページへ`SceneBlock`を追加しました。** パネルの「ドキュメント」ボタンからモジュール文書を開けます。
+
 ## [6.7.0] - 2026-08-30
 Scene Blockを依存順にロードし、単体シーンのロードと共存できるようにしました。
 

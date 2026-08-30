@@ -124,10 +124,14 @@ namespace SymphonyFrameWork.System.SceneBlock
         private static SceneBlockRegistry _registry;
         private static SceneBlockService _service;
         private static SceneBlockQuery _query;
+        private static SceneBlockViewModel _viewModel;
 
         /// <summary> Scene Block Loaderが初期化済みかどうか。 </summary>
         internal static bool IsInitialized =>
-            _registry != null && _service != null && _query != null;
+            _registry != null && _service != null && _query != null && _viewModel != null;
+
+        /// <summary> Compositionが所有する現在のScene Block ViewModel。 </summary>
+        internal static SceneBlockViewModel CurrentViewModel => _viewModel;
 
         /// <summary>
         ///     OrchestratorからScene Block Loaderを初期化する。
@@ -144,6 +148,7 @@ namespace SymphonyFrameWork.System.SceneBlock
                 _registry,
                 new SceneLoadServiceLoader(sceneLoadService));
             _query = new SceneBlockQuery(_registry);
+            _viewModel = new SceneBlockViewModel(_query, _service);
         }
 
         /// <summary>
@@ -151,8 +156,10 @@ namespace SymphonyFrameWork.System.SceneBlock
         /// </summary>
         internal static void ResetRuntimeState()
         {
-            // 保持情報を消してからCompositionの参照を切る。
+            // 購読を先に解除してから保持情報を消し、Compositionの参照をすべて切る。
+            _viewModel?.Dispose();
             _registry?.Clear();
+            _viewModel = null;
             _query = null;
             _service = null;
             _registry = null;

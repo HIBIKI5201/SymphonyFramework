@@ -112,6 +112,7 @@ namespace SymphonyFrameWork.Editor
                 [SymphonyDocumentPageEnum.Index] = "index",
                 [SymphonyDocumentPageEnum.ServiceLocator] = "Modules/ServiceLocator",
                 [SymphonyDocumentPageEnum.SceneLoader] = "Modules/SceneLoader",
+                [SymphonyDocumentPageEnum.SceneBlock] = "Modules/SceneBlock",
                 [SymphonyDocumentPageEnum.SaveDataSystem] = "Modules/SaveDataSystem",
                 [SymphonyDocumentPageEnum.AudioManager] = "Modules/AudioManager",
                 [SymphonyDocumentPageEnum.PauseManager] = "Modules/PauseManager",

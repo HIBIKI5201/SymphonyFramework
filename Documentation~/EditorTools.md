@@ -28,6 +28,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [ログのファイル出力](./Modules/Debug.md#ログのファイル出力) | 自動実行 |
 | [SymphonyMcpTools](./Modules/Debug.md#symphonymcptools) | メニューなし。外部ツールから呼ぶ |
 | [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFrameWork` |
+| [Scene Blockの依存検証](./Modules/SceneBlock.md#editor機能) | `SceneBlockAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |
 | [設定アセットの自動生成](#設定アセットの自動生成) | 自動実行 |
 | [Editorの初期化](#editorの初期化) | 自動実行 |
@@ -71,6 +72,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | --- | --- |
 | Service Locate | 登録済みインスタンスの一覧と登録状態 |
 | Scene Load | ロード済みシーンと進行中のロード |
+| Scene Block | 追跡中のScene Blockの状態、進捗、保持しているシーン |
 | Save Data | 全対応型の一覧、Registry／Window専用インスタンスの接続状態、非接続編集とPlay Modeへの持ち越し |
 | Pause | ポーズ状態の確認と切り替え |
 | Debug HUD | 初期化・利用可否・表示状態・追加テキスト登録数の確認とShow / Hide |
