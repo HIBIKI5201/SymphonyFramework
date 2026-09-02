@@ -64,7 +64,11 @@ namespace SymphonyFrameWork.System.SceneBlock
         [SerializeField, SceneNameSelector, Tooltip("このエントリがロードするシーン名。")]
         private string _sceneName;
 
-        [SerializeField, SceneNameSelector, Tooltip("このシーンより先にロードを完了させるシーン名。")]
+        // 依存先はブロックの中にあるシーンだけを選べる。外のシーンを選べても MissingReference になるため、
+        // 選択の時点で候補から外す。フィルターは同じアセットの SceneBlockAsset 側が持つ。
+        [SerializeField,
+         SceneNameSelector(nameof(SceneBlockAsset.CanDependOnScene)),
+         Tooltip("このシーンより先にロードを完了させるシーン名。同じブロックのシーンだけを選べる。")]
         private string[] _dependsOn = Array.Empty<string>();
 
         [SerializeField, Tooltip("Active Scene選択に使用する優先度。SceneLoadRequestの優先度と同じ意味を持つ。")]

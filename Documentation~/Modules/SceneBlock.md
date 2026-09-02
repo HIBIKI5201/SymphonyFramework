@@ -20,7 +20,7 @@
 | Block Name | ブロックの識別名。空の場合はアセット名を使う |
 | Entries | このブロックがロードするシーンの一覧 |
 | Entries > Scene Name | ロードするシーン名。Build Settings のシーンから選ぶ |
-| Entries > Depends On | **このシーンより先にロードを完了させるシーン名。** 同じブロック内のシーンを指す |
+| Entries > Depends On | **このシーンより先にロードを完了させるシーン名。** 候補は同じブロックに登録済みのシーンだけに絞られる |
 | Entries > Priority | Active Scene 選択に使用する優先度。`SceneLoadRequest` の優先度と同じ意味 |
 | Entries > Is Persistent | ブロックをアンロードしてもこのシーンを残す |
 
@@ -95,8 +95,11 @@ public sealed class BlockSwitcher : MonoBehaviour
 | --- | --- |
 | Symphony Administrator の Scene Block パネル | Play Mode中、追跡しているブロックの名前、状態、進捗、実行層の数、保持しているシーン名を一覧表示する |
 | `SceneBlockAsset` のInspector | 依存グラフの検証結果を表示する。解決できる場合は**何段階でロードするか**と各段階のシーン名、解決できない場合は検出した異常をすべて並べる |
+| `Depends On` の候補の絞り込み | **同じブロックに登録済みのシーンだけを選択肢に出す。** ブロックの外のシーンは選べないため、存在しない依存を書いてしまう経路がなくなる。既に保存済みの依存は、エントリから消えた後も選択肢に残る |
 
 **Inspectorの表示はPlay Modeに入る前に確認できます。** 循環依存や存在しないシーンへの依存は、実行してロードするまで待たずにここで分かります。
+
+**`Depends On` の候補は、エントリを1件も追加していないブロックでは空になります。** 先に `Scene Name` を埋めてから依存を書いてください。
 
 ## 内部構造
 
