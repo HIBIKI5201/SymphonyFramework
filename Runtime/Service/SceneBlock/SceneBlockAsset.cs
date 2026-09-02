@@ -37,6 +37,38 @@ namespace SymphonyFrameWork.System.SceneBlock
         [SerializeField, Tooltip("このブロックがロードするシーンと、その先行依存。")]
         private List<SceneBlockEntry> _entries = new();
 
+        /// <summary>
+        ///     依存先として選べるシーン名かを判定する。
+        /// </summary>
+        /// <param name="sceneName"> 判定するシーン名。 </param>
+        /// <returns> 依存先の候補に残す場合はtrue。 </returns>
+        /// <remarks>
+        ///     <see cref="SceneBlockEntry" /> の依存欄が <c>SceneNameSelector</c> のフィルターとして呼ぶ。
+        ///     **ブロックの外にあるシーンは依存先にできないため、そもそも選べないようにする。**
+        ///     Build Settings の全シーンを並べると、選んだ後に
+        ///     <c>MissingReference</c> で弾かれることに気づく形になる。
+        ///     既に依存として保存済みのシーン名も候補に残す。**候補から外すと、
+        ///     Drawerが保存済みの値を先頭の候補へ書き換えてしまい、記述が黙って変わる。**
+        ///     外れた依存であること自体は <see cref="SceneBlockEntryReader" /> の検証が知らせる。
+        /// </remarks>
+        internal bool CanDependOnScene(string sceneName)
+        {
+            if (string.IsNullOrWhiteSpace(sceneName)) { return false; }
+
+            foreach (SceneBlockEntry entry in Entries)
+            {
+                if (entry == null) { continue; }
+                if (string.Equals(entry.SceneName, sceneName, StringComparison.Ordinal)) { return true; }
+
+                foreach (string dependency in entry.DependsOn)
+                {
+                    if (string.Equals(dependency, sceneName, StringComparison.Ordinal)) { return true; }
+                }
+            }
+
+            return false;
+        }
+
         #endregion
     }
 }

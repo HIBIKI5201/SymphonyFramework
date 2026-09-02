@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+
+using NUnit.Framework;
 
 using SymphonyFrameWork.System.SceneBlock;
 
@@ -81,6 +83,108 @@ namespace SymphonyFrameWork.Tests
             Assert.That(asset.Entries[0].DependsOn, Is.EqualTo(new[] { "Town_Base" }));
             Assert.That(asset.Entries[0].Priority, Is.EqualTo(7));
             Assert.That(asset.Entries[0].IsPersistent, Is.True);
+        }
+
+        /// <summary>
+        ///     ブロックに登録済みのシーンは依存先の候補になる。
+        /// </summary>
+        [Test]
+        public void CanDependOnScene_RegisteredScene_IsCandidate()
+        {
+            SceneBlockAsset asset = CreateAsset("TownBlock");
+            WriteEntries(asset, ("Town_Base", Array.Empty<string>()), ("Town_Props", new[] { "Town_Base" }));
+
+            Assert.That(asset.CanDependOnScene("Town_Base"), Is.True);
+            Assert.That(asset.CanDependOnScene("Town_Props"), Is.True);
+        }
+
+        /// <summary>
+        ///     ブロックの外にあるシーンは依存先の候補にしない。
+        /// </summary>
+        /// <remarks>
+        ///     選んだ後にMissingReferenceで弾かれる形を避けるための絞り込みである。
+        /// </remarks>
+        [Test]
+        public void CanDependOnScene_SceneOutsideBlock_IsNotCandidate()
+        {
+            SceneBlockAsset asset = CreateAsset("TownBlock");
+            WriteEntries(asset, ("Town_Base", Array.Empty<string>()));
+
+            Assert.That(asset.CanDependOnScene("Dungeon_Base"), Is.False);
+        }
+
+        /// <summary>
+        ///     既に依存として保存済みのシーン名は、エントリに無くても候補に残す。
+        /// </summary>
+        /// <remarks>
+        ///     **候補から外すと、Drawerが保存済みの値を先頭の候補へ書き換えてしまう。**
+        ///     外れた依存であることは検証側が知らせるため、値そのものは保持する。
+        /// </remarks>
+        [Test]
+        public void CanDependOnScene_AlreadySavedDependency_StaysCandidate()
+        {
+            SceneBlockAsset asset = CreateAsset("TownBlock");
+            WriteEntries(asset, ("Town_Props", new[] { "Removed_Base" }));
+
+            Assert.That(asset.CanDependOnScene("Removed_Base"), Is.True);
+        }
+
+        /// <summary>
+        ///     空のシーン名は候補にしない。
+        /// </summary>
+        [Test]
+        public void CanDependOnScene_BlankName_IsNotCandidate()
+        {
+            SceneBlockAsset asset = CreateAsset("TownBlock");
+            WriteEntries(asset, ("Town_Base", Array.Empty<string>()));
+
+            Assert.That(asset.CanDependOnScene(null), Is.False);
+            Assert.That(asset.CanDependOnScene(string.Empty), Is.False);
+            Assert.That(asset.CanDependOnScene("   "), Is.False);
+        }
+
+        /// <summary>
+        ///     エントリが無いアセットは、どのシーンも依存先の候補にしない。
+        /// </summary>
+        [Test]
+        public void CanDependOnScene_NoEntries_IsNotCandidate()
+        {
+            SceneBlockAsset asset = CreateAsset("TownBlock");
+
+            Assert.That(asset.CanDependOnScene("Town_Base"), Is.False);
+        }
+
+        /// <summary>
+        ///     シリアライズ経由でエントリを書き込む。
+        /// </summary>
+        /// <param name="asset"> 書き込む対象のアセット。 </param>
+        /// <param name="entries"> シーン名と依存一覧の組。 </param>
+        /// <remarks>
+        ///     Inspectorから設定した場合と同じ経路を通し、フィールド名の変更にも気づけるようにする。
+        /// </remarks>
+        private static void WriteEntries(
+            SceneBlockAsset asset,
+            params (string SceneName, string[] DependsOn)[] entries)
+        {
+            SerializedObject serialized = new(asset);
+            SerializedProperty serializedEntries = serialized.FindProperty("_entries");
+            serializedEntries.arraySize = entries.Length;
+
+            for (int index = 0; index < entries.Length; index++)
+            {
+                SerializedProperty entry = serializedEntries.GetArrayElementAtIndex(index);
+                entry.FindPropertyRelative("_sceneName").stringValue = entries[index].SceneName;
+
+                SerializedProperty dependsOn = entry.FindPropertyRelative("_dependsOn");
+                dependsOn.arraySize = entries[index].DependsOn.Length;
+                for (int dependencyIndex = 0; dependencyIndex < entries[index].DependsOn.Length; dependencyIndex++)
+                {
+                    dependsOn.GetArrayElementAtIndex(dependencyIndex).stringValue =
+                        entries[index].DependsOn[dependencyIndex];
+                }
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary> テストの間だけ存在させるアセット。 </summary>
