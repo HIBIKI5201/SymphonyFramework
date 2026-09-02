@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.8.1] - 2026-09-02
+Scene Blockに二重に存在していたAuthoringアセットを1つへ統合しました。
+
+### Fix
+
+- **`SceneBlockAsset` と `SceneBlockAssetDrawer` の重複定義を解消しました。** `SymphonyFrameWork.System.SceneBlock` 名前空間に同名の型が2つ存在し、`CS0101` でコンパイルできない状態でした。Issue [#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202) で公開APIとして設計した側を正とし、シーン識別子と辺を別々に持つ内部実装を取り除いています。**両者は同じ `SceneBlockGraphPlanner` を土台にした同じ役割のAuthoring層で、取り除いた側は `CreateAssetMenu` を持たず、どこからも参照されていませんでした。**
+- **併せて `SceneBlockAssetPlanner` と `SceneBlockEdgeAuthoring` を削除しました。** 取り除いた `SceneBlockAsset` だけが参照しており、残しても到達できないためです。
+
 ## [6.8.0] - 2026-08-30
 ピュアC#の型をコンストラクタ注入で生成できるようにしました。
 
