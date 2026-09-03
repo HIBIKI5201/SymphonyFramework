@@ -97,43 +97,53 @@ th { background: var(--code-bg); white-space: nowrap; }
 <body>
 <nav class="doc-nav"><a href="../index.html">Symphony Framework Documentation</a></nav>
 <h1 id="pause-manager">Pause Manager</h1>
-<p>ゲーム全体のポーズ状態を切り替え、通知やポーズ対応の待機処理を利用できます。</p>
+<p><strong>カテゴリーごとにポーズ状態を切り替え</strong>、通知やポーズ対応の待機処理を利用できます。「UIは動かしたままゲームプレイだけ止める」といった分け方ができます。</p>
 <h2 id="入口">入口</h2>
-<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System</code></td></tr><tr><td>主な公開型</td><td><code>PauseManager</code> / <code>IPausable</code></td></tr><tr><td>メニューパス</td><td><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code> の <code>Pause</code> パネル</td></tr><tr><td>設定の保存先</td><td>なし</td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System</code></td></tr><tr><td>主な公開型</td><td><code>PauseManager</code> / <code>IPausable</code> / <code>PauseInfo</code></td></tr><tr><td>メニューパス</td><td><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code> の <code>Pause</code> パネル</td></tr><tr><td>設定の保存先</td><td><code>Project Settings &gt; SymphonyFrameWork &gt; Pause Category</code>（カテゴリー名の登録）</td></tr></tbody></table></div>
 <h2 id="クイックスタート">クイックスタート</h2>
+<p><strong>カテゴリーは<code>PauseManager.IPausable</code>を継承した空のinterfaceで表します。</strong> 手で書いても、<code>Project Settings &gt; SymphonyFrameWork &gt; Pause Category</code> から生成しても構いません。</p>
 <pre><code class="language-csharp">using SymphonyFrameWork.System;
 
-private void OnEnable()
+// カテゴリーの定義。空のinterfaceでよい
+public interface IGameplayPausable : PauseManager.IPausable { }
+public interface IUiPausable : PauseManager.IPausable { }</code></pre>
+<p>止めたい対象は、属したいカテゴリーを実装します。</p>
+<pre><code class="language-csharp">public sealed class Enemy : MonoBehaviour, IGameplayPausable
 {
-    PauseManager.OnPauseChanged += HandlePauseChanged;
-}
+    private void OnEnable() =&gt; PauseManager.IPausable.RegisterPauseManager(this);
+    private void OnDisable() =&gt; PauseManager.IPausable.UnregisterPauseManager(this);
 
-private void OnDisable()
-{
-    PauseManager.OnPauseChanged -= HandlePauseChanged;
-}
-
-private void HandlePauseChanged(bool paused)
-{
-    // UI更新など
-}
-
-public void SetPaused(bool paused)
-{
-    PauseManager.Pause = paused;
-}
-
-private async void RunAfterOneActiveSecond()
-{
-    await PauseManager.PausableWaitForSecondAsync(1.0f, destroyCancellationToken);
-    // ポーズ時間を除く1秒後の処理
+    public void Pause() { /* 停止処理 */ }
+    public void Resume() { /* 再開処理 */ }
 }</code></pre>
-<p>Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズへ追従させられます。オブジェクト単位の通知には<code>PauseManager.IPausable</code>を実装します。</p>
+<p>操作と購読は型パラメータで行います。</p>
+<pre><code class="language-csharp">// このカテゴリーの対象だけが止まる。UIは動き続ける
+PauseManager.SetPause&lt;IGameplayPausable&gt;(true);
+bool paused = PauseManager.IsPaused&lt;IGameplayPausable&gt;();
+
+// 全部止める・どれか1つでも止まっているか
+PauseManager.SetPauseAll(true);
+bool anyPaused = PauseManager.IsPausedAny();
+
+// 通知の購読。**eventは型パラメータを持てないためメソッドで受け取る**
+PauseManager.AddPauseChangedHandler&lt;IGameplayPausable&gt;(HandlePauseChanged);
+PauseManager.RemovePauseChangedHandler&lt;IGameplayPausable&gt;(HandlePauseChanged);
+
+// 待機もカテゴリーを指定する
+await PauseManager.PausableWaitForSecondAsync&lt;IGameplayPausable&gt;(1.0f, destroyCancellationToken);</code></pre>
+<p>Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズへ追従させられます。</p>
+<h3 id="複数のカテゴリーに属する場合">複数のカテゴリーに属する場合</h3>
+<p><strong>どれか1つでもポーズなら<code>Pause()</code>が呼ばれ、すべて解除されたときだけ<code>Resume()</code>が呼ばれます。</strong> 対象ごとに停止要因の数を持っているため、2つ止めて片方だけ解除しても再開しません。</p>
+<p>派生カテゴリーを実装した対象は、基底カテゴリーにも属します。基底を止めれば派生の対象も止まります。</p>
+<h3 id="カテゴリーを指定しない場合">カテゴリーを指定しない場合</h3>
+<p><code>PauseManager.IPausable</code>を直接実装した対象は、<strong>既定カテゴリー</strong>に属します。<code>SetPauseAll</code>でも<code>SetPause&lt;PauseManager.IPausable&gt;</code>でも止まります。どのカテゴリーにも属さず絶対に止まらない対象は生まれません。</p>
+<h3 id="旧apiからの移行">旧APIからの移行</h3>
+<p>カテゴリーを指定しない<code>Pause</code>、<code>OnPauseChanged</code>、待機系6件は<strong>非推奨</strong>です。削除はしておらず、「どれか1つでもポーズ中か」を見て従来どおり動きます。移行先は<a href="../Deprecations.html">Deprecations.md</a>にあります。</p>
 <h2 id="実装時の注意">実装時の注意</h2>
-<ul><li>ポーズ中も止める待機には<code>PausableWaitForSecondAsync</code>、<code>PausableWaitForSecond</code>、<code>PausableNextFrameAsync</code>を使う。<code>Task.Delay</code>や通常の<code>WaitForSeconds</code>では代用しない。</li><li><strong>非同期の待機APIは<code>Awaitable</code>を返す。</strong> <code>Awaitable</code>は1回しか<code>await</code>できず、保存も共有もできない。フィールドへ持たず、その場で待機する。複数待機は<code>SymphonyAwaitable.WhenAll</code>、<code>Task</code>と混ぜる場合は<code>SymphonyAwaitable.AsTask</code>を使う。</li><li><code>PauseManager.IPausable</code>は有効化時に登録し、無効化時に解除する。同じ対象を重複登録しても通知は1回だけ届く。</li><li><strong><code>OnPauseChanged</code>は値が変わったときだけ発行される。</strong> <code>Pause = true</code>を2回続けても<code>IPausable.Pause()</code>は1回しか呼ばれない。同じ値の再設定を通知の起点にしない。</li><li>ポーズ状態と<code>IPausable</code>の購読件数をまとめて調べる場合は<code>PauseManager.GetPauseInfo()</code>を使い、戻る<code>PauseInfo</code>を取得時点のスナップショットとして扱う。購読件数は解除し忘れの検出に使える。</li><li><code>OnPauseChanged</code>の購読者が投げた例外は握り潰されず、<code>Pause</code>を設定した側へ伝播する。購読側で処理する。</li></ul>
+<ul><li>ポーズ中も止める待機には<code>PausableWaitForSecondAsync</code>、<code>PausableWaitForSecond</code>、<code>PausableNextFrameAsync</code>を使う。<code>Task.Delay</code>や通常の<code>WaitForSeconds</code>では代用しない。</li><li><strong>非同期の待機APIは<code>Awaitable</code>を返す。</strong> <code>Awaitable</code>は1回しか<code>await</code>できず、保存も共有もできない。フィールドへ持たず、その場で待機する。複数待機は<code>SymphonyAwaitable.WhenAll</code>、<code>Task</code>と混ぜる場合は<code>SymphonyAwaitable.AsTask</code>を使う。</li><li><code>PauseManager.IPausable</code>は有効化時に登録し、無効化時に解除する。同じ対象を重複登録しても通知は1回だけ届く。<strong>属するカテゴリーは実装しているinterfaceから自動で決まる</strong>ため、登録時にカテゴリーを渡す必要はない。</li><li><strong>通知は値が変わったときだけ発行される。</strong> 同じ値を2回設定しても<code>IPausable.Pause()</code>は1回しか呼ばれない。同じ値の再設定を通知の起点にしない。</li><li><strong><code>SetPause&lt;TCategory&gt;</code>の型引数はinterfaceでなければならない。</strong> 型制約<code>where TCategory : IPausable</code>は<code>IPausable</code>を実装した具象クラスも通してしまうため、具象型を渡すと<code>ArgumentException</code>になる。</li><li><strong>ポーズ中に登録した対象は、さかのぼって停止しない。</strong> 登録時点では<code>Pause()</code>が呼ばれず、解除されたときに<code>Resume()</code>が届く。</li><li>カテゴリー単位の状態と件数は<code>PauseManager.GetPauseInfo&lt;TCategory&gt;()</code>で調べる。全体は<code>GetPauseInfo()</code>で、この場合<code>PauseInfo.Category</code>は<code>null</code>になる。いずれも取得時点のスナップショットとして扱う。購読件数は解除し忘れの検出に使える。</li><li>通知の購読者が投げた例外は握り潰されず、状態を設定した側へ伝播する。購読側で処理する。</li></ul>
 <h2 id="editor機能">Editor機能</h2>
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
-<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Pause</td><td>ポーズ状態の確認と切り替え</td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Pause</td><td>全体のポーズ状態の確認と切り替え、<code>IPausable</code>の購読件数</td></tr><tr><td>Pause &gt; Categories</td><td><strong>カテゴリーごとのポーズ状態と、属する対象の件数。</strong> 表示名の昇順で並ぶ</td></tr></tbody></table></div>
 <p>Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
 <h3 id="ポーズカテゴリーの生成">ポーズカテゴリーの生成</h3>
 <p><strong>入口</strong>: <code>Project Settings &gt; SymphonyFrameWork &gt; Pause Category</code></p>

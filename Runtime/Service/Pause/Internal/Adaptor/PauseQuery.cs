@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SymphonyFrameWork.System
 {
@@ -48,7 +49,8 @@ namespace SymphonyFrameWork.System
         ///     管理状態の表示用更新値を返す。
         /// </summary>
         /// <returns> 取得時点の表示値。 </returns>
-        internal PauseDto GetDto() => new(_state.IsPausedAny, _registry.Count);
+        internal PauseDto GetDto() =>
+            new(_state.IsPausedAny, _registry.Count, BuildCategoryDtos());
 
         #endregion
 
@@ -56,6 +58,40 @@ namespace SymphonyFrameWork.System
 
         private readonly PauseStateEntity _state;
         private readonly PausableRegistry _registry;
+
+        /// <summary>
+        ///     表示するカテゴリーの一覧を組み立てる。
+        /// </summary>
+        /// <returns> 表示名の昇順に並んだカテゴリーごとの表示値。 </returns>
+        /// <remarks>
+        ///     <para>
+        ///         対象は「状態を持つカテゴリー」と「登録済みの対象が属するカテゴリー」の和である。
+        ///         **状態側だけを見ると足りない。** まだ誰も止めていないカテゴリーは状態を持たない。
+        ///     </para>
+        ///     <para>
+        ///         **必ず並べ替える。** 辞書の列挙順は保証されず、並びが揺れると
+        ///         内容が同じでもViewModelが変化として通知してしまう。
+        ///     </para>
+        /// </remarks>
+        private IReadOnlyList<PauseCategoryDto> BuildCategoryDtos()
+        {
+            HashSet<Type> categories = new(_state.Categories);
+            categories.UnionWith(_registry.GetAllCategories());
+
+            List<PauseCategoryDto> dtos = new(categories.Count);
+            foreach (Type category in categories)
+            {
+                dtos.Add(new PauseCategoryDto(
+                    category.Name,
+                    _state.IsPaused(category),
+                    _registry.CountIn(category)));
+            }
+
+            dtos.Sort(static (left, right) =>
+                string.CompareOrdinal(left.CategoryName, right.CategoryName));
+
+            return dtos;
+        }
 
         #endregion
     }

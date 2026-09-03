@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.14.0] - 2026-09-03
+Symphony Administratorへカテゴリー別の表示を追加し、サンプルと文書をカテゴリー対応にしました。Issue [#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168) はこれで完了です。
+
+### Add
+
+- **Symphony Administratorの Pause パネルへ `Categories` の一覧を追加しました。** カテゴリーごとのポーズ状態と、そのカテゴリーに属する対象の件数を表示します。**表示名の昇順で並びます** — 辞書の列挙順は保証されず、並びが揺れると内容が同じでも表示が更新され続けるためです。
+- **`PauseManagerSample` をカテゴリー対応へ書き換えました。** 白いCubeが Gameplay、水色のCubeが UI のカテゴリーに属し、**片方を止めてももう片方は動き続ける**ことを実演します。カテゴリーの定義はサンプル内で手書きしており、生成を使わなくても書けることを示しています。
+
+### Change
+
+- **`Documentation~/Modules/PauseManager.md` をカテゴリー前提の内容へ書き換えました。** カテゴリーの定義、複数カテゴリーに属する場合の合成規則、カテゴリーを指定しない場合の既定カテゴリー、旧APIからの移行を追加しています。
+
 ## [6.13.0] - 2026-09-03
 ポーズカテゴリーのinterfaceをProject Settingsから自動生成できるようにしました。
 
