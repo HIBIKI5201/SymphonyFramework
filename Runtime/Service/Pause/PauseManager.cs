@@ -32,8 +32,8 @@ namespace SymphonyFrameWork.System
         /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
         public static bool Pause
         {
-            get => EnsureInitialized().IsPaused;
-            set => EnsureInitialized().SetPaused(value);
+            get => EnsureInitialized().IsPausedAny;
+            set => EnsureInitialized().SetPausedAll(value);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace SymphonyFrameWork.System
             PauseQuery query = EnsureQuery();
 
             // 呼び出し時点でポーズ中なら待機を1フレーム延長し、フレーム処理の進行を遅らせる。
-            if (query.IsPaused) { await Awaitable.NextFrameAsync(token); }
+            if (query.IsPausedAny) { await Awaitable.NextFrameAsync(token); }
 
             // 非ポーズ時にも必ず次のPlayerLoopまで制御を戻す。
             await Awaitable.NextFrameAsync(token);
@@ -74,7 +74,7 @@ namespace SymphonyFrameWork.System
             // ポーズ中のdeltaTimeを残り時間へ反映せず、待機時間とTween相当の進行を停止状態へ追従させる。
             while (time > 0)
             {
-                if (!query.IsPaused) { time -= Time.deltaTime; }
+                if (!query.IsPausedAny) { time -= Time.deltaTime; }
                 yield return null;
             }
         }
@@ -93,7 +93,7 @@ namespace SymphonyFrameWork.System
             // ポーズ中のdeltaTimeを残り時間へ反映せず、待機の進行をポーズ状態へ追従させる。
             while (time > 0)
             {
-                if (!query.IsPaused) { time -= Time.deltaTime; }
+                if (!query.IsPausedAny) { time -= Time.deltaTime; }
                 await Awaitable.NextFrameAsync(token);
             }
         }
@@ -115,7 +115,7 @@ namespace SymphonyFrameWork.System
             await SymphonyAwaitable.WaitWhile(() => !action.Invoke(), token);
 
             // 条件成立時点がポーズ中なら、後続処理を同じフレームで再開させない。
-            if (query.IsPaused) { await Awaitable.NextFrameAsync(token); }
+            if (query.IsPausedAny) { await Awaitable.NextFrameAsync(token); }
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+
+using NUnit.Framework;
 
 using SymphonyFrameWork.System;
 
@@ -10,63 +12,141 @@ namespace SymphonyFrameWork.Tests
     /// </summary>
     public sealed class PauseStateEntityTests
     {
-        /// <summary> 生成直後は非ポーズである。 </summary>
+        /// <summary> 検証用のカテゴリー。 </summary>
+        private interface IGameplayCategory : PauseManager.IPausable { }
+
+        /// <summary> 検証用のカテゴリー。 </summary>
+        private interface IUiCategory : PauseManager.IPausable { }
+
+        /// <summary> 生成直後はどのカテゴリーもポーズしていない。 </summary>
         [Test]
         public void InitialState_IsNotPaused()
         {
-            var state = new PauseStateEntity();
+            PauseStateEntity state = new();
 
-            Assert.That(state.IsPaused, Is.False);
+            Assert.That(state.IsPausedAny, Is.False);
+            Assert.That(state.IsPaused(typeof(IGameplayCategory)), Is.False);
+            Assert.That(state.Categories, Is.Empty);
         }
 
-        /// <summary> 異なる値の設定は状態を変え、変化したことを返す。 </summary>
+        /// <summary> 値を変える設定では状態が変わり、変化したと報告する。 </summary>
         [Test]
         public void SetPaused_DifferentValue_ChangesStateAndReportsChange()
         {
-            var state = new PauseStateEntity();
+            PauseStateEntity state = new();
 
-            bool changed = state.SetPaused(true);
+            bool changed = state.SetPaused(typeof(IGameplayCategory), true);
 
             Assert.That(changed, Is.True);
-            Assert.That(state.IsPaused, Is.True);
+            Assert.That(state.IsPaused(typeof(IGameplayCategory)), Is.True);
+            Assert.That(state.IsPausedAny, Is.True);
         }
 
         /// <summary>
-        ///     **同じ値の再設定では変化しない。**
-        ///     ここがfalseを返すことで、OnPauseChangedの重複発行と
+        ///     **同じ値の再設定は変化なしとして扱う。**
         ///     IPausable.Pause()の二重呼び出しを防いでいる。
         /// </summary>
         [Test]
         public void SetPaused_SameValue_ReportsNoChange()
         {
-            var state = new PauseStateEntity();
-            state.SetPaused(true);
+            PauseStateEntity state = new();
+            state.SetPaused(typeof(IGameplayCategory), true);
 
-            bool changed = state.SetPaused(true);
+            bool changed = state.SetPaused(typeof(IGameplayCategory), true);
 
-            Assert.That(changed, Is.False, "同じ値の再設定で通知が重複してはいけない。");
-            Assert.That(state.IsPaused, Is.True);
+            Assert.That(changed, Is.False);
+            Assert.That(state.IsPaused(typeof(IGameplayCategory)), Is.True);
         }
 
-        /// <summary> 初期状態での非ポーズ設定も変化として扱わない。 </summary>
+        /// <summary> 一度も設定していないカテゴリーの解除は変化なしとして扱う。 </summary>
         [Test]
         public void SetPaused_InitialFalse_ReportsNoChange()
         {
-            var state = new PauseStateEntity();
+            PauseStateEntity state = new();
 
-            Assert.That(state.SetPaused(false), Is.False);
+            Assert.That(state.SetPaused(typeof(IGameplayCategory), false), Is.False);
         }
 
-        /// <summary> Resetで非ポーズへ戻る。 </summary>
+        /// <summary>
+        ///     カテゴリーごとに独立した状態を持つ。
+        /// </summary>
+        /// <remarks>
+        ///     片方を止めても、もう片方は止まらない。これがこの型の存在理由である。
+        /// </remarks>
         [Test]
-        public void Reset_ReturnsToNotPaused()
+        public void SetPaused_PerCategory_IsIndependent()
         {
-            var state = new PauseStateEntity();
-            state.SetPaused(true);
+            PauseStateEntity state = new();
+
+            state.SetPaused(typeof(IGameplayCategory), true);
+
+            Assert.That(state.IsPaused(typeof(IGameplayCategory)), Is.True);
+            Assert.That(state.IsPaused(typeof(IUiCategory)), Is.False);
+        }
+
+        /// <summary> 1つでもポーズ中ならIsPausedAnyが立つ。 </summary>
+        [Test]
+        public void IsPausedAny_OneCategoryPaused_IsTrue()
+        {
+            PauseStateEntity state = new();
+            state.SetPaused(typeof(IGameplayCategory), true);
+            state.SetPaused(typeof(IUiCategory), false);
+
+            Assert.That(state.IsPausedAny, Is.True);
+        }
+
+        /// <summary> 全て解除されるとIsPausedAnyが落ちる。 </summary>
+        [Test]
+        public void IsPausedAny_AllCategoriesResumed_IsFalse()
+        {
+            PauseStateEntity state = new();
+            state.SetPaused(typeof(IGameplayCategory), true);
+            state.SetPaused(typeof(IUiCategory), true);
+
+            state.SetPaused(typeof(IGameplayCategory), false);
+            state.SetPaused(typeof(IUiCategory), false);
+
+            Assert.That(state.IsPausedAny, Is.False);
+        }
+
+        /// <summary>
+        ///     解除したカテゴリーもCategoriesに残る。
+        /// </summary>
+        /// <remarks>
+        ///     一度でも操作したカテゴリーは、以後の一括操作の対象になる必要がある。
+        /// </remarks>
+        [Test]
+        public void Categories_ResumedCategory_Remains()
+        {
+            PauseStateEntity state = new();
+            state.SetPaused(typeof(IGameplayCategory), true);
+            state.SetPaused(typeof(IGameplayCategory), false);
+
+            Assert.That(state.Categories, Does.Contain(typeof(IGameplayCategory)));
+        }
+
+        /// <summary> Resetで全カテゴリーの状態が消える。 </summary>
+        [Test]
+        public void Reset_ClearsEveryCategory()
+        {
+            PauseStateEntity state = new();
+            state.SetPaused(typeof(IGameplayCategory), true);
+            state.SetPaused(typeof(IUiCategory), true);
 
             state.Reset();
 
-            Assert.That(state.IsPaused, Is.False);
+            Assert.That(state.IsPausedAny, Is.False);
+            Assert.That(state.Categories, Is.Empty);
+        }
+
+        /// <summary> nullのカテゴリーを渡した操作は拒否される。 </summary>
+        [Test]
+        public void NullCategory_Throws()
+        {
+            PauseStateEntity state = new();
+
+            Assert.Throws<ArgumentNullException>(() => state.IsPaused(null));
+            Assert.Throws<ArgumentNullException>(() => state.SetPaused(null, true));
         }
     }
 }
