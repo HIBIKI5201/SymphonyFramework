@@ -302,6 +302,98 @@ namespace SymphonyFrameWork.Tests
             Assert.That(_service.IsPausedAny, Is.True);
         }
 
+        /// <summary> カテゴリー単位の購読者へ、そのカテゴリーの変化だけが届く。 </summary>
+        [Test]
+        public void AddPauseChangedHandler_Category_ReceivesOnlyOwnCategory()
+        {
+            List<bool> received = new();
+            _service.AddPauseChangedHandler(typeof(IGameplayCategory), received.Add);
+
+            _service.SetPaused(typeof(IUiCategory), true);
+            _service.SetPaused(typeof(IGameplayCategory), true);
+
+            Assert.That(received, Is.EqualTo(new[] { true }));
+        }
+
+        /// <summary> 同じカテゴリーへ複数の購読者を追加できる。 </summary>
+        [Test]
+        public void AddPauseChangedHandler_Category_SupportsMultipleHandlers()
+        {
+            int firstCount = 0;
+            int secondCount = 0;
+            _service.AddPauseChangedHandler(typeof(IGameplayCategory), _ => firstCount++);
+            _service.AddPauseChangedHandler(typeof(IGameplayCategory), _ => secondCount++);
+
+            _service.SetPaused(typeof(IGameplayCategory), true);
+
+            Assert.That(firstCount, Is.EqualTo(1));
+            Assert.That(secondCount, Is.EqualTo(1));
+        }
+
+        /// <summary> カテゴリー単位の購読を解除できる。 </summary>
+        [Test]
+        public void RemovePauseChangedHandler_Category_StopsNotification()
+        {
+            List<bool> received = new();
+            Action<bool> handler = received.Add;
+            _service.AddPauseChangedHandler(typeof(IGameplayCategory), handler);
+            _service.RemovePauseChangedHandler(typeof(IGameplayCategory), handler);
+
+            _service.SetPaused(typeof(IGameplayCategory), true);
+
+            Assert.That(received, Is.Empty);
+        }
+
+        /// <summary> 未購読のカテゴリーの解除は何もしない。 </summary>
+        [Test]
+        public void RemovePauseChangedHandler_Category_NotSubscribed_IsHarmless()
+        {
+            Assert.DoesNotThrow(
+                () => _service.RemovePauseChangedHandler(typeof(IGameplayCategory), _ => { }));
+        }
+
+        /// <summary> カテゴリーに属する対象の件数を数えられる。 </summary>
+        [Test]
+        public void CountPausablesIn_CountsOnlyMembers()
+        {
+            _service.Register(new GameplayPausable());
+            _service.Register(new GameplayAndUiPausable());
+            _service.Register(new TestPausable());
+
+            Assert.That(_service.CountPausablesIn(typeof(IGameplayCategory)), Is.EqualTo(2));
+            Assert.That(_service.CountPausablesIn(typeof(IUiCategory)), Is.EqualTo(1));
+            Assert.That(
+                _service.CountPausablesIn(PauseCategoryResolver.DefaultCategory),
+                Is.EqualTo(1));
+        }
+
+        /// <summary> Resetでカテゴリー単位の購読も消える。 </summary>
+        [Test]
+        public void Reset_ClearsCategoryHandlers()
+        {
+            List<bool> received = new();
+            _service.AddPauseChangedHandler(typeof(IGameplayCategory), received.Add);
+
+            _service.Reset();
+            _service.SetPaused(typeof(IGameplayCategory), true);
+
+            Assert.That(received, Is.Empty);
+        }
+
+        /// <summary> nullを渡したカテゴリー購読の操作は拒否される。 </summary>
+        [Test]
+        public void CategoryHandler_NullArguments_Throw()
+        {
+            Assert.Throws<ArgumentNullException>(
+                () => _service.AddPauseChangedHandler(null, _ => { }));
+            Assert.Throws<ArgumentNullException>(
+                () => _service.AddPauseChangedHandler(typeof(IGameplayCategory), null));
+            Assert.Throws<ArgumentNullException>(
+                () => _service.RemovePauseChangedHandler(null, _ => { }));
+            Assert.Throws<ArgumentNullException>(
+                () => _service.RemovePauseChangedHandler(typeof(IGameplayCategory), null));
+        }
+
         /// <summary> 登録と解除でも表示向けの状態変更が発行される。購読件数を表示するため。 </summary>
         [Test]
         public void RegisterAndUnregister_RaiseStateChanged()

@@ -1,5 +1,20 @@
 # Changelog
 
+## [6.11.0] - 2026-09-03
+カテゴリーを指定してポーズを操作する公開APIを追加しました。
+
+### Add
+
+- **`PauseManager.SetPause<TCategory>(bool)` と `IsPaused<TCategory>()` を追加しました。** カテゴリーは `PauseManager.IPausable` を継承した空のinterfaceで表し、そのカテゴリーを実装した対象だけが停止します。他のカテゴリーの対象は動き続けます（[#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168)）。
+- **`SetPauseAll(bool)` と `IsPausedAny()` を追加しました。** 「全部止める」はカテゴリーではなく操作として提供します。全体を表すカテゴリー型を作ると、利用側が「それも実装するべきか」を毎回考えることになるためです。
+- **`AddPauseChangedHandler<TCategory>(Action<bool>)` と `RemovePauseChangedHandler<TCategory>(Action<bool>)` を追加しました。** カテゴリー単位の通知を購読します。**C#の`event`は型パラメータを持てない**ため、`OnPauseChanged`のようなevent形式ではなくメソッドで提供します。
+- **`GetPauseInfo<TCategory>()` を追加し、`PauseInfo` へ `Category` を追加しました。** カテゴリー単位のポーズ状態と、そのカテゴリーに属する対象の件数を取得できます。`Category` は全体の情報では `null` です。
+- **`IPausable` 自身を型引数に指定できます。** カテゴリーを明示していない対象を指します。一方、`IPausable` を実装した具象クラスを指定すると `ArgumentException` になります。型制約 `where TCategory : IPausable` は具象クラスも通してしまうため、実行時に弾いています。
+
+### Change
+
+- **`PauseManager` と `IPausable` を、テスト未実装の公開型の一覧から外しました。** 両方に `PauseManagerTests` で実テストを置いています。
+
 ## [6.10.0] - 2026-09-03
 ポーズ状態をカテゴリーごとに持てるよう、内部の状態管理を作り替えました。公開APIは変わりません。
 

@@ -39,6 +39,13 @@ namespace SymphonyFrameWork.System
         public int PausableSubscriberCount => _registry.Count;
 
         /// <summary>
+        ///     カテゴリーに属するポーズ対象の件数を返す。
+        /// </summary>
+        /// <param name="category"> 対象のカテゴリー。 </param>
+        /// <returns> 件数。 </returns>
+        public int CountPausablesIn(Type category) => _registry.CountIn(category);
+
+        /// <summary>
         ///     カテゴリーのポーズ状態を返す。
         /// </summary>
         /// <param name="category"> 対象のカテゴリー。 </param>
@@ -97,6 +104,41 @@ namespace SymphonyFrameWork.System
         }
 
         /// <summary>
+        ///     カテゴリー単位のポーズ通知の購読者を追加する。
+        /// </summary>
+        /// <param name="category"> 対象のカテゴリー。 </param>
+        /// <param name="handler"> 追加する処理。 </param>
+        /// <exception cref="ArgumentNullException"> categoryまたはhandlerがnullの場合。 </exception>
+        public void AddPauseChangedHandler(Type category, Action<bool> handler)
+        {
+            if (category == null) { throw new ArgumentNullException(nameof(category)); }
+            if (handler == null) { throw new ArgumentNullException(nameof(handler)); }
+
+            _categoryHandlers.TryGetValue(category, out Action<bool> current);
+            _categoryHandlers[category] = current + handler;
+        }
+
+        /// <summary>
+        ///     カテゴリー単位のポーズ通知の購読者を除去する。
+        /// </summary>
+        /// <param name="category"> 対象のカテゴリー。 </param>
+        /// <param name="handler"> 除去する処理。 </param>
+        /// <exception cref="ArgumentNullException"> categoryまたはhandlerがnullの場合。 </exception>
+        public void RemovePauseChangedHandler(Type category, Action<bool> handler)
+        {
+            if (category == null) { throw new ArgumentNullException(nameof(category)); }
+            if (handler == null) { throw new ArgumentNullException(nameof(handler)); }
+
+            if (!_categoryHandlers.TryGetValue(category, out Action<bool> current)) { return; }
+
+            Action<bool> remaining = current - handler;
+
+            // 購読者が0件になったカテゴリーの行を残さない。Resetまで辞書が伸び続ける。
+            if (remaining == null) { _categoryHandlers.Remove(category); }
+            else { _categoryHandlers[category] = remaining; }
+        }
+
+        /// <summary>
         ///     ポーズ通知を受け取る対象を登録する。登録済みの場合は何もしない。
         /// </summary>
         /// <param name="pausable"> ポーズ通知を受け取る対象。 </param>
@@ -147,6 +189,7 @@ namespace SymphonyFrameWork.System
             // Domain Reloadなしの再初期化へ前回の状態やゲームロジックの購読を残さない。
             _state.Reset();
             _registry.Clear();
+            _categoryHandlers.Clear();
             OnPauseChanged = null;
             RaiseStateChanged();
         }
@@ -157,6 +200,7 @@ namespace SymphonyFrameWork.System
 
         private readonly PauseStateEntity _state;
         private readonly PausableRegistry _registry;
+        private readonly Dictionary<Type, Action<bool>> _categoryHandlers = new();
 
         /// <summary>
         ///     複数カテゴリーの状態をまとめて設定し、切り替わった対象と全体の変化を通知する。
@@ -173,18 +217,18 @@ namespace SymphonyFrameWork.System
             // 全体の状態が変化したかは、カテゴリーを書き換える前後で比べないと判定できない。
             bool wasPausedAny = _state.IsPausedAny;
 
-            bool anyCategoryChanged = false;
+            List<Type> changedCategories = new();
             List<PauseManager.IPausable> affected = new();
             foreach (Type category in categories)
             {
                 // 同じ状態の再設定ではゲームロジックと表示へ重複通知しない。
                 if (!_state.SetPaused(category, isPaused)) { continue; }
 
-                anyCategoryChanged = true;
+                changedCategories.Add(category);
                 affected.AddRange(_registry.ApplyCategoryState(category, isPaused));
             }
 
-            if (!anyCategoryChanged) { return; }
+            if (changedCategories.Count == 0) { return; }
 
             // 表示状態を先に同期し、確定したポーズ状態をゲームロジックへ通知する。従来と同じ順序である。
             RaiseStateChanged();
@@ -194,6 +238,15 @@ namespace SymphonyFrameWork.System
                 // 新しい状態に応じて、対象の停止と再開のどちらか一方だけを通知する。
                 if (isPaused) { pausable.Pause(); }
                 else { pausable.Resume(); }
+            }
+
+            // カテゴリー単位の購読者へは、実際に変化したカテゴリーの分だけ発行する。
+            foreach (Type category in changedCategories)
+            {
+                if (_categoryHandlers.TryGetValue(category, out Action<bool> handler))
+                {
+                    handler.Invoke(isPaused);
+                }
             }
 
             // 公開APIの OnPauseChanged は「ポーズ中か否か」の変化を表す。

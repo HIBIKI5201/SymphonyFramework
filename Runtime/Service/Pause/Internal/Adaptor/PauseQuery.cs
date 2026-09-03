@@ -37,6 +37,14 @@ namespace SymphonyFrameWork.System
         internal PauseInfo GetInfo() => new(_state.IsPausedAny, _registry.Count);
 
         /// <summary>
+        ///     カテゴリー単位の公開スナップショットを返す。
+        /// </summary>
+        /// <param name="category"> 対象のカテゴリー。 </param>
+        /// <returns> 取得時点のカテゴリーの状態。 </returns>
+        internal PauseInfo GetInfo(Type category) =>
+            new(_state.IsPaused(category), _registry.CountIn(category), category);
+
+        /// <summary>
         ///     管理状態の表示用更新値を返す。
         /// </summary>
         /// <returns> 取得時点の表示値。 </returns>

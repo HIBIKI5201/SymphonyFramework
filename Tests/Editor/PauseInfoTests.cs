@@ -44,6 +44,43 @@ namespace SymphonyFrameWork.Tests
             Assert.That(new PauseInfo(true, 2) == new PauseInfo(true, 3), Is.False);
         }
 
+        /// <summary> カテゴリーを指定した場合はそれを公開する。 </summary>
+        [Test]
+        public void Constructor_WithCategory_ExposesCategory()
+        {
+            PauseInfo info = new(true, 1, typeof(PauseManager.IPausable));
+
+            Assert.That(info.Category, Is.EqualTo(typeof(PauseManager.IPausable)));
+        }
+
+        /// <summary> カテゴリーを省略した場合は全体を表すnullになる。 </summary>
+        [Test]
+        public void Constructor_WithoutCategory_HasNullCategory()
+        {
+            Assert.That(new PauseInfo(true, 1).Category, Is.Null);
+        }
+
+        /// <summary> カテゴリーが違えば等しくない。 </summary>
+        [Test]
+        public void Equals_DifferentCategory_AreNotEqual()
+        {
+            PauseInfo overall = new(true, 2);
+            PauseInfo categorized = new(true, 2, typeof(PauseManager.IPausable));
+
+            Assert.That(overall == categorized, Is.False);
+        }
+
+        /// <summary> 同じカテゴリーなら等しい。 </summary>
+        [Test]
+        public void Equals_SameCategory_AreEqual()
+        {
+            PauseInfo left = new(true, 2, typeof(PauseManager.IPausable));
+            PauseInfo right = new(true, 2, typeof(PauseManager.IPausable));
+
+            Assert.That(left == right, Is.True);
+            Assert.That(left.GetHashCode(), Is.EqualTo(right.GetHashCode()));
+        }
+
         /// <summary> 異なる型とは等しくない。 </summary>
         [Test]
         public void Equals_OtherType_IsNotEqual()
