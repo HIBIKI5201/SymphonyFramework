@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 using NUnit.Framework;
@@ -235,6 +236,8 @@ namespace SymphonyFrameWork.Tests
             GameplayPausable pausable = new();
             PauseManager.IPausable.RegisterPauseManager(pausable);
 
+            // 非推奨APIの互換性そのものを検証するテストであるため、警告だけを抑止する。
+#pragma warning disable 618
             PauseManager.Pause = true;
 
             Assert.That(PauseManager.Pause, Is.True);
@@ -244,7 +247,52 @@ namespace SymphonyFrameWork.Tests
             PauseManager.Pause = false;
 
             Assert.That(PauseManager.Pause, Is.False);
+#pragma warning restore 618
             Assert.That(pausable.ResumeCount, Is.EqualTo(1));
+        }
+
+        /// <summary>
+        ///     待機系APIでもカテゴリーではない具象型は拒否する。
+        /// </summary>
+        /// <remarks>
+        ///     **検証は同期部分で行う。** Awaitableを返した後に投げると、
+        ///     呼び出し元のtry/catchでは捕まえられない。
+        /// </remarks>
+        [Test]
+        public void PausableWaiters_ConcreteType_ThrowSynchronously()
+        {
+            PauseManager.Initialize();
+
+            Assert.That(
+                () => PauseManager.PausableNextFrameAsync<ConcretePausable>(),
+                Throws.TypeOf<ArgumentException>());
+            Assert.That(
+                () => PauseManager.PausableWaitForSecondAsync<ConcretePausable>(0.1f),
+                Throws.TypeOf<ArgumentException>());
+            Assert.That(
+                () => PauseManager.PausableWaitUntil<ConcretePausable>(() => true),
+                Throws.TypeOf<ArgumentException>());
+            Assert.That(
+                () => PauseManager.PausableInvoke<ConcretePausable>(() => { }, 0.1f),
+                Throws.TypeOf<ArgumentException>());
+        }
+
+        /// <summary>
+        ///     PausableWaitForSecondの検証は最初のMoveNextまで遅延する。
+        /// </summary>
+        /// <remarks>
+        ///     イテレータであるという従来からの挙動を保っている。
+        ///     Enumeratorを受け取るだけでは何も起きない。
+        /// </remarks>
+        [Test]
+        public void PausableWaitForSecond_ValidationIsDeferredToFirstMoveNext()
+        {
+            PauseManager.Initialize();
+
+            IEnumerator enumerator = PauseManager.PausableWaitForSecond<ConcretePausable>(0.1f);
+
+            Assert.That(enumerator, Is.Not.Null, "Enumeratorを受け取るだけでは投げない。");
+            Assert.That(() => enumerator.MoveNext(), Throws.TypeOf<ArgumentException>());
         }
 
         /// <summary>

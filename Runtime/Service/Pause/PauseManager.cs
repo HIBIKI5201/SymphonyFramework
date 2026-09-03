@@ -21,6 +21,9 @@ namespace SymphonyFrameWork.System
         /// <summary> ポーズ状態が変更されたときに新しい状態を通知する。 </summary>
         /// <remarks> 同じ値の再設定では発行しない。 </remarks>
         /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        [Obsolete(
+            "カテゴリーを指定する AddPauseChangedHandler<TCategory>() と"
+            + " RemovePauseChangedHandler<TCategory>() を使用してください。")]
         public static event Action<bool> OnPauseChanged
         {
             add => EnsureInitialized().AddPauseChangedHandler(value);
@@ -28,8 +31,12 @@ namespace SymphonyFrameWork.System
         }
 
         /// <summary> 現在のポーズ状態。 </summary>
-        /// <remarks> 現在と同じ値を設定した場合は<see cref="OnPauseChanged"/>を発行しない。 </remarks>
+        /// <remarks>
+        ///     取得は「どれか1つでもポーズ中か」、設定は登録済みの全カテゴリーへの一括操作を表す。
+        ///     現在と同じ値を設定した場合は変更を通知しない。
+        /// </remarks>
         /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        [Obsolete("SetPause<TCategory>() / IsPaused<TCategory>() / SetPauseAll() / IsPausedAny() を使用してください。")]
         public static bool Pause
         {
             get => EnsureInitialized().IsPausedAny;
@@ -166,15 +173,25 @@ namespace SymphonyFrameWork.System
         ///     ポーズ状態を考慮して次のフレームまで待機する。
         /// </summary>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
-        public static async Awaitable PausableNextFrameAsync(CancellationToken token = default)
+        [Obsolete("カテゴリーを指定する PausableNextFrameAsync<TCategory>() を使用してください。")]
+        public static Awaitable PausableNextFrameAsync(CancellationToken token = default)
         {
-            PauseQuery query = EnsureQuery();
+            return NextFrameCoreAsync(static query => query.IsPausedAny, token);
+        }
 
-            // 呼び出し時点でポーズ中なら待機を1フレーム延長し、フレーム処理の進行を遅らせる。
-            if (query.IsPausedAny) { await Awaitable.NextFrameAsync(token); }
+        /// <summary>
+        ///     カテゴリーのポーズ状態を考慮して次のフレームまで待機する。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 待機処理を表すAwaitable。 </returns>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        public static Awaitable PausableNextFrameAsync<TCategory>(CancellationToken token = default)
+            where TCategory : IPausable
+        {
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
 
-            // 非ポーズ時にも必ず次のPlayerLoopまで制御を戻す。
-            await Awaitable.NextFrameAsync(token);
+            return NextFrameCoreAsync(static query => query.IsPaused(typeof(TCategory)), token);
         }
 
         /// <summary>
@@ -182,17 +199,28 @@ namespace SymphonyFrameWork.System
         /// </summary>
         /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
         /// <returns> Unity Coroutineで実行するEnumerator。 </returns>
+        [Obsolete("カテゴリーを指定する PausableWaitForSecond<TCategory>() を使用してください。")]
         public static IEnumerator PausableWaitForSecond(float time)
         {
-            PauseQuery query = EnsureQuery();
-            ValidateDuration(time, nameof(time));
+            return WaitForSecondCore(static query => query.IsPausedAny, time, nameof(time));
+        }
 
-            // ポーズ中のdeltaTimeを残り時間へ反映せず、待機時間とTween相当の進行を停止状態へ追従させる。
-            while (time > 0)
-            {
-                if (!query.IsPausedAny) { time -= Time.deltaTime; }
-                yield return null;
-            }
+        /// <summary>
+        ///     カテゴリーのポーズ時間を除外して指定秒数を待機する。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <returns> Unity Coroutineで実行するEnumerator。 </returns>
+        /// <remarks>
+        ///     **検証は最初のMoveNextまで遅延する。** Enumeratorを返すだけの呼び出しでは
+        ///     まだ何も実行されないという、従来からの挙動を保っている。
+        /// </remarks>
+        public static IEnumerator PausableWaitForSecond<TCategory>(float time)
+            where TCategory : IPausable
+        {
+            return WaitForSecondCore(
+                static query => query.IsPaused(typeof(TCategory)), time, nameof(time),
+                typeof(TCategory));
         }
 
         /// <summary>
@@ -201,17 +229,30 @@ namespace SymphonyFrameWork.System
         /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         /// <returns> 待機処理を表すAwaitable。 </returns>
-        public static async Awaitable PausableWaitForSecondAsync(float time, CancellationToken token = default)
+        [Obsolete("カテゴリーを指定する PausableWaitForSecondAsync<TCategory>() を使用してください。")]
+        public static Awaitable PausableWaitForSecondAsync(float time, CancellationToken token = default)
         {
-            PauseQuery query = EnsureQuery();
-            ValidateDuration(time, nameof(time));
+            return WaitForSecondCoreAsync(static query => query.IsPausedAny, time, nameof(time), token);
+        }
 
-            // ポーズ中のdeltaTimeを残り時間へ反映せず、待機の進行をポーズ状態へ追従させる。
-            while (time > 0)
-            {
-                if (!query.IsPausedAny) { time -= Time.deltaTime; }
-                await Awaitable.NextFrameAsync(token);
-            }
+        /// <summary>
+        ///     カテゴリーのポーズ時間を除外して指定秒数を非同期に待機する。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 待機処理を表すAwaitable。 </returns>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        /// <exception cref="ArgumentOutOfRangeException"> timeが負の場合。 </exception>
+        public static Awaitable PausableWaitForSecondAsync<TCategory>(
+            float time,
+            CancellationToken token = default)
+            where TCategory : IPausable
+        {
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
+
+            return WaitForSecondCoreAsync(
+                static query => query.IsPaused(typeof(TCategory)), time, nameof(time), token);
         }
 
         /// <summary>
@@ -220,18 +261,29 @@ namespace SymphonyFrameWork.System
         /// <param name="action"> 待機終了条件を返す処理。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         /// <returns> 条件成立までの待機処理を表すAwaitable。 </returns>
-        public static async Awaitable PausableWaitUntil(Func<bool> action, CancellationToken token = default)
+        [Obsolete("カテゴリーを指定する PausableWaitUntil<TCategory>() を使用してください。")]
+        public static Awaitable PausableWaitUntil(Func<bool> action, CancellationToken token = default)
         {
-            PauseQuery query = EnsureQuery();
+            return WaitUntilCoreAsync(static query => query.IsPausedAny, action, token);
+        }
 
-            // 終了条件を評価できない待機は開始させない。
-            if (action == null) { throw new ArgumentNullException(nameof(action)); }
+        /// <summary>
+        ///     条件が成立するまで非同期に待機し、カテゴリーのポーズ中は同じフレームで再開しない。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="action"> 待機終了条件を返す処理。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 条件成立までの待機処理を表すAwaitable。 </returns>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        /// <exception cref="ArgumentNullException"> actionがnullの場合。 </exception>
+        public static Awaitable PausableWaitUntil<TCategory>(
+            Func<bool> action,
+            CancellationToken token = default)
+            where TCategory : IPausable
+        {
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
 
-            // 条件は毎フレーム観測し、Tweenなど外部で進む処理の完了へ追従する。
-            await SymphonyAwaitable.WaitWhile(() => !action.Invoke(), token);
-
-            // 条件成立時点がポーズ中なら、後続処理を同じフレームで再開させない。
-            if (query.IsPausedAny) { await Awaitable.NextFrameAsync(token); }
+            return WaitUntilCoreAsync(static query => query.IsPaused(typeof(TCategory)), action, token);
         }
 
         /// <summary>
@@ -244,18 +296,37 @@ namespace SymphonyFrameWork.System
         /// <returns> 破棄までの待機を表すAwaitable。 </returns>
         /// <exception cref="ArgumentNullException"> objがnullの場合。 </exception>
         /// <exception cref="ArgumentOutOfRangeException"> tが負の場合。 </exception>
+        [Obsolete("カテゴリーを指定する PausableDestroy<TCategory>() を使用してください。")]
         public static Awaitable PausableDestroy(GameObject obj, float t, CancellationToken token = default)
         {
-            // 検証は同期部分で行い、呼び出し元のtry/catchへ届くようにする。
-            EnsureInitialized();
+            ValidateDestroyArguments(obj, t);
 
-            // 待機完了後に破棄対象を失わないよう、開始前にnullを拒否する。
-            if (obj == null) { throw new ArgumentNullException(nameof(obj)); }
+            return DestroyAfterDelayCoreAsync(static query => query.IsPausedAny, obj, t, token);
+        }
 
-            ValidateDuration(t, nameof(t));
+        /// <summary>
+        ///     カテゴリーのポーズ時間を除外して待機した後にGameObjectを破棄する。
+        /// </summary>
+        /// <remarks> 戻り値を待機しない場合も破棄処理は進行する。 </remarks>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="obj"> 待機後に破棄するGameObject。 </param>
+        /// <param name="t"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 破棄までの待機を表すAwaitable。 </returns>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        /// <exception cref="ArgumentNullException"> objがnullの場合。 </exception>
+        /// <exception cref="ArgumentOutOfRangeException"> tが負の場合。 </exception>
+        public static Awaitable PausableDestroy<TCategory>(
+            GameObject obj,
+            float t,
+            CancellationToken token = default)
+            where TCategory : IPausable
+        {
+            ValidateDestroyArguments(obj, t);
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
 
-            // 遅延本体を分離し、引数検証だけはAwaitableを返す前に同期的に完了させる。
-            return DestroyAfterDelayAsync(obj, t, token);
+            return DestroyAfterDelayCoreAsync(
+                static query => query.IsPaused(typeof(TCategory)), obj, t, token);
         }
 
         /// <summary>
@@ -268,18 +339,37 @@ namespace SymphonyFrameWork.System
         /// <returns> 実行までの待機を表すAwaitable。 </returns>
         /// <exception cref="ArgumentNullException"> actionがnullの場合。 </exception>
         /// <exception cref="ArgumentOutOfRangeException"> tが負の場合。 </exception>
+        [Obsolete("カテゴリーを指定する PausableInvoke<TCategory>() を使用してください。")]
         public static Awaitable PausableInvoke(Action action, float t, CancellationToken token = default)
         {
-            // 検証は同期部分で行い、呼び出し元のtry/catchへ届くようにする。
-            EnsureInitialized();
+            ValidateInvokeArguments(action, t);
 
-            // 待機完了後に実行対象を失わないよう、開始前にnullを拒否する。
-            if (action == null) { throw new ArgumentNullException(nameof(action)); }
+            return InvokeAfterDelayCoreAsync(static query => query.IsPausedAny, action, t, token);
+        }
 
-            ValidateDuration(t, nameof(t));
+        /// <summary>
+        ///     カテゴリーのポーズ時間を除外して待機した後に処理を実行する。
+        /// </summary>
+        /// <remarks> 戻り値を待機しない場合も指定処理は進行する。 </remarks>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="action"> 待機後に実行する処理。 </param>
+        /// <param name="t"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 実行までの待機を表すAwaitable。 </returns>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        /// <exception cref="ArgumentNullException"> actionがnullの場合。 </exception>
+        /// <exception cref="ArgumentOutOfRangeException"> tが負の場合。 </exception>
+        public static Awaitable PausableInvoke<TCategory>(
+            Action action,
+            float t,
+            CancellationToken token = default)
+            where TCategory : IPausable
+        {
+            ValidateInvokeArguments(action, t);
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
 
-            // 遅延本体を分離し、引数検証だけはAwaitableを返す前に同期的に完了させる。
-            return InvokeAfterDelayAsync(action, t, token);
+            return InvokeAfterDelayCoreAsync(
+                static query => query.IsPaused(typeof(TCategory)), action, t, token);
         }
 
         /// <summary>
@@ -331,39 +421,182 @@ namespace SymphonyFrameWork.System
         private static PauseViewModel _viewModel;
 
         /// <summary>
-        ///     待機後にGameObjectを破棄する。
+        ///     ポーズ状態を考慮して次のフレームまで待機する本体。
         /// </summary>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 待機処理を表すAwaitable。 </returns>
+        /// <remarks>
+        ///     **判定だけを差し替える形で、全体版とカテゴリー版が同じ待機処理を共有する。**
+        ///     公開APIを <c>[Obsolete]</c> にしたため、内部から公開APIを呼ぶと警告が出る。
+        /// </remarks>
+        private static async Awaitable NextFrameCoreAsync(
+            Func<PauseQuery, bool> isPaused,
+            CancellationToken token)
+        {
+            PauseQuery query = EnsureQuery();
+
+            // 呼び出し時点でポーズ中なら待機を1フレーム延長し、フレーム処理の進行を遅らせる。
+            if (isPaused(query)) { await Awaitable.NextFrameAsync(token); }
+
+            // 非ポーズ時にも必ず次のPlayerLoopまで制御を戻す。
+            await Awaitable.NextFrameAsync(token);
+        }
+
+        /// <summary>
+        ///     ポーズ時間を除外して指定秒数を待機する本体。
+        /// </summary>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
+        /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <param name="parameterName"> 公開APIで使用されている引数名。 </param>
+        /// <param name="category"> 検証するカテゴリー。全体版ではnull。 </param>
+        /// <returns> Unity Coroutineで実行するEnumerator。 </returns>
+        /// <remarks>
+        ///     **本体をイテレータにすることで、検証も最初のMoveNextまで遅延する。**
+        ///     Enumeratorを受け取るだけでは何も起きないという、従来からの挙動を保つ。
+        /// </remarks>
+        private static IEnumerator WaitForSecondCore(
+            Func<PauseQuery, bool> isPaused,
+            float time,
+            string parameterName,
+            Type category = null)
+        {
+            PauseQuery query = EnsureQuery();
+
+            if (category != null)
+            {
+                PauseCategoryResolver.ValidateOperableCategory(category, "TCategory");
+            }
+
+            ValidateDuration(time, parameterName);
+
+            // ポーズ中のdeltaTimeを残り時間へ反映せず、待機時間とTween相当の進行を停止状態へ追従させる。
+            while (time > 0)
+            {
+                if (!isPaused(query)) { time -= Time.deltaTime; }
+                yield return null;
+            }
+        }
+
+        /// <summary>
+        ///     ポーズ時間を除外して指定秒数を非同期に待機する本体。
+        /// </summary>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
+        /// <param name="time"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <param name="parameterName"> 公開APIで使用されている引数名。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 待機処理を表すAwaitable。 </returns>
+        private static async Awaitable WaitForSecondCoreAsync(
+            Func<PauseQuery, bool> isPaused,
+            float time,
+            string parameterName,
+            CancellationToken token)
+        {
+            PauseQuery query = EnsureQuery();
+            ValidateDuration(time, parameterName);
+
+            // ポーズ中のdeltaTimeを残り時間へ反映せず、待機の進行をポーズ状態へ追従させる。
+            while (time > 0)
+            {
+                if (!isPaused(query)) { time -= Time.deltaTime; }
+                await Awaitable.NextFrameAsync(token);
+            }
+        }
+
+        /// <summary>
+        ///     条件が成立するまで非同期に待機する本体。
+        /// </summary>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
+        /// <param name="action"> 待機終了条件を返す処理。 </param>
+        /// <param name="token"> 待機を中断するためのトークン。 </param>
+        /// <returns> 条件成立までの待機処理を表すAwaitable。 </returns>
+        private static async Awaitable WaitUntilCoreAsync(
+            Func<PauseQuery, bool> isPaused,
+            Func<bool> action,
+            CancellationToken token)
+        {
+            PauseQuery query = EnsureQuery();
+
+            // 終了条件を評価できない待機は開始させない。
+            if (action == null) { throw new ArgumentNullException(nameof(action)); }
+
+            // 条件は毎フレーム観測し、Tweenなど外部で進む処理の完了へ追従する。
+            await SymphonyAwaitable.WaitWhile(() => !action.Invoke(), token);
+
+            // 条件成立時点がポーズ中なら、後続処理を同じフレームで再開させない。
+            if (isPaused(query)) { await Awaitable.NextFrameAsync(token); }
+        }
+
+        /// <summary>
+        ///     待機後にGameObjectを破棄する本体。
+        /// </summary>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
         /// <param name="obj"> 破棄するGameObject。 </param>
         /// <param name="durationSeconds"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         /// <returns> 破棄までの待機を表すAwaitable。 </returns>
-        private static async Awaitable DestroyAfterDelayAsync(
+        private static async Awaitable DestroyAfterDelayCoreAsync(
+            Func<PauseQuery, bool> isPaused,
             GameObject obj,
             float durationSeconds,
             CancellationToken token)
         {
             // ポーズ中の経過時間を除外し、解除後に残り時間から破棄待機を再開する。
-            await PausableWaitForSecondAsync(durationSeconds, token);
+            await WaitForSecondCoreAsync(isPaused, durationSeconds, nameof(durationSeconds), token);
 
             Object.Destroy(obj);
         }
 
         /// <summary>
-        ///     待機後に処理を実行する。
+        ///     待機後に処理を実行する本体。
         /// </summary>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
         /// <param name="action"> 実行する処理。 </param>
         /// <param name="durationSeconds"> ポーズ時間を除いて待機する秒数。 </param>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
         /// <returns> 実行までの待機を表すAwaitable。 </returns>
-        private static async Awaitable InvokeAfterDelayAsync(
+        private static async Awaitable InvokeAfterDelayCoreAsync(
+            Func<PauseQuery, bool> isPaused,
             Action action,
             float durationSeconds,
             CancellationToken token)
         {
             // ポーズ中の経過時間を除外し、解除後に残り時間から実行待機を再開する。
-            await PausableWaitForSecondAsync(durationSeconds, token);
+            await WaitForSecondCoreAsync(isPaused, durationSeconds, nameof(durationSeconds), token);
 
             action.Invoke();
+        }
+
+        /// <summary>
+        ///     破棄待機の引数を検証する。
+        /// </summary>
+        /// <param name="obj"> 待機後に破棄するGameObject。 </param>
+        /// <param name="durationSeconds"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <remarks> **検証は同期部分で行い、呼び出し元のtry/catchへ届くようにする。** </remarks>
+        private static void ValidateDestroyArguments(GameObject obj, float durationSeconds)
+        {
+            EnsureInitialized();
+
+            // 待機完了後に破棄対象を失わないよう、開始前にnullを拒否する。
+            if (obj == null) { throw new ArgumentNullException(nameof(obj)); }
+
+            ValidateDuration(durationSeconds, "t");
+        }
+
+        /// <summary>
+        ///     遅延実行の引数を検証する。
+        /// </summary>
+        /// <param name="action"> 待機後に実行する処理。 </param>
+        /// <param name="durationSeconds"> ポーズ時間を除いて待機する秒数。 </param>
+        /// <remarks> **検証は同期部分で行い、呼び出し元のtry/catchへ届くようにする。** </remarks>
+        private static void ValidateInvokeArguments(Action action, float durationSeconds)
+        {
+            EnsureInitialized();
+
+            // 待機完了後に実行対象を失わないよう、開始前にnullを拒否する。
+            if (action == null) { throw new ArgumentNullException(nameof(action)); }
+
+            ValidateDuration(durationSeconds, "t");
         }
 
         /// <summary>
