@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using SymphonyFrameWork.System;
@@ -55,7 +56,15 @@ namespace SymphonyFrameWork.Editor
         private VisualElement _pauseVisual;
         private Button _pauseButton;
         private Button _resumeButton;
+        private ListView _categoryList;
         private bool _isDisposed;
+
+        /// <summary> ListViewへ渡す表示用の一覧。 </summary>
+        /// <remarks>
+        ///     **同じListを使い回して中身を入れ替える。** 毎回新しいListを差すと、
+        ///     ListViewがスクロール位置と選択状態を作り直す。
+        /// </remarks>
+        private readonly List<PauseCategoryDto> _categoryItems = new();
 
         /// <summary>
         ///     Play Mode遷移に合わせて現在のViewModelへ接続し直す。
@@ -101,6 +110,9 @@ namespace SymphonyFrameWork.Editor
             _resumeButton = container.Q<Button>("button-resume");
             _pauseButton.clicked += () => SetPause(true);
             _resumeButton.clicked += () => SetPause(false);
+
+            _categoryList = container.Q<ListView>("category-list");
+            BindCategoryList();
 
             // VisualElementの匿名ラムダは要素と同時に破棄されるが、static eventは明示解除できる形で購読する。
             EditorApplication.playModeStateChanged += PlayModeStateChangedHandler;
@@ -178,9 +190,60 @@ namespace SymphonyFrameWork.Editor
                 ? $"IPausable: {pauseDto.PausableSubscriberCount}"
                 : "IPausable: -";
 
+            ApplyCategories(pauseDto, isConnected);
+
             // Play Mode外ではPauseManagerが未初期化であり、操作すると例外になる。
             _pauseButton.SetEnabled(isConnected);
             _resumeButton.SetEnabled(isConnected);
+        }
+
+        /// <summary>
+        ///     カテゴリー一覧のListViewを構成する。
+        /// </summary>
+        private void BindCategoryList()
+        {
+            if (_categoryList == null) { return; }
+
+            _categoryList.itemsSource = _categoryItems;
+            _categoryList.makeItem = static () => new Label();
+            _categoryList.bindItem = BindCategoryItem;
+
+            // 表示専用の一覧であり、選択しても行える操作が無い。
+            _categoryList.selectionType = SelectionType.None;
+        }
+
+        /// <summary>
+        ///     カテゴリー1件を行の表示へ反映する。
+        /// </summary>
+        /// <param name="element"> 行のVisualElement。 </param>
+        /// <param name="index"> 行の位置。 </param>
+        private void BindCategoryItem(VisualElement element, int index)
+        {
+            if (element is not Label label) { return; }
+            if (index < 0 || index >= _categoryItems.Count) { return; }
+
+            PauseCategoryDto category = _categoryItems[index];
+            label.text =
+                $"{category.CategoryName}: {category.IsPaused} / IPausable: {category.PausableCount}";
+        }
+
+        /// <summary>
+        ///     カテゴリー一覧の表示を最新の値へ入れ替える。
+        /// </summary>
+        /// <param name="pauseDto"> ViewModelが公開した表示値。 </param>
+        /// <param name="isConnected"> Pause Managerへ接続できているかどうか。 </param>
+        /// <remarks>
+        ///     未接続では空にする。Edit Modeで前回のPlay Modeの内容を残すと、
+        ///     今の状態だと誤解される。
+        /// </remarks>
+        private void ApplyCategories(PauseDto pauseDto, bool isConnected)
+        {
+            if (_categoryList == null) { return; }
+
+            _categoryItems.Clear();
+            if (isConnected) { _categoryItems.AddRange(pauseDto.Categories); }
+
+            _categoryList.RefreshItems();
         }
 
         /// <summary>

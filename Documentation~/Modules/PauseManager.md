@@ -1,58 +1,86 @@
 # Pause Manager
 
-ゲーム全体のポーズ状態を切り替え、通知やポーズ対応の待機処理を利用できます。
+**カテゴリーごとにポーズ状態を切り替え**、通知やポーズ対応の待機処理を利用できます。「UIは動かしたままゲームプレイだけ止める」といった分け方ができます。
 
 ## 入口
 
 | 項目 | 内容 |
 | --- | --- |
 | namespace | `SymphonyFrameWork.System` |
-| 主な公開型 | `PauseManager` / `IPausable` |
+| 主な公開型 | `PauseManager` / `IPausable` / `PauseInfo` |
 | メニューパス | `Window > SymphonyFrameWork > Symphony Administrator` の `Pause` パネル |
-| 設定の保存先 | なし |
+| 設定の保存先 | `Project Settings > SymphonyFrameWork > Pause Category`（カテゴリー名の登録） |
 
 ## クイックスタート
+
+**カテゴリーは`PauseManager.IPausable`を継承した空のinterfaceで表します。** 手で書いても、`Project Settings > SymphonyFrameWork > Pause Category` から生成しても構いません。
 
 ```csharp
 using SymphonyFrameWork.System;
 
-private void OnEnable()
-{
-    PauseManager.OnPauseChanged += HandlePauseChanged;
-}
+// カテゴリーの定義。空のinterfaceでよい
+public interface IGameplayPausable : PauseManager.IPausable { }
+public interface IUiPausable : PauseManager.IPausable { }
+```
 
-private void OnDisable()
-{
-    PauseManager.OnPauseChanged -= HandlePauseChanged;
-}
+止めたい対象は、属したいカテゴリーを実装します。
 
-private void HandlePauseChanged(bool paused)
+```csharp
+public sealed class Enemy : MonoBehaviour, IGameplayPausable
 {
-    // UI更新など
-}
+    private void OnEnable() => PauseManager.IPausable.RegisterPauseManager(this);
+    private void OnDisable() => PauseManager.IPausable.UnregisterPauseManager(this);
 
-public void SetPaused(bool paused)
-{
-    PauseManager.Pause = paused;
-}
-
-private async void RunAfterOneActiveSecond()
-{
-    await PauseManager.PausableWaitForSecondAsync(1.0f, destroyCancellationToken);
-    // ポーズ時間を除く1秒後の処理
+    public void Pause() { /* 停止処理 */ }
+    public void Resume() { /* 再開処理 */ }
 }
 ```
 
-Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズへ追従させられます。オブジェクト単位の通知には`PauseManager.IPausable`を実装します。
+操作と購読は型パラメータで行います。
+
+```csharp
+// このカテゴリーの対象だけが止まる。UIは動き続ける
+PauseManager.SetPause<IGameplayPausable>(true);
+bool paused = PauseManager.IsPaused<IGameplayPausable>();
+
+// 全部止める・どれか1つでも止まっているか
+PauseManager.SetPauseAll(true);
+bool anyPaused = PauseManager.IsPausedAny();
+
+// 通知の購読。**eventは型パラメータを持てないためメソッドで受け取る**
+PauseManager.AddPauseChangedHandler<IGameplayPausable>(HandlePauseChanged);
+PauseManager.RemovePauseChangedHandler<IGameplayPausable>(HandlePauseChanged);
+
+// 待機もカテゴリーを指定する
+await PauseManager.PausableWaitForSecondAsync<IGameplayPausable>(1.0f, destroyCancellationToken);
+```
+
+Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズへ追従させられます。
+
+### 複数のカテゴリーに属する場合
+
+**どれか1つでもポーズなら`Pause()`が呼ばれ、すべて解除されたときだけ`Resume()`が呼ばれます。** 対象ごとに停止要因の数を持っているため、2つ止めて片方だけ解除しても再開しません。
+
+派生カテゴリーを実装した対象は、基底カテゴリーにも属します。基底を止めれば派生の対象も止まります。
+
+### カテゴリーを指定しない場合
+
+`PauseManager.IPausable`を直接実装した対象は、**既定カテゴリー**に属します。`SetPauseAll`でも`SetPause<PauseManager.IPausable>`でも止まります。どのカテゴリーにも属さず絶対に止まらない対象は生まれません。
+
+### 旧APIからの移行
+
+カテゴリーを指定しない`Pause`、`OnPauseChanged`、待機系6件は**非推奨**です。削除はしておらず、「どれか1つでもポーズ中か」を見て従来どおり動きます。移行先は[Deprecations.md](../Deprecations.md)にあります。
 
 ## 実装時の注意
 
 - ポーズ中も止める待機には`PausableWaitForSecondAsync`、`PausableWaitForSecond`、`PausableNextFrameAsync`を使う。`Task.Delay`や通常の`WaitForSeconds`では代用しない。
 - **非同期の待機APIは`Awaitable`を返す。** `Awaitable`は1回しか`await`できず、保存も共有もできない。フィールドへ持たず、その場で待機する。複数待機は`SymphonyAwaitable.WhenAll`、`Task`と混ぜる場合は`SymphonyAwaitable.AsTask`を使う。
-- `PauseManager.IPausable`は有効化時に登録し、無効化時に解除する。同じ対象を重複登録しても通知は1回だけ届く。
-- **`OnPauseChanged`は値が変わったときだけ発行される。** `Pause = true`を2回続けても`IPausable.Pause()`は1回しか呼ばれない。同じ値の再設定を通知の起点にしない。
-- ポーズ状態と`IPausable`の購読件数をまとめて調べる場合は`PauseManager.GetPauseInfo()`を使い、戻る`PauseInfo`を取得時点のスナップショットとして扱う。購読件数は解除し忘れの検出に使える。
-- `OnPauseChanged`の購読者が投げた例外は握り潰されず、`Pause`を設定した側へ伝播する。購読側で処理する。
+- `PauseManager.IPausable`は有効化時に登録し、無効化時に解除する。同じ対象を重複登録しても通知は1回だけ届く。**属するカテゴリーは実装しているinterfaceから自動で決まる**ため、登録時にカテゴリーを渡す必要はない。
+- **通知は値が変わったときだけ発行される。** 同じ値を2回設定しても`IPausable.Pause()`は1回しか呼ばれない。同じ値の再設定を通知の起点にしない。
+- **`SetPause<TCategory>`の型引数はinterfaceでなければならない。** 型制約`where TCategory : IPausable`は`IPausable`を実装した具象クラスも通してしまうため、具象型を渡すと`ArgumentException`になる。
+- **ポーズ中に登録した対象は、さかのぼって停止しない。** 登録時点では`Pause()`が呼ばれず、解除されたときに`Resume()`が届く。
+- カテゴリー単位の状態と件数は`PauseManager.GetPauseInfo<TCategory>()`で調べる。全体は`GetPauseInfo()`で、この場合`PauseInfo.Category`は`null`になる。いずれも取得時点のスナップショットとして扱う。購読件数は解除し忘れの検出に使える。
+- 通知の購読者が投げた例外は握り潰されず、状態を設定した側へ伝播する。購読側で処理する。
 
 ## Editor機能
 
@@ -60,7 +88,8 @@ Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズ�
 
 | パネル | 内容 |
 | --- | --- |
-| Pause | ポーズ状態の確認と切り替え |
+| Pause | 全体のポーズ状態の確認と切り替え、`IPausable`の購読件数 |
+| Pause > Categories | **カテゴリーごとのポーズ状態と、属する対象の件数。** 表示名の昇順で並ぶ |
 
 Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
 

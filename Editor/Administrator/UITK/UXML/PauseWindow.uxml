@@ -12,5 +12,7 @@
             <engine:Button text="Resume" name="button-resume" class="button text" style="width: 35%;" />
             <engine:Button text="Pause" name="button-pause" class="button text" style="width: 35%;" />
         </engine:VisualElement>
+        <engine:Label text="Categories" name="category-title" class="text" style="height: 20px; margin-top: 10px; margin-right: 10px; margin-bottom: 0; margin-left: 10px; width: 100%;" />
+        <engine:ListView name="category-list" virtualization-method="DynamicHeight" show-border="true" style="margin-top: 4px; margin-right: 10px; margin-bottom: 10px; margin-left: 10px; min-height: 80px; flex-grow: 1;" />
     </engine:VisualElement>
 </engine:UXML>
