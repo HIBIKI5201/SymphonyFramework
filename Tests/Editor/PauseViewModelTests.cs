@@ -61,9 +61,9 @@ namespace SymphonyFrameWork.Tests
 
         /// <summary> ポーズ状態の変更が表示値へ反映される。 </summary>
         [Test]
-        public void SetPaused_UpdatesState()
+        public void SetPausedAll_UpdatesState()
         {
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
 
             Assert.That(_viewModel.State.Value.IsPaused, Is.True);
         }
@@ -85,13 +85,13 @@ namespace SymphonyFrameWork.Tests
         [Test]
         public void SameValue_DoesNotNotify()
         {
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
 
             int notifiedCount = 0;
             using IDisposable subscription =
                 _viewModel.State.Subscribe(_ => notifiedCount++, notifyCurrent: false);
 
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
 
             Assert.That(notifiedCount, Is.Zero);
         }
@@ -103,7 +103,7 @@ namespace SymphonyFrameWork.Tests
             _viewModel.Dispose();
             _viewModel.Dispose();
 
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
 
             Assert.That(_viewModel.State.Value.IsPaused, Is.False);
         }

@@ -99,7 +99,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h1 id="symphony-framework">Symphony Framework</h1>
 <p>Symphony Frameworkは、Unityゲームで何度も作ることになる「シーン遷移」「サービス共有」「セーブ」「オーディオ」「ポーズ」を、同じ使い方で扱えるようにまとめたフレームワークです。</p>
 <p>最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。</p>
-<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>6.9.0</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
+<ul><li>対応Unity: <strong>Unity 6（6000.0）以降</strong></li><li>現在のバージョン: <strong>6.10.0</strong></li><li>ライセンス: <strong>MIT</strong></li></ul>
 <h2 id="symphony-frameworkでできること">Symphony Frameworkでできること</h2>
 <div class="table-scroll"><table><thead><tr><th>やりたいこと</th><th>使う機能</th></tr></thead><tbody><tr><td>シーンを非同期で読み込み、進捗やActive Sceneを管理したい</td><td><a href="Modules/SceneLoader.html">Scene Loader</a></td></tr><tr><td>シーンを跨いでサービスやComponentを共有したい</td><td><a href="Modules/ServiceLocator.html">Service Locator</a></td></tr><tr><td>データ型ごとに保存・読み込み・削除したい</td><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td></tr><tr><td>AudioMixerGroupごとの再生元と音量をまとめたい</td><td><a href="Modules/AudioManager.html">Audio Manager</a></td></tr><tr><td>ゲーム全体を止め、待機やTweenもポーズへ追従させたい</td><td><a href="Modules/PauseManager.html">Pause Manager</a></td></tr><tr><td>実行中の状態、FPS、ログ、処理時間を確認したい</td><td><a href="Modules/Debug.html">Debug</a></td></tr><tr><td>Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい</td><td><a href="EditorTools.html">Editor機能</a></td></tr></tbody></table></div>
 <p>すべてを導入時に設定する必要はありません。使いたい機能のモジュール文書とサンプルから始められます。</p>

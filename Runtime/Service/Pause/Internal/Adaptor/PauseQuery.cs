@@ -20,20 +20,27 @@ namespace SymphonyFrameWork.System
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }
 
-        /// <summary> 現在ポーズ中かどうか。 </summary>
-        internal bool IsPaused => _state.IsPaused;
+        /// <summary> どれか1つでもポーズ中かどうか。 </summary>
+        internal bool IsPausedAny => _state.IsPausedAny;
+
+        /// <summary>
+        ///     カテゴリーのポーズ状態を返す。
+        /// </summary>
+        /// <param name="category"> 対象のカテゴリー。 </param>
+        /// <returns> ポーズ中の場合はtrue。 </returns>
+        internal bool IsPaused(Type category) => _state.IsPaused(category);
 
         /// <summary>
         ///     管理状態の公開スナップショットを返す。
         /// </summary>
         /// <returns> 取得時点の管理状態。 </returns>
-        internal PauseInfo GetInfo() => new(_state.IsPaused, _registry.Count);
+        internal PauseInfo GetInfo() => new(_state.IsPausedAny, _registry.Count);
 
         /// <summary>
         ///     管理状態の表示用更新値を返す。
         /// </summary>
         /// <returns> 取得時点の表示値。 </returns>
-        internal PauseDto GetDto() => new(_state.IsPaused, _registry.Count);
+        internal PauseDto GetDto() => new(_state.IsPausedAny, _registry.Count);
 
         #endregion
 
