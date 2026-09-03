@@ -135,6 +135,11 @@ private async void RunAfterOneActiveSecond()
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
 <div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Pause</td><td>ポーズ状態の確認と切り替え</td></tr></tbody></table></div>
 <p>Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
+<h3 id="ポーズカテゴリーの生成">ポーズカテゴリーの生成</h3>
+<p><strong>入口</strong>: <code>Project Settings &gt; SymphonyFrameWork &gt; Pause Category</code></p>
+<p>カテゴリー名を登録して「設定を保存してinterfaceを生成」を押すと、<code>Assets/Scripts/SymphonyFrameWork/PauseCategory/</code> へ <code>PauseManager.IPausable</code> を継承した空のinterfaceを生成します。<strong>設定した名前は <code>I</code> と <code>Pausable</code> で挟まれます</strong>（<code>Gameplay</code> → <code>IGameplayPausable</code>）。生成される名前は入力欄の隣にその場で表示されます。</p>
+<div class="table-scroll"><table><thead><tr><th>規則</th><th>内容</th></tr></thead><tbody><tr><td>生成先</td><td><code>Assets/Scripts/SymphonyFrameWork/PauseCategory/</code>。専用の <code>SymphonyFrameWork.PauseCategory</code> アセンブリを作り、<code>SymphonyFrameWork</code> を参照します</td></tr><tr><td>名前</td><td>C#の識別子として使えない名前は除外し、警告を出します。同じinterface名になる候補は1件だけ残します</td></tr><tr><td>削除</td><td><strong>設定から消してもファイルは削除しません。</strong> 実装しているコードがある場合に黙って消すとコンパイルが壊れるためです。残っているものは警告で知らせるので、利用者が確認して削除してください</td></tr></tbody></table></div>
+<p><strong>生成物は自動生成enumとは別のアセンブリになります。</strong> カテゴリーは <code>PauseManager.IPausable</code> を継承するため <code>SymphonyFrameWork</code> の参照が要りますが、<code>SymphonyFrameWork</code> 側が <code>SymphonyFrameWork.Enum</code> を参照しているため、同じ場所へ置くと循環します。</p>
 <h2 id="内部構造">内部構造</h2>
 <p>Pauseも同じ形で、状態の保持、購読の管理、表示状態を分離しています。</p>
 <figure class="mermaid-diagram"><img src="../Diagrams/f776a8aef961c0f6.svg" alt="flowchart の図" /></figure>
