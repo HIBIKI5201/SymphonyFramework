@@ -15,27 +15,43 @@ namespace SymphonyFrameWork.System
         /// <remarks> <see cref="PauseQuery"/>が生成し、利用側は<see cref="PauseManager.GetPauseInfo"/>で取得する。 </remarks>
         /// <param name="isPaused"> 現在ポーズ中かどうか。 </param>
         /// <param name="pausableSubscriberCount"> ポーズ通知を購読している対象の件数。 </param>
-        internal PauseInfo(bool isPaused, int pausableSubscriberCount)
+        /// <param name="category"> 対象のカテゴリー。全体を表す場合はnull。 </param>
+        internal PauseInfo(bool isPaused, int pausableSubscriberCount, Type category = null)
         {
             IsPaused = isPaused;
             PausableSubscriberCount = pausableSubscriberCount;
+            Category = category;
         }
 
         /// <summary> 現在ポーズ中かどうか。 </summary>
+        /// <remarks>
+        ///     <see cref="Category"/>がnullの場合は「どれか1つでもポーズ中か」を表す。
+        /// </remarks>
         public bool IsPaused { get; }
 
         /// <summary> <see cref="PauseManager.IPausable"/>としてポーズ通知を購読している対象の件数。 </summary>
-        /// <remarks> 解除し忘れが積み上がっていないかの確認に使う。 </remarks>
+        /// <remarks>
+        ///     解除し忘れが積み上がっていないかの確認に使う。
+        ///     <see cref="Category"/>を指定した場合はそのカテゴリーに属する対象の件数になる。
+        /// </remarks>
         public int PausableSubscriberCount { get; }
+
+        /// <summary> この情報が表すカテゴリー。全体を表す場合はnull。 </summary>
+        /// <remarks>
+        ///     <see cref="PauseManager.GetPauseInfo{TCategory}"/>で取得した場合に、
+        ///     どのカテゴリーの情報かを見分けるために持つ。
+        /// </remarks>
+        public Type Category { get; }
 
         /// <summary>
         ///     管理状態が等しいか判定する。
         /// </summary>
         /// <param name="other"> 比較対象。 </param>
-        /// <returns> ポーズ状態と購読件数がいずれも等しい場合はtrue。 </returns>
+        /// <returns> ポーズ状態、購読件数、カテゴリーがいずれも等しい場合はtrue。 </returns>
         public bool Equals(PauseInfo other) =>
             IsPaused == other.IsPaused
-            && PausableSubscriberCount == other.PausableSubscriberCount;
+            && PausableSubscriberCount == other.PausableSubscriberCount
+            && Category == other.Category;
 
         /// <summary>
         ///     管理状態が等しいか判定する。
@@ -52,7 +68,10 @@ namespace SymphonyFrameWork.System
         {
             unchecked
             {
-                return (IsPaused.GetHashCode() * 397) ^ PausableSubscriberCount;
+                int hashCode = (IsPaused.GetHashCode() * 397) ^ PausableSubscriberCount;
+
+                // カテゴリーは参照比較で等価判定するため、既定のハッシュをそのまま混ぜる。
+                return (hashCode * 397) ^ (Category != null ? Category.GetHashCode() : 0);
             }
         }
 

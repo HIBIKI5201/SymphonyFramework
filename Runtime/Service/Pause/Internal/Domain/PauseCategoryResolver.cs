@@ -70,6 +70,47 @@ namespace SymphonyFrameWork.System
             return DefaultCategory.IsAssignableFrom(type);
         }
 
+        /// <summary>
+        ///     ポーズ状態の操作対象として指定できる型かを判定する。
+        /// </summary>
+        /// <param name="type"> 判定する型。 </param>
+        /// <returns> 操作対象にできる場合はtrue。 </returns>
+        /// <remarks>
+        ///     <see cref="IsCategory" /> と違い、<see cref="DefaultCategory" /> も含む。
+        ///     既定カテゴリーは「カテゴリーを明示していない対象」を指す操作対象として使える。
+        /// </remarks>
+        internal static bool IsOperableCategory(Type type)
+        {
+            if (type == null) { return false; }
+            if (!type.IsInterface) { return false; }
+
+            return DefaultCategory.IsAssignableFrom(type);
+        }
+
+        /// <summary>
+        ///     ポーズ状態の操作対象として指定できる型かを検証する。
+        /// </summary>
+        /// <param name="type"> 検証する型。 </param>
+        /// <param name="parameterName"> 公開APIで使用されている型引数名。 </param>
+        /// <exception cref="ArgumentNullException"> typeがnullの場合。 </exception>
+        /// <exception cref="ArgumentException"> カテゴリーとして使えない型の場合。 </exception>
+        /// <remarks>
+        ///     **型制約だけでは表現できない。** <c>where TCategory : IPausable</c> は
+        ///     <c>IPausable</c> を実装した具象クラスも通してしまうため、実行時に弾く。
+        /// </remarks>
+        internal static void ValidateOperableCategory(Type type, string parameterName)
+        {
+            if (type == null) { throw new ArgumentNullException(parameterName); }
+
+            if (!IsOperableCategory(type))
+            {
+                throw new ArgumentException(
+                    $"{type.Name} はカテゴリーとして使えません。"
+                    + $" カテゴリーは {DefaultCategory.Name} を継承したinterfaceで指定してください。",
+                    parameterName);
+            }
+        }
+
         #endregion
     }
 }

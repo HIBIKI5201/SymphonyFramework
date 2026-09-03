@@ -140,6 +140,65 @@ namespace SymphonyFrameWork.Tests
             Assert.That(PauseCategoryResolver.IsCategory(null), Is.False);
         }
 
+        /// <summary>
+        ///     操作対象の判定は既定カテゴリーも含む。
+        /// </summary>
+        /// <remarks>
+        ///     <c>IsCategory</c> と違い、IPausable自身を操作対象として認める。
+        ///     「カテゴリーを明示していない対象」を指す操作として使えるため。
+        /// </remarks>
+        [Test]
+        public void IsOperableCategory_IncludesDefaultCategory()
+        {
+            Assert.That(
+                PauseCategoryResolver.IsOperableCategory(typeof(PauseManager.IPausable)),
+                Is.True);
+            Assert.That(PauseCategoryResolver.IsOperableCategory(typeof(IGameplayCategory)), Is.True);
+        }
+
+        /// <summary> 具象型と無関係なinterfaceは操作対象にならない。 </summary>
+        [Test]
+        public void IsOperableCategory_NotAnInterfaceOrUnrelated_IsFalse()
+        {
+            Assert.That(PauseCategoryResolver.IsOperableCategory(typeof(GameplayPausable)), Is.False);
+            Assert.That(PauseCategoryResolver.IsOperableCategory(typeof(IDisposable)), Is.False);
+            Assert.That(PauseCategoryResolver.IsOperableCategory(null), Is.False);
+        }
+
+        /// <summary> 操作対象にできる型の検証は通る。 </summary>
+        [Test]
+        public void ValidateOperableCategory_Category_DoesNotThrow()
+        {
+            Assert.DoesNotThrow(
+                () => PauseCategoryResolver.ValidateOperableCategory(
+                    typeof(IGameplayCategory), "TCategory"));
+            Assert.DoesNotThrow(
+                () => PauseCategoryResolver.ValidateOperableCategory(
+                    typeof(PauseManager.IPausable), "TCategory"));
+        }
+
+        /// <summary>
+        ///     具象型の検証はArgumentExceptionで拒否する。
+        /// </summary>
+        /// <remarks>
+        ///     型制約 <c>where TCategory : IPausable</c> は具象クラスも通すため、実行時に弾く。
+        /// </remarks>
+        [Test]
+        public void ValidateOperableCategory_ConcreteType_Throws()
+        {
+            Assert.Throws<ArgumentException>(
+                () => PauseCategoryResolver.ValidateOperableCategory(
+                    typeof(GameplayPausable), "TCategory"));
+        }
+
+        /// <summary> nullの検証はArgumentNullExceptionで拒否する。 </summary>
+        [Test]
+        public void ValidateOperableCategory_Null_Throws()
+        {
+            Assert.Throws<ArgumentNullException>(
+                () => PauseCategoryResolver.ValidateOperableCategory(null, "TCategory"));
+        }
+
         /// <summary> 既定カテゴリーはIPausable自身である。 </summary>
         [Test]
         public void DefaultCategory_IsIPausable()

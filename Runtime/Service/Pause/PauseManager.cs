@@ -47,6 +47,122 @@ namespace SymphonyFrameWork.System
         }
 
         /// <summary>
+        ///     カテゴリーのポーズ状態を設定する。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="isPaused"> 設定するポーズ状態。 </param>
+        /// <remarks>
+        ///     カテゴリーは<see cref="IPausable"/>を継承した空のinterfaceで表す。
+        ///     そのカテゴリーを実装した対象だけが停止し、他のカテゴリーの対象は動き続ける。
+        ///     <see cref="IPausable"/>自身を指定すると、カテゴリーを明示していない対象を操作する。
+        /// </remarks>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        public static void SetPause<TCategory>(bool isPaused)
+            where TCategory : IPausable
+        {
+            PauseService service = EnsureInitialized();
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
+
+            service.SetPaused(typeof(TCategory), isPaused);
+        }
+
+        /// <summary>
+        ///     カテゴリーがポーズ中かどうかを返す。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <returns> ポーズ中の場合はtrue。 </returns>
+        /// <remarks> 一度も止めていないカテゴリーはfalseを返す。 </remarks>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        public static bool IsPaused<TCategory>()
+            where TCategory : IPausable
+        {
+            PauseService service = EnsureInitialized();
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
+
+            return service.IsPaused(typeof(TCategory));
+        }
+
+        /// <summary>
+        ///     登録済みの全カテゴリーへポーズ状態を設定する。
+        /// </summary>
+        /// <param name="isPaused"> 設定するポーズ状態。 </param>
+        /// <remarks>
+        ///     **「全部止める」はカテゴリーではなく操作である。** 全体を表すカテゴリー型を
+        ///     作ると、利用側が「それも実装するべきか」を毎回考えることになる。
+        /// </remarks>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        public static void SetPauseAll(bool isPaused)
+        {
+            EnsureInitialized().SetPausedAll(isPaused);
+        }
+
+        /// <summary>
+        ///     どれか1つでもカテゴリーがポーズ中かどうかを返す。
+        /// </summary>
+        /// <returns> 1つでもポーズ中の場合はtrue。 </returns>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        public static bool IsPausedAny()
+        {
+            return EnsureInitialized().IsPausedAny;
+        }
+
+        /// <summary>
+        ///     カテゴリーのポーズ状態が変化したときの通知を購読する。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="handler"> 新しいポーズ状態を受け取る処理。 </param>
+        /// <remarks>
+        ///     **eventはジェネリックにできないためメソッドで提供する。** C#で型パラメータを
+        ///     持てるのはメソッドと型だけであり、eventはメンバーであるため書けない。
+        /// </remarks>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        /// <exception cref="ArgumentNullException"> handlerがnullの場合。 </exception>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        public static void AddPauseChangedHandler<TCategory>(Action<bool> handler)
+            where TCategory : IPausable
+        {
+            PauseService service = EnsureInitialized();
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
+
+            service.AddPauseChangedHandler(typeof(TCategory), handler);
+        }
+
+        /// <summary>
+        ///     カテゴリーのポーズ状態の通知の購読を解除する。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <param name="handler"> 購読時に渡した処理。 </param>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        /// <exception cref="ArgumentNullException"> handlerがnullの場合。 </exception>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        public static void RemovePauseChangedHandler<TCategory>(Action<bool> handler)
+            where TCategory : IPausable
+        {
+            PauseService service = EnsureInitialized();
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
+
+            service.RemovePauseChangedHandler(typeof(TCategory), handler);
+        }
+
+        /// <summary>
+        ///     カテゴリー単位の管理状態を取得する。
+        /// </summary>
+        /// <typeparam name="TCategory"> 対象のカテゴリー。 </typeparam>
+        /// <returns> そのカテゴリーのポーズ状態と、属する対象の件数。 </returns>
+        /// <exception cref="SymphonyNotInitializedException"> 初期化前に呼び出した場合。 </exception>
+        /// <exception cref="ArgumentException"> TCategoryがinterfaceでない場合。 </exception>
+        public static PauseInfo GetPauseInfo<TCategory>()
+            where TCategory : IPausable
+        {
+            PauseQuery query = EnsureQuery();
+            PauseCategoryResolver.ValidateOperableCategory(typeof(TCategory), nameof(TCategory));
+
+            return query.GetInfo(typeof(TCategory));
+        }
+
+        /// <summary>
         ///     ポーズ状態を考慮して次のフレームまで待機する。
         /// </summary>
         /// <param name="token"> 待機を中断するためのトークン。 </param>
