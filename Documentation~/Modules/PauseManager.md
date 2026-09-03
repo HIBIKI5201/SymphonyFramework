@@ -64,6 +64,20 @@ Coroutine、非同期処理、遅延Destroy、遅延Invoke、Tweenをポーズ�
 
 Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。
 
+### ポーズカテゴリーの生成
+
+**入口**: `Project Settings > SymphonyFrameWork > Pause Category`
+
+カテゴリー名を登録して「設定を保存してinterfaceを生成」を押すと、`Assets/Scripts/SymphonyFrameWork/PauseCategory/` へ `PauseManager.IPausable` を継承した空のinterfaceを生成します。**設定した名前は `I` と `Pausable` で挟まれます**（`Gameplay` → `IGameplayPausable`）。生成される名前は入力欄の隣にその場で表示されます。
+
+| 規則 | 内容 |
+| --- | --- |
+| 生成先 | `Assets/Scripts/SymphonyFrameWork/PauseCategory/`。専用の `SymphonyFrameWork.PauseCategory` アセンブリを作り、`SymphonyFrameWork` を参照します |
+| 名前 | C#の識別子として使えない名前は除外し、警告を出します。同じinterface名になる候補は1件だけ残します |
+| 削除 | **設定から消してもファイルは削除しません。** 実装しているコードがある場合に黙って消すとコンパイルが壊れるためです。残っているものは警告で知らせるので、利用者が確認して削除してください |
+
+**生成物は自動生成enumとは別のアセンブリになります。** カテゴリーは `PauseManager.IPausable` を継承するため `SymphonyFrameWork` の参照が要りますが、`SymphonyFrameWork` 側が `SymphonyFrameWork.Enum` を参照しているため、同じ場所へ置くと循環します。
+
 ## 内部構造
 
 Pauseも同じ形で、状態の保持、購読の管理、表示状態を分離しています。

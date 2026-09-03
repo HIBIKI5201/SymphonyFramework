@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.13.0] - 2026-09-03
+ポーズカテゴリーのinterfaceをProject Settingsから自動生成できるようにしました。
+
+### Add
+
+- **`Project Settings > SymphonyFrameWork > Pause Category` を追加しました。** カテゴリー名を登録して生成を実行すると、`Assets/Scripts/SymphonyFrameWork/PauseCategory/` へ `PauseManager.IPausable` を継承した空のinterfaceを生成します。**設定した名前は `I` と `Pausable` で挟まれます**（`Gameplay` → `IGameplayPausable`）。生成される名前は入力欄の隣にその場で表示されます（[#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168)）。
+- **生成物は専用の `SymphonyFrameWork.PauseCategory` アセンブリへ置きます。** カテゴリーは `PauseManager.IPausable` を継承するため `SymphonyFrameWork` の参照が要りますが、`SymphonyFrameWork` 側が `SymphonyFrameWork.Enum` を参照しているため、**自動生成enumと同じ場所へは置けません**（参照が循環します）。生成物からフレームワークへの片方向の参照になります。
+- **C#の識別子として使えない名前は除外し、警告を出します。** 同じinterface名へ解決される候補は1件だけ残します。黙って消すと、設定したのに生成されない理由が分かりません。
+
+### Change
+
+- **設定から消したカテゴリーのファイルは削除しません。** 利用側のコードがそのinterfaceを実装している場合、黙って消すとコンパイルが壊れるためです。残っているものは警告で知らせるので、確認したうえで削除してください。
+
 ## [6.12.0] - 2026-09-03
 待機系APIをカテゴリー対応にし、カテゴリーを指定しない旧APIを非推奨にしました。
 

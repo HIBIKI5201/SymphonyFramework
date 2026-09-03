@@ -28,6 +28,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [ログのファイル出力](./Modules/Debug.md#ログのファイル出力) | 自動実行 |
 | [SymphonyMcpTools](./Modules/Debug.md#symphonymcptools) | メニューなし。外部ツールから呼ぶ |
 | [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFrameWork` |
+| [ポーズカテゴリーの生成](./Modules/PauseManager.md#editor機能) | `Project Settings > SymphonyFrameWork > Pause Category`。設定した名前から `PauseManager.IPausable` を継承した空のinterfaceを生成する |
 | [Scene Blockの依存検証](./Modules/SceneBlock.md#editor機能) | `SceneBlockAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |
 | [設定アセットの自動生成](#設定アセットの自動生成) | 自動実行 |
