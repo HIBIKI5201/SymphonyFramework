@@ -65,43 +65,43 @@ namespace SymphonyFrameWork.Utility
         /// <param name="d"> 補間時間。 </param>
         /// <param name="curve"> x軸を正規化して適用するカーブ。 </param>
         /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        public static async Awaitable PausableTweening<T>(T s, Action<T> action, T e, float d,
+        /// <remarks>
+        ///     どれか1つでもカテゴリーがポーズ中なら進行を止める。
+        ///     止める対象を分けたい場合は
+        ///     <see cref="PausableTweening{T, TCategory}" />を使う。
+        /// </remarks>
+        public static Awaitable PausableTweening<T>(T s, Action<T> action, T e, float d,
             AnimationCurve curve = null,
             CancellationToken token = default) where T : struct
         {
-            // カーブの最終キー時刻に依存せず、0から1の経過率で評価できる形へ揃える。
-            curve = NormalizeCurve(curve);
-            float timer = Time.time;
+            return PausableTweeningCore(
+                static () => PauseManager.IsPausedAny(), s, action, e, d, curve, token);
+        }
 
-            // 指定時間内は毎フレーム経過率を更新し、Pause中だけ経過時間の基準を後ろへずらす。
-            while (Time.time <= timer + d)
-            {
-                // Pause中は補間値を進めず、キャンセルを受け取れるフレーム待機だけを行う。
-                if (PauseManager.Pause)
-                {
-                    timer += Time.deltaTime;
-                    await Awaitable.NextFrameAsync(token);
-                    continue;
-                }
-
-                float elapsed = Time.time - timer;
-                float t = Mathf.Clamp01(elapsed / d);
-                T? result = curve != null ? CurveValue((s, e), t, curve) : LerpValue((s, e), t);
-
-                // 補間を定義していない型は実行を継続できないため、実行環境でも確認できるログを残す。
-                if (result == null)
-                {
-                    SymphonyDebugLogger.LogDirect($"{typeof(T).Name}型は{nameof(Tweening)}に対応していません");
-                    return;
-                }
-
-                // action未指定は通知だけを省略し、時間待機自体は継続する既存契約を維持する。
-                action?.Invoke(result.Value);
-                await Awaitable.NextFrameAsync(token);
-            }
-
-            // フレーム間隔による端数にかかわらず、正常完了時は終了値を必ず通知する。
-            action?.Invoke(e);
+        /// <summary>
+        ///     カテゴリーのPause中の経過を除外し、指定時間にわたり開始値から終了値まで補間する。
+        /// </summary>
+        /// <typeparam name="T"> 補間する値の型。 </typeparam>
+        /// <typeparam name="TCategory"> 進行を止めるカテゴリー。 </typeparam>
+        /// <param name="s"> 開始値。 </param>
+        /// <param name="action"> 補間値を受け取る処理。 </param>
+        /// <param name="e"> 終了値。 </param>
+        /// <param name="d"> 補間時間。 </param>
+        /// <param name="curve"> x軸を正規化して適用するカーブ。 </param>
+        /// <param name="token"> Tweenを中断するためのトークン。 </param>
+        /// <returns> 補間処理を表すAwaitable。 </returns>
+        /// <remarks>
+        ///     **既存のシグネチャは変えていない。** 型引数を増やしたオーバーロードとして足すことで、
+        ///     従来の呼び出しをそのまま残している。
+        /// </remarks>
+        public static Awaitable PausableTweening<T, TCategory>(T s, Action<T> action, T e, float d,
+            AnimationCurve curve = null,
+            CancellationToken token = default)
+            where T : struct
+            where TCategory : PauseManager.IPausable
+        {
+            return PausableTweeningCore(
+                static () => PauseManager.IsPaused<TCategory>(), s, action, e, d, curve, token);
         }
 
         /// <summary>
@@ -192,6 +192,61 @@ namespace SymphonyFrameWork.Utility
         /// <param name="value"> 補間の開始値と終了値。 </param>
         /// <param name="t"> 0から1までの補間割合。 </param>
         /// <returns> 対応型の補間値。未対応型の場合はnull。 </returns>
+        /// <summary>
+        ///     ポーズ判定を差し替えられる形で補間の本体を実行する。
+        /// </summary>
+        /// <typeparam name="T"> 補間する値の型。 </typeparam>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
+        /// <param name="s"> 開始値。 </param>
+        /// <param name="action"> 補間値を受け取る処理。 </param>
+        /// <param name="e"> 終了値。 </param>
+        /// <param name="d"> 補間時間。 </param>
+        /// <param name="curve"> x軸を正規化して適用するカーブ。 </param>
+        /// <param name="token"> Tweenを中断するためのトークン。 </param>
+        /// <returns> 補間処理を表すAwaitable。 </returns>
+        /// <remarks>
+        ///     **判定だけを差し替える形で、全体版とカテゴリー版が同じ補間処理を共有する。**
+        /// </remarks>
+        private static async Awaitable PausableTweeningCore<T>(
+            Func<bool> isPaused, T s, Action<T> action, T e, float d,
+            AnimationCurve curve,
+            CancellationToken token) where T : struct
+        {
+            // カーブの最終キー時刻に依存せず、0から1の経過率で評価できる形へ揃える。
+            curve = NormalizeCurve(curve);
+            float timer = Time.time;
+
+            // 指定時間内は毎フレーム経過率を更新し、Pause中だけ経過時間の基準を後ろへずらす。
+            while (Time.time <= timer + d)
+            {
+                // Pause中は補間値を進めず、キャンセルを受け取れるフレーム待機だけを行う。
+                if (isPaused())
+                {
+                    timer += Time.deltaTime;
+                    await Awaitable.NextFrameAsync(token);
+                    continue;
+                }
+
+                float elapsed = Time.time - timer;
+                float t = Mathf.Clamp01(elapsed / d);
+                T? result = curve != null ? CurveValue((s, e), t, curve) : LerpValue((s, e), t);
+
+                // 補間を定義していない型は実行を継続できないため、実行環境でも確認できるログを残す。
+                if (result == null)
+                {
+                    SymphonyDebugLogger.LogDirect($"{typeof(T).Name}型は{nameof(Tweening)}に対応していません");
+                    return;
+                }
+
+                // action未指定は通知だけを省略し、時間待機自体は継続する既存契約を維持する。
+                action?.Invoke(result.Value);
+                await Awaitable.NextFrameAsync(token);
+            }
+
+            // フレーム間隔による端数にかかわらず、正常完了時は終了値を必ず通知する。
+            action?.Invoke(e);
+        }
+
         private static T? LerpValue<T>((T s, T e) value, float t) where T : struct
         {
             // 型ごとのUnity標準補間へ振り分け、未対応型は呼び出し元で診断できるnullにする。

@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.12.0] - 2026-09-03
+待機系APIをカテゴリー対応にし、カテゴリーを指定しない旧APIを非推奨にしました。
+
+### Add
+
+- **待機系APIへ型パラメータ版を追加しました。** `PausableNextFrameAsync<TCategory>` / `PausableWaitForSecond<TCategory>` / `PausableWaitForSecondAsync<TCategory>` / `PausableWaitUntil<TCategory>` / `PausableDestroy<TCategory>` / `PausableInvoke<TCategory>` の6件です。指定したカテゴリーがポーズ中の間だけ待機が進みません（[#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168)）。
+- **`SymphonyTween.Tweening` にカテゴリーを指定するオーバーロードを追加しました。** 既存のシグネチャは変えていません。
+
+### Change
+
+- **カテゴリーを指定しない公開API 8件を `[Obsolete]` にしました。** `Pause`、`OnPauseChanged`、待機系6件です。**削除はしていません。** 「全カテゴリーのいずれかがポーズ中か」を見て従来どおり動き続けます。移行先と削除予定は [Deprecations.md](Documentation~/Deprecations.md) にあります。
+- **`Symphony Administrator` のポーズ切り替えを `SetPauseAll` へ移しました。** 表示は変わりません。
+- **待機処理の本体を共通化しました。** 全体版とカテゴリー版が同じ待機処理を共有します。`PausableWaitForSecond` がイテレータであり、**検証も最初の `MoveNext` まで遅延する**という従来からの挙動は保っています。
+
 ## [6.11.0] - 2026-09-03
 カテゴリーを指定してポーズを操作する公開APIを追加しました。
 

@@ -20,13 +20,16 @@ namespace SymphonyFrameWork.Tests
     /// </summary>
     public sealed class PauseAwaitableRuntimeTests
     {
+        /// <summary> 待機APIの検証用カテゴリー。 </summary>
+        private interface IWaitCategory : PauseManager.IPausable { }
+
         /// <summary> 各テストの後でポーズ状態を戻し、次のテストへ持ち越さない。 </summary>
         [TearDown]
         public void TearDown()
         {
             if (PauseManager.IsInitialized)
             {
-                PauseManager.Pause = false;
+                PauseManager.SetPauseAll(false);
             }
         }
 
@@ -35,7 +38,7 @@ namespace SymphonyFrameWork.Tests
         public IEnumerator PausableNextFrameAsync_AdvancesFrame()
         {
             int startFrame = Time.frameCount;
-            Task task = SymphonyAwaitable.AsTask(PauseManager.PausableNextFrameAsync());
+            Task task = SymphonyAwaitable.AsTask(PauseManager.PausableNextFrameAsync<IWaitCategory>());
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -49,7 +52,7 @@ namespace SymphonyFrameWork.Tests
         {
             float startedAt = Time.realtimeSinceStartup;
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableWaitForSecondAsync(0.1f));
+                PauseManager.PausableWaitForSecondAsync<IWaitCategory>(0.1f));
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -67,10 +70,10 @@ namespace SymphonyFrameWork.Tests
         [UnityTest]
         public IEnumerator PausableWaitForSecondAsync_DoesNotAdvanceWhilePaused()
         {
-            PauseManager.Pause = true;
+            PauseManager.SetPause<IWaitCategory>(true);
 
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableWaitForSecondAsync(0.1f));
+                PauseManager.PausableWaitForSecondAsync<IWaitCategory>(0.1f));
 
             for (int i = 0; i < 30; i++)
             {
@@ -79,7 +82,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(task.IsCompleted, Is.False, "ポーズ中に待機が完了してはいけない。");
 
-            PauseManager.Pause = false;
+            PauseManager.SetPause<IWaitCategory>(false);
 
             yield return new WaitUntil(() => task.IsCompleted);
             task.GetAwaiter().GetResult();
@@ -102,7 +105,7 @@ namespace SymphonyFrameWork.Tests
             {
                 try
                 {
-                    await PauseManager.PausableWaitForSecondAsync(0.1f, cancellation.Token);
+                    await PauseManager.PausableWaitForSecondAsync<IWaitCategory>(0.1f, cancellation.Token);
                 }
                 catch (Exception exception)
                 {
@@ -123,7 +126,7 @@ namespace SymphonyFrameWork.Tests
         {
             bool invoked = false;
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableInvoke(() => invoked = true, 0.05f));
+                PauseManager.PausableInvoke<IWaitCategory>(() => invoked = true, 0.05f));
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -140,7 +143,7 @@ namespace SymphonyFrameWork.Tests
         {
             bool invoked = false;
 
-            _ = PauseManager.PausableInvoke(() => invoked = true, 0.05f);
+            _ = PauseManager.PausableInvoke<IWaitCategory>(() => invoked = true, 0.05f);
 
             float startedAt = Time.realtimeSinceStartup;
             yield return new WaitUntil(
@@ -158,9 +161,9 @@ namespace SymphonyFrameWork.Tests
         public void PausableInvoke_InvalidArguments_ThrowSynchronously()
         {
             Assert.Throws<ArgumentNullException>(
-                () => PauseManager.PausableInvoke(null, 0.05f));
+                () => PauseManager.PausableInvoke<IWaitCategory>(null, 0.05f));
             Assert.Throws<ArgumentOutOfRangeException>(
-                () => PauseManager.PausableInvoke(() => { }, -1f));
+                () => PauseManager.PausableInvoke<IWaitCategory>(() => { }, -1f));
         }
 
         /// <summary> PausableDestroyは指定秒後にGameObjectを破棄する。 </summary>
@@ -169,7 +172,7 @@ namespace SymphonyFrameWork.Tests
         {
             var target = new GameObject(nameof(PausableDestroy_Awaited_DestroysObject));
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableDestroy(target, 0.05f));
+                PauseManager.PausableDestroy<IWaitCategory>(target, 0.05f));
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -186,7 +189,7 @@ namespace SymphonyFrameWork.Tests
         public void PausableDestroy_NullObject_ThrowsSynchronously()
         {
             Assert.Throws<ArgumentNullException>(
-                () => PauseManager.PausableDestroy(null, 0.05f));
+                () => PauseManager.PausableDestroy<IWaitCategory>(null, 0.05f));
         }
 
         /// <summary> PausableWaitUntilは条件成立で完了する。 </summary>
@@ -195,7 +198,7 @@ namespace SymphonyFrameWork.Tests
         {
             bool condition = false;
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableWaitUntil(() => condition));
+                PauseManager.PausableWaitUntil<IWaitCategory>(() => condition));
 
             for (int i = 0; i < 3; i++)
             {

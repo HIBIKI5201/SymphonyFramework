@@ -193,7 +193,7 @@ namespace SymphonyFrameWork.Editor
             // Edit ModeまたはComposition初期化前は、PauseManagerへ触れると例外になるため操作しない。
             if (!EditorApplication.isPlaying || !PauseManager.IsInitialized) { return; }
 
-            PauseManager.Pause = isPaused;
+            PauseManager.SetPauseAll(isPaused);
         }
 
         #endregion

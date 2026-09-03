@@ -28,6 +28,14 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 | `AssetStoreToolsPackager.PackageModeEnum` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `AssetStoreToolsPackagePipeline` | 3.7.0 | 次のメジャー更新 | `Combine` を除くと `Singles` と `Nothing` しか残らず、enum として意味を失う。下記「Combineの削除手順」を参照 |
 | `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `Export(string[], AssetStoreToolsPackagePipeline)` | 3.7.0 | 次のメジャー更新 | `PackageModeEnum` と同時に削除する。3.7.0 以降フレームワーク内部では使用していない |
 | `AssetStoreToolsPackageContext` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackageContext.cs` | `AssetStoreToolsPackageExportContext` | 3.6.0 | 次のメジャー更新 | `ref struct` はフィールドへ保持できず、パイプラインの拡張点へ渡せない。3.6.0 以降フレームワーク内部では使用していない |
+| `PauseManager.Pause` | `Runtime/Service/Pause/PauseManager.cs` | `SetPause<TCategory>` / `IsPaused<TCategory>` / `SetPauseAll` / `IsPausedAny` | 6.12.0 | **未定** | 取得は `IsPausedAny()`、設定は `SetPauseAll()` と同じ意味で動き続ける |
+| `PauseManager.OnPauseChanged` | `Runtime/Service/Pause/PauseManager.cs` | `AddPauseChangedHandler<TCategory>` / `RemovePauseChangedHandler<TCategory>` | 6.12.0 | **未定** | **`event` は型パラメータを持てない**ため、移行先はメソッドになる |
+| `PauseManager.PausableNextFrameAsync(CancellationToken)` | `Runtime/Service/Pause/PauseManager.cs` | `PausableNextFrameAsync<TCategory>` | 6.12.0 | **未定** | 全カテゴリーのいずれかがポーズ中かを見て動き続ける |
+| `PauseManager.PausableWaitForSecond(float)` | `Runtime/Service/Pause/PauseManager.cs` | `PausableWaitForSecond<TCategory>` | 6.12.0 | **未定** | 同上。イテレータであり、検証は最初の `MoveNext` まで遅延する |
+| `PauseManager.PausableWaitForSecondAsync(float, CancellationToken)` | `Runtime/Service/Pause/PauseManager.cs` | `PausableWaitForSecondAsync<TCategory>` | 6.12.0 | **未定** | 同上 |
+| `PauseManager.PausableWaitUntil(Func<bool>, CancellationToken)` | `Runtime/Service/Pause/PauseManager.cs` | `PausableWaitUntil<TCategory>` | 6.12.0 | **未定** | 同上 |
+| `PauseManager.PausableDestroy(GameObject, float, CancellationToken)` | `Runtime/Service/Pause/PauseManager.cs` | `PausableDestroy<TCategory>` | 6.12.0 | **未定** | 同上 |
+| `PauseManager.PausableInvoke(Action, float, CancellationToken)` | `Runtime/Service/Pause/PauseManager.cs` | `PausableInvoke<TCategory>` | 6.12.0 | **未定** | 同上 |
 
 ### Combineの削除手順
 
