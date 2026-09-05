@@ -101,6 +101,21 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
+        ///     保存済みの値が候補から外れている場合に使う、Popup表示用の既定indexを解決する。
+        /// </summary>
+        /// <param name="candidates"> Popupへ並べる候補。 </param>
+        /// <param name="currentValue"> シリアライズ済みの値。 </param>
+        /// <returns> 候補内に見つかった場合はそのindex、見つからない場合は0。 </returns>
+        internal static int ResolveDisplayIndex(string[] candidates, string currentValue)
+        {
+            // 保存済みの値が候補外の場合も、Popupには先頭の候補を表示する。
+            int index = Array.IndexOf(candidates, currentValue);
+            if (index < 0) { return 0; }
+
+            return index;
+        }
+
+        /// <summary>
         ///     マスクがtrueの要素だけを、元の順序を保って取り出す。
         /// </summary>
         /// <typeparam name="T"> 要素の型。 </typeparam>

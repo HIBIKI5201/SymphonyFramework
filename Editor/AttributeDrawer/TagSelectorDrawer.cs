@@ -1,5 +1,4 @@
 ﻿using SymphonyFrameWork.Attribute;
-using System;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -47,13 +46,13 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            // 保存済みの値がタグ一覧から外れている場合は、先頭のタグを既定値とする。
-            int index = Array.IndexOf(selectableTags, property.stringValue);
-            if (index < 0) { index = 0; }
+            // 保存済みの値が候補から外れている場合も、表示だけを先頭のタグへ補正する。
+            int displayIndex = SelectorFilterUtility.ResolveDisplayIndex(selectableTags, property.stringValue);
 
-            // Popupの選択結果をシリアライズ対象のタグ名へ反映する。
-            int selectedIndex = EditorGUI.Popup(position, label.text, index, selectableTags);
-            property.stringValue = selectableTags[selectedIndex];
+            // ユーザーがPopupを操作した場合だけ、選択結果をシリアライズ対象へ反映する。
+            EditorGUI.BeginChangeCheck();
+            int selectedIndex = EditorGUI.Popup(position, label.text, displayIndex, selectableTags);
+            if (EditorGUI.EndChangeCheck()) { property.stringValue = selectableTags[selectedIndex]; }
         }
 
         #endregion

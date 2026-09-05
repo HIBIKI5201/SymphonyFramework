@@ -1,5 +1,4 @@
 ﻿using SymphonyFrameWork.Attribute;
-using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -55,13 +54,13 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            // 保存済みの値が候補から外れている場合は、先頭のシーンを既定値とする。
-            int index = Array.IndexOf(selectableScenes, property.stringValue);
-            if (index < 0) { index = 0; }
+            // 保存済みの値が候補から外れている場合も、表示だけを先頭のシーンへ補正する。
+            int displayIndex = SelectorFilterUtility.ResolveDisplayIndex(selectableScenes, property.stringValue);
 
-            // Popupの選択結果をシリアライズ対象のシーン名へ反映する。
-            int selectedIndex = EditorGUI.Popup(position, label.text, index, selectableScenes);
-            property.stringValue = selectableScenes[selectedIndex];
+            // ユーザーがPopupを操作した場合だけ、選択結果をシリアライズ対象へ反映する。
+            EditorGUI.BeginChangeCheck();
+            int selectedIndex = EditorGUI.Popup(position, label.text, displayIndex, selectableScenes);
+            if (EditorGUI.EndChangeCheck()) { property.stringValue = selectableScenes[selectedIndex]; }
         }
 
         #endregion
