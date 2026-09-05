@@ -22,7 +22,7 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(entity.BlockName, Is.EqualTo("Town"));
             Assert.That(entity.AssetInstanceId, Is.EqualTo(42));
-            Assert.That(entity.Layers, Has.Count.EqualTo(2));
+            Assert.That(entity.Layers.Count, Is.EqualTo(2));
             Assert.That(entity.SceneCount, Is.EqualTo(3));
             Assert.That(entity.State, Is.EqualTo(SceneBlockLoadStateEnum.None));
         }

@@ -110,7 +110,7 @@ namespace SymphonyFrameWork.Tests
         {
             IReadOnlyList<Type> categories = PauseCategoryResolver.Resolve(typeof(GameplayPausable));
 
-            Assert.That(categories, Does.Not.Contain(typeof(PauseManager.IPausable)));
+            Assert.That(categories, Has.No.Member(typeof(PauseManager.IPausable)));
         }
 
         /// <summary> nullの解決は拒否される。 </summary>

@@ -197,7 +197,7 @@ namespace SymphonyFrameWork.Tests
         public void TearDown()
         {
             // ScriptableObjectはGCで消えないため、テストごとに明示的に破棄する。
-            if (_asset != null) { Object.DestroyImmediate(_asset); }
+            if (_asset != null) { UnityEngine.Object.DestroyImmediate(_asset); }
 
             _asset = null;
         }

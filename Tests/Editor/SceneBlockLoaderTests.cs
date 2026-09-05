@@ -135,7 +135,7 @@ namespace SymphonyFrameWork.Tests
         {
             SceneBlockLoader.ResetRuntimeState();
 
-            if (_asset != null) { Object.DestroyImmediate(_asset); }
+            if (_asset != null) { UnityEngine.Object.DestroyImmediate(_asset); }
 
             _asset = null;
         }
