@@ -1,5 +1,26 @@
 # Changelog
 
+## [6.14.2] - 2026-09-05
+Documentation~ に文書の入口を追加し、ライセンスファイル名と package.json の説明文を Unity パッケージの標準レイアウトへ揃えました。Issue [#215](https://github.com/HIBIKI5201/SymphonyFramework/issues/215) の対応です。
+
+### Add
+
+- **`Documentation~/index.md` を追加しました。** 全文書への索引です。**これまでMarkdown側に入口がなく**、`Documentation~/` を開いた人がどれから読むかを決められませんでした。ブラウザ向けの `Documentation~/Html/index.html` は、このMarkdownから生成します。
+- **`package.json` へ `documentationUrl` を追加しました。** Package Managerの`Documentation`から、GitHub Pagesで配信している文書へ移動できます。**このURLは`main`への反映時に更新されます。**
+
+### Change
+
+- **`LICENSE.txt` を `LICENSE.md` へリネームしました。** Unityのパッケージ検証（US-0032）が探すのは `LICENSE.md` で、`.txt` では見つかりません。**ファイルの位置と内容は変えていません。** `.meta` ごとリネームしているため、GUIDは変わりません。ライセンスファイルをパスで参照している場合は拡張子を変更してください。
+- **`package.json` の `description` を実際の説明へ差し替えました。** これまで `"This is Symphony Framework"` というテンプレートのままで、Package Managerの一覧にそのまま表示されていました。
+- **ドキュメント索引の正本をMarkdownへ移しました。** これまで `index.html` だけが生成スクリプト内のPythonから作られており、Markdownの正本を持ちませんでした。併せて、**索引がモジュール文書を漏れなく、決めた順でリンクしているかを検査**するようにしています。利用側への影響はありません。
+
+## [6.14.1] - 2026-09-05
+ドキュメント索引から Scene Block の文書が抜けていたのを修正しました。
+
+### Fix
+
+- **ドキュメント索引（`Documentation~/Html/index.html`）に Scene Block の文書へのリンクがありませんでした。** 索引がモジュール文書の一覧を生成スクリプト内の定数から作っており、そこへ `SceneBlock` を足し忘れたためです。文書自体は 6.6.0 から存在していましたが、索引からは辿れませんでした。
+
 ## [6.14.0] - 2026-09-03
 Symphony Administratorへカテゴリー別の表示を追加し、サンプルと文書をカテゴリー対応にしました。Issue [#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168) はこれで完了です。
 
