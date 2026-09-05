@@ -154,7 +154,7 @@ namespace SymphonyFrameWork.Tests
             IReadOnlyList<PauseCategoryDto> categories = _viewModel.State.Value.Categories;
             List<string> names = categories.Select(category => category.CategoryName).ToList();
 
-            Assert.That(names, Is.Ordered.Using(StringComparer.Ordinal));
+            Assert.That(names, Is.Ordered.Using((IComparer<string>)StringComparer.Ordinal));
         }
 
         /// <summary> カテゴリーのポーズ状態と件数が表示値へ反映される。 </summary>
