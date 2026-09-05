@@ -183,6 +183,43 @@ namespace SymphonyFrameWork.Tests
         }
 
         /// <summary>
+        ///     保存済みの値が候補にある場合は、そのindexを表示に使う。
+        /// </summary>
+        [Test]
+        public void ResolveDisplayIndex_ValueInCandidates_ReturnsItsIndex()
+        {
+            string[] candidates = { "A", "B", "C" };
+
+            int index = SelectorFilterUtility.ResolveDisplayIndex(candidates, "B");
+
+            Assert.That(index, Is.EqualTo(1));
+        }
+
+        /// <summary>
+        ///     保存済みの値が候補に無い場合は、先頭のindexを表示に使う。
+        /// </summary>
+        [Test]
+        public void ResolveDisplayIndex_ValueNotInCandidates_ReturnsZero()
+        {
+            string[] candidates = { "A", "B" };
+
+            int index = SelectorFilterUtility.ResolveDisplayIndex(candidates, "Z");
+
+            Assert.That(index, Is.Zero);
+        }
+
+        /// <summary>
+        ///     候補が空の場合も、Popup表示用の既定indexとして0を返す。
+        /// </summary>
+        [Test]
+        public void ResolveDisplayIndex_EmptyCandidates_ReturnsZero()
+        {
+            int index = SelectorFilterUtility.ResolveDisplayIndex(Array.Empty<string>(), "A");
+
+            Assert.That(index, Is.Zero);
+        }
+
+        /// <summary>
         ///     マスクがtrueの要素だけを順序を保って残す。
         /// </summary>
         [Test]

@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.14.3] - 2026-09-06
+セレクター(SceneName/Tag)のフィルターで現在値が候補から外れたとき、Inspectorを開いただけで保存値が書き換わる不具合を修正しました。Issue [#199](https://github.com/HIBIKI5201/SymphonyFramework/issues/199) の再オープン分の対応です。
+
+### Fix
+
+- **`SceneNameSelectorDrawer` / `TagSelectorDrawer` が、保存済みの値をフィルター候補から外れているだけで書き換えていました。** Popup表示用に補正した既定indexをそのまま保存値へ代入していたためです。`EditorGUI.BeginChangeCheck` / `EndChangeCheck` でPopupを囲み、**ユーザーが実際に選択を変えた場合だけ**保存値を書き換えるようにしました。表示用のindex解決は `SelectorFilterUtility.ResolveDisplayIndex`（internal）へ切り出し、EditModeテストで検証しています。利用側のコードや属性の使い方に変更はありません。
+
 ## [6.14.2] - 2026-09-05
 Documentation~ に文書の入口を追加し、ライセンスファイル名と package.json の説明文を Unity パッケージの標準レイアウトへ揃えました。Issue [#215](https://github.com/HIBIKI5201/SymphonyFramework/issues/215) の対応です。
 
