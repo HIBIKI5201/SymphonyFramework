@@ -32,7 +32,7 @@ namespace SymphonyFrameWork.System.SceneBlock
         /// <exception cref="ArgumentNullException"> blockがnullの場合。 </exception>
         /// <exception cref="ArgumentException"> blockにエントリが1件も無い場合。 </exception>
         /// <exception cref="SceneBlockPlanException"> 依存グラフを解決できない場合。 </exception>
-        /// <exception cref="InvalidOperationException"> 同名の別アセットが既にロード済みの場合。 </exception>
+        /// <exception cref="InvalidOperationException"> 同名の別アセットが追跡中、または同じブロックがアンロード中の場合。 </exception>
         /// <exception cref="SymphonyNotInitializedException"> Scene Block Loaderが未初期化の場合。 </exception>
         public static Awaitable<bool> LoadAsync(
             SceneBlockAsset block,
@@ -60,7 +60,7 @@ namespace SymphonyFrameWork.System.SceneBlock
         /// <param name="token"> アンロード処理を中断するためのトークン。 </param>
         /// <returns> アンロードが必要なシーンをすべて処理できた場合はtrue。 </returns>
         /// <exception cref="ArgumentNullException"> blockがnullの場合。 </exception>
-        /// <exception cref="InvalidOperationException"> 同名の別アセットが追跡中の場合。 </exception>
+        /// <exception cref="InvalidOperationException"> 同名の別アセットが追跡中、または同じブロックがロード中の場合。 </exception>
         /// <exception cref="SymphonyNotInitializedException"> Scene Block Loaderが未初期化の場合。 </exception>
         public static Awaitable<bool> UnloadAsync(
             SceneBlockAsset block,

@@ -203,6 +203,210 @@ namespace SymphonyFrameWork.Tests
         }
 
         /// <summary>
+        ///     同じブロックの同時ロードは、1回の実処理を共有する。
+        /// </summary>
+        [Test]
+        public async Task LoadBlock_ConcurrentSameBlock_SharesSingleLoadCall()
+        {
+            _loader.HoldLoadOn = new TaskCompletionSource<bool>();
+            _loader.LoadedScenes.Add("Base");
+            SceneBlockEntry[] entries = { new("Base"), new("Props", new[] { "Base" }) };
+
+            Task<bool> task1 = _service.LoadBlock("Town", 1, entries, null, CancellationToken.None);
+            Task<bool> task2 = _service.LoadBlock("Town", 1, entries, null, CancellationToken.None);
+            _loader.HoldLoadOn.SetResult(true);
+
+            Assert.That(await task1, Is.True);
+            Assert.That(await task2, Is.True);
+            Assert.That(_loader.LoadCalls, Has.Count.EqualTo(1));
+            Assert.That(SceneNamesOf(_loader.LoadCalls[0]), Is.EqualTo(new[] { "Props" }));
+        }
+
+        /// <summary>
+        ///     共有したロードの失敗結果を、両方の呼び出しへ返す。
+        /// </summary>
+        [Test]
+        public async Task LoadBlock_ConcurrentSameBlock_SharesFailureResult()
+        {
+            _loader.HoldLoadOn = new TaskCompletionSource<bool>();
+            _loader.LoadedScenes.Add("Base");
+            SceneBlockEntry[] entries = { new("Base"), new("Props", new[] { "Base" }) };
+
+            Task<bool> task1 = _service.LoadBlock("Town", 1, entries, null, CancellationToken.None);
+            Task<bool> task2 = _service.LoadBlock("Town", 1, entries, null, CancellationToken.None);
+            _loader.HoldLoadOn.SetResult(false);
+
+            Assert.That(await task1, Is.False);
+            Assert.That(await task2, Is.False);
+        }
+
+        /// <summary>
+        ///     ロード失敗後の再試行では、ロード済みの層を要求し直さない。
+        /// </summary>
+        [Test]
+        public void LoadBlock_RetryAfterFailure_OnlyReloadsFailedLayer()
+        {
+            _loader.FailOnScene = "Props";
+            SceneBlockEntry[] entries = { new("Base"), new("Props", new[] { "Base" }) };
+
+            Assert.That(Load("Town", 1, entries), Is.False);
+            _loader.FailOnScene = null;
+
+            Assert.That(Load("Town", 1, entries), Is.True);
+            Assert.That(_loader.LoadCalls, Has.Count.EqualTo(3));
+            Assert.That(SceneNamesOf(_loader.LoadCalls[2]), Is.EqualTo(new[] { "Props" }));
+        }
+
+        /// <summary>
+        ///     アンロード実行中の同じブロックへロードを要求すると例外を投げる。
+        /// </summary>
+        [Test]
+        public async Task LoadBlock_WhileUnloading_ThrowsInvalidOperation()
+        {
+            SceneBlockEntry[] entries = { new("Base") };
+            Load("Town", 1, entries);
+            _loader.HoldUnloadOn = new TaskCompletionSource<bool>();
+
+            Task<bool> unloading = _service.UnloadBlock("Town", 1, null, CancellationToken.None);
+
+            Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.LoadBlock("Town", 1, entries, null, CancellationToken.None));
+
+            _loader.HoldUnloadOn.SetResult(true);
+            Assert.That(await unloading, Is.True);
+        }
+
+        /// <summary>
+        ///     同じブロックの同時アンロードは、1回の実処理を共有する。
+        /// </summary>
+        [Test]
+        public async Task UnloadBlock_ConcurrentSameBlock_SharesSingleUnloadCall()
+        {
+            Load("Town", 1, new SceneBlockEntry[] { new("Base") });
+            _loader.HoldUnloadOn = new TaskCompletionSource<bool>();
+
+            Task<bool> task1 = _service.UnloadBlock("Town", 1, null, CancellationToken.None);
+            Task<bool> task2 = _service.UnloadBlock("Town", 1, null, CancellationToken.None);
+            _loader.HoldUnloadOn.SetResult(true);
+
+            Assert.That(await task1, Is.True);
+            Assert.That(await task2, Is.True);
+            Assert.That(_loader.UnloadCalls, Has.Count.EqualTo(1));
+        }
+
+        /// <summary>
+        ///     ロード実行中の同じブロックへアンロードを要求すると例外を投げる。
+        /// </summary>
+        [Test]
+        public async Task UnloadBlock_WhileLoading_ThrowsInvalidOperation()
+        {
+            _loader.HoldLoadOn = new TaskCompletionSource<bool>();
+            SceneBlockEntry[] entries = { new("Base") };
+
+            Task<bool> loading = _service.LoadBlock("Town", 1, entries, null, CancellationToken.None);
+
+            Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.UnloadBlock("Town", 1, null, CancellationToken.None));
+
+            _loader.HoldLoadOn.SetResult(true);
+            Assert.That(await loading, Is.True);
+        }
+
+        /// <summary>
+        ///     一部のアンロードに失敗したブロックを追跡したまま残す。
+        /// </summary>
+        [Test]
+        public void UnloadBlock_PartialFailure_KeepsTrackingForRetry()
+        {
+            SceneBlockEntry[] entries = { new("Base"), new("Props", new[] { "Base" }) };
+            Load("Town", 1, entries);
+            _loader.UnloadFailOnScene = "Props";
+
+            bool result = Unload("Town", 1);
+
+            Assert.That(result, Is.False);
+            Assert.That(_registry.TryGet("Town", out _), Is.True);
+        }
+
+        /// <summary>
+        ///     一部失敗後の再アンロードで、残ったシーンを片付ける。
+        /// </summary>
+        [Test]
+        public void UnloadBlock_RetryAfterPartialFailure_UnloadsRemainingScene()
+        {
+            SceneBlockEntry[] entries = { new("Base"), new("Props", new[] { "Base" }) };
+            Load("Town", 1, entries);
+            _loader.UnloadFailOnScene = "Props";
+            Assert.That(Unload("Town", 1), Is.False);
+            _loader.UnloadFailOnScene = null;
+
+            bool result = Unload("Town", 1);
+
+            Assert.That(result, Is.True);
+            Assert.That(_loader.LoadedScenes, Does.Not.Contain("Props"));
+            Assert.That(_registry.TryGet("Town", out _), Is.False);
+        }
+
+        /// <summary>
+        ///     アンロード失敗で停止したブロックは、ロードで再開できる。
+        /// </summary>
+        [Test]
+        public void LoadBlock_AfterUnloadFailure_ResumesWithoutThrowing()
+        {
+            SceneBlockEntry[] entries = { new("Base"), new("Props", new[] { "Base" }) };
+            Load("Town", 1, entries);
+            _loader.UnloadFailOnScene = "Props";
+            Assert.That(Unload("Town", 1), Is.False);
+            _loader.UnloadFailOnScene = null;
+
+            bool result = Load("Town", 1, entries);
+
+            Assert.That(result, Is.True);
+        }
+
+        /// <summary>
+        ///     アンロード失敗後にロードを再開しても、残存シーンを再びアンロードできる。
+        /// </summary>
+        [Test]
+        public void UnloadBlock_AfterFailedUnloadAndReload_StillUnloadsRemainingScene()
+        {
+            SceneBlockEntry[] entries = { new("Base"), new("Props", new[] { "Base" }) };
+            Load("Town", 1, entries);
+            _loader.UnloadFailOnScene = "Props";
+            Assert.That(Unload("Town", 1), Is.False);
+            _loader.UnloadFailOnScene = null;
+            Assert.That(Load("Town", 1, entries), Is.True);
+            _loader.UnloadCalls.Clear();
+
+            bool result = Unload("Town", 1);
+
+            Assert.That(result, Is.True);
+            Assert.That(_loader.UnloadCalls[0], Does.Contain("Props"));
+            Assert.That(_loader.LoadedScenes, Does.Not.Contain("Props"));
+            Assert.That(_registry.IsExternallyHeld("Props"), Is.False);
+        }
+
+        /// <summary>
+        ///     共有ロードの待機だけをキャンセルしても、先行する実処理は継続する。
+        /// </summary>
+        [Test]
+        public async Task LoadBlock_WhileLoading_SecondCallerCancelToken_ThrowsOperationCanceled_FirstContinues()
+        {
+            _loader.HoldLoadOn = new TaskCompletionSource<bool>();
+            SceneBlockEntry[] entries = { new("Base") };
+            Task<bool> first = _service.LoadBlock("Town", 1, entries, null, CancellationToken.None);
+            CancellationToken canceledToken = new(true);
+
+            Task<bool> second = _service.LoadBlock("Town", 1, entries, null, canceledToken);
+
+            // awaitすると具体的にはTaskCanceledException（OperationCanceledExceptionのサブクラス）になるため、
+            // 既存テストと同じくInstanceOfで検証する（ThrowsAsync<OperationCanceledException>は完全一致のみ許容し失敗する）。
+            Assert.That(async () => await second, Throws.InstanceOf<OperationCanceledException>());
+            _loader.HoldLoadOn.SetResult(true);
+            Assert.That(await first, Is.True);
+        }
+
+        /// <summary>
         ///     同名の別アセットは、保持が混ざる前に例外で止める。
         /// </summary>
         [Test]
@@ -369,6 +573,15 @@ namespace SymphonyFrameWork.Tests
             /// <summary> このシーンを含む層のロードをキャンセルする。 </summary>
             internal string CancelOnScene;
 
+            /// <summary> 設定中はロード結果が確定するまで処理を保留する。 </summary>
+            internal TaskCompletionSource<bool> HoldLoadOn;
+
+            /// <summary> 設定中はアンロード結果が確定するまで処理を保留する。 </summary>
+            internal TaskCompletionSource<bool> HoldUnloadOn;
+
+            /// <summary> このシーンを含む層のアンロードを失敗させる。 </summary>
+            internal string UnloadFailOnScene;
+
             /// <summary>
             ///     ロード済みとみなすかを返す。
             /// </summary>
@@ -383,7 +596,7 @@ namespace SymphonyFrameWork.Tests
             /// <param name="progress"> 進捗の通知先。 </param>
             /// <param name="token"> 中断用トークン。 </param>
             /// <returns> ロード結果。 </returns>
-            public Task<bool> LoadScenesAsync(
+            public async Task<bool> LoadScenesAsync(
                 IReadOnlyList<SceneLoadRequest> requests,
                 IProgress<float> progress,
                 CancellationToken token)
@@ -395,16 +608,18 @@ namespace SymphonyFrameWork.Tests
 
                 if (Contains(snapshot, CancelOnScene))
                 {
-                    return Task.FromCanceled<bool>(new CancellationToken(true));
+                    return await Task.FromCanceled<bool>(new CancellationToken(true));
                 }
+
+                if (HoldLoadOn != null && !await HoldLoadOn.Task) { return false; }
 
                 progress?.Report(1f);
 
-                if (Contains(snapshot, FailOnScene)) { return Task.FromResult(false); }
+                if (Contains(snapshot, FailOnScene)) { return false; }
 
                 foreach (SceneLoadRequest request in snapshot) { LoadedScenes.Add(request.SceneName); }
 
-                return Task.FromResult(true);
+                return true;
             }
 
             /// <summary>
@@ -414,7 +629,7 @@ namespace SymphonyFrameWork.Tests
             /// <param name="progress"> 進捗の通知先。 </param>
             /// <param name="token"> 中断用トークン。 </param>
             /// <returns> アンロード結果。 </returns>
-            public Task<bool> UnloadScenesAsync(
+            public async Task<bool> UnloadScenesAsync(
                 IReadOnlyList<string> sceneNames,
                 IProgress<float> progress,
                 CancellationToken token)
@@ -423,11 +638,15 @@ namespace SymphonyFrameWork.Tests
                 for (int index = 0; index < sceneNames.Count; index++) { snapshot[index] = sceneNames[index]; }
 
                 UnloadCalls.Add(snapshot);
+                if (HoldUnloadOn != null && !await HoldUnloadOn.Task) { return false; }
+
                 progress?.Report(1f);
+
+                if (Contains(snapshot, UnloadFailOnScene)) { return false; }
 
                 foreach (string sceneName in snapshot) { LoadedScenes.Remove(sceneName); }
 
-                return Task.FromResult(true);
+                return true;
             }
 
             /// <summary>
@@ -446,6 +665,24 @@ namespace SymphonyFrameWork.Tests
                     {
                         return true;
                     }
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            ///     指定したシーン名がアンロード要求へ含まれるか判定する。
+            /// </summary>
+            /// <param name="sceneNames"> 判定対象の要求。 </param>
+            /// <param name="sceneName"> 探すシーン名。未指定の場合は常にfalse。 </param>
+            /// <returns> 含まれる場合はtrue。 </returns>
+            private static bool Contains(string[] sceneNames, string sceneName)
+            {
+                if (sceneName == null) { return false; }
+
+                foreach (string current in sceneNames)
+                {
+                    if (string.Equals(current, sceneName, StringComparison.Ordinal)) { return true; }
                 }
 
                 return false;

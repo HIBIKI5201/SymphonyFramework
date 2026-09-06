@@ -39,7 +39,7 @@ namespace SymphonyFrameWork.System.SceneBlock
         /// <param name="token"> 処理を中断するトークン。 </param>
         /// <returns> 全シーンをロードできた場合はtrue。 </returns>
         /// <exception cref="SceneBlockPlanException"> 依存グラフを解決できない場合。 </exception>
-        /// <exception cref="InvalidOperationException"> 同名の別アセットが既にロード済みの場合。 </exception>
+        /// <exception cref="InvalidOperationException"> 同名の別アセットが追跡中、またはアンロード中の場合。 </exception>
         internal async Task<bool> LoadBlock(
             string blockName,
             int assetInstanceId,
@@ -47,12 +47,31 @@ namespace SymphonyFrameWork.System.SceneBlock
             IProgress<float> progress,
             CancellationToken token)
         {
-            // 既に追跡中のブロックは、同じアセットであれば冪等に成功として扱う。
+            // 追跡済みのブロックは、実行中の処理と確定済みの状態を分けて扱う。
             if (_registry.TryGet(blockName, out SceneBlockLoadEntity tracked))
             {
                 EnsureSameAsset(tracked, blockName, assetInstanceId);
-                progress?.Report(1f);
-                return true;
+
+                if (_pendingUnloads.ContainsKey(blockName))
+                {
+                    throw new InvalidOperationException(
+                        $"Scene Block {blockName} はアンロード中のためロードできません。"
+                        + " アンロード完了後に呼び出してください。");
+                }
+
+                if (_pendingLoads.TryGetValue(blockName, out Task<bool> inFlightLoad))
+                {
+                    return await WaitShared(inFlightLoad, token);
+                }
+
+                if (tracked.State == SceneBlockLoadStateEnum.Complete)
+                {
+                    progress?.Report(1f);
+                    return true;
+                }
+
+                // 失敗して停止している場合は、ロード済みの層を飛ばして同じEntityで再試行する。
+                return await RunLoad(tracked, progress, token);
             }
 
             // 依存グラフの異常はアセットの記述誤りであり、部分的な実行層で走らせない。
@@ -74,8 +93,104 @@ namespace SymphonyFrameWork.System.SceneBlock
             entity.BeginLoading();
             NotifyStateChanged();
 
+            return await RunLoad(entity, progress, token);
+        }
+
+        /// <summary>
+        ///     ブロックの保持を解き、保持が残らないシーンだけをアンロードする。
+        /// </summary>
+        /// <param name="blockName"> ブロック名。 </param>
+        /// <param name="assetInstanceId"> 由来するアセットのインスタンスID。 </param>
+        /// <param name="progress"> ブロック全体の進捗の通知先。 </param>
+        /// <param name="token"> 処理を中断するトークン。 </param>
+        /// <returns> アンロードが必要なシーンをすべて処理できた場合はtrue。 </returns>
+        /// <exception cref="InvalidOperationException"> 同名の別アセットが追跡中、またはロード中の場合。 </exception>
+        internal async Task<bool> UnloadBlock(
+            string blockName,
+            int assetInstanceId,
+            IProgress<float> progress,
+            CancellationToken token)
+        {
+            // 追跡していないブロックは、既に片付いているものとして成功で返す。
+            if (!_registry.TryGet(blockName, out SceneBlockLoadEntity entity))
+            {
+                progress?.Report(1f);
+                return true;
+            }
+
+            EnsureSameAsset(entity, blockName, assetInstanceId);
+
+            if (_pendingLoads.ContainsKey(blockName))
+            {
+                throw new InvalidOperationException(
+                    $"Scene Block {blockName} はロード中のためアンロードできません。"
+                    + " ロード完了後に呼び出してください。");
+            }
+
+            if (_pendingUnloads.TryGetValue(blockName, out Task<bool> inFlightUnload))
+            {
+                return await WaitShared(inFlightUnload, token);
+            }
+
+            return await RunUnload(entity, progress, token);
+        }
+
+        #endregion
+
+        #region 内部処理
+
+        private readonly SceneBlockRegistry _registry;
+        private readonly IBlockSceneLoader _loader;
+
+        private readonly Dictionary<string, Task<bool>> _pendingLoads =
+            new(StringComparer.Ordinal);
+
+        private readonly Dictionary<string, Task<bool>> _pendingUnloads =
+            new(StringComparer.Ordinal);
+
+        /// <summary>
+        ///     ロード処理を実行中として登録し、完了後に解除する。
+        /// </summary>
+        /// <param name="entity"> 対象のブロック。 </param>
+        /// <param name="progress"> ブロック全体の進捗の通知先。 </param>
+        /// <param name="token"> 処理を中断するトークン。 </param>
+        /// <returns> 全シーンをロードできた場合はtrue。 </returns>
+        private async Task<bool> RunLoad(
+            SceneBlockLoadEntity entity,
+            IProgress<float> progress,
+            CancellationToken token)
+        {
+            Task<bool> executing = ExecuteLoad(entity, progress, token);
+            _pendingLoads[entity.BlockName] = executing;
+
+            try
+            {
+                return await executing;
+            }
+            finally
+            {
+                if (_pendingLoads.TryGetValue(entity.BlockName, out Task<bool> current)
+                    && current == executing)
+                {
+                    _pendingLoads.Remove(entity.BlockName);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     ブロックの全シーンを依存順にロードする。
+        /// </summary>
+        /// <param name="entity"> 対象のブロック。 </param>
+        /// <param name="progress"> ブロック全体の進捗の通知先。 </param>
+        /// <param name="token"> 処理を中断するトークン。 </param>
+        /// <returns> 全シーンをロードできた場合はtrue。 </returns>
+        private async Task<bool> ExecuteLoad(
+            SceneBlockLoadEntity entity,
+            IProgress<float> progress,
+            CancellationToken token)
+        {
             int completedSceneCount = 0;
-            foreach (IReadOnlyList<string> layer in layers)
+            foreach (IReadOnlyList<string> layer in entity.Layers)
             {
                 // 保持と外部保持の記録は、実際のロードを開始する前に確定させる。
                 List<SceneLoadRequest> requests = new(layer.Count);
@@ -85,7 +200,7 @@ namespace SymphonyFrameWork.System.SceneBlock
                         !_registry.IsHeldByAnyBlock(sceneName) && _loader.IsSceneLoaded(sceneName);
                     if (isLoadedOutsideBlocks) { _registry.MarkExternallyHeld(sceneName); }
 
-                    _registry.AddHolder(sceneName, blockName);
+                    _registry.AddHolder(sceneName, entity.BlockName);
 
                     // 既にロード済みのシーンは、他のブロックや利用側の所有物として再ロードしない。
                     if (!_loader.IsSceneLoaded(sceneName))
@@ -123,34 +238,52 @@ namespace SymphonyFrameWork.System.SceneBlock
         }
 
         /// <summary>
-        ///     ブロックの保持を解き、保持が残らないシーンだけをアンロードする。
+        ///     アンロード処理を実行中として登録し、完了後に解除する。
         /// </summary>
-        /// <param name="blockName"> ブロック名。 </param>
-        /// <param name="assetInstanceId"> 由来するアセットのインスタンスID。 </param>
+        /// <param name="entity"> 対象のブロック。 </param>
         /// <param name="progress"> ブロック全体の進捗の通知先。 </param>
         /// <param name="token"> 処理を中断するトークン。 </param>
         /// <returns> アンロードが必要なシーンをすべて処理できた場合はtrue。 </returns>
-        /// <exception cref="InvalidOperationException"> 同名の別アセットが追跡中の場合。 </exception>
-        internal async Task<bool> UnloadBlock(
-            string blockName,
-            int assetInstanceId,
+        private async Task<bool> RunUnload(
+            SceneBlockLoadEntity entity,
             IProgress<float> progress,
             CancellationToken token)
         {
-            // 追跡していないブロックは、既に片付いているものとして成功で返す。
-            if (!_registry.TryGet(blockName, out SceneBlockLoadEntity entity))
+            Task<bool> executing = ExecuteUnload(entity, progress, token);
+            _pendingUnloads[entity.BlockName] = executing;
+
+            try
             {
-                progress?.Report(1f);
-                return true;
+                return await executing;
             }
+            finally
+            {
+                if (_pendingUnloads.TryGetValue(entity.BlockName, out Task<bool> current)
+                    && current == executing)
+                {
+                    _pendingUnloads.Remove(entity.BlockName);
+                }
+            }
+        }
 
-            EnsureSameAsset(entity, blockName, assetInstanceId);
-
+        /// <summary>
+        ///     ブロックの保持を解き、保持が残らないシーンだけをアンロードする。
+        /// </summary>
+        /// <param name="entity"> 対象のブロック。 </param>
+        /// <param name="progress"> ブロック全体の進捗の通知先。 </param>
+        /// <param name="token"> 処理を中断するトークン。 </param>
+        /// <returns> アンロードが必要なシーンをすべて処理できた場合はtrue。 </returns>
+        private async Task<bool> ExecuteUnload(
+            SceneBlockLoadEntity entity,
+            IProgress<float> progress,
+            CancellationToken token)
+        {
             entity.BeginUnloading();
             NotifyStateChanged();
 
             bool isAllUnloaded = true;
             int processedSceneCount = 0;
+            string blockName = entity.BlockName;
 
             // 依存の後ろから解いていき、先行シーンが後に残るようにする。
             for (int layerIndex = entity.Layers.Count - 1; layerIndex >= 0; layerIndex--)
@@ -183,9 +316,16 @@ namespace SymphonyFrameWork.System.SceneBlock
                             layerBaseCount + (value * unloadTargets.Count),
                             entity.SceneCount));
 
-                    if (!await _loader.UnloadScenesAsync(unloadTargets, layerProgress, token))
+                    try
                     {
-                        isAllUnloaded = false;
+                        if (!await _loader.UnloadScenesAsync(unloadTargets, layerProgress, token))
+                        {
+                            isAllUnloaded = false;
+                        }
+                    }
+                    finally
+                    {
+                        RestoreHolderForStillLoadedScenes(unloadTargets, blockName);
                     }
                 }
 
@@ -193,19 +333,55 @@ namespace SymphonyFrameWork.System.SceneBlock
                 ReportBlockProgress(entity, progress, processedSceneCount, entity.SceneCount);
             }
 
-            // 保持を解いた後で追跡から外し、Queryが中途半端な状態を読まないようにする。
-            _registry.Remove(blockName);
+            // 失敗時は実在するシーンと保持を追跡したまま、次の再試行へ引き継ぐ。
+            if (isAllUnloaded) { _registry.Remove(blockName); }
+
             progress?.Report(1f);
             NotifyStateChanged();
             return isAllUnloaded;
         }
 
-        #endregion
+        /// <summary>
+        ///     アンロード後もロードされたままのシーンへ、ブロックの保持を戻す。
+        /// </summary>
+        /// <param name="sceneNames"> アンロードを試みたシーン名。 </param>
+        /// <param name="blockName"> 保持を戻すブロック名。 </param>
+        /// <remarks>
+        ///     アンロード対象は、他のブロックの保持を判定するために実処理の前に保持を解いている。
+        ///     失敗またはキャンセル後もロード中のシーンへ保持を戻し、外部保持との誤認を防ぐ。
+        /// </remarks>
+        private void RestoreHolderForStillLoadedScenes(
+            IReadOnlyList<string> sceneNames,
+            string blockName)
+        {
+            foreach (string sceneName in sceneNames)
+            {
+                if (_loader.IsSceneLoaded(sceneName))
+                {
+                    _registry.AddHolder(sceneName, blockName);
+                }
+            }
+        }
 
-        #region 内部処理
+        /// <summary>
+        ///     実行中の処理を、呼び出し側固有のキャンセルを尊重して待機する。
+        /// </summary>
+        /// <param name="inFlight"> 実行中の処理。 </param>
+        /// <param name="token"> この待機だけを中断するトークン。 </param>
+        /// <returns> 実行中の処理の結果。 </returns>
+        private static async Task<bool> WaitShared(Task<bool> inFlight, CancellationToken token)
+        {
+            if (!token.CanBeCanceled) { return await inFlight; }
 
-        private readonly SceneBlockRegistry _registry;
-        private readonly IBlockSceneLoader _loader;
+            TaskCompletionSource<bool> cancellationSignal = new();
+            using (token.Register(() => cancellationSignal.TrySetCanceled(token)))
+            {
+                Task completed = await Task.WhenAny(inFlight, cancellationSignal.Task);
+                if (completed == cancellationSignal.Task) { await cancellationSignal.Task; }
+
+                return await inFlight;
+            }
+        }
 
         /// <summary>
         ///     追跡中のブロックが同じアセット由来か検証する。
