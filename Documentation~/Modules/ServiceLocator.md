@@ -88,7 +88,8 @@ BattleService service = ServiceInjector.CreateInstance<BattleService>();
 
 ## 実装時の注意
 
-- 登録と解除を同じライフサイクルの対として書く。基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。
+- 登録と解除を同じライフサイクルの対として書く。基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。この`RegisterInstance`呼び出しは同期的に反映される。
+- `ServiceLocateComponent`のInspectorによる自動登録（`Auto Register`）は、コンポーネントの有効化順に依存せず、同じフレームの`Start`呼び出しより必ず先に反映される（内部でOnEnableとStartの間の同期フェーズへ遅延する）。
 - 解除と照会（`UnregisterInstance`、`DestroyInstance`、`IsExistInstance`、`GetInstance`、`TryGetInstance`、`GetRegistrationInfos`、`TryGetRegistrationInfo`）は、Play Mode終了でLocatorが解放された後でも安全なno-opとして`false`／`null`／空一覧を返す。`OnDestroy`や`OnDisable`で初期化状態を確認する必要はない。登録（`RegisterInstance`系）、`GetRequiredInstance`、待機（`GetInstanceAsync`、`TryGetInstanceAsync`、`RegisterAfterLocate`）は未初期化で`SymphonyNotInitializedException`を投げる。
 - 通常の`RegisterInstance`がfalseの場合も候補の所有権は呼び出し側に残る。型重複時に候補を自動解放してよい場合だけ`RegisterInstanceWithAutoDispose`へ所有権を移す。
 - `LocateTypeEnum.Locator`は参照だけを登録する。`LocateTypeEnum.Singleton`はComponentを管理オブジェクト配下へ移動するため、シーンローカルなオブジェクトには使わない。

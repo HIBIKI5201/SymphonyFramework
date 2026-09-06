@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.14.6] - 2026-09-06
+`ServiceLocateComponent`の自動登録から`DefaultExecutionOrder`依存を取り除き、Unity低レベルAPI（PlayerLoop）によるOrchestrator駆動の同期フェーズへ置き換えました。
+
+### Fix
+
+- **`ServiceLocateComponent`の`[DefaultExecutionOrder(-1000)]`を削除しました。** 自動登録（`Auto Register`）は`OnEnable`で即時反映する代わりに保留し、`SymphonyOrchestrator`が`UnityEngine.LowLevel.PlayerLoop`へ挿入した同期フェーズ（`Update.ScriptRunBehaviourUpdate`の直前）でまとめて反映します。他コンポーネントの有効化順に依存せず、同じフレームの`Start`呼び出しより必ず先に登録が完了します。実行時に`Instantiate`したオブジェクトでも、次フレームの`Start`から確実に取得できるようになりました。
+
 ## [6.14.5] - 2026-09-06
 文書索引が同梱HTMLを解決できない環境で開いたときのフォールバック先を、古いディレクトリ一覧からindex.mdへ修正しました。Issue [#215](https://github.com/HIBIKI5201/SymphonyFramework/issues/215) の再オープン分の対応です。
 

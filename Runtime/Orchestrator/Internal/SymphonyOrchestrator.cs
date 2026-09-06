@@ -53,6 +53,10 @@ namespace SymphonyFrameWork.Orchestrator
                 _systemObject = systemGameObject.AddComponent<SymphonyLifetimeComponent>();
                 UnityEngine.Object.DontDestroyOnLoad(systemGameObject);
 
+                // OnEnableとStartの間で実行するフレームワークの同期フェーズをPlayerLoopへ挿入する。
+                // ここへ登録した処理は、その回のUpdate.ScriptRunBehaviourUpdate（Start呼び出しを含む）より必ず先に走る。
+                SymphonyFrameworkLifecycleLoop.Install(RunFrameworkLifecycleTick);
+
                 // Save → Pause → Service → Scene → Audio → HUDの起動契約を保ち、途中失敗時も成功済み処理を逆順で戻せるようにする。
                 SaveDataInitializer.Initialize(ResolveSaveDataLoader);
                 RecordInitializedSubsystem(SaveStore.ResetRuntimeState);
@@ -65,6 +69,7 @@ namespace SymphonyFrameWork.Orchestrator
                         nameof(ServiceHostComponent));
                 ServiceLocator.Initialize(serviceHost);
                 RecordInitializedSubsystem(ServiceLocator.ResetRuntimeState);
+                RecordFrameworkTick(ServiceLocator.FlushPendingRegistrations);
 
                 SceneLoader.Initialize();
                 RecordInitializedSubsystem(SceneLoader.ResetRuntimeState);
@@ -125,6 +130,7 @@ namespace SymphonyFrameWork.Orchestrator
         #region 内部処理
 
         private static readonly List<Action> _resetActions = new();
+        private static readonly List<Action> _frameworkTickActions = new();
 
         private static CancellationTokenRegistration _destroyRegistration;
         private static bool _isShuttingDown;
@@ -155,6 +161,37 @@ namespace SymphonyFrameWork.Orchestrator
         }
 
         /// <summary>
+        ///     OnEnableとStartの間で毎フレーム実行する処理を登録順に記録する。
+        /// </summary>
+        /// <param name="tickAction"> Start呼び出しの直前に実行する処理。 </param>
+        private static void RecordFrameworkTick(Action tickAction)
+        {
+            _frameworkTickActions.Add(tickAction);
+        }
+
+        /// <summary>
+        ///     登録済みの同期フェーズ処理を順に実行する。
+        /// </summary>
+        /// <remarks>
+        ///     <see cref="SymphonyFrameworkLifecycleLoop"/>からUpdate.ScriptRunBehaviourUpdateの直前に呼ばれる。
+        /// </remarks>
+        private static void RunFrameworkLifecycleTick()
+        {
+            // 1件の失敗で残りの同期処理を止めない。Shutdownの逆順解放と同じ例外集約方針にする。
+            for (int i = 0; i < _frameworkTickActions.Count; i++)
+            {
+                try
+                {
+                    _frameworkTickActions[i]();
+                }
+                catch (Exception exception)
+                {
+                    SymphonyDebugLogger.LogException(exception);
+                }
+            }
+        }
+
+        /// <summary>
         ///     初期化済みサブシステムを構築順の逆順で解放する。
         /// </summary>
         private static void Shutdown()
@@ -164,6 +201,10 @@ namespace SymphonyFrameWork.Orchestrator
 
             _isShuttingDown = true;
             List<Exception> exceptions = null;
+
+            // 同期フェーズを先に取り除き、解放処理の途中でフレームワークのtickが割り込まないようにする。
+            SymphonyFrameworkLifecycleLoop.Uninstall();
+            _frameworkTickActions.Clear();
 
             // 構築時の依存関係を壊さないよう、初期化に成功した順序の逆から解放する。
             for (int i = _resetActions.Count - 1; i >= 0; i--)
