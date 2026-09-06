@@ -73,12 +73,6 @@ namespace SymphonyFrameWork.Editor
         /// <returns> GitHubのURL。未定義の値ならリポジトリのトップ。 </returns>
         internal static string ResolveFallbackUrl(SymphonyDocumentPageEnum page)
         {
-            // 索引はHTML専用で正本のMarkdownが無いため、モジュール文書の一覧を開く。
-            if (page == SymphonyDocumentPageEnum.Index)
-            {
-                return $"{REPOSITORY_URL}/tree/{FALLBACK_BRANCH}/{MARKDOWN_DIRECTORY}/Modules";
-            }
-
             // 未定義のページでも利用者が文書を探せるよう、リポジトリのトップへ戻す。
             if (!TryGetDocumentName(page, out string documentName)) { return REPOSITORY_URL; }
 

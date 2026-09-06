@@ -1,6 +1,6 @@
 {
   "name": "symphonyframework",
-  "version": "6.14.4",
+  "version": "6.14.5",
   "displayName": "Symphony Framework",
   "description": "シーン遷移、サービス共有、セーブ、オーディオ、ポーズを同じ使い方で扱えるようにまとめたUnity向けフレームワークです。最初のシーンより前に自動で初期化されるため、Bootstrapシーンやマネージャープレハブを用意せずに、必要な機能から使い始められます。",
   "unity": "6000.0",
