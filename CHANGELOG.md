@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.14.5] - 2026-09-06
+文書索引が同梱HTMLを解決できない環境で開いたときのフォールバック先を、古いディレクトリ一覧からindex.mdへ修正しました。Issue [#215](https://github.com/HIBIKI5201/SymphonyFramework/issues/215) の再オープン分の対応です。
+
+### Fix
+
+- **索引（Index）を同梱HTMLが無い環境で開くと、`Documentation~/Modules`のディレクトリ一覧へ飛んでいました。** `SymphonyDocumentPathResolver.ResolveFallbackUrl`が「索引には正本のMarkdownが無い」という古い前提の特別扱いを残したままでした。`Documentation~/index.md`は既に存在するため、特別扱いを削除し、他のページと同じ経路で`index.md`を直接指すようにしました。
+
 ## [6.14.4] - 2026-09-06
 Scene Blockのロード/アンロードで、同じブロックへの重複要求と失敗後の再試行を正しく扱うよう修正しました。Issue [#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202) の再オープン分の対応です。
 

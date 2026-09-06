@@ -87,9 +87,9 @@ namespace SymphonyFrameWork.Tests
                     + "/blob/main/Documentation~/Modules/SceneLoader.md"));
         }
 
-        /// <summary> 索引には正本のMarkdownが無いため、モジュール文書の一覧を指す。 </summary>
+        /// <summary> 索引は、mainブランチ上の正本Markdownを指す。 </summary>
         [Test]
-        public void ResolveFallbackUrl_IndexPage_PointsToModulesDirectory()
+        public void ResolveFallbackUrl_IndexPage_PointsToIndexMarkdownOnMain()
         {
             string url = SymphonyDocumentPathResolver.ResolveFallbackUrl(
                 SymphonyDocumentPageEnum.Index);
@@ -98,7 +98,7 @@ namespace SymphonyFrameWork.Tests
                 url,
                 Is.EqualTo(
                     SymphonyDocumentPathResolver.REPOSITORY_URL
-                    + "/tree/main/Documentation~/Modules"));
+                    + "/blob/main/Documentation~/index.md"));
         }
 
         /// <summary>

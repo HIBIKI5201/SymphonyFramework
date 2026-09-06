@@ -20,7 +20,7 @@
         ///     更新は <c>scripts/release_round.py bump</c> が行い、
         ///     <c>preflight</c> が <c>package.json</c> との一致を検査する。手で書き換えないこと。
         /// </remarks>
-        public const string VERSION = "6.14.4";
+        public const string VERSION = "6.14.5";
 
 #if UNITY_EDITOR
         /// <summary>
