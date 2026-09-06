@@ -485,6 +485,52 @@ namespace SymphonyFrameWork.System.ServiceLocate
         }
 
         /// <summary>
+        ///     フレームワークの同期フェーズでの登録を保留する。
+        /// </summary>
+        /// <param name="type"> 登録キーとして使用する実行時型。 </param>
+        /// <param name="instance"> 登録するpayload。 </param>
+        /// <param name="locateType"> 登録方式。 </param>
+        /// <remarks>
+        ///     <see cref="ServiceLocateComponent"/>の自動登録専用の入口。実際の登録は
+        ///     <see cref="FlushPendingRegistrations"/>がOnEnableとStartの間の同期フェーズで行う。
+        /// </remarks>
+        /// <exception cref="SymphonyNotInitializedException"> Compositionが未構築の場合。 </exception>
+        internal static void EnqueueAutoRegistration(Type type, object instance, LocateTypeEnum locateType)
+        {
+            // 登録系の未初期化は例外のまま扱う既存方針（RegisterInstance等）に合わせる。
+            EnsureInitialized();
+            _service.EnqueuePendingRegistration(type, instance, locateType);
+        }
+
+        /// <summary>
+        ///     未反映の保留登録を取り消す。
+        /// </summary>
+        /// <param name="type"> 取り消す登録キー。 </param>
+        /// <param name="instance"> 取り消す候補と同一か確認するインスタンス。 </param>
+        /// <remarks> 未初期化の場合は何も保留されていないものとしてfalseを返す。 </remarks>
+        /// <returns> 取り消せた場合はtrue。 </returns>
+        internal static bool CancelPendingRegistration(Type type, object instance)
+        {
+            if (!IsInitialized) { return false; }
+
+            return _service.CancelPendingRegistration(type, instance);
+        }
+
+        /// <summary>
+        ///     保留中の登録をすべて反映する。
+        /// </summary>
+        /// <remarks>
+        ///     未初期化の場合は何もしない。Orchestratorが同期フェーズから毎フレーム呼ぶため、
+        ///     未初期化を例外にすると終了処理後の呼び出しで毎回例外を出すことになる。
+        /// </remarks>
+        internal static void FlushPendingRegistrations()
+        {
+            if (!IsInitialized) { return; }
+
+            _service.FlushPendingRegistrations();
+        }
+
+        /// <summary>
         ///     Compositionが生成した所有先を使用してLocator状態を初期化する。
         /// </summary>
         /// <param name="host"> Singleton Componentの所有と解放を行うHost。 </param>

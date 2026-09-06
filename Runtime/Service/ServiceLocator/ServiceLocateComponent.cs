@@ -10,7 +10,6 @@ namespace SymphonyFrameWork.System.ServiceLocate
     ///     Inspectorで指定したComponentをService Locatorへ登録する。
     /// </summary>
     [HelpURL("https://www.notion.so/SymphonyLocate-19d7c2c6cc02809ea815c3a750fa95ca?pvs=4")]
-    [DefaultExecutionOrder(-1000)] // 最初に実行されるようにする。
     public sealed class ServiceLocateComponent : MonoBehaviour
     {
         #region 内部処理
@@ -40,8 +39,12 @@ namespace SymphonyFrameWork.System.ServiceLocate
         }
 
         /// <summary>
-        ///     自動登録が有効な場合に対象をService Locatorへ登録する。 
+        ///     自動登録が有効な場合に対象をService Locatorへの登録を保留する。
         /// </summary>
+        /// <remarks>
+        ///     実際の登録はフレームワークの同期フェーズで行われ、同じフレームのStart呼び出しより
+        ///     必ず先に反映される。コンポーネント間の有効化順には依存しない。
+        /// </remarks>
         private void OnEnable()
         {
             // 自動登録を利用しない設定では、呼び出し側による明示的な登録を優先する。
@@ -51,7 +54,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
             if (_target == null) { return; }
 
             // 有効化と無効化を登録期間として扱い、指定された方式で対象を公開する。
-            ServiceLocator.RegisterInstance(_targetType, _target, _locateType);
+            ServiceLocator.EnqueueAutoRegistration(_targetType, _target, _locateType);
         }
 
         /// <summary>
@@ -67,6 +70,10 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
             // Orchestratorの終了処理でService Locatorが先にリセット済みの場合は重複操作を避ける。
             if (!ServiceLocator.IsInitialized) { return; }
+
+            // 同期フェーズでのFlush前にOnDisableへ回った場合は、保留を取り消すだけで完了する。
+            // このとき登録は一度も反映されていないため、以降の解除処理は行わない。
+            if (ServiceLocator.CancelPendingRegistration(_targetType, _target)) { return; }
 
             // 別の所有者が解除済みの場合に重複解除しない。
             bool isExist = ServiceLocator.IsExistInstance(_targetType); // TODO: これだと、同じ型の別のインスタンスが登録されている場合に誤判定する可能性がある。必要に応じて、インスタンス自体を確認する方法に変更することを検討する。

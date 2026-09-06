@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SymphonyFrameWork.System.ServiceLocate
 {
@@ -144,12 +145,71 @@ namespace SymphonyFrameWork.System.ServiceLocate
         internal void UnregisterWaitingAction<T>(Action<T> action) =>
             _registry.UnregisterWaitingAction(action);
 
+        /// <summary>
+        ///     フレームワークの同期フェーズでの登録を保留する。
+        /// </summary>
+        /// <param name="serviceType"> 登録キーとして使用する型。 </param>
+        /// <param name="instance"> 登録するpayload。 </param>
+        /// <param name="locateType"> 登録方式。 </param>
+        /// <remarks> 実際の登録は<see cref="FlushPendingRegistrations"/>が行う。 </remarks>
+        internal void EnqueuePendingRegistration(
+            Type serviceType,
+            object instance,
+            LocateTypeEnum locateType)
+        {
+            _pendingRegistrations.Add((serviceType, instance, locateType));
+        }
+
+        /// <summary>
+        ///     未反映の保留登録を取り消す。
+        /// </summary>
+        /// <param name="serviceType"> 取り消す登録キー。 </param>
+        /// <param name="instance"> 取り消す候補と同一か確認するインスタンス。 </param>
+        /// <returns> 取り消せた場合はtrue。既に反映済みまたは該当が無い場合はfalse。 </returns>
+        internal bool CancelPendingRegistration(Type serviceType, object instance)
+        {
+            for (int i = _pendingRegistrations.Count - 1; i >= 0; i--)
+            {
+                (Type type, object candidate, LocateTypeEnum _) = _pendingRegistrations[i];
+                if (type != serviceType || !ReferenceEquals(candidate, instance)) { continue; }
+
+                _pendingRegistrations.RemoveAt(i);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     保留中の登録をすべて反映する。
+        /// </summary>
+        /// <remarks>
+        ///     <see cref="SymphonyFrameWork.Orchestrator.SymphonyOrchestrator"/>がOnEnableとStartの間の同期フェーズから呼ぶ。
+        ///     反映中に追加された保留は同じ回では処理せず、次回のFlushへ回す。
+        /// </remarks>
+        internal void FlushPendingRegistrations()
+        {
+            if (_pendingRegistrations.Count == 0) { return; }
+
+            (Type type, object instance, LocateTypeEnum locateType)[] pending = _pendingRegistrations.ToArray();
+            _pendingRegistrations.Clear();
+
+            foreach ((Type type, object instance, LocateTypeEnum locateType) in pending)
+            {
+                // Flush前にUnityオブジェクトとして破棄済みになった候補は登録しない。
+                if (instance is UnityEngine.Object unityObject && unityObject == null) { continue; }
+
+                Register(type, instance, locateType, disposeOnFailure: false);
+            }
+        }
+
         #endregion
 
         #region 内部処理
 
         private readonly ServiceLocateRegistry _registry;
         private readonly IServiceHost _host;
+        private readonly List<(Type type, object instance, LocateTypeEnum locateType)> _pendingRegistrations = new();
 
         #endregion
     }
