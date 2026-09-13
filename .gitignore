@@ -25,8 +25,15 @@ Desktop.ini
 
 # --- Stray Unity project files (this folder is a package, not a Unity project root) ---
 obj/
+bin/
 *.csproj
 *.sln
 *.unityproj
 *.pidb
 *.booproj
+
+# Roslyn Source Generator はUnity外で再ビルドする配布物なので、生成元のprojectだけを共有する。
+!Generators/Source~/**/
+!Generators/Source~/**/*.csproj
+Generators/Source~/**/bin/
+Generators/Source~/**/obj/
