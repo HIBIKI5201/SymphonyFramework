@@ -50,6 +50,9 @@
         /// <summary> Editor機能の索引と、単一モジュールに属さない横断的な仕組み。 </summary>
         EditorTools,
 
+        /// <summary> ビルド前のUXML依存とフォント設定の検証。 </summary>
+        BuildValidation,
+
         #endregion
     }
 }

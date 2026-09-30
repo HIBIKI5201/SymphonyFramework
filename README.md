@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.14.6**
+- 現在のバージョン: **6.15.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -131,6 +131,7 @@ asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してくだ�
 | [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md) | Scene、Tag、Layer、Audio Groupのenum生成 |
 | [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md) | Asset Store Toolsの出力、差分インポート、出力パイプライン |
 | [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md) | FolderGenerator、AssemblyGenerator、SymphonyPackageLoader |
+| [Build Validation](./Documentation~/Modules/BuildValidation.md) | UXML依存とフォント設定の手動・ビルド前検証。既定ではビルド時の検証は無効 |
 
 Runtimeモジュールに紐づくEditor機能（Save System設定、Service Locatorのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
 
@@ -165,6 +166,7 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
   - [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md)
   - [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)
   - [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md)
+  - [Build Validation](./Documentation~/Modules/BuildValidation.md)
 - [AGENTS.md（AIエージェント向けの導線と常時ルール）](./AGENTS.md)
   - [AIエージェント向けAPI索引](./Documentation~/AgentUsage.md)
   - [利用コードの検証手順](./Documentation~/AgentVerification.md)

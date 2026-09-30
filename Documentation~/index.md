@@ -20,6 +20,7 @@ Symphony Frameworkの文書の入口です。**モジュールごとの文書は
 | [AutoEnumGenerator](./Modules/AutoEnumGenerator.md) | 文字列の一覧からenumを生成する |
 | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md) | Asset Store向けのパッケージ出力 |
 | [Project Structure Tools](./Modules/ProjectStructureTools.md) | プロジェクトのフォルダ構成の生成と検査 |
+| [Build Validation](./Modules/BuildValidation.md) | ビルド前と手動実行によるUXML依存・フォント設定の検証 |
 
 ## 全体
 
