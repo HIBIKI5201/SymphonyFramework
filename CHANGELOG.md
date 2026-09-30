@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.15.0] - 2026-09-13
+Roslyn Source GeneratorのUPM配布基盤を追加し、Runtimeと参照アセンブリで生成コードを利用できるようにしました。
+
+### Add
+
+- **`.NET Standard 2.0` / `Microsoft.CodeAnalysis.CSharp 4.3`のSource Generatorを追加しました。** ビルド済みDLLと`RoslynAnalyzer`ラベルを設定した`.meta`をUPMパッケージへ同梱するため、導入先でのラベル設定は不要です。GeneratorはFramework本体と、それを参照するアセンブリのコンパイル時だけ動作し、実行時PluginやPlayerビルドには含まれません。
+- **6.15.0で生成するのは配布経路を検証する内部マーカーだけです。** `ServiceInjector`の公開APIとRuntime反射経路はまだ変更していません。`IInjectable<T...>`向け注入ディスパッチへの置き換えはIssue [#129](https://github.com/HIBIKI5201/SymphonyFramework/issues/129) の次Roundで行います。
+
 ## [6.14.6] - 2026-09-06
 `ServiceLocateComponent`の自動登録から`DefaultExecutionOrder`依存を取り除き、Unity低レベルAPI（PlayerLoop）によるOrchestrator駆動の同期フェーズへ置き換えました。
 

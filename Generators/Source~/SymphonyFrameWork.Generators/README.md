@@ -8,7 +8,7 @@ Unityへ配布するRoslyn Source Generatorの生成元です。`Source~`配下�
 ```powershell
 dotnet build -c Release
 Copy-Item -LiteralPath 'bin/Release/netstandard2.0/SymphonyFrameWork.Generators.dll' `
-  -Destination '../../../SymphonyFrameWork.Generators.dll'
+  -Destination '../../SymphonyFrameWork.Generators.dll'
 ```
 
 ビルド後はUnityでDLLを再インポートし、コンパイルとEditModeテストを実行してください。

@@ -1,4 +1,4 @@
-namespace SymphonyFrameWork.Generators.Prototype
+﻿namespace SymphonyFrameWork.Generators.Prototype
 {
     /// <summary>
     ///     Roslyn Source Generatorの配布経路を検証する対象型を示す。

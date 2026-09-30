@@ -32,6 +32,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [Scene Blockの依存検証](./Modules/SceneBlock.md#editor機能) | `SceneBlockAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |
 | [設定アセットの自動生成](#設定アセットの自動生成) | 自動実行 |
+| [Roslynコード生成基盤](#roslynコード生成基盤) | コンパイル時に自動実行 |
 | [Editorの初期化](#editorの初期化) | 自動実行 |
 
 ### 設定ファイルの置き場
@@ -183,6 +184,16 @@ Framework全体の個人設定とプロジェクト共有設定です。
 - **Runtime用のConfigは `internal` です。** コードから型として参照できません。InspectorとProject Settingsから設定してください。
 - 生成された設定アセットを複製しないでください。Frameworkは決まった位置の1つだけを読みます。
 - **Project Settingsの画面を開いただけでは生成されません。** 設定画面は未生成である旨と生成ボタンを表示するだけで、生成そのものは `SymphonyEditorOrchestrator` の入口を通ります。`AssetDatabase.Refresh` を1回へまとめる集約の外側でアセットが変わらないようにするためです。
+
+---
+
+## Roslynコード生成基盤
+
+`Generators/SymphonyFrameWork.Generators.dll`は、Framework本体とFrameworkを参照するアセンブリのコンパイル時に動作するSource Generatorです。`RoslynAnalyzer`ラベルはパッケージへ設定済みで、導入先での手設定は不要です。
+
+6.15.0ではUPM配布、適用範囲、Playerからの分離を確認する内部プロトタイプだけを生成します。Generator DLLは実行時Pluginとして全プラットフォームで無効であり、Playerへ含めるのは生成された通常のC#コードだけです。
+
+Generatorの生成元は`Generators/Source~/SymphonyFrameWork.Generators/`にあります。`Source~`はUnityのインポート対象外で、DLLの更新時だけ.NET Standard 2.0の独立プロジェクトとしてビルドします。
 
 ---
 
