@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.15.0] - 2026-09-30
+UXML/USSの依存切れとフォント設定の不備を、手動実行とプレイヤービルド前に検出するBuild Validationを追加しました。
+
+### Add
+
+- **`Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies`** を追加しました。UXMLの`Template` / `Style`の`src`を再帰的にたどり、参照先や`.meta`の欠落、`src`のGUIDと実GUIDの不一致、循環、インポートエラー、インポート結果から名前付き要素が消えている状態を検出します。Editorでは`Library/`に残ったインポート結果で表示できてしまい、クリーンな環境のビルドで初めて画面が欠ける種類の不備です。起点のUXMLと必須要素名は設定で指定でき、未指定なら`Assets/`配下の全UXMLを検証します。
+- **`Tools > SymphonyFrameWork > Build Validation > Validate Fonts`** を追加しました。TextMesh ProとUI Toolkitの既定フォントについて、Dynamicデータのビルド時消去、Source Font Fileの設定とビルド依存、必須文字の有無、Panel SettingsのText Settings参照の一致を検証します。Editorでは動的に生成されたグリフが見えているため気づけず、ビルド後に文字が表示されなくなる種類の不備です。TMPのアセンブリへの参照は追加していません。
+- **`Project Settings > SymphonyFrameWork > Build Validation`** を追加しました。保存先は`ProjectSettings/Packages/symphonyframework/BuildValidationConfig.asset`です。**ビルド前の検証（`Validate On Build`）はUXML・Fontとも既定で無効です。** 更新しただけで既存プロジェクトのビルドが止まらないようにするためで、手動検証で結果を確認してから有効にしてください。
+- いずれも利用側から呼ぶ公開APIは追加していません。
+
 ## [6.14.6] - 2026-09-06
 `ServiceLocateComponent`の自動登録から`DefaultExecutionOrder`依存を取り除き、Unity低レベルAPI（PlayerLoop）によるOrchestrator駆動の同期フェーズへ置き換えました。
 

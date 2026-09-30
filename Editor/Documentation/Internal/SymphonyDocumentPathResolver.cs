@@ -117,6 +117,7 @@ namespace SymphonyFrameWork.Editor
                 [SymphonyDocumentPageEnum.AssetStoreToolsPackager] = "Modules/AssetStoreToolsPackager",
                 [SymphonyDocumentPageEnum.ProjectStructureTools] = "Modules/ProjectStructureTools",
                 [SymphonyDocumentPageEnum.EditorTools] = "EditorTools",
+                [SymphonyDocumentPageEnum.BuildValidation] = "Modules/BuildValidation",
             };
 
         #endregion

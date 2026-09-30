@@ -29,6 +29,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [SymphonyMcpTools](./Modules/Debug.md#symphonymcptools) | メニューなし。外部ツールから呼ぶ |
 | [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFrameWork` |
 | [ポーズカテゴリーの生成](./Modules/PauseManager.md#editor機能) | `Project Settings > SymphonyFrameWork > Pause Category`。設定した名前から `PauseManager.IPausable` を継承した空のinterfaceを生成する |
+| [Build Validation](./Modules/BuildValidation.md) | `Project Settings > SymphonyFrameWork > Build Validation`、`Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies` / `Validate Fonts` |
 | [Scene Blockの依存検証](./Modules/SceneBlock.md#editor機能) | `SceneBlockAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |
 | [設定アセットの自動生成](#設定アセットの自動生成) | 自動実行 |
@@ -39,6 +40,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | ファイル | 内容 | 版管理 |
 | --- | --- | --- |
 | `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset` | enum自動生成の有効・無効 | 含める（プロジェクト共有） |
+| `ProjectSettings/Packages/symphonyframework/BuildValidationConfig.asset` | ビルド前検証の有効・無効、UXMLの起点、フォントの検証条件 | 含める（プロジェクト共有） |
 | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` | Packagerの入出力パス | 含める（プロジェクト共有） |
 | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Service Locatorのログ設定、Save DataのPlay Mode持ち越し | **含めない（開発者ごと）** |
 | `Assets/Resources/SymphonyFrameWork/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` / `DebugHUDConfig` | 含める |
@@ -102,6 +104,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | `Project Settings > SymphonyFrameWork` の `ドキュメントを開く` | この文書（Editor機能） |
 | `Project Settings > SymphonyFrameWork > Save System` の `ドキュメントを開く` | [Save Data System](./Modules/SaveDataSystem.md) |
 | `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` の `ドキュメントを開く` | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md) |
+| `Project Settings > SymphonyFrameWork > Build Validation` の `ドキュメントを開く` | [Build Validation](./Modules/BuildValidation.md) |
 
 **コードから開く**: `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)`。Editor専用の公開APIです。
 
