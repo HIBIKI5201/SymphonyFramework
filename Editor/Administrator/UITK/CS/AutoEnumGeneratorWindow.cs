@@ -38,7 +38,7 @@ namespace SymphonyFramework.Editor
             SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.AutoEnumGenerator);
 
             // すべてのToggleを同じ設定アセットへ接続し、変更を即時反映する。
-            AutoEnumGeneratorConfig config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
+            AutoEnumGeneratorConfig config = SymphonyEditorConfigProvider.GetConfig<AutoEnumGeneratorConfig>();
 
             (Toggle toggle, Button button) sceneList = GetElement("scene");
             sceneList.toggle.value = config.AutoSceneListUpdate;

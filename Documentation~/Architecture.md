@@ -24,7 +24,8 @@ SymphonyFramework/
 │  ├─ Component/           GameObjectへ追加するComponent
 │  ├─ Debug/               HUD、Logger、StopWatch
 │  ├─ Interface/           注入・初期化などの公開契約
-│  ├─ Service/             Scene、Service Locator、Save、Audio、Pause
+│  ├─ Service/             Scene、Save、Audio、Pause（7.0.0 で機能別フォルダへ移す途中）
+│  ├─ Services/            Partitura（Service Locator）
 │  └─ Utility/             Awaitable、Tween、文字列等の補助
 ├─ Editor/                  Editor専用UI、Drawer、Generator
 ├─ Samples~/Runtime/        Package Managerから導入する利用例
@@ -40,7 +41,7 @@ SymphonyFramework/
 
 | モジュール | 入口（Facade） | 利用側が実装・継承する型 |
 | --- | --- | --- |
-| [Service Locator](./Modules/ServiceLocator.md) | `ServiceLocator`、`ServiceInjector` | `IInjectable<T...>` |
+| [Partitura](./Modules/Partitura.md) | `Partitura` | `IInjectable<T...>` |
 | [Scene Loader](./Modules/SceneLoader.md) | `SceneLoader` | `IInitializeAsync` |
 | [Scene Block](./Modules/SceneBlock.md) | `SceneBlockLoader` | `SceneBlockAsset`（アセットとして作る） |
 | [Save Data System](./Modules/SaveDataSystem.md) | `SaveStore` | `SaveDataContent`、`SaveDataLoaderStrategy` |
@@ -56,7 +57,7 @@ SymphonyFramework/
 `SymphonyOrchestrator`が自動で初期化します。利用側でBootstrap用のGameObjectやシーンを作る必要はありません。
 
 1. 最初のシーンのロード前に、前回の状態を破棄し、常駐用のオブジェクトを作る。
-2. Save → Pause → Service Locator → Scene → Audio → Debug HUD の順に初期化する。
+2. Save → Pause → Partitura → Scene → Audio → Debug HUD の順に初期化する。
 3. 最初のシーンのロード後に、`SceneLoadConfig`の設定でシーンの管理を始める。
 4. Play Modeを終えると、初期化と逆の順に解放する。
 
@@ -67,7 +68,7 @@ Domain Reloadを無効にしていても、状態は次のPlay Modeへ持ち越�
 `SceneLoader`（と`SceneBlockLoader`）でロードしたシーンは、次の順で準備されます。
 
 1. シーンを非同期でロードする。
-2. ルートGameObjectのうち`IInjectable<T...>`を実装したものへ、`ServiceLocator`から依存を注入する。
+2. ルートGameObjectのうち`IInjectable<T...>`を実装したものへ、`Partitura`から依存を注入する。
 3. `IInitializeAsync`を実装したものの`InitializeAsync`を待つ。
 4. 優先度を評価してActive Sceneを決め、ロードを完了する。
 

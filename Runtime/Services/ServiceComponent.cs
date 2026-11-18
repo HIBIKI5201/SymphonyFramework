@@ -1,0 +1,97 @@
+﻿using System;
+
+using SymphonyFramework.Attribute;
+
+using UnityEngine;
+
+namespace SymphonyFramework.Services
+{
+    /// <summary>
+    ///     Inspectorで指定したComponentをPartituraへ登録する。
+    /// </summary>
+    [HelpURL("https://www.notion.so/SymphonyLocate-19d7c2c6cc02809ea815c3a750fa95ca?pvs=4")]
+    public sealed class ServiceComponent : MonoBehaviour
+    {
+        #region 内部処理
+
+        [SerializeField, Tooltip("Partituraへ登録するコンポーネント")]
+        private Component _target;
+
+        [SerializeField, Tooltip("PersistentまたはSceneの登録方式。")]
+        private ServiceLifetimeEnum _locateType = ServiceLifetimeEnum.Scene;
+
+        [SerializeField, Tooltip("有効化時に対象をPartituraへ自動登録するか。")]
+        private bool _autoRegister = true;
+
+        [SerializeField, Tooltip("無効化時に対象をPartituraから自動解除するか。")]
+        private bool _autoUnregister = true;
+
+        [SerializeField, ReadOnly, Tooltip("Partituraへ登録するコンポーネントの型。")]
+        private Type _targetType;
+
+        /// <summary>
+        ///     シリアライズされた登録対象の型が有効か検証する。
+        /// </summary>
+        private void Awake()
+        {
+            // 登録時に型情報を参照できないシリアライズ状態を、ライフサイクル開始時に検出する。
+            Debug.Assert(_targetType != null, "Target type is null. Please assign a valid component to the target field.");
+        }
+
+        /// <summary>
+        ///     自動登録が有効な場合に対象をPartituraへの登録を保留する。
+        /// </summary>
+        /// <remarks>
+        ///     実際の登録はフレームワークの同期フェーズで行われ、同じフレームのStart呼び出しより
+        ///     必ず先に反映される。コンポーネント間の有効化順には依存しない。
+        /// </remarks>
+        private void OnEnable()
+        {
+            // 自動登録を利用しない設定では、呼び出し側による明示的な登録を優先する。
+            if (!_autoRegister) { return; }
+
+            // 対象が未設定なら、無効な型とインスタンスの組をPartituraへ渡さない。
+            if (_target == null) { return; }
+
+            // 有効化と無効化を登録期間として扱い、指定された方式で対象を公開する。
+            Partitura.EnqueueAutoRegistration(_targetType, _target, _locateType);
+        }
+
+        /// <summary>
+        ///     自動解除が有効な場合に対象をPartituraから解除する。
+        /// </summary>
+        private void OnDisable()
+        {
+            // 自動解除を利用しない設定では、登録を所有する呼び出し側へ解除判断を委ねる。
+            if (!_autoUnregister) { return; }
+
+            // 登録対象が無ければ、このComponentが解除すべきインスタンスも存在しない。
+            if (_target == null) { return; }
+
+            // Orchestratorの終了処理でPartituraが先にリセット済みの場合は重複操作を避ける。
+            if (!Partitura.IsInitialized) { return; }
+
+            // 同期フェーズでのFlush前にOnDisableへ回った場合は、保留を取り消すだけで完了する。
+            // このとき登録は一度も反映されていないため、以降の解除処理は行わない。
+            if (Partitura.CancelPendingRegistration(_targetType, _target)) { return; }
+
+            // このComponentの無効化に合わせて、Partitura上の登録期間を閉じる。
+            // 同じ型で別のインスタンスが登録されている場合や、別の所有者が解除済みの場合は何もしない。
+            Partitura.UnregisterSameInstance(_targetType, _target);
+        }
+
+        /// <summary>
+        ///     インスペクターで指定された対象の実行時型を同期する。
+        /// </summary>
+        private void OnValidate()
+        {
+            // 未設定時は既存の型情報を維持し、Inspector編集中の一時的なnullで上書きしない。
+            if (_target == null) { return; }
+
+            // Unityが直接シリアライズできないTypeを、選択されたComponentから同期する。
+            _targetType = _target.GetType();
+        }
+
+        #endregion
+    }
+}

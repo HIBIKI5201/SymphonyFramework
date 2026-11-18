@@ -11,8 +11,8 @@
         /// <summary> 全ドキュメントの索引。 </summary>
         Index,
 
-        /// <summary> Service Locatorモジュール。 </summary>
-        ServiceLocator,
+        /// <summary> Partituraモジュール。 </summary>
+        Partitura,
 
         /// <summary> Scene Loaderモジュール。 </summary>
         SceneLoader,

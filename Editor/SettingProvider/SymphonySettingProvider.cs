@@ -70,7 +70,7 @@ namespace SymphonyFramework.Editor.SettingProvider
             SymphonyDocumentationGUI.DrawOpenButton(SymphonyDocumentPageEnum.EditorTools);
 
             SymphonyUserSettingConfig config =
-                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+                SymphonyEditorConfigProvider.GetConfig<SymphonyUserSettingConfig>();
 
             // 個人ごとの保護設定をUserSettings/SymphonyFramework配下のアセットへ即時保存する。
             EditorGUILayout.LabelField("Asset Protection", EditorStyles.boldLabel);
@@ -81,29 +81,29 @@ namespace SymphonyFramework.Editor.SettingProvider
             if (protectionMode != config.AssetProtectionMode) { config.AssetProtectionMode = protectionMode; }
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Service Locator Logs", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Partitura Logs", EditorStyles.boldLabel);
 
             bool isSetInstanceLogEnabled = EditorGUILayout.Toggle(
-                "Set Instance",
-                config.IsServiceLocatorSetInstanceLogEnabled);
+                "Register",
+                config.IsPartituraRegisterLogEnabled);
             bool isGetInstanceLogEnabled = EditorGUILayout.Toggle(
-                "Get Instance",
-                config.IsServiceLocatorGetInstanceLogEnabled);
+                "Get",
+                config.IsPartituraGetLogEnabled);
             bool isDestroyInstanceLogEnabled = EditorGUILayout.Toggle(
-                "Destroy Instance",
-                config.IsServiceLocatorDestroyInstanceLogEnabled);
+                "Unregister / Destroy",
+                config.IsPartituraUnregisterLogEnabled);
 
             bool hasLogOptionChanged =
-                isSetInstanceLogEnabled != config.IsServiceLocatorSetInstanceLogEnabled ||
-                isGetInstanceLogEnabled != config.IsServiceLocatorGetInstanceLogEnabled ||
-                isDestroyInstanceLogEnabled != config.IsServiceLocatorDestroyInstanceLogEnabled;
+                isSetInstanceLogEnabled != config.IsPartituraRegisterLogEnabled ||
+                isGetInstanceLogEnabled != config.IsPartituraGetLogEnabled ||
+                isDestroyInstanceLogEnabled != config.IsPartituraUnregisterLogEnabled;
             if (hasLogOptionChanged)
             {
                 // 個人設定を保存した後、現在のEditorセッションで使うログオプションへ反映する。
-                config.IsServiceLocatorSetInstanceLogEnabled = isSetInstanceLogEnabled;
-                config.IsServiceLocatorGetInstanceLogEnabled = isGetInstanceLogEnabled;
-                config.IsServiceLocatorDestroyInstanceLogEnabled = isDestroyInstanceLogEnabled;
-                PackageInitializer.ApplyServiceLocateLogOptions();
+                config.IsPartituraRegisterLogEnabled = isSetInstanceLogEnabled;
+                config.IsPartituraGetLogEnabled = isGetInstanceLogEnabled;
+                config.IsPartituraUnregisterLogEnabled = isDestroyInstanceLogEnabled;
+                PackageInitializer.ApplyPartituraLogOptions();
             }
 
             EditorGUILayout.Space();
@@ -120,7 +120,7 @@ namespace SymphonyFramework.Editor.SettingProvider
                 MessageType.Info);
 
             // 画面を開いただけでRuntime Configの生成を開始せず、取得できたものだけを描画する。
-            DebugHUDConfig config = SymphonyConfigLocator.GetConfig<DebugHUDConfig>();
+            DebugHUDConfig config = SymphonyConfigProvider.GetConfig<DebugHUDConfig>();
             if (config == null)
             {
                 DrawMissingDebugHUDConfig();

@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.16.0**
+- 現在のバージョン: **6.17.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -13,7 +13,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 | やりたいこと | 使う機能 |
 | --- | --- |
 | シーンを非同期で読み込み、進捗やActive Sceneを管理したい | [Scene Loader](./Documentation~/Modules/SceneLoader.md) |
-| シーンを跨いでサービスやComponentを共有したい | [Service Locator](./Documentation~/Modules/ServiceLocator.md) |
+| シーンを跨いでサービスやComponentを共有したい | [Partitura](./Documentation~/Modules/Partitura.md) |
 | データ型ごとに保存・読み込み・削除したい | [Save Data System](./Documentation~/Modules/SaveDataSystem.md) |
 | AudioMixerGroupごとの再生元と音量をまとめたい | [Audio Manager](./Documentation~/Modules/AudioManager.md) |
 | ゲーム全体を止め、待機やTweenもポーズへ追従させたい | [Pause Manager](./Documentation~/Modules/PauseManager.md) |
@@ -97,7 +97,7 @@ Assets/
 主な設定場所:
 
 - `Window > SymphonyFramework > Symphony Administrator`: 各機能の状態確認とenum生成
-- `Project Settings > SymphonyFramework`: Debug HUD Shortcut、アセット保護、Service Locatorのログ設定
+- `Project Settings > SymphonyFramework`: Debug HUD Shortcut、アセット保護、Partituraのログ設定
 - `Project Settings > SymphonyFramework > Save System`: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択
 - `SceneLoadConfig.asset`: 再生開始時のシーン初期化
 - `AudioConfig.asset`: AudioMixerとグループ設定
@@ -108,7 +108,7 @@ asmdefを使うゲーム側コードは`SymphonyFramework`を参照してくだ�
 
 | モジュール | 内容 |
 | --- | --- |
-| [Service Locator](./Documentation~/Modules/ServiceLocator.md) | 登録、取得、注入、Service Locate パネル、ログ設定 |
+| [Partitura](./Documentation~/Modules/Partitura.md) | 登録、取得、注入、Partitura パネル、ログ設定 |
 | [Scene Loader](./Documentation~/Modules/SceneLoader.md) | 非同期ロード、進捗、初期化、Scene Load パネル |
 | [Scene Block](./Documentation~/Modules/SceneBlock.md) | 複数シーンの依存定義、依存順ロード、単体ロードとの共存 |
 | [Save Data System](./Documentation~/Modules/SaveDataSystem.md) | 保存、ローダー、Save System設定、Save Data パネル |
@@ -127,19 +127,19 @@ asmdefを使うゲーム側コードは`SymphonyFramework`を参照してくだ�
 | 機能 | 内容 |
 | --- | --- |
 | [Main Toolbar](./Documentation~/EditorTools.md#メインツールバー拡張) | 音符アイコン付き`Symphony Framework > Scene Init`から次回再生時の初期シーン処理を切り替える（Unity 6000.3以降） |
-| [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Service Locator、Scene Loader、Save Data、Pauseの状態確認 |
+| [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Partitura、Scene Loader、Save Data、Pauseの状態確認 |
 | [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md) | Scene、Tag、Layer、Audio Groupのenum生成 |
 | [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md) | Asset Store Toolsの出力、差分インポート、出力パイプライン |
 | [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md) | FolderGenerator、AssemblyGenerator、SymphonyPackageLoader |
 | [Build Validation](./Documentation~/Modules/BuildValidation.md) | UXML依存とフォント設定の手動・ビルド前検証。既定ではビルド時の検証は無効 |
 
-Runtimeモジュールに紐づくEditor機能（Save System設定、Service Locatorのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
+Runtimeモジュールに紐づくEditor機能（Save System設定、Partituraのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
 
 ## サンプル
 
 Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプルを利用プロジェクトへインポートできます。**インポートするまでプロジェクトには入りません。**
 
-- `ServiceLocatorSample`: 登録、同期取得、非同期取得、Singleton
+- `PartituraSample`: 登録、同期取得、非同期取得、Singleton
 - `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除
 - `SceneLoaderSample`: 追加ロード、Active Scene切り替え、アンロード
 - `PauseManagerSample`: Pause切り替え、`IPausable`、ポーズ対応待機
@@ -154,7 +154,7 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
 - [Editor機能](./Documentation~/EditorTools.md)
 - [非推奨APIと削除予定](./Documentation~/Deprecations.md)
 - Modules/
-  - [Service Locator](./Documentation~/Modules/ServiceLocator.md)
+  - [Partitura](./Documentation~/Modules/Partitura.md)
   - [Scene Loader](./Documentation~/Modules/SceneLoader.md)
   - [Scene Block](./Documentation~/Modules/SceneBlock.md)
   - [Save Data System](./Documentation~/Modules/SaveDataSystem.md)

@@ -10,7 +10,7 @@
 | --- | --- |
 | 機能、インストール、初期設定を知る | [README.md](./README.md)の「主な機能」「インストール」「初期設定」 |
 | namespaceや入口の型から、読むべきモジュール文書を引く | [AgentUsage.md](./Documentation~/AgentUsage.md) |
-| Service Locatorを使う | [ServiceLocator.md](./Documentation~/Modules/ServiceLocator.md) |
+| Partitura（Partitura）を使う | [Partitura.md](./Documentation~/Modules/Partitura.md) |
 | Scene Loaderを使う | [SceneLoader.md](./Documentation~/Modules/SceneLoader.md) |
 | Save Data Systemを使う | [SaveDataSystem.md](./Documentation~/Modules/SaveDataSystem.md) |
 | Audio Managerを使う | [AudioManager.md](./Documentation~/Modules/AudioManager.md) |

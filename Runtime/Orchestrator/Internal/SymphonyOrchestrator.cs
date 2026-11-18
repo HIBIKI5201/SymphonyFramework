@@ -10,7 +10,7 @@ using SymphonyFramework.System;
 using SymphonyFramework.System.SaveSystem;
 using SymphonyFramework.System.SceneBlock;
 using SymphonyFramework.System.SceneLoad;
-using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Services;
 
 using UnityEngine;
 
@@ -67,9 +67,9 @@ namespace SymphonyFramework.Orchestrator
                 ServiceHostComponent serviceHost =
                     systemObjectFactory.CreateComponent<ServiceHostComponent>(
                         nameof(ServiceHostComponent));
-                ServiceLocator.Initialize(serviceHost);
-                RecordInitializedSubsystem(ServiceLocator.ResetRuntimeState);
-                RecordFrameworkTick(ServiceLocator.FlushPendingRegistrations);
+                Partitura.Initialize(serviceHost);
+                RecordInitializedSubsystem(Partitura.ResetRuntimeState);
+                RecordFrameworkTick(Partitura.FlushPendingRegistrations);
 
                 SceneLoader.Initialize();
                 RecordInitializedSubsystem(SceneLoader.ResetRuntimeState);
@@ -79,12 +79,12 @@ namespace SymphonyFramework.Orchestrator
                 RecordInitializedSubsystem(SceneBlockLoader.ResetRuntimeState);
 
                 AudioManager.Initialize(
-                    SymphonyConfigLocator.GetConfig<AudioConfig>(),
+                    SymphonyConfigProvider.GetConfig<AudioConfig>(),
                     systemObjectFactory);
                 RecordInitializedSubsystem(AudioManager.ResetRuntimeState);
 
                 DebugHUDConfig debugHUDConfig =
-                    SymphonyConfigLocator.GetConfig<DebugHUDConfig>();
+                    SymphonyConfigProvider.GetConfig<DebugHUDConfig>();
                 SymphonyDebugHUD.Initialize(
                     systemObjectFactory,
                     debugHUDConfig?.ToggleAction,
@@ -119,7 +119,7 @@ namespace SymphonyFramework.Orchestrator
         {
             // InspectorとProject Settingsで構成された内部設定を、初期シーンの準備完了後に適用する。
             SceneLoadConfig config =
-                SymphonyConfigLocator.GetConfig<SceneLoadConfig>();
+                SymphonyConfigProvider.GetConfig<SceneLoadConfig>();
 
             // Runtime初期化コールバックは同期入口のため、以後の非同期処理をSceneLoaderへ引き渡す。
             _ = SceneLoader.AfterSceneLoad(config);
@@ -144,7 +144,7 @@ namespace SymphonyFramework.Orchestrator
         {
             // 利用側コードへinternalなConfigを公開せず、InspectorとProject Settingsの選択結果だけを解決する。
             SaveDataConfig config =
-                SymphonyConfigLocator.GetConfig<SaveDataConfig>();
+                SymphonyConfigProvider.GetConfig<SaveDataConfig>();
 
             // ConfigまたはLoaderが未設定の場合も、既定実装で初期化を継続する。
             return config?.Loader ?? new JsonUtilitySaveDataLoaderStrategy();

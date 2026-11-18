@@ -4,7 +4,7 @@ using SymphonyFramework.Config;
 using SymphonyFramework.Core;
 using SymphonyFramework.Debugger.Logger;
 using SymphonyFramework.System.SaveSystem;
-using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Services;
 using SymphonyFramework.Utility;
 
 using UnityEditor;
@@ -36,7 +36,7 @@ namespace SymphonyFramework.Editor
             CoreLogRelay.ExceptionHandler = exception => SymphonyDebugLogger.LogException(exception);
 
             // Editor設定とAssetDatabase依存をRuntime側の差し替え口へ明示的に注入する。
-            ApplyServiceLocateLogOptions();
+            ApplyPartituraLogOptions();
             SymphonyVisualElement.EditorAssetLoader =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>;
             SaveStore.ConfigureLoaderResolver(ResolveSaveDataLoader);
@@ -58,20 +58,20 @@ namespace SymphonyFramework.Editor
         }
 
         /// <summary>
-        ///     UserSettingsの設定値をRuntimeのService Locatorログ設定へ注入する。
+        ///     UserSettingsの設定値をRuntimeのPartituraログ設定へ注入する。
         /// </summary>
-        internal static void ApplyServiceLocateLogOptions()
+        internal static void ApplyPartituraLogOptions()
         {
             // 利用者ごとのEditor設定を読み、Runtime側がUnityEditorへ依存しない形で反映する。
             SymphonyUserSettingConfig config =
-                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+                SymphonyEditorConfigProvider.GetConfig<SymphonyUserSettingConfig>();
 
-            ServiceLocateLogOption.IsSetInstanceLogEnabled =
-                config.IsServiceLocatorSetInstanceLogEnabled;
-            ServiceLocateLogOption.IsGetInstanceLogEnabled =
-                config.IsServiceLocatorGetInstanceLogEnabled;
-            ServiceLocateLogOption.IsDestroyInstanceLogEnabled =
-                config.IsServiceLocatorDestroyInstanceLogEnabled;
+            PartituraLogOption.IsSetInstanceLogEnabled =
+                config.IsPartituraRegisterLogEnabled;
+            PartituraLogOption.IsGetInstanceLogEnabled =
+                config.IsPartituraGetLogEnabled;
+            PartituraLogOption.IsDestroyInstanceLogEnabled =
+                config.IsPartituraUnregisterLogEnabled;
         }
 
         #endregion
@@ -126,7 +126,7 @@ namespace SymphonyFramework.Editor
         {
             // Configがまだ利用できない場合も、既定のJSONローダーでEditor上の保存処理を成立させる。
             SaveDataConfig config =
-                SymphonyConfigLocator.GetConfig<SaveDataConfig>();
+                SymphonyConfigProvider.GetConfig<SaveDataConfig>();
             return config?.Loader ?? new JsonUtilitySaveDataLoaderStrategy();
         }
 

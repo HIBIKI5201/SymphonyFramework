@@ -4,7 +4,7 @@ using System.IO;
 
 using SymphonyFramework.Core;
 using SymphonyFramework.System.SceneLoad;
-using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Services;
 
 using NUnit.Framework;
 
@@ -22,19 +22,19 @@ namespace SymphonyFramework.Tests
         /// <summary> 型と、その型が属するべき名前空間。 </summary>
         private static readonly (Type type, string expectedNamespace)[] ModuleOwnedTypes =
         {
-            (typeof(ServiceLocateComponent), "SymphonyFramework.System.ServiceLocate"),
-            (typeof(SymphonyLocateObject<object>), "SymphonyFramework.System.ServiceLocate"),
-            (typeof(IInjectable), "SymphonyFramework.System.ServiceLocate"),
-            (typeof(IInjectable<object>), "SymphonyFramework.System.ServiceLocate"),
+            (typeof(ServiceComponent), "SymphonyFramework.Services"),
+            (typeof(PartituraReference<object>), "SymphonyFramework.Services"),
+            (typeof(IInjectable), "SymphonyFramework.Services"),
+            (typeof(IInjectable<object>), "SymphonyFramework.Services"),
             (typeof(IInitializeAsync), "SymphonyFramework.System.SceneLoad"),
         };
 
         /// <summary> 型と、その型が置かれるべきパッケージ内の相対パス。 </summary>
         private static readonly (string fileName, string directory)[] ModuleOwnedFiles =
         {
-            ("ServiceLocateComponent.cs", "Runtime/Service/ServiceLocator"),
-            ("SymphonyLocateObject.cs", "Runtime/Service/ServiceLocator"),
-            ("IInjectable.cs", "Runtime/Service/ServiceLocator"),
+            ("ServiceComponent.cs", "Runtime/Services"),
+            ("PartituraReference.cs", "Runtime/Services"),
+            ("IInjectable.cs", "Runtime/Services"),
             ("IInitializeAsync.cs", "Runtime/Service/SceneLoader"),
         };
 
@@ -100,7 +100,7 @@ namespace SymphonyFramework.Tests
                 "SymphonyFramework.IInitializeAsync",
             })
             {
-                if (typeof(ServiceLocateComponent).Assembly.GetType(fullName) != null)
+                if (typeof(ServiceComponent).Assembly.GetType(fullName) != null)
                 {
                     remaining.Add(fullName);
                 }

@@ -35,7 +35,7 @@ namespace SymphonyFramework.Editor
         private const string WINDOW_NAME = "Symphony Administrator";
 
         private PauseWindow _pauseWindow;
-        private ServiceLocateWindow _serviceLocatorWindow;
+        private PartituraWindow _partituraWindow;
         private SceneLoadWindow _sceneLoaderWindow;
         private SceneBlockWindow _sceneBlockWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
@@ -54,7 +54,7 @@ namespace SymphonyFramework.Editor
             if (container != null)
             {
                 _pauseWindow = container.Q<PauseWindow>();
-                _serviceLocatorWindow = container.Q<ServiceLocateWindow>();
+                _partituraWindow = container.Q<PartituraWindow>();
                 _sceneLoaderWindow = container.Q<SceneLoadWindow>();
                 _sceneBlockWindow = container.Q<SceneBlockWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
@@ -77,13 +77,13 @@ namespace SymphonyFramework.Editor
         {
             // OnEnableで開始した長寿命な購読を対で解除し、Window破棄後のコールバックを防ぐ。
             _pauseWindow?.Dispose();
-            _serviceLocatorWindow?.Dispose();
+            _partituraWindow?.Dispose();
             _sceneLoaderWindow?.Dispose();
             _sceneBlockWindow?.Dispose();
             _saveDataRegistryWindow?.Dispose();
             _debugHUDWindow?.Dispose();
             _pauseWindow = null;
-            _serviceLocatorWindow = null;
+            _partituraWindow = null;
             _sceneLoaderWindow = null;
             _sceneBlockWindow = null;
             _saveDataRegistryWindow = null;

@@ -4,7 +4,7 @@ using System.Reflection;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Services;
 
 namespace SymphonyFramework.Tests
 {
@@ -12,7 +12,7 @@ namespace SymphonyFramework.Tests
     ///     コンストラクタ注入で使うコンストラクタの選択と、引数の解決を検証する。
     /// </summary>
     /// <remarks>
-    ///     Service Locatorを初期化せず、解決手段を辞書で差し替えて呼ぶ。
+    ///     Partituraを初期化せず、解決手段を辞書で差し替えて呼ぶ。
     /// </remarks>
     public sealed class ServiceConstructionPlannerTests
     {

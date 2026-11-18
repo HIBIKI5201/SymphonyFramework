@@ -20,7 +20,7 @@
 最小の型解決確認では、Editor専用スクリプトから次の型を参照すれば主要なRuntimeアセンブリとnamespaceを確認できます。
 
 ```csharp
-Debug.Log(typeof(ServiceLocator).FullName);
+Debug.Log(typeof(Partitura).FullName);
 Debug.Log(typeof(SceneLoader).FullName);
 Debug.Log(typeof(AudioManager).FullName);
 Debug.Log(typeof(SaveStore).FullName);
@@ -48,7 +48,7 @@ Assets/Scripts/SymphonyFramework/AudioGroupTypeEnum.cs
 
 Package Managerから該当する[`Samples~/Runtime`](../Samples~/Runtime)をインポートし、サンプルシーンをPlayするのが最短です。
 
-- Service Locator: 登録、取得、解除が成立し、シーンを跨いだ不要な参照が残らない。
+- Partitura: 登録、取得、解除が成立し、シーンを跨いだ不要な参照が残らない。
 - Scene Loader: 対象シーンをBuild Settingsへ追加し、ロード、Active Scene切り替え、アンロードが成功する。
 - Save Data System: 保存、再ロード、削除が成功し、検証後にデータを削除する。
 - Audio Manager: AudioMixerとグループを設定し、再生と音量変更を確認する。
@@ -63,7 +63,7 @@ uLoopMCPの`execute-dynamic-code`などEditorコードを実行できる環境�
 ```csharp
 using SymphonyFramework.Editor.Debugger;
 
-string serviceLocatorJson = SymphonyMcpTools.GetServiceLocatorJson();
+string serviceLocatorJson = SymphonyMcpTools.GetPartituraJson();
 string sceneLoaderJson = SymphonyMcpTools.GetSceneLoaderJson();
 string saveDataJson = SymphonyMcpTools.GetSaveDataJson();
 string pauseJson = SymphonyMcpTools.GetPauseJson();
@@ -74,7 +74,7 @@ string logJson = SymphonyMcpTools.GetLogFileJson();
 - 読み取り失敗時は`"error"`を含むJSONを返す。
 - Save Dataの出力に`SaveDataContent`の内容は含まれない。
 - `SymphonyMcpTools`はEditorアセンブリ専用であり、Playerビルドから参照できない。
-- Service Locatorの`effectiveLocateType`は、登録時の値ではなく現在の状態から導いた実効値。
+- Partituraの`effectiveLifetime`は、登録時の値ではなく現在の状態から導いた実効値。
 - `GetLogFileJson()`は書き込み待ちのログをフラッシュし、既定で直近200行を返す。引数で1〜1000行を指定できる。
 
 ## 5. ビルド

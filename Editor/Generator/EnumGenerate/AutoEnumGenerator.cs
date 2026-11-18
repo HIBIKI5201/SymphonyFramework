@@ -102,7 +102,7 @@ namespace SymphonyFramework.Editor
         /// </summary>
         internal static void Initialize()
         {
-            _config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
+            _config = SymphonyEditorConfigProvider.GetConfig<AutoEnumGeneratorConfig>();
             _hasAssetChanges = false;
 
             // Domain Reloadなしで再初期化されても購読が重複しないよう、既存接続を破棄してから登録する。
@@ -194,7 +194,7 @@ namespace SymphonyFramework.Editor
         /// <param name="refreshAssetDatabase"> 生成後にAssetDatabaseを更新する場合はtrue。 </param>
         internal static void AudioEnumGenerate(bool refreshAssetDatabase)
         {
-            AudioConfig config = SymphonyConfigLocator.GetConfig<AudioConfig>();
+            AudioConfig config = SymphonyConfigProvider.GetConfig<AudioConfig>();
             string[] list;
 
             // AudioConfigがあれば設定順のグループ名を使い、無ければ空のenumとして安全に再生成する。

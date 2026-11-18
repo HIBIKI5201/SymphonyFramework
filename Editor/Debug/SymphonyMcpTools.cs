@@ -8,7 +8,7 @@ using SymphonyFramework.Editor.Debugger.Logger;
 using SymphonyFramework.System;
 using SymphonyFramework.System.SaveSystem;
 using SymphonyFramework.System.SceneLoad;
-using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Services;
 
 using UnityEditor;
 using UnityEngine;
@@ -25,17 +25,17 @@ namespace SymphonyFramework.Editor.Debugger
         #region 外部向けAPI
 
         /// <summary>
-        ///     Service Locatorの初期化状態と登録済みインスタンスをJSONで取得する。
+        ///     Partituraの初期化状態と登録済みインスタンスをJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
-        public static string GetServiceLocatorJson()
+        public static string GetPartituraJson()
         {
             bool initialized = false;
 
             try
             {
                 // Edit ModeではRuntime状態が存在しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && ServiceLocator.IsInitialized;
+                initialized = EditorApplication.isPlaying && Partitura.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、Runtime APIへ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -48,13 +48,13 @@ namespace SymphonyFramework.Editor.Debugger
                 }
 
                 IReadOnlyList<ServiceRegistrationInfo> registrationInfos =
-                    ServiceLocator.GetRegistrationInfos();
+                    Partitura.GetRegistrationInfos();
                 // 外部自動化へ公開してよい診断情報だけを匿名型へ射影する。
                 var registrations = registrationInfos
                     .Select(registrationInfo => new
                     {
                         typeName = GetTypeName(registrationInfo.ServiceType),
-                        effectiveLocateType = GetLocateType(registrationInfo).ToString(),
+                        effectiveLifetime = GetEffectiveLifetime(registrationInfo).ToString(),
                         instanceName = GetInstanceName(registrationInfo.Instance)
                     })
                     .ToArray();
@@ -263,15 +263,15 @@ namespace SymphonyFramework.Editor.Debugger
         ///     登録情報から診断上の実効登録方式を判定する。
         /// </summary>
         /// <param name="registrationInfo"> 登録方式とpayloadを持つ公開スナップショット。 </param>
-        /// <returns> Componentでは記録された登録方式、それ以外はLocator。 </returns>
-        private static LocateTypeEnum GetLocateType(
+        /// <returns> Componentでは記録された登録方式、それ以外はScene。 </returns>
+        private static ServiceLifetimeEnum GetEffectiveLifetime(
             ServiceRegistrationInfo registrationInfo)
         {
             // Componentは階層移動の有無が挙動へ影響するため、記録された登録方式を返す。
-            if (registrationInfo.Instance is Component) { return registrationInfo.LocateType; }
+            if (registrationInfo.Instance is Component) { return registrationInfo.Lifetime; }
 
-            // Component以外はSingleton指定でも階層移動が起きず、Locatorと同じ挙動になる。
-            return LocateTypeEnum.Locator;
+            // Component以外はPersistent指定でも階層移動が起きず、Sceneと同じ挙動になる。
+            return ServiceLifetimeEnum.Scene;
         }
 
         /// <summary>
