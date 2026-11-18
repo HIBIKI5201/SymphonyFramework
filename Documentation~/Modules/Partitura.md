@@ -7,7 +7,7 @@
 シーンやクラスをまたいで使うインスタンスを、参照を手で受け渡さずに取り出せるようにします。
 
 - **すること**: インスタンスの登録・解除・取得、登録の待機、コンストラクタ・`IInjectable`への依存の注入、登録状態の一覧
-- **しないこと**: 依存の再帰的な生成（登録済みのインスタンスだけを渡す）、`CreateInstance`で作ったインスタンスの自動登録、シーンのロード（[Scene Loader](./SceneLoader.md)）
+- **しないこと**: 依存の再帰的な生成（登録済みのインスタンスだけを渡す）、`CreateInstance`で作ったインスタンスの自動登録、シーンのロード（[Attacca](./Attacca.md)）
 
 ## 入口
 
@@ -34,7 +34,7 @@
 | SL-03 | 取得 | `Get` / `TryGet` | 必須なら`Get`（無ければ例外）、任意なら`TryGet`（無ければ`false`） |
 | SL-04 | 登録の待機 | `GetAsync` / `TryGetAsync` / `WhenRegistered` | 登録されるまで待つ、または登録後に処理を呼ぶ |
 | SL-05 | コンストラクタ注入 | `Partitura.CreateInstance<T>()` | 引数を登録済みのインスタンスから解決して生成する |
-| SL-06 | `IInjectable`への注入 | `Partitura.Inject(...)` | `Inject`メソッドへ登録済みのインスタンスを渡す。シーンのルートには`SceneLoader`が自動で行う |
+| SL-06 | `IInjectable`への注入 | `Partitura.Inject(...)` | `Inject`メソッドへ登録済みのインスタンスを渡す。シーンのルートには`Attacca`が自動で行う |
 | SL-07 | Inspectorからの登録 | `ServiceComponent` | `Auto Register`を有効にしたComponentを、同じフレームの`Start`より前に登録する |
 | SL-08 | 取得結果のキャッシュ | `PartituraReference<T>` | 初回だけ`Partitura`から取得し、以降は保持した参照を返す。保持した参照が破棄済みなら取り直す |
 | SL-09 | 登録状態の一覧 | `GetRegistrationInfos` / `TryGetRegistrationInfo` / `IsRegistered` | 型、インスタンス、登録方式のスナップショットを返す。`IsRegistered(instance)`は同じ参照が登録されているかを返す |
@@ -118,7 +118,7 @@ BattleService service = Partitura.CreateInstance<BattleService>();
 - 基本形は`OnEnable`で`Register`、`OnDisable`で`Unregister`。`Register`はその場で反映される。
 - `ServiceLifetimeEnum.Persistent`はComponentを管理オブジェクトの配下へ移すため、シーンローカルなオブジェクトには使わない。
 - 任意の依存は`TryGet<T>`、必須の依存は`Get<T>`を使う。`null`を返す取得は無い。
-- 実行時に`Instantiate`したオブジェクトには`Partitura.Inject(...)`を自分で呼ぶ。`SceneLoader`が自動で注入するのは、ロードしたシーンのルートにある`IInjectable<T...>`だけである。
+- 実行時に`Instantiate`したオブジェクトには`Partitura.Inject(...)`を自分で呼ぶ。`Attacca`が自動で注入するのは、ロードしたシーンのルートにある`IInjectable<T...>`だけである。
 - `CreateInstance`の戻り値を共有したい場合は、自分で`Register`へ渡す。
 - 6.x の`ServiceLocator`・`ServiceInjector`からの移行方法（名前の対応表）は[CHANGELOG.md](../../CHANGELOG.md)の`### Breaking`にある。
 
@@ -154,7 +154,7 @@ Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表�
 
 ## 関連
 
-- [Scene Loader](./SceneLoader.md)
+- [Attacca](./Attacca.md)
 - [Architecture.md](../Architecture.md)
 - [Deprecations.md](../Deprecations.md)
 - [CHANGELOG.md](../../CHANGELOG.md)

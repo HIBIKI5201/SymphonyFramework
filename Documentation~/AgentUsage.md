@@ -11,8 +11,9 @@ APIの説明、コード例、実装時に誤りやすい判断は各モジュ�
 
 | 機能 | namespace | 主な入口 | モジュール文書 |
 | --- | --- | --- | --- |
-| Partitura（Partitura） | `SymphonyFramework.Services` | `Partitura` | [Partitura](./Modules/Partitura.md) |
-| Scene Loader | `SymphonyFramework.System.SceneLoad` | `SceneLoader` | [Scene Loader](./Modules/SceneLoader.md) |
+| Partitura | `SymphonyFramework.Services` | `Partitura` | [Partitura](./Modules/Partitura.md) |
+| Attacca | `SymphonyFramework.Scenes` | `Attacca` | [Attacca](./Modules/Attacca.md) |
+| Suite | `SymphonyFramework.Scenes` | `Suite`, `SuiteAsset` | [Suite](./Modules/Suite.md) |
 | Save Data System | `SymphonyFramework.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](./Modules/SaveDataSystem.md) |
 | Audio Manager | `SymphonyFramework.System` | `AudioManager` | [Audio Manager](./Modules/AudioManager.md) |
 | Pause Manager | `SymphonyFramework.System` | `PauseManager` | [Pause Manager](./Modules/PauseManager.md) |
