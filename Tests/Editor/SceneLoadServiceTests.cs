@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Scenes;
 
 using UnityEngine.SceneManagement;
 
 namespace SymphonyFramework.Tests
 {
-    /// <summary> fake Scene Loaderを用いてSceneLoadServiceの優先度判断と進捗伝播を検証する。 </summary>
+    /// <summary> fakeのISceneLoaderを用いてSceneLoadServiceの優先度判断と進捗伝播を検証する。 </summary>
     public sealed class SceneLoadServiceTests
     {
         /// <summary> 高い優先度のSceneをロードするとActive Sceneが切り替わる。 </summary>
@@ -155,6 +155,103 @@ namespace SymphonyFramework.Tests
                 loader.GetLoadedSceneNames(),
                 Is.EquivalentTo(new[] { "InGame" }));
             Assert.That(loader.Operations, Has.No.Member("Unload:InGame"));
+        }
+
+        /// <summary> 起動時のSuiteは初期シーンの後、整理の前にロードされ、そのシーンは残る。 </summary>
+        [Test]
+        public async Task InitializeAfterSceneLoad_WithSuite_LoadsSuiteAfterInitialScenesBeforeUnload()
+        {
+            var registry = new SceneLoadRegistry();
+            var loader = new FakeSceneLoader();
+            var service = new SceneLoadService(registry, loader);
+
+            await service.LoadScene(new SceneLoadRequest("InGame"));
+            int arrangedOperationCount = loader.Operations.Count;
+
+            await service.InitializeAfterSceneLoad(
+                true,
+                new[] { "Title" },
+                null,
+                new[] { "Field" },
+                () => service.LoadScene(new SceneLoadRequest("Field")));
+
+            var operations = new List<string>(loader.Operations);
+            operations.RemoveRange(0, arrangedOperationCount);
+
+            Assert.That(
+                operations,
+                Is.EqualTo(new[] { "Load:Title", "Load:Field", "Unload:InGame" }));
+            Assert.That(
+                loader.GetLoadedSceneNames(),
+                Is.EquivalentTo(new[] { "Title", "Field" }));
+        }
+
+        /// <summary> 初期シーンが無くても、起動時のSuiteだけで整理まで行う。 </summary>
+        [Test]
+        public async Task InitializeAfterSceneLoad_SuiteOnly_LoadsSuiteAndUnloadsOthers()
+        {
+            var registry = new SceneLoadRegistry();
+            var loader = new FakeSceneLoader();
+            var service = new SceneLoadService(registry, loader);
+
+            await service.LoadScene(new SceneLoadRequest("InGame"));
+
+            await service.InitializeAfterSceneLoad(
+                true,
+                null,
+                null,
+                new[] { "Field" },
+                () => service.LoadScene(new SceneLoadRequest("Field")));
+
+            Assert.That(
+                loader.GetLoadedSceneNames(),
+                Is.EquivalentTo(new[] { "Field" }));
+        }
+
+        /// <summary> 起動時のSuiteのロードに失敗した場合はSceneを整理しない。 </summary>
+        [Test]
+        public async Task InitializeAfterSceneLoad_SuiteLoadFails_KeepsLoadedScene()
+        {
+            var registry = new SceneLoadRegistry();
+            var loader = new FakeSceneLoader();
+            var service = new SceneLoadService(registry, loader);
+
+            await service.LoadScene(new SceneLoadRequest("InGame"));
+
+            await service.InitializeAfterSceneLoad(
+                true,
+                new[] { "Title" },
+                null,
+                new[] { "Field" },
+                () => Task.FromResult(false));
+
+            Assert.That(loader.Operations, Has.No.Member("Unload:InGame"));
+            Assert.That(
+                loader.GetLoadedSceneNames(),
+                Is.EquivalentTo(new[] { "InGame", "Title" }));
+        }
+
+        /// <summary> リセットが無効なら、起動時のSuiteもロードしない。 </summary>
+        [Test]
+        public async Task InitializeAfterSceneLoad_ResetDisabled_DoesNotLoadSuite()
+        {
+            var registry = new SceneLoadRegistry();
+            var loader = new FakeSceneLoader();
+            var service = new SceneLoadService(registry, loader);
+            bool isCalled = false;
+
+            await service.InitializeAfterSceneLoad(
+                false,
+                null,
+                null,
+                new[] { "Field" },
+                () =>
+                {
+                    isCalled = true;
+                    return Task.FromResult(true);
+                });
+
+            Assert.That(isCalled, Is.False);
         }
 
         /// <summary> テスト用にUnity Scene操作をメモリ上で再現する。 </summary>

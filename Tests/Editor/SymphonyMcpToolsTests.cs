@@ -19,11 +19,11 @@ namespace SymphonyFramework.Tests
             AssertUninitializedJson(SymphonyMcpTools.GetPartituraJson);
         }
 
-        /// <summary> Scene Loaderが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Attaccaが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
-        public void GetSceneLoaderJson_WhenUninitialized_ReturnsValidJson()
+        public void GetAttaccaJson_WhenUninitialized_ReturnsValidJson()
         {
-            JObject result = AssertUninitializedJson(SymphonyMcpTools.GetSceneLoaderJson);
+            JObject result = AssertUninitializedJson(SymphonyMcpTools.GetAttaccaJson);
 
             Assert.That(result["scenes"], Is.Empty);
             Assert.That(result["activeSceneName"].Type, Is.EqualTo(JTokenType.Null));

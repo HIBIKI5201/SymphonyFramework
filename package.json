@@ -1,6 +1,6 @@
 {
   "name": "symphonyframework",
-  "version": "6.17.0",
+  "version": "6.18.0",
   "displayName": "Symphony Framework",
   "description": "シーン遷移、サービス共有、セーブ、オーディオ、ポーズを同じ使い方で扱えるようにまとめたUnity向けフレームワークです。最初のシーンより前に自動で初期化されるため、Bootstrapシーンやマネージャープレハブを用意せずに、必要な機能から使い始められます。",
   "unity": "6000.0",
@@ -32,14 +32,14 @@
       "path": "Samples~/Runtime/SaveDataSystemSample"
     },
     {
-      "displayName": "Scene Loader Sample",
-      "description": "SceneLoader を使用した追加ロード、優先度によるActive Scene切り替え、ロード完了待機のサンプルが含まれています。",
-      "path": "Samples~/Runtime/SceneLoaderSample"
+      "displayName": "Attacca Sample",
+      "description": "Attacca を使用した追加ロード、優先度によるActive Scene切り替え、ロード完了待機のサンプルが含まれています。",
+      "path": "Samples~/Runtime/AttaccaSample"
     },
     {
-      "displayName": "Scene Block Sample",
-      "description": "SceneBlockLoader を使用したブロック単位の依存順ロード、ブロック切り替え時の共有シーンの保持、SceneLoader による単体ロードとの共存のサンプルが含まれています。",
-      "path": "Samples~/Runtime/SceneBlockSample"
+      "displayName": "Suite Sample",
+      "description": "Suite を使用したブロック単位の依存順ロード、ブロック切り替え時の共有シーンの保持、Attacca による単体ロードとの共存のサンプルが含まれています。",
+      "path": "Samples~/Runtime/SuiteSample"
     },
     {
       "displayName": "Pause Manager Sample",

@@ -58,6 +58,14 @@ namespace SymphonyFramework.Editor
             }
             GUILayout.EndHorizontal();
 
+            // 起動時のSuiteは初期シーンの後でロードする。順序どおりに並べる通常のリストで編集する。
+            SerializedProperty initializeSuiteList = serializedObject.FindProperty("_initializeSuiteList");
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(
+                initializeSuiteList,
+                new GUIContent("初期化時にロードするSuite（複数）", initializeSuiteList.tooltip),
+                true);
+
             // Undoとアセット保存へ反映できるよう、描画中の変更を確定する。
             serializedObject.ApplyModifiedProperties();
         }

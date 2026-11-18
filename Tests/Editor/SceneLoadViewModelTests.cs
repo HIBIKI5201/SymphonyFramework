@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Scenes;
 
 using UnityEngine.SceneManagement;
 

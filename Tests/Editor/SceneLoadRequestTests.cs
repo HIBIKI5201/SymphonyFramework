@@ -2,7 +2,7 @@
 
 using NUnit.Framework;
 
-using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Scenes;
 
 namespace SymphonyFramework.Tests
 {

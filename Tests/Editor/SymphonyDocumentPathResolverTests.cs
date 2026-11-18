@@ -20,13 +20,13 @@ namespace SymphonyFramework.Tests
             try
             {
                 string expected = Path.GetFullPath(
-                    Path.Combine(root, "Documentation~/Html/Modules/SceneLoader.html"));
+                    Path.Combine(root, "Documentation~/Html/Modules/Attacca.html"));
                 Directory.CreateDirectory(Path.GetDirectoryName(expected));
                 File.WriteAllText(expected, "<!DOCTYPE html>");
 
                 bool resolved = SymphonyDocumentPathResolver.TryResolveLocalPath(
                     root,
-                    SymphonyDocumentPageEnum.SceneLoader,
+                    SymphonyDocumentPageEnum.Attacca,
                     out string localPath);
 
                 Assert.That(resolved, Is.True);
@@ -48,7 +48,7 @@ namespace SymphonyFramework.Tests
             {
                 bool resolved = SymphonyDocumentPathResolver.TryResolveLocalPath(
                     root,
-                    SymphonyDocumentPageEnum.SceneLoader,
+                    SymphonyDocumentPageEnum.Attacca,
                     out string localPath);
 
                 Assert.That(resolved, Is.False);
@@ -66,7 +66,7 @@ namespace SymphonyFramework.Tests
         {
             bool resolved = SymphonyDocumentPathResolver.TryResolveLocalPath(
                 string.Empty,
-                SymphonyDocumentPageEnum.SceneLoader,
+                SymphonyDocumentPageEnum.Attacca,
                 out string localPath);
 
             Assert.That(resolved, Is.False);
@@ -78,13 +78,13 @@ namespace SymphonyFramework.Tests
         public void ResolveFallbackUrl_KnownPage_PointsToMarkdownOnMain()
         {
             string url = SymphonyDocumentPathResolver.ResolveFallbackUrl(
-                SymphonyDocumentPageEnum.SceneLoader);
+                SymphonyDocumentPageEnum.Attacca);
 
             Assert.That(
                 url,
                 Is.EqualTo(
                     SymphonyDocumentPathResolver.REPOSITORY_URL
-                    + "/blob/main/Documentation~/Modules/SceneLoader.md"));
+                    + "/blob/main/Documentation~/Modules/Attacca.md"));
         }
 
         /// <summary> 索引は、mainブランチ上の正本Markdownを指す。 </summary>

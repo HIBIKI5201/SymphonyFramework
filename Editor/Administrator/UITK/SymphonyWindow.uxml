@@ -3,8 +3,8 @@
     <engine:ScrollView>
         <symphony:PauseWindow/>
         <symphony:PartituraWindow/>
-        <symphony:SceneLoadWindow/>
-        <symphony:SceneBlockWindow/>
+        <symphony:AttaccaWindow/>
+        <symphony:SuiteWindow/>
         <symphony:SaveDataWindow/>
         <symphony:DebugHUDWindow/>
         <symphony:AutoEnumGeneratorWindow/>

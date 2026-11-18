@@ -36,8 +36,8 @@ namespace SymphonyFramework.Editor
 
         private PauseWindow _pauseWindow;
         private PartituraWindow _partituraWindow;
-        private SceneLoadWindow _sceneLoaderWindow;
-        private SceneBlockWindow _sceneBlockWindow;
+        private AttaccaWindow _sceneLoaderWindow;
+        private SuiteWindow _sceneBlockWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
         private SaveDataWindow _saveDataRegistryWindow;
         private DebugHUDWindow _debugHUDWindow;
@@ -55,8 +55,8 @@ namespace SymphonyFramework.Editor
             {
                 _pauseWindow = container.Q<PauseWindow>();
                 _partituraWindow = container.Q<PartituraWindow>();
-                _sceneLoaderWindow = container.Q<SceneLoadWindow>();
-                _sceneBlockWindow = container.Q<SceneBlockWindow>();
+                _sceneLoaderWindow = container.Q<AttaccaWindow>();
+                _sceneBlockWindow = container.Q<SuiteWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
                 _saveDataRegistryWindow = container.Q<SaveDataWindow>();
                 _debugHUDWindow = container.Q<DebugHUDWindow>();
