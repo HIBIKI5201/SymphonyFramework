@@ -1,4 +1,18 @@
-# Changelog
+﻿# Changelog
+
+## [6.16.0] - 2026-11-18
+ルート名前空間、アセンブリ名、生成物のフォルダ名の表記を `SymphonyFrameWork` から `SymphonyFramework` へそろえました。7.0.0 へ向けた命名の全面整理（#227）の1つ目です。**利用側コードの `using` と、名前で参照している asmdef は書き換えが必要です。** 旧名前空間からの自動移行は 7.0.0 でまとめて入れます。
+
+### Breaking
+
+- **名前空間 `SymphonyFrameWork` とその配下を `SymphonyFramework` へ改名しました。** 型名とメンバー名は変えていません。`using SymphonyFrameWork.System.ServiceLocate;` は `using SymphonyFramework.System.ServiceLocate;` のように、`W` を小文字にしてください。
+- **asmdef を `SymphonyFramework` / `SymphonyFramework.Core` / `SymphonyFramework.Editor` へ改名しました。** `.meta` を保っているので、GUID で参照している asmdef はそのまま動きます。名前で参照している場合は書き換えてください。自動生成の asmdef も `SymphonyFramework.Enum` / `SymphonyFramework.PauseCategory` になります。
+- メニュー（`Tools`、`Window`）と Project Settings の項目名が `SymphonyFramework` になりました。
+
+### Change
+
+- **6.15以前の表記で作られた生成物のフォルダを、Editor の起動時に現在の表記へ移すようにしました。** `Assets/Resources/`、`Assets/Scripts/`、`Assets/Editor/`、`UserSettings/` の直下の `SymphonyFrameWork` が対象です。GUID を保つので、設定アセットとその値、生成 asmdef への参照は引き継がれます。旧表記と現在の表記が別のフォルダとして両方ある場合は、自動ではまとめずエラーで止めます。
+- `SaveDataConfig` に保存されたセーブローダーと、Asset Store Tools Package Pipeline のアセットに保存された手順（`AssetStoreTools*Strategy`）を、6.x の名前空間・アセンブリ名から解決できるようにしました（`[MovedFrom]`）。**2.x 以前の旧型名（`JsonUtilitySaveDataLoader` など）のまま保存されている設定は解決できません。** 6.x で一度開いて保存したプロジェクトは影響を受けません。
 
 ## [6.15.2] - 2026-11-18
 Service Locatorの自動解除とキャッシュの不具合を直しました。公開APIとシリアライズ形式は6.15.1から変更していません。

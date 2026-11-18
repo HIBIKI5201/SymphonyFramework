@@ -185,6 +185,7 @@ Framework全体の個人設定とプロジェクト共有設定です。
 
 - **Runtime用のConfigは `internal` です。** コードから型として参照できません。InspectorとProject Settingsから設定してください。
 - 生成された設定アセットを複製しないでください。Frameworkは決まった位置の1つだけを読みます。
+- **6.15以前の表記（`SymphonyFrameWork`）で作られたフォルダは、存在確認より前に現在の表記（`SymphonyFramework`）へ移します。** 対象は `Assets/Resources/`、`Assets/Scripts/`、`Assets/Editor/`、`UserSettings/` の直下のフォルダと、自動生成した asmdef・ポーズカテゴリーのコードです。`AssetDatabase.MoveAsset` で移すため GUID は保たれます。旧表記と現在の表記が別のフォルダとして両方ある場合（大文字小文字を区別する環境）は、自動ではまとめずエラーを出して初期化を止めます。片方へ手でまとめてから開き直してください。
 - **Project Settingsの画面を開いただけでは生成されません。** 設定画面は未生成である旨と生成ボタンを表示するだけで、生成そのものは `SymphonyEditorOrchestrator` の入口を通ります。`AssetDatabase.Refresh` を1回へまとめる集約の外側でアセットが変わらないようにするためです。
 
 ---
