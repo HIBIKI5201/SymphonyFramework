@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor.Debugger.Logger;
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor.Debugger.Logger;
+using SymphonyFramework.System;
+using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.System.ServiceLocate;
 
 using UnityEditor;
 using UnityEngine;
 
 using Newtonsoft.Json;
 
-namespace SymphonyFrameWork.Editor.Debugger
+namespace SymphonyFramework.Editor.Debugger
 {
     /// <summary>
     ///     MCPや自動化スクリプトからSymphonyのランタイム状態をJSONで読み取るためのツール群。

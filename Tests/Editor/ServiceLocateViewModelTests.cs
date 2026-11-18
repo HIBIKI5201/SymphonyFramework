@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.System.ServiceLocate;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ServiceLocateViewModelの初期値、通知抑制、購読解除を検証する。 </summary>
     public sealed class ServiceLocateViewModelTests

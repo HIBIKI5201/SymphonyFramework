@@ -2,15 +2,15 @@
 using System.IO;
 using System.Linq;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     プロジェクト設定変更に応じてシーン、タグ、レイヤーのenumを自動生成する。

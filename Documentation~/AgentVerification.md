@@ -9,12 +9,12 @@
 3. コンパイル、Play Mode、必要ならビルドの順に確認する。
 4. 検証後は一時コードと生成したテストデータを削除する。
 
-パッケージ本体（`Packages/symphonyframework/`または`Assets/SymphonyFrameWork/`）へ検証コードを書き込まないでください。
+パッケージ本体（`Packages/symphonyframework/`または`Assets/SymphonyFramework/`）へ検証コードを書き込まないでください。
 
 ## 1. コンパイルとasmdef
 
-- 利用側asmdefが`SymphonyFrameWork`を参照していることを確認する。
-- 自動生成enumを使う場合だけ`SymphonyFrameWork.Enum`も参照する。
+- 利用側asmdefが`SymphonyFramework`を参照していることを確認する。
+- 自動生成enumを使う場合だけ`SymphonyFramework.Enum`も参照する。
 - 利用するモジュールの型が解決でき、コンパイルエラーがないことを確認する。
 
 最小の型解決確認では、Editor専用スクリプトから次の型を参照すれば主要なRuntimeアセンブリとnamespaceを確認できます。
@@ -33,16 +33,16 @@ Debug.Log(typeof(SaveStore).FullName);
 コンパイルまたはPlay Mode開始後、利用する機能に必要なファイルが生成されているか確認します。
 
 ```text
-Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset
-Assets/Resources/SymphonyFrameWork/AudioConfig.asset
-Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset
-Assets/Scripts/SymphonyFrameWork/SceneListEnum.cs
-Assets/Scripts/SymphonyFrameWork/TagsEnum.cs
-Assets/Scripts/SymphonyFrameWork/LayersEnum.cs
-Assets/Scripts/SymphonyFrameWork/AudioGroupTypeEnum.cs
+Assets/Resources/SymphonyFramework/SceneLoadConfig.asset
+Assets/Resources/SymphonyFramework/AudioConfig.asset
+Assets/Resources/SymphonyFramework/SaveDataConfig.asset
+Assets/Scripts/SymphonyFramework/SceneListEnum.cs
+Assets/Scripts/SymphonyFramework/TagsEnum.cs
+Assets/Scripts/SymphonyFramework/LayersEnum.cs
+Assets/Scripts/SymphonyFramework/AudioGroupTypeEnum.cs
 ```
 
-存在しない場合は`Window > SymphonyFrameWork > Symphony Administrator`を開くか、Play Modeへ入って生成処理を実行します。生成物は手で編集しません。
+存在しない場合は`Window > SymphonyFramework > Symphony Administrator`を開くか、Play Modeへ入って生成処理を実行します。生成物は手で編集しません。
 
 ## 3. Play Mode
 
@@ -61,7 +61,7 @@ Package Managerから該当する[`Samples~/Runtime`](../Samples~/Runtime)をイ
 uLoopMCPの`execute-dynamic-code`などEditorコードを実行できる環境では、`SymphonyMcpTools`から状態をJSONで取得できます。状態確認だけを目的とし、Runtimeコードへ組み込まないでください。
 
 ```csharp
-using SymphonyFrameWork.Editor.Debugger;
+using SymphonyFramework.Editor.Debugger;
 
 string serviceLocatorJson = SymphonyMcpTools.GetServiceLocatorJson();
 string sceneLoaderJson = SymphonyMcpTools.GetSceneLoaderJson();
@@ -82,7 +82,7 @@ string logJson = SymphonyMcpTools.GetLogFileJson();
 - フレームワーク管理用のBootstrapシーンは不要。
 - `SceneLoader`で遷移するシーンはBuild Settingsへ含める。
 - `Scene 'X' couldn't be loaded`が出た場合は、最初にScene Listへの登録を確認する。
-- Runtime asmdefから`SymphonyFrameWork.Editor`を参照していないことを確認する。
+- Runtime asmdefから`SymphonyFramework.Editor`を参照していないことを確認する。
 
 ## 6. 後始末
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     Service Locatorの状態変更を表示用ReactivePropertyへ変換する。

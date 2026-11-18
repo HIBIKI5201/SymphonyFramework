@@ -1,6 +1,6 @@
-﻿using SymphonyFrameWork.System;
+﻿using SymphonyFramework.System;
 
-namespace SymphonyFrameWork.Samples.PauseManagerSample
+namespace SymphonyFramework.Samples.PauseManagerSample
 {
     /// <summary>
     ///     ゲームプレイのポーズカテゴリー。
@@ -8,7 +8,7 @@ namespace SymphonyFrameWork.Samples.PauseManagerSample
     /// <remarks>
     ///     カテゴリーは<see cref="PauseManager.IPausable"/>を継承した空のinterfaceである。
     ///     このサンプルでは手で書いているが、
-    ///     <c>Project Settings > SymphonyFrameWork > Pause Category</c> から生成もできる。
+    ///     <c>Project Settings > SymphonyFramework > Pause Category</c> から生成もできる。
     /// </remarks>
     public interface IPauseManagerSample_GameplayPausable : PauseManager.IPausable { }
 

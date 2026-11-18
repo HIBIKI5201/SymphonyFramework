@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     依存性注入を受け取れるコンポーネントを表す。

@@ -1,11 +1,11 @@
 ﻿using System.Text;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     有効な検証だけをビルド前に実行する。

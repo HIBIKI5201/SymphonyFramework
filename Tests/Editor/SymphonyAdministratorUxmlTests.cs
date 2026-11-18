@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> Symphony AdministratorのUXMLがカスタムパネル型を解決できることを検証する。 </summary>
     public sealed class SymphonyAdministratorUxmlTests

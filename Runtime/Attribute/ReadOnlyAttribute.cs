@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Attribute
+namespace SymphonyFramework.Attribute
 {
     /// <summary>
     ///     インスペクター上で編集不可のプロパティを生成する。

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Core;
+using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.System.ServiceLocate;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     ComponentとInterfaceが、所属するモジュールの名前空間と置き場に居る契約を検証する。
@@ -22,11 +22,11 @@ namespace SymphonyFrameWork.Tests
         /// <summary> 型と、その型が属するべき名前空間。 </summary>
         private static readonly (Type type, string expectedNamespace)[] ModuleOwnedTypes =
         {
-            (typeof(ServiceLocateComponent), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(SymphonyLocateObject<object>), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(IInjectable), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(IInjectable<object>), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(IInitializeAsync), "SymphonyFrameWork.System.SceneLoad"),
+            (typeof(ServiceLocateComponent), "SymphonyFramework.System.ServiceLocate"),
+            (typeof(SymphonyLocateObject<object>), "SymphonyFramework.System.ServiceLocate"),
+            (typeof(IInjectable), "SymphonyFramework.System.ServiceLocate"),
+            (typeof(IInjectable<object>), "SymphonyFramework.System.ServiceLocate"),
+            (typeof(IInitializeAsync), "SymphonyFramework.System.SceneLoad"),
         };
 
         /// <summary> 型と、その型が置かれるべきパッケージ内の相対パス。 </summary>
@@ -68,7 +68,7 @@ namespace SymphonyFrameWork.Tests
         [Test]
         public void SharedTypes_NotOwnedByModule_RemainInCommonLocation()
         {
-            Assert.That(typeof(IGameObject).Namespace, Is.EqualTo("SymphonyFrameWork"));
+            Assert.That(typeof(IGameObject).Namespace, Is.EqualTo("SymphonyFramework"));
 
             Assert.That(
                 File.Exists(Path.Combine(
@@ -94,10 +94,10 @@ namespace SymphonyFrameWork.Tests
 
             foreach (string fullName in new[]
             {
-                "SymphonyFrameWork.Utility.ServiceLocateComponent",
-                "SymphonyFrameWork.Utility.SymphonyLocateObject`1",
-                "SymphonyFrameWork.IInjectable",
-                "SymphonyFrameWork.IInitializeAsync",
+                "SymphonyFramework.Utility.ServiceLocateComponent",
+                "SymphonyFramework.Utility.SymphonyLocateObject`1",
+                "SymphonyFramework.IInjectable",
+                "SymphonyFramework.IInitializeAsync",
             })
             {
                 if (typeof(ServiceLocateComponent).Assembly.GetType(fullName) != null)

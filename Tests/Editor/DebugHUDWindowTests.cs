@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> Debug HUD管理パネルのUXML契約を検証する。 </summary>
     public sealed class DebugHUDWindowTests

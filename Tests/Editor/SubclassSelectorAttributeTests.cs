@@ -3,9 +3,9 @@ using System.Reflection;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Attribute;
+using SymphonyFramework.Attribute;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SubclassSelectorAttributeが候補条件とフィルター名の指定を公開する契約を検証する。

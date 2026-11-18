@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.ServiceLocatorSample
+namespace SymphonyFramework.Samples.ServiceLocatorSample
 {
     /// <summary> コンストラクタで依存を受け取るピュアC#の型。ServiceInjector.CreateInstanceで生成される。 </summary>
     public sealed class ServiceLocatorSample_Consumer

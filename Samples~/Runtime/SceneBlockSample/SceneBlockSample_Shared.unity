@@ -147,7 +147,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42327ff4270d4d5281dafe3b2f8b79aa, type: 3}
   m_Name:
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Samples.SceneBlockSample.SceneBlockSample_SceneMarker
+  m_EditorClassIdentifier: SymphonyFramework::SymphonyFramework.Samples.SceneBlockSample.SceneBlockSample_SceneMarker
   _sceneLabel: Shared Scene
 --- !u!4 &2002
 Transform:

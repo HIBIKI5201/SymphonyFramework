@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace SymphonyFrameWork
+namespace SymphonyFramework
 {
     /// <summary>
     ///     文字列のユーティリティクラス。

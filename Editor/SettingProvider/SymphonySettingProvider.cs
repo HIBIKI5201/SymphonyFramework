@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor.SettingProvider
+namespace SymphonyFramework.Editor.SettingProvider
 {
     /// <summary>
     ///     Symphony FrameworkのルートProject Settings画面を提供する。
@@ -72,7 +72,7 @@ namespace SymphonyFrameWork.Editor.SettingProvider
             SymphonyUserSettingConfig config =
                 SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
 
-            // 個人ごとの保護設定をUserSettings/SymphonyFrameWork配下のアセットへ即時保存する。
+            // 個人ごとの保護設定をUserSettings/SymphonyFramework配下のアセットへ即時保存する。
             EditorGUILayout.LabelField("Asset Protection", EditorStyles.boldLabel);
             AssetProtectionModeEnum protectionMode =
                 (AssetProtectionModeEnum)EditorGUILayout.EnumPopup(

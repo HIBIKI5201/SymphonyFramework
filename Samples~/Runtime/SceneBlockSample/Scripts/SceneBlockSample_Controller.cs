@@ -1,11 +1,11 @@
-﻿using SymphonyFrameWork.System.SceneBlock;
-using SymphonyFrameWork.System.SceneLoad;
+﻿using SymphonyFramework.System.SceneBlock;
+using SymphonyFramework.System.SceneLoad;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.SceneBlockSample
+namespace SymphonyFramework.Samples.SceneBlockSample
 {
     /// <summary> ブロック単位のロードと単体シーンのロードが共存することを実演する。 </summary>
     public sealed class SceneBlockSample_Controller : MonoBehaviour

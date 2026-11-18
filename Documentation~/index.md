@@ -43,6 +43,6 @@ Symphony Frameworkの文書の入口です。**モジュールごとの文書は
 
 ## この文書について
 
-**正本はMarkdownで、HTMLは生成物です。** 内容の修正は `Assets/SymphonyFrameWork/Documentation~/` のMarkdownへ行い、`python scripts/build_module_docs.py` で再生成してください。
+**正本はMarkdownで、HTMLは生成物です。** 内容の修正は `Assets/SymphonyFramework/Documentation~/` のMarkdownへ行い、`python scripts/build_module_docs.py` で再生成してください。
 
 **モジュール文書へのリンクは上の一覧の中だけに置いてください。** 本文から張ると、一覧の網羅と並び順を確かめる検査に引っかかります。

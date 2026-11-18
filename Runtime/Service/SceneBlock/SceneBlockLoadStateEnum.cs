@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.System.SceneBlock
+﻿namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     Scene Blockのロードおよびアンロード状態を表す。

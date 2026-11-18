@@ -1,5 +1,5 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/SymphonyFrameWork/Editor/Administrator/UITK/SymphonyWIndow.uss?fileID=7433441132597879392&amp;guid=16c3f611d15eda644b63e276b16e6925&amp;type=3#SymphonyWIndow"/>
+    <Style src="project://database/Assets/SymphonyFramework/Editor/Administrator/UITK/SymphonyWIndow.uss?fileID=7433441132597879392&amp;guid=16c3f611d15eda644b63e276b16e6925&amp;type=3#SymphonyWIndow"/>
     <ui:VisualElement class="base">
         <ui:Button text="ドキュメント" name="button-document" class="document-button" />
         <ui:Label text="SceneBlock&#10;" class="title"/>

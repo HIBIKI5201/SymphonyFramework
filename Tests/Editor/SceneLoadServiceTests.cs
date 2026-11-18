@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.System.SceneLoad;
 
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> fake Scene Loaderを用いてSceneLoadServiceの優先度判断と進捗伝播を検証する。 </summary>
     public sealed class SceneLoadServiceTests

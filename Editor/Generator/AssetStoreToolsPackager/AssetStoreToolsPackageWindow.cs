@@ -4,15 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.Editor.SettingProvider;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Editor.SettingProvider;
 
 using UnityEditor;
 using UnityEngine;
-using static SymphonyFrameWork.Editor.AssetStoreToolsPackager;
+using static SymphonyFramework.Editor.AssetStoreToolsPackager;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Asset Store Toolsの出力対象とパッケージ形式を選択するEditorWindow。
@@ -225,7 +225,7 @@ namespace SymphonyFrameWork.Editor
             {
                 EditorGUILayout.HelpBox(
                     "出力パイプラインがアサインされていません。\n"
-                    + "Project Settings > SymphonyFrameWork > Asset Store Tools Packager で"
+                    + "Project Settings > SymphonyFramework > Asset Store Tools Packager で"
                     + "アサインしてください。",
                     MessageType.Info);
 

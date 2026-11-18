@@ -1,11 +1,11 @@
-﻿using SymphonyFrameWork.System.SaveSystem;
+﻿using SymphonyFramework.System.SaveSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.SaveDataSystemSample
+namespace SymphonyFramework.Samples.SaveDataSystemSample
 {
     /// <summary> 2種類のセーブデータを編集、保存、読込、削除する操作サンプル。 </summary>
     public sealed class SaveDataSystemSample_Controller : MonoBehaviour

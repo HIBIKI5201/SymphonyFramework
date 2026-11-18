@@ -1,11 +1,11 @@
 ﻿using System;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Exceptions;
+using SymphonyFramework.Core;
+using SymphonyFramework.Exceptions;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     オーディオ再生APIを提供する。

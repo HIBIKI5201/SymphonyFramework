@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.System.SceneLoad;
 
-namespace SymphonyFrameWork.System.SceneBlock
+namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     Scene Blockのロードとアンロードの手順、および保持規則を実行する。

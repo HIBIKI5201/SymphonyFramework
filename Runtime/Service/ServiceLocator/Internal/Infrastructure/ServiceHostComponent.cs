@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     Singleton Componentの所有とUnity Objectの解放を行う境界。

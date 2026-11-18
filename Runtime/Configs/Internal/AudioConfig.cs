@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace SymphonyFrameWork
+namespace SymphonyFramework
 {
     /// <summary>
     ///     AudioManagerが使用するミキサーとグループ設定を保持する。

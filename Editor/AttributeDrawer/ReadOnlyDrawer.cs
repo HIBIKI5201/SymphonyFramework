@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Attribute
+namespace SymphonyFramework.Attribute
 {
     /// <summary>
     ///     プロパティを変更不可の状態で描画する。

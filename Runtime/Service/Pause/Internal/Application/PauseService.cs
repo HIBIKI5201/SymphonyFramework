@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     カテゴリーごとのポーズ状態を変更し、登録された対象へ通知する。

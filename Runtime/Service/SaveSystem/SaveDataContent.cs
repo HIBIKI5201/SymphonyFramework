@@ -1,9 +1,9 @@
 ﻿using System;
 using Newtonsoft.Json;
-using SymphonyFrameWork.Attribute;
+using SymphonyFramework.Attribute;
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     保存日時を含むセーブデータの基底型を提供する。

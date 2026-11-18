@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     プロジェクト設定に従ってセーブデータを一括管理する。

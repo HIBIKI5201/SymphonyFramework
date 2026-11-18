@@ -6,7 +6,7 @@ using System.Xml.Linq;
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     UXMLソースの依存とインポート結果を検証する。

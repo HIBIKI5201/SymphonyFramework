@@ -239,7 +239,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6ffc015a705043019bdb6a21114601e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Samples.SaveDataSystemSample.SaveDataSystemSample_Controller
+  m_EditorClassIdentifier: SymphonyFramework::SymphonyFramework.Samples.SaveDataSystemSample.SaveDataSystemSample_Controller
   _playerName: Symphony
   _level: 1
   _gold: 100

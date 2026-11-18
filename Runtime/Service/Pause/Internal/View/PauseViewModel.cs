@@ -1,8 +1,8 @@
 ﻿using System;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     ポーズ機構の状態変更を表示用ReactivePropertyへ変換する。

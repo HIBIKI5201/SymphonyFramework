@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SymphonyComponentUtilの取得・追加・階層検索が起点を含めない契約を検証する。 </summary>
     public sealed class SymphonyComponentUtilTests

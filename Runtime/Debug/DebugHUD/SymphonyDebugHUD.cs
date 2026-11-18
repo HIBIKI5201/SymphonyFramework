@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Threading;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System;
+using SymphonyFramework.Core;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.System;
 
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SymphonyFrameWork.Debugger.HUD
+namespace SymphonyFramework.Debugger.HUD
 {
     /// <summary>
     ///     画面上にデバッグ用のHUDを表示する。

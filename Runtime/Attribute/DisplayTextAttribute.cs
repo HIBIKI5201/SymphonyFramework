@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Attribute
+namespace SymphonyFramework.Attribute
 {
     /// <summary>
     ///     インスペクターに文字を表示する。

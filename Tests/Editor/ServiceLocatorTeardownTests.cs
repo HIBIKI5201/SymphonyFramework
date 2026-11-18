@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.System.ServiceLocate;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> 未初期化のService Locatorに対する公開APIの契約を検証する。 </summary>
     public sealed class ServiceLocatorTeardownTests

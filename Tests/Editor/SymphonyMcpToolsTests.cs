@@ -2,12 +2,12 @@
 
 using System.IO;
 
-using SymphonyFrameWork.Editor.Debugger;
+using SymphonyFramework.Editor.Debugger;
 
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> 未初期化時のSymphonyMcpToolsが有効なJSONを返すことを検証する。 </summary>
     public sealed class SymphonyMcpToolsTests

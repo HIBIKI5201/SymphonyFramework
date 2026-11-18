@@ -3,7 +3,7 @@
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     AudioMixerグループ単位の再生設定と音量変換規則を保持する。

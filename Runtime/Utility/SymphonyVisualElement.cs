@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Utility
+namespace SymphonyFramework.Utility
 {
     /// <summary>
     ///     VisualElementをC#から制御する基底クラスを提供する。

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.Attribute;
+using SymphonyFramework.Attribute;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.SceneBlock
+namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     Scene Blockが読み込むシーン1件と、その先行依存を表す。

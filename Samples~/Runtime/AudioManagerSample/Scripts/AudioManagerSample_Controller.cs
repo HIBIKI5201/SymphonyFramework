@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.System;
+﻿using SymphonyFramework.System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.AudioManagerSample
+namespace SymphonyFramework.Samples.AudioManagerSample
 {
     /// <summary> AudioManagerによるAudioSource取得と音量制御を、実行時生成したトーンで実演する。 </summary>
     public sealed class AudioManagerSample_Controller : MonoBehaviour

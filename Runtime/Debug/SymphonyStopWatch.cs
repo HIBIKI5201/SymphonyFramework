@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 
-namespace SymphonyFrameWork.Debugger
+namespace SymphonyFramework.Debugger
 {
     /// <summary>
     ///     UnityEditorでID単位の処理時間を計測する。

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using UnityEditor;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     実アセットとソースの食い違いをUXML検証が検出することを確かめる。

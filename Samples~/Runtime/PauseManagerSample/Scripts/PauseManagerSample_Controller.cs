@@ -1,10 +1,10 @@
-﻿using SymphonyFrameWork.System;
+﻿using SymphonyFramework.System;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.PauseManagerSample
+namespace SymphonyFramework.Samples.PauseManagerSample
 {
     /// <summary> カテゴリーごとのポーズ切り替え、通知、Pausable待機処理を実演する。 </summary>
     public sealed class PauseManagerSample_Controller : MonoBehaviour

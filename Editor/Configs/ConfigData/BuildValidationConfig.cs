@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     プロジェクト共有のビルド前検証設定を保持する。

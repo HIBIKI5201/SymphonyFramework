@@ -2,13 +2,13 @@
 using System.Collections;
 using System.Threading;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     ポーズ状態の操作とポーズ対応の待機APIを提供する。

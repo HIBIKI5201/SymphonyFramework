@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.System.SceneBlock;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.System.SceneBlock;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SceneBlockLoaderが追跡するブロックの状態を一覧表示する。

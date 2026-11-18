@@ -13,7 +13,7 @@ Unity標準のAPIだけでは書き方が長くなる処理を、短く安全に
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.Utility`（`SymphonyAwaitable` / `SymphonyTween` / `SymphonyVisualElement`）、`SymphonyFrameWork`（`SymphonyStringUtil` / `SymphonyComponentUtil`） |
+| namespace | `SymphonyFramework.Utility`（`SymphonyAwaitable` / `SymphonyTween` / `SymphonyVisualElement`）、`SymphonyFramework`（`SymphonyStringUtil` / `SymphonyComponentUtil`） |
 | 主な公開型 | `SymphonyAwaitable` / `SymphonyTween` / `SymphonyStringUtil` / `SymphonyComponentUtil` / `SymphonyVisualElement` |
 | メニューパス | なし |
 | 設定の保存先 | なし |

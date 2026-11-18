@@ -1,11 +1,11 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.System.ServiceLocate;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ServiceLocateServiceの保留登録キューを検証する。 </summary>
     public sealed class ServiceLocatePendingRegistrationTests

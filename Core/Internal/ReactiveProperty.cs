@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Core
+namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     ViewModelの値を保持し、変更を購読者へ通知する。

@@ -1,6 +1,6 @@
 {
-    "name": "SymphonyFrameWork",
-    "rootNamespace": "SymphonyFrameWork",
+    "name": "SymphonyFramework",
+    "rootNamespace": "SymphonyFramework",
     "references": [
         "GUID:b4e9782619c924d4fa0455d751d099be",
         "GUID:9e24947de15b9834991c9d8411ea37cf",

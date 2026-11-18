@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SceneLoaderが追跡するシーン状態を一覧表示する。

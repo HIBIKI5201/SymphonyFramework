@@ -13,10 +13,10 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.System` |
+| namespace | `SymphonyFramework.System` |
 | 主な公開型 | `PauseManager` / `IPausable` / `PauseInfo` |
-| メニューパス | `Window > SymphonyFrameWork > Symphony Administrator` の `Pause` パネル |
-| 設定の保存先 | `Project Settings > SymphonyFrameWork > Pause Category`（カテゴリー名の登録） |
+| メニューパス | `Window > SymphonyFramework > Symphony Administrator` の `Pause` パネル |
+| 設定の保存先 | `Project Settings > SymphonyFramework > Pause Category`（カテゴリー名の登録） |
 
 ## 仕組みの要点
 
@@ -36,7 +36,7 @@
 | PAUSE-05 | ポーズに追従する待機 | `PausableWaitForSecondAsync` / `PausableWaitForSecond` / `PausableNextFrameAsync` / `PausableWaitUntil` | ポーズ中の時間を数えずに待つ。`PausableWaitUntil`はポーズ中なら条件が成立しても再開しない |
 | PAUSE-06 | ポーズに追従する遅延処理 | `PausableDestroy` / `PausableInvoke` | ポーズ中を除いた時間の後に破棄・呼び出しする |
 | PAUSE-07 | 状態の照会 | `GetPauseInfo<TCategory>()` / `GetPauseInfo()` | 状態と件数のスナップショット。全体の場合`PauseInfo.Category`は`null` |
-| PAUSE-08 | カテゴリーの生成 | `Project Settings > SymphonyFrameWork > Pause Category` | 登録した名前から空のinterfaceを生成する |
+| PAUSE-08 | カテゴリーの生成 | `Project Settings > SymphonyFramework > Pause Category` | 登録した名前から空のinterfaceを生成する |
 
 待機と遅延処理には、カテゴリーを指定する版（`<TCategory>`）と指定しない版があります。
 
@@ -45,7 +45,7 @@
 カテゴリーを定義します。手で書いても、Project Settingsから生成しても構いません。
 
 ```csharp
-using SymphonyFrameWork.System;
+using SymphonyFramework.System;
 
 public interface IGameplayPausable : PauseManager.IPausable { }
 public interface IUiPausable : PauseManager.IPausable { }
@@ -97,7 +97,7 @@ await PauseManager.PausableWaitForSecondAsync<IGameplayPausable>(1.0f, destroyCa
 
 ### Pause パネル
 
-**入口**: `Window > SymphonyFrameWork > Symphony Administrator`
+**入口**: `Window > SymphonyFramework > Symphony Administrator`
 
 | パネル | 内容 |
 | --- | --- |
@@ -108,17 +108,17 @@ Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表�
 
 ### ポーズカテゴリーの生成
 
-**入口**: `Project Settings > SymphonyFrameWork > Pause Category`
+**入口**: `Project Settings > SymphonyFramework > Pause Category`
 
 カテゴリー名を登録して「設定を保存してinterfaceを生成」を押すと、`PauseManager.IPausable`を継承した空のinterfaceを生成します。**名前は`I`と`Pausable`で挟まれます**（`Gameplay` → `IGameplayPausable`）。生成される名前は入力欄の隣に表示されます。
 
 | 規則 | 内容 |
 | --- | --- |
-| 生成先 | `Assets/Scripts/SymphonyFrameWork/PauseCategory/`。専用の`SymphonyFrameWork.PauseCategory`アセンブリになり、`SymphonyFrameWork`を参照する |
+| 生成先 | `Assets/Scripts/SymphonyFramework/PauseCategory/`。専用の`SymphonyFramework.PauseCategory`アセンブリになり、`SymphonyFramework`を参照する |
 | 名前 | C#の識別子にできない名前は警告して除外する。同じinterface名になる候補は1件だけ残す |
 | 削除 | **設定から消してもファイルは削除しない。** 実装しているコードのコンパイルを壊さないためで、残っているものは警告で知らせる |
 
-生成物は自動生成enum（`SymphonyFrameWork.Enum`）とは別のアセンブリです。利用側のasmdefから使う場合は`SymphonyFrameWork.PauseCategory`を参照に足してください。
+生成物は自動生成enum（`SymphonyFramework.Enum`）とは別のアセンブリです。利用側のasmdefから使う場合は`SymphonyFramework.PauseCategory`を参照に足してください。
 
 ## 確かめ方
 

@@ -1,7 +1,7 @@
-﻿using SymphonyFrameWork.System.SaveSystem;
+﻿using SymphonyFramework.System.SaveSystem;
 using System;
 
-namespace SymphonyFrameWork.Samples.SaveDataSystemSample
+namespace SymphonyFramework.Samples.SaveDataSystemSample
 {
     /// <summary> プレイヤー名、レベル、所持金を保存するサンプルデータ。 </summary>
     [Serializable]

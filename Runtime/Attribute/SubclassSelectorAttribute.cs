@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Attribute
+namespace SymphonyFramework.Attribute
 {
     /// <summary>
     ///     シリアライズ参照へ代入できる派生型をインスペクターから選択可能にする。

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.System;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Utility
+namespace SymphonyFramework.Utility
 {
     /// <summary>
     ///     値をフレーム単位で補間するTweenを提供する。

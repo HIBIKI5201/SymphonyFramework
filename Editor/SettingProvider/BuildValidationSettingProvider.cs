@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 
-using SymphonyFrameWork.Editor.SettingProvider;
+using SymphonyFramework.Editor.SettingProvider;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     ビルド前検証のProject Settings画面を提供する。
@@ -75,7 +75,7 @@ namespace SymphonyFrameWork.Editor
             SymphonyDocumentationGUI.DrawOpenButton(SymphonyDocumentPageEnum.BuildValidation);
             EditorGUILayout.HelpBox(
                 "Validate On Buildを有効にした検証だけがビルド前に実行されます。"
-                + " 手動実行はTools > SymphonyFrameWork > Build Validationから行えます。", MessageType.Info);
+                + " 手動実行はTools > SymphonyFramework > Build Validationから行えます。", MessageType.Info);
 
             EditorGUILayout.LabelField("UXML", EditorStyles.boldLabel);
             DrawProperty("_uxmlValidateOnBuild", "Validate On Build");

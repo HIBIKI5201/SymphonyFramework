@@ -2,7 +2,7 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace SymphonyFrameWork.Core
+namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     エディタ用の定数値を持つ。

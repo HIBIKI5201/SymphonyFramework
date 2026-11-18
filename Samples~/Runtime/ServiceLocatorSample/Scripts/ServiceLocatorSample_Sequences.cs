@@ -1,11 +1,11 @@
-﻿using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.ServiceLocate;
+﻿using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.System.ServiceLocate;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.Samples.ServiceLocatorSample
+namespace SymphonyFramework.Samples.ServiceLocatorSample
 {
     /// <summary> Service Locatorの取得、待機、シーン遷移時の保持を順に実演する。 </summary>
     public sealed class ServiceLocatorSample_Sequences : MonoBehaviour

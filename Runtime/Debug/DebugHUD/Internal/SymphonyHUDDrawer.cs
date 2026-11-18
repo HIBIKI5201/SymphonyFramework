@@ -4,7 +4,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-namespace SymphonyFrameWork.Debugger.HUD
+namespace SymphonyFramework.Debugger.HUD
 {
     /// <summary>
     ///     フレーム統計と任意のデバッグ文字列を画面上へ描画する。

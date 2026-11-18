@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEngine;
 using CompressionLevel = System.IO.Compression.CompressionLevel;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     出力フォルダをZIP化する手順。
@@ -17,6 +18,12 @@ namespace SymphonyFrameWork.Editor
     ///     順序はフレームワークが並べ替えず、パイプラインの並びをそのまま実行する。
     /// </remarks>
     [Serializable]
+    // 型の名前空間とアセンブリ名はAssetStoreToolsPackagePipelineの[SerializeReference]へ焼かれている。
+    // これが無いと、6.x以前に保存したパイプラインアセットで手順が解決できなくなる。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsCreateZipStrategy : AssetStoreToolsStandardStrategy
     {
         #region 外部向けAPI

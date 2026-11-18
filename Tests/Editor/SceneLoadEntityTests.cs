@@ -1,8 +1,8 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.System.SceneLoad;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SceneLoadEntityの状態遷移と値の制約を検証する。 </summary>
     public sealed class SceneLoadEntityTests

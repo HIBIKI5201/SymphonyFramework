@@ -2,13 +2,13 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System.SceneBlock;
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.System.SceneBlock;
+using SymphonyFramework.System.SceneLoad;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     Scene Block Loaderの初期化状態と引数検証を検証する。

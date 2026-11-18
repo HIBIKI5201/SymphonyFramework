@@ -1,16 +1,16 @@
 ﻿using System.IO;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.System.ServiceLocate;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Config、生成enum、Editor用依存を初期化する。
@@ -106,8 +106,8 @@ namespace SymphonyFrameWork.Editor
             }
 
             // 生成enumのasmdefをFramework本体から参照できる状態へ揃える。
-            string enumAsmdefPath = EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum.asmdef";
-            string mainAsmdefPath = EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork.asmdef";
+            string enumAsmdefPath = EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum.asmdef";
+            string mainAsmdefPath = EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework.asmdef";
             string previousMainAsmdef = File.Exists(mainAsmdefPath)
                 ? File.ReadAllText(mainAsmdefPath)
                 : null;

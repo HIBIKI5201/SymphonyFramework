@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.System.ServiceLocate
+﻿namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     ApplicationからUnity上のサービス所有処理を分離する境界。

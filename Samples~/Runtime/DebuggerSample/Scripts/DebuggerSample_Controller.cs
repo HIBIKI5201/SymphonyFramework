@@ -1,13 +1,13 @@
-﻿using SymphonyFrameWork.Debugger;
-using SymphonyFrameWork.Debugger.HUD;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.Exceptions;
+﻿using SymphonyFramework.Debugger;
+using SymphonyFramework.Debugger.HUD;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.DebuggerSample
+namespace SymphonyFramework.Samples.DebuggerSample
 {
     /// <summary> SymphonyDebugLogger、SymphonyDebugHUD、SymphonyStopWatchの使い方を実演する。 </summary>
     public sealed class DebuggerSample_Controller : MonoBehaviour
@@ -237,7 +237,7 @@ namespace SymphonyFrameWork.Samples.DebuggerSample
             GUILayout.BeginArea(innerRect);
             GUILayout.Label("実況解説");
             GUILayout.Label("1. SymphonyStopWatchと~ForEditor系APIはEditor限定で、Playerビルドでは呼び出しごと消えます。");
-            GUILayout.Label("2. LogDirectのログはEditorでのみLibrary/SymphonyFrameWork/Cache/Log.txtへキャッシュ出力されます。");
+            GUILayout.Label("2. LogDirectのログはEditorでのみLibrary/SymphonyFramework/Cache/Log.txtへキャッシュ出力されます。");
             GUILayout.Label("3. HUDはEditorとDevelopment Build限定です。Shift + D + Pでも表示を切り替えられます。");
             GUILayout.Space(8f);
 

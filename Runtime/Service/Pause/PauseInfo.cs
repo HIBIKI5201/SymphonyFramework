@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     ポーズ機構の管理状態を取得時点の不変値として表す。

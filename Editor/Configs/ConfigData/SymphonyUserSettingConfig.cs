@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     開発者ごとのFramework設定を保持する。

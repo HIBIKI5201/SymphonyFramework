@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SymphonyStringUtilがリッチテキストタグを最外層だけ着脱する契約を検証する。 </summary>
     public sealed class SymphonyStringUtilTests

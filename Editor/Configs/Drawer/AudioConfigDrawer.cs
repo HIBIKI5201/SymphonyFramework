@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 using UnityEditor;
 using UnityEngine;
-using SymphonyFrameWork.Config;
+using SymphonyFramework.Config;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     AudioConfigとオーディオグループenumの再生成操作を描画する。

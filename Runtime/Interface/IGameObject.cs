@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using UnityEngine;
 
-namespace SymphonyFrameWork
+namespace SymphonyFramework
 {
     /// <summary>
     ///     GameObjectを所有するUnityオブジェクトの共通参照を公開する。

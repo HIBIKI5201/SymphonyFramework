@@ -13,9 +13,9 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenum
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.Editor` |
+| namespace | `SymphonyFramework.Editor` |
 | 主な公開型 | `AutoEnumGenerator` / `EnumGenerator` / `AutoEnumGeneratorConfig` |
-| メニューパス | 自動実行。手動生成は `Window > SymphonyFrameWork > Symphony Administrator` の `Auto Enum Generator` パネル |
+| メニューパス | 自動実行。手動生成は `Window > SymphonyFramework > Symphony Administrator` の `Auto Enum Generator` パネル |
 | 設定の保存先 | `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset` |
 
 ## 仕組みの要点
@@ -32,9 +32,9 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenum
 | ENUM-02 | `TagsEnum.cs` | `ProjectSettings/TagManager.asset` のタグ |
 | ENUM-03 | `LayersEnum.cs` | 同上のレイヤー（フラグenum） |
 | ENUM-04 | `AudioGroupTypeEnum.cs` | `AudioConfig` のグループ名 |
-| ENUM-05 | `SymphonyFrameWork.Enum.asmdef` | 上記を含むアセンブリ |
+| ENUM-05 | `SymphonyFramework.Enum.asmdef` | 上記を含むアセンブリ |
 
-生成先は `Assets/Scripts/SymphonyFrameWork/` です。
+生成先は `Assets/Scripts/SymphonyFramework/` です。
 
 ## Editor機能
 
@@ -44,7 +44,7 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenum
 
 **変更の検知**: タグ・レイヤーの設定ファイルとBuild Settingsのシーン一覧の変更を検知し、続けて起きた変更はまとめて1回だけ生成します。
 
-**補助メニュー**: `Tools > SymphonyFrameWork > Debug > CreateResourcesFolder` は、生成先の `Resources` フォルダを手動で作り直すためのものです。通常は自動生成に任せてください。
+**補助メニュー**: `Tools > SymphonyFramework > Debug > CreateResourcesFolder` は、生成先の `Resources` フォルダを手動で作り直すためのものです。通常は自動生成に任せてください。
 
 **列挙子名の解決**: シーン名・タグ名・グループ名は、そのままではC#の識別子にできないことがあります。生成前に次のように解決します。
 
@@ -62,8 +62,8 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenum
 
 - **生成されたenumを手で編集しないでください。** 再生成で失われます。
 - **予約語を含む候補は、除外ではなくエスケープされます。** シーンを追加しただけで `SceneListEnum` からそのシーンが消える事態を避けるためです。
-- 利用側のasmdefから生成enumを直接使う場合は、`SymphonyFrameWork.Enum` を参照に追加してください。
-- `SymphonyFrameWork.asmdef` から `SymphonyFrameWork.Enum` への参照は、Editor起動時に自動で注入されます。
+- 利用側のasmdefから生成enumを直接使う場合は、`SymphonyFramework.Enum` を参照に追加してください。
+- `SymphonyFramework.asmdef` から `SymphonyFramework.Enum` への参照は、Editor起動時に自動で注入されます。
 
 ## 確かめ方
 

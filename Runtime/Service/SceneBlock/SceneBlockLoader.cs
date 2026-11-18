@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Threading;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.SceneBlock
+namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     Scene Block単位のロード、アンロード、状態照会を提供する公開エントリポイント。

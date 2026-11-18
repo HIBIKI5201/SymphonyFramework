@@ -2,15 +2,19 @@
 using System;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     Newtonsoft.JsonとPlayerPrefsを使用するsealedな具象I/Oを提供する。
     /// </summary>
     [Serializable]
-    // 旧型名はSaveDataConfigの[SerializeReference]へ焼かれている。
-    // これが無いと既存のConfigアセットでローダーが解決できなくなる。
-    [MovedFrom(true, null, null, "NewtonsoftSaveDataLoader")]
+    // 型の名前空間とアセンブリ名はSaveDataConfigの[SerializeReference]へ焼かれている。
+    // これが無いと、6.x以前に保存したConfigアセットでローダーが解決できなくなる。
+    // [MovedFrom]は1つしか付けられないため、2.x以前の旧型名（NewtonsoftSaveDataLoader）での保存は対象外とした。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SaveSystem",
+        sourceAssembly: "SymphonyFrameWork")]
     internal sealed class NewtonsoftSaveDataLoaderStrategy : PlayerPrefsSaveDataLoaderStrategy
     {
         #region 内部処理

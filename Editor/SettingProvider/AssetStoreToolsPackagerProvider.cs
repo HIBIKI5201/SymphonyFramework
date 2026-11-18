@@ -1,12 +1,12 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+﻿using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor.SettingProvider
+namespace SymphonyFramework.Editor.SettingProvider
 {
     /// <summary>
     ///     Asset Store Tools PackagerのProject Settings画面を提供する。

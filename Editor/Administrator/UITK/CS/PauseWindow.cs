@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.System;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     PauseManagerの状態表示と操作を提供する。

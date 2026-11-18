@@ -1,7 +1,7 @@
-﻿using SymphonyFrameWork.System.ServiceLocate;
+﻿using SymphonyFramework.System.ServiceLocate;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.ServiceLocatorSample
+namespace SymphonyFramework.Samples.ServiceLocatorSample
 {
     /// <summary> 有効化時に自身をSingletonとして登録するService Locatorサンプル。 </summary>
     public sealed class ServiceLocatorSample_1 : MonoBehaviour

@@ -2,7 +2,7 @@
 using System.IO;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     1回のパッケージ出力で共有する名前、日時、入出力パスを保持する。

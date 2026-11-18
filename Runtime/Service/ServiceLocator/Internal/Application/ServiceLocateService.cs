@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     Service Locatorの登録、解除、破棄の処理順を管理する。
@@ -184,7 +184,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         ///     保留中の登録をすべて反映する。
         /// </summary>
         /// <remarks>
-        ///     <see cref="SymphonyFrameWork.Orchestrator.SymphonyOrchestrator"/>がOnEnableとStartの間の同期フェーズから呼ぶ。
+        ///     <see cref="SymphonyFramework.Orchestrator.SymphonyOrchestrator"/>がOnEnableとStartの間の同期フェーズから呼ぶ。
         ///     反映中に追加された保留は同じ回では処理せず、次回のFlushへ回す。
         /// </remarks>
         internal void FlushPendingRegistrations()

@@ -1,7 +1,7 @@
-﻿using SymphonyFrameWork.System.SaveSystem;
+﻿using SymphonyFramework.System.SaveSystem;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SerializedObjectでセーブデータを編集するための一時コンテナ。

@@ -3,13 +3,13 @@ using System.Linq;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Config;
+using SymphonyFramework.Config;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> DebugHUDConfigの既定Input Actionを検証する。 </summary>
     public sealed class DebugHUDConfigTests

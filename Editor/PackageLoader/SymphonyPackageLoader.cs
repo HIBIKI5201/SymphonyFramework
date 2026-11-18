@@ -1,6 +1,6 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.Utility;
+﻿using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Utility;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     必須パッケージの不足を検出して導入する。

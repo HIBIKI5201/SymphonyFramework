@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.System;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     PauseManagerのカテゴリー版公開APIを検証する。

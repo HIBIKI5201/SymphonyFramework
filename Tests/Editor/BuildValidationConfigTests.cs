@@ -1,11 +1,11 @@
-﻿using SymphonyFrameWork.Editor;
+﻿using SymphonyFramework.Editor;
 
 using UnityEditor;
 using UnityEngine;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     ビルド検証設定の既定値を検証する。

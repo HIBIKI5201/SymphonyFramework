@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.System;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     PauseManagerの非同期APIがAwaitableへ移行してもタイミングとキャンセルの

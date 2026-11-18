@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     マニフェストとローカルのリビジョンから、インポート候補と状態を組み立てる処理を検証する。

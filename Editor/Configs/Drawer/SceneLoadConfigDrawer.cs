@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SymphonyFrameWork.Config;
+using SymphonyFramework.Config;
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SceneLoadConfigのシーン一覧をBuild Settingsから選択可能にする。

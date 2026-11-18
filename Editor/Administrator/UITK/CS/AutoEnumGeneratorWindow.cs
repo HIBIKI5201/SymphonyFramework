@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.Utility;
+﻿using SymphonyFramework.Utility;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     enum自動更新設定と手動生成操作を提供する。

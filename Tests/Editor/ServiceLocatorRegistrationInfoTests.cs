@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.System.ServiceLocate;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ServiceLocatorの公開登録情報Queryを検証する。 </summary>
     public sealed class ServiceLocatorRegistrationInfoTests

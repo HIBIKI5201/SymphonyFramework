@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.System.SceneLoad;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SceneLoadQueryのInfo／Dto変換とスナップショット性を検証する。 </summary>
     public sealed class SceneLoadQueryTests

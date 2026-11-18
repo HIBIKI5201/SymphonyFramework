@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFramework.Config;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.System.SaveSystem;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor.SettingProvider
+namespace SymphonyFramework.Editor.SettingProvider
 {
     /// <summary>
     ///     Save SystemのProject Settings画面を提供する。

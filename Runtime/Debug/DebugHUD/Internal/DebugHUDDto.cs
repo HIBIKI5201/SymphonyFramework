@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.Debugger.HUD
+namespace SymphonyFramework.Debugger.HUD
 {
     /// <summary> Debug HUDの表示用更新値を表す。 </summary>
     internal readonly struct DebugHUDDto : IEquatable<DebugHUDDto>

@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     セレクター属性のフィルターメソッド解決と候補の絞り込みを検証する。

@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> フレーム進行とメインスレッドを必要とするSymphonyAwaitableの挙動を検証する。 </summary>
     public sealed class SymphonyAwaitableRuntimeTests

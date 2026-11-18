@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     フレームワーク内のログが <c>SymphonyDebugLogger</c> 経由に統一されている契約を検証する。

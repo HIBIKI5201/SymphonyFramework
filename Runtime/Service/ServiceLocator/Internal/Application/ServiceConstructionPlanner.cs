@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     コンストラクタ注入で使うコンストラクタを選び、引数を解決する。

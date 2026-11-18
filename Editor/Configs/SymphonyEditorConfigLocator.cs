@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Editor用ScriptableSingleton設定へのアクセスを提供する。

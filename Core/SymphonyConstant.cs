@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Core
+﻿namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     ランタイム用の定数値を持つ。
@@ -11,7 +11,7 @@
         public const string SYMPHONY_PACKAGE = "symphonyframework";
 
         /// <summary> Frameworkの表示名およびAssets配下のルート名。 </summary>
-        public const string SYMPHONY_FRAMEWORK = "SymphonyFrameWork";
+        public const string SYMPHONY_FRAMEWORK = "SymphonyFramework";
 
         /// <summary> Frameworkのバージョン。 </summary>
         /// <remarks>
@@ -20,7 +20,7 @@
         ///     更新は <c>scripts/release_round.py bump</c> が行い、
         ///     <c>preflight</c> が <c>package.json</c> との一致を検査する。手で書き換えないこと。
         /// </remarks>
-        public const string VERSION = "6.15.2";
+        public const string VERSION = "6.16.0";
 
 #if UNITY_EDITOR
         /// <summary>

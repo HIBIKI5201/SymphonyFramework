@@ -13,10 +13,10 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.System.ServiceLocate` |
+| namespace | `SymphonyFramework.System.ServiceLocate` |
 | 主な公開型 | `ServiceLocator` / `ServiceInjector` / `ServiceLocateComponent` / `SymphonyLocateObject<T>` / `IInjectable` / `LocateTypeEnum` / `ServiceRegistrationInfo` / `ServiceNotRegisteredException` |
-| メニューパス | `Window > SymphonyFrameWork > Symphony Administrator` の `Service Locate` パネル |
-| 設定の保存先 | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`（Service Locatorのログ設定） |
+| メニューパス | `Window > SymphonyFramework > Symphony Administrator` の `Service Locate` パネル |
+| 設定の保存先 | `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset`（Service Locatorのログ設定） |
 
 ## 仕組みの要点
 
@@ -44,7 +44,7 @@
 登録と解除は、同じライフサイクルの対として書きます。
 
 ```csharp
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.System.ServiceLocate;
 using UnityEngine;
 
 public sealed class GameSession : MonoBehaviour
@@ -114,7 +114,7 @@ BattleService service = ServiceInjector.CreateInstance<BattleService>();
 
 ### Service Locate パネル
 
-**入口**: `Window > SymphonyFrameWork > Symphony Administrator`
+**入口**: `Window > SymphonyFramework > Symphony Administrator`
 
 | パネル | 内容 |
 | --- | --- |
@@ -124,7 +124,7 @@ Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表�
 
 ### ログ設定
 
-**入口**: `Project Settings > SymphonyFrameWork`
+**入口**: `Project Settings > SymphonyFramework`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -132,7 +132,7 @@ Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表�
 | Get Instance | インスタンスの取得ログを出力するか |
 | Destroy Instance | インスタンスの破棄ログを出力するか |
 
-**保存先**: `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`。開発者ごとの設定のため、**版管理へ含めないでください。**
+**保存先**: `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset`。開発者ごとの設定のため、**版管理へ含めないでください。**
 
 ## 確かめ方
 

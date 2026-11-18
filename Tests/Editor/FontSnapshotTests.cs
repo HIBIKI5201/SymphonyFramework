@@ -1,8 +1,8 @@
-﻿using SymphonyFrameWork.Editor;
+﻿using SymphonyFramework.Editor;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     フォントの各検証規則をUnityオブジェクトなしで検証する。

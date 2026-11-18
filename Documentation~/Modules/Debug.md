@@ -13,17 +13,17 @@ Game ViewのHUD、ログ、処理時間の計測、Runtime状態の読み取り�
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.Debugger.HUD`、`SymphonyFrameWork.Debugger.Logger`、`SymphonyFrameWork.Debugger`、`SymphonyFrameWork.Editor.Debugger` |
+| namespace | `SymphonyFramework.Debugger.HUD`、`SymphonyFramework.Debugger.Logger`、`SymphonyFramework.Debugger`、`SymphonyFramework.Editor.Debugger` |
 | 主な公開型 | `SymphonyDebugHUD` / `SymphonyDebugLogger` / `SymphonyStopWatch` / `LogKindEnum` / `SymphonyMcpTools` |
-| HUD Shortcut | `Shift + D + P`（`Project Settings > SymphonyFrameWork`で変更可能） |
-| メニューパス | `Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
-| 出力先 | `<Project>/Library/SymphonyFrameWork/Cache/Log.txt`（`SymphonyDebugLogger`のファイル出力） |
+| HUD Shortcut | `Shift + D + P`（`Project Settings > SymphonyFramework`で変更可能） |
+| メニューパス | `Tools > SymphonyFramework > SymphonyDebugHUD > Show` / `Hide` |
+| 出力先 | `<Project>/Library/SymphonyFramework/Cache/Log.txt`（`SymphonyDebugLogger`のファイル出力） |
 
 ## 仕組みの要点
 
 1. **HUDはUnity EditorとDevelopment Buildでだけ動きます。** それ以外のPlayerでは`Show`、`Hide`、`AddText`、`RemoveText`は何もせず、HUD用のGameObjectも作りません。
 2. **Frameworkのログはすべて`SymphonyDebugLogger`を通ります。** Consoleに出たFrameworkのログは、Editorでは`Log.txt`にも残ります。
-3. **エラーログには`[SymphonyFrameWork v<版>]`が付きます。** 不具合の報告で、ログ1行から版が分かるようにするためです。通常ログと警告には付きません。
+3. **エラーログには`[SymphonyFramework v<版>]`が付きます。** 不具合の報告で、ログ1行から版が分かるようにするためです。通常ログと警告には付きません。
 4. **`SymphonyMcpTools`は読み取り専用です。** 戻り値はいつも有効なJSON文字列で、Play Mode外や未初期化のときもその旨をJSONで返します。
 
 ## 機能一覧
@@ -43,8 +43,8 @@ Game ViewのHUD、ログ、処理時間の計測、Runtime状態の読み取り�
 ## クイックスタート
 
 ```csharp
-using SymphonyFrameWork.Debugger;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger;
+using SymphonyFramework.Debugger.Logger;
 
 SymphonyDebugLogger.LogDirect("初期化しました");
 
@@ -73,16 +73,16 @@ if (_renderer.LogAndCheckComponentNull()) { return; }
 ## 守ること
 
 - ログにパスワード、トークン、個人情報、セーブデータの機密値を出さない。`SymphonyMcpTools`から外部の自動化へ同じ内容が渡る。
-- `Library/SymphonyFrameWork/Cache/`は生成物である。`Library`とともに版管理の対象外にする。
+- `Library/SymphonyFramework/Cache/`は生成物である。`Library`とともに版管理の対象外にする。
 - 旧APIの`CheckComponentNull`と`IsComponentNotNull`は非推奨である。移行先は[Deprecations.md](../Deprecations.md)にある。
 
 ## Editor機能
 
 | 機能 | 入口 | 内容 |
 | --- | --- | --- |
-| Debug HUD Shortcut | `Project Settings > SymphonyFrameWork > Debug HUD Shortcut` | HUDのShortcutをInput SystemのInput Actionとして編集する。Gamepadなどの Binding も足せる |
-| Debug HUD パネル | `Window > SymphonyFrameWork > Symphony Administrator > Debug HUD` | 初期化状態、利用できる環境か、表示中か、追加テキストの数を見て、表示・非表示を切り替える |
-| ログのファイル出力 | 自動（Editorの起動時に始まる） | `<Project>/Library/SymphonyFrameWork/Cache/Log.txt`へ定期的にまとめて書く。UPM経由でもAssets直置きでも同じ場所 |
+| Debug HUD Shortcut | `Project Settings > SymphonyFramework > Debug HUD Shortcut` | HUDのShortcutをInput SystemのInput Actionとして編集する。Gamepadなどの Binding も足せる |
+| Debug HUD パネル | `Window > SymphonyFramework > Symphony Administrator > Debug HUD` | 初期化状態、利用できる環境か、表示中か、追加テキストの数を見て、表示・非表示を切り替える |
+| ログのファイル出力 | 自動（Editorの起動時に始まる） | `<Project>/Library/SymphonyFramework/Cache/Log.txt`へ定期的にまとめて書く。UPM経由でもAssets直置きでも同じ場所 |
 
 Debug HUDパネルはEdit Modeでは`-`を表示し、Show / Hideは押せません。通常ビルドの条件では`Available: False`になり、ボタンは無効です。
 

@@ -1,8 +1,8 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     プロジェクト設定変更時のenum自動生成可否を保持する。

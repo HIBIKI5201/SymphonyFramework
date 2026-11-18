@@ -3,12 +3,12 @@ using System.Text.RegularExpressions;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     PauseCategoryGeneratorの、生成する名前とソースを決める部分を検証する。
@@ -125,7 +125,7 @@ namespace SymphonyFrameWork.Tests
             Assert.That(
                 source,
                 Does.Contain("public interface IGameplayPausable : PauseManager.IPausable"));
-            Assert.That(source, Does.Contain("using SymphonyFrameWork.System;"));
+            Assert.That(source, Does.Contain("using SymphonyFramework.System;"));
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace SymphonyFrameWork.Tests
         /// </summary>
         /// <remarks>
         ///     **同じアセンブリへは置けない。** カテゴリーはPauseManager.IPausableを継承するため
-        ///     SymphonyFrameWorkの参照が要るが、SymphonyFrameWork側がSymphonyFrameWork.Enumを
+        ///     SymphonyFrameworkの参照が要るが、SymphonyFramework側がSymphonyFramework.Enumを
         ///     参照しているため循環する。
         /// </remarks>
         [Test]
@@ -169,7 +169,7 @@ namespace SymphonyFrameWork.Tests
                 Does.EndWith("/PauseCategory"));
             Assert.That(
                 PauseCategoryGenerator.ASSEMBLY_NAME,
-                Is.EqualTo("SymphonyFrameWork.PauseCategory"));
+                Is.EqualTo("SymphonyFramework.PauseCategory"));
         }
     }
 }

@@ -13,7 +13,7 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.Attribute`、`SymphonyFrameWork.Editor` |
+| namespace | `SymphonyFramework.Attribute`、`SymphonyFramework.Editor` |
 | 主な公開型 | `[ReadOnly]` / `[DisplayText]` / `[TagSelector]` / `[SceneNameSelector]` / `[SubclassSelector]` と対応するDrawer |
 | メニューパス | 利用側のフィールドへ属性を付ける |
 | 設定の保存先 | なし |
@@ -39,7 +39,7 @@
 `[TagSelector]` / `[SceneNameSelector]` / `[SubclassSelector]` は、引数を渡さなければプロジェクトの候補をすべてドロップダウンへ並べます。候補を絞り込むメソッドの名前を渡すと、`true` を返した候補だけが残ります。
 
 ```csharp
-using SymphonyFrameWork.Attribute;
+using SymphonyFramework.Attribute;
 using System;
 using UnityEngine;
 

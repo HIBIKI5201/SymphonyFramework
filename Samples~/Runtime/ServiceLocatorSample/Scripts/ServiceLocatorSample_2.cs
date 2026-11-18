@@ -1,8 +1,8 @@
-﻿using SymphonyFrameWork.System.ServiceLocate;
+﻿using SymphonyFramework.System.ServiceLocate;
 using System;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.ServiceLocatorSample
+namespace SymphonyFramework.Samples.ServiceLocatorSample
 {
     /// <summary> 遅延後に自身をLocatorとして登録する非同期サンプル。 </summary>
     public sealed class ServiceLocatorSample_2 : MonoBehaviour

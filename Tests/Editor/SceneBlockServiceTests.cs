@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.System.SceneBlock;
+using SymphonyFramework.System.SceneLoad;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     Scene Blockの層順ロードと、ブロック外ロードと共存する保持規則を検証する。
