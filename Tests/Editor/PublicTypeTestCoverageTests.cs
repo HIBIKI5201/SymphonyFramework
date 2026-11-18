@@ -106,7 +106,6 @@ namespace SymphonyFrameWork.Tests
             "SymphonyDocumentPageEnum",
             "SymphonyDocumentation",
             "SymphonyEditorConfigLocator",
-            "SymphonyLocateObject",
             "SymphonyNotInitializedException",
             "SymphonyPackageLoader",
             "SymphonyStopWatch",

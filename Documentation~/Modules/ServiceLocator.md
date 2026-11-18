@@ -36,7 +36,7 @@
 | SL-05 | コンストラクタ注入 | `ServiceInjector.CreateInstance<T>()` | 引数を登録済みのインスタンスから解決して生成する |
 | SL-06 | `IInjectable`への注入 | `ServiceInjector.Inject(...)` | `Inject`メソッドへ登録済みのインスタンスを渡す。シーンのルートには`SceneLoader`が自動で行う |
 | SL-07 | Inspectorからの登録 | `ServiceLocateComponent` | `Auto Register`を有効にしたComponentを、同じフレームの`Start`より前に登録する |
-| SL-08 | 取得結果のキャッシュ | `SymphonyLocateObject<T>` | 初回だけ`ServiceLocator`から取得し、以降は保持した参照を返す |
+| SL-08 | 取得結果のキャッシュ | `SymphonyLocateObject<T>` | 初回だけ`ServiceLocator`から取得し、以降は保持した参照を返す。保持した参照が破棄済みなら取り直す |
 | SL-09 | 登録状態の一覧 | `GetRegistrationInfos` / `TryGetRegistrationInfo` / `IsExistInstance` | 型、インスタンス、登録方式のスナップショットを返す |
 
 ## クイックスタート

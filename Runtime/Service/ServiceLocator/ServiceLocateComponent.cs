@@ -75,12 +75,9 @@ namespace SymphonyFrameWork.System.ServiceLocate
             // このとき登録は一度も反映されていないため、以降の解除処理は行わない。
             if (ServiceLocator.CancelPendingRegistration(_targetType, _target)) { return; }
 
-            // 別の所有者が解除済みの場合に重複解除しない。
-            bool isExist = ServiceLocator.IsExistInstance(_targetType); // TODO: これだと、同じ型の別のインスタンスが登録されている場合に誤判定する可能性がある。必要に応じて、インスタンス自体を確認する方法に変更することを検討する。
-            if (!isExist) { return; }
-
             // このComponentの無効化に合わせて、Service Locator上の登録期間を閉じる。
-            ServiceLocator.UnregisterInstance(_targetType);
+            // 同じ型で別のインスタンスが登録されている場合や、別の所有者が解除済みの場合は何もしない。
+            ServiceLocator.UnregisterSameInstance(_targetType, _target);
         }
 
         /// <summary>

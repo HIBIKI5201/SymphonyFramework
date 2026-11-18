@@ -31,7 +31,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> キャッシュまたはService Locatorから取得したインスタンス。 </returns>
         public T GetInstance()
         {
-            T instance = _instance;
+            T instance = GetCachedInstance();
 
             // キャッシュが無い場合だけService Locatorへ問い合わせ、以後の取得に再利用する。
             if (instance == null)
@@ -51,7 +51,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> キャッシュまたは待機後に取得したインスタンス。 </returns>
         public Awaitable<T> GetInstanceAsync(byte grace = 120, CancellationToken token = default)
         {
-            T instance = _instance;
+            T instance = GetCachedInstance();
 
             // キャッシュ済みなら登録待機を避け、呼び出しごとの新しいAwaitableで即座に返す。
             if (instance != null)
@@ -69,7 +69,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> インスタンスを取得できた場合はtrue。 </returns>
         public bool TryGetInstance(out T instance)
         {
-            instance = _instance;
+            instance = GetCachedInstance();
 
             // キャッシュが無い場合だけService Locatorへ問い合わせ、取得できた値を以後も再利用する。
             if (instance == null && ServiceLocator.TryGetInstance(out instance))
@@ -86,6 +86,21 @@ namespace SymphonyFrameWork.System.ServiceLocate
 
         /// <summary> キャッシュするインスタンス。 </summary>
         private T _instance;
+
+        /// <summary>
+        ///     利用可能なキャッシュを返す。
+        /// </summary>
+        /// <returns> キャッシュ。無い場合と破棄済みUnity Objectの場合はnull。 </returns>
+        /// <remarks>
+        ///     型引数の <c>== null</c> はUnity Objectの破棄を判定できないため、
+        ///     Service Locatorと同じ判定で破棄済みのキャッシュを捨てて取り直させる。
+        /// </remarks>
+        private T GetCachedInstance()
+        {
+            if (!ServiceLocator.IsAvailableInstance(_instance)) { _instance = null; }
+
+            return _instance;
+        }
 
         /// <summary>
         ///     Service Locatorの登録を待機し、取得したインスタンスをキャッシュする。

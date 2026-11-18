@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using SymphonyFrameWork.Exceptions;
 using SymphonyFrameWork.System.ServiceLocate;
@@ -157,6 +157,42 @@ namespace SymphonyFrameWork.Tests
 
             Assert.That(cancelled, Is.True);
             Assert.That(ServiceLocator.GetInstance<BridgeService>(), Is.Null);
+        }
+
+        /// <summary> 同じ型で別インスタンスが登録されていれば、解除しない。 </summary>
+        [Test]
+        public void UnregisterSameInstance_DifferentInstanceRegistered_KeepsRegistration()
+        {
+            var registered = new BridgeService();
+            var other = new BridgeService();
+            ServiceLocator.RegisterInstance(registered);
+
+            bool unregistered = ServiceLocator.UnregisterSameInstance(typeof(BridgeService), other);
+
+            Assert.That(unregistered, Is.False);
+            Assert.That(ServiceLocator.GetInstance<BridgeService>(), Is.SameAs(registered));
+        }
+
+        /// <summary> 登録と同じインスタンスなら解除する。 </summary>
+        [Test]
+        public void UnregisterSameInstance_SameInstance_Unregisters()
+        {
+            var registered = new BridgeService();
+            ServiceLocator.RegisterInstance(registered);
+
+            bool unregistered = ServiceLocator.UnregisterSameInstance(typeof(BridgeService), registered);
+
+            Assert.That(unregistered, Is.True);
+            Assert.That(ServiceLocator.IsExistInstance<BridgeService>(), Is.False);
+        }
+
+        /// <summary> 未登録の型は警告を出さずfalseを返す。 </summary>
+        [Test]
+        public void UnregisterSameInstance_NotRegistered_ReturnsFalse()
+        {
+            Assert.That(
+                ServiceLocator.UnregisterSameInstance(typeof(BridgeService), new BridgeService()),
+                Is.False);
         }
 
         private sealed class BridgeService
