@@ -98,11 +98,18 @@ th { background: var(--code-bg); white-space: nowrap; }
 <nav class="doc-nav"><a href="../index.html">Symphony Framework Documentation</a></nav>
 <h1 id="build-validation">Build Validation</h1>
 <p>UXML/USSの依存切れとフォント設定の不備を、手動実行またはプレイヤービルド前に検出するEditor機能です。</p>
+<h2 id="目的と範囲">目的と範囲</h2>
+<p>Editorでは見えているのに、クリーンな環境でビルドすると画面が欠けたり文字が消えたりする種類の不備を、ビルド前に見つけます。</p>
+<ul><li><strong>すること</strong>: UXML/USSの参照の検査、TextMesh ProとUI Toolkitのフォント設定の検査、不備の一覧表示、ビルド前検証で不備があればビルドを止める</li><li><strong>しないこと</strong>: 不備の自動修正、Packages内の設定の検査、常時の監視（実行するのは手動検証とビルド前だけ）。利用側から呼ぶ公開APIはありません</li></ul>
 <h2 id="入口">入口</h2>
 <div class="table-scroll"><table><thead><tr><th>操作</th><th>場所</th></tr></thead><tbody><tr><td>設定</td><td><code>Project Settings &gt; SymphonyFrameWork &gt; Build Validation</code></td></tr><tr><td>UXMLの手動検証</td><td><code>Tools &gt; SymphonyFrameWork &gt; Build Validation &gt; Validate UXML Dependencies</code></td></tr><tr><td>フォントの手動検証</td><td><code>Tools &gt; SymphonyFrameWork &gt; Build Validation &gt; Validate Fonts</code></td></tr></tbody></table></div>
+<h2 id="仕組みの要点">仕組みの要点</h2>
+<ol><li><strong>ビルド前の検証は、UXML・Fontとも既定で無効です。</strong> 更新しただけで既存プロジェクトのビルドが止まらないようにするためです。</li><li><strong>不備は最初の1件で止めず、一覧で報告します。</strong> ビルド時は有効な検証の結果をまとめ、不備があれば1回の<code>BuildFailedException</code>で止めます。</li><li><strong>検索するのは<code>Assets/</code>の中だけです。</strong> 起点のUXMLと検証するText SettingsはAssets内に置きます。</li></ol>
+<h2 id="機能一覧">機能一覧</h2>
+<div class="table-scroll"><table><thead><tr><th>ID</th><th>機能</th><th>入口</th><th>結果</th></tr></thead><tbody><tr><td>BV-01</td><td>UXML/USSの手動検証</td><td><code>Tools &gt; SymphonyFrameWork &gt; Build Validation &gt; Validate UXML Dependencies</code></td><td>結果をConsoleとダイアログへ出す</td></tr><tr><td>BV-02</td><td>フォントの手動検証</td><td><code>Tools &gt; SymphonyFrameWork &gt; Build Validation &gt; Validate Fonts</code></td><td>同上</td></tr><tr><td>BV-03</td><td>ビルド前の検証</td><td>設定の <code>Validate On Build</code></td><td>不備があればビルドを止める</td></tr></tbody></table></div>
 <h2 id="editor機能">Editor機能</h2>
 <h3 id="設定">設定</h3>
-<p><strong>ビルド前の検証は、UXML・Fontともに既定で無効です。</strong> まず手動検証で結果を確認し、必要な方の <code>Validate On Build</code> を有効にしてください。 手動検証は <code>Validate On Build</code> の値にかかわらず実行され、結果をConsoleとダイアログへ表示します。</p>
+<p>まず手動検証で結果を確認し、必要な方の <code>Validate On Build</code> を有効にしてください。 手動検証は <code>Validate On Build</code> の値にかかわらず実行され、結果をConsoleとダイアログへ表示します。</p>
 <div class="table-scroll"><table><thead><tr><th>UXMLの項目</th><th>既定値</th><th>内容</th></tr></thead><tbody><tr><td>Validate On Build</td><td>false</td><td>ビルド前にUXMLを検証し、不備があればビルドを停止する</td></tr><tr><td>Force Reimport</td><td>false</td><td>依存先からUXML/USSを同期再インポートする</td></tr><tr><td>Roots</td><td>空</td><td>起点の <code>VisualTreeAsset</code> と必須要素名の組。空ならAssets内の全UXMLを起点にする</td></tr><tr><td>Roots &gt; Asset</td><td>未設定</td><td>検証するUXML。登録した行が未設定の場合はエラーにする</td></tr><tr><td>Roots &gt; Required Element Names</td><td>空</td><td>展開結果に必要な要素の <code>name</code>。空なら追加の必須名検査をしない</td></tr></tbody></table></div>
 <div class="table-scroll"><table><thead><tr><th>Fontの項目</th><th>既定値</th><th>内容</th></tr></thead><tbody><tr><td>Validate On Build</td><td>false</td><td>ビルド前にフォントを検証し、不備があればビルドを停止する</td></tr><tr><td>TextMesh Pro</td><td>true</td><td>Assets内で最初に見つかったTMP Settingsを検証する</td></tr><tr><td>UI Toolkit</td><td>true</td><td>指定したText Settingsと全Panel Settingsの参照を検証する</td></tr><tr><td>UI Toolkit Text Settings</td><td>未設定</td><td>全Panel Settingsが共通で参照するText Settings</td></tr><tr><td>Required Characters</td><td>空</td><td>既定フォントに必要な文字。空なら文字検査をしない</td></tr><tr><td>Require Multi Atlas</td><td>false</td><td>DynamicフォントにMulti Atlas Texturesを要求する</td></tr></tbody></table></div>
 <p>設定は画面を開いたときに作成され、編集内容は自動で保存されます。画面を開き直したときと、表示中の再描画時に設定値を読み直します。</p>
@@ -119,11 +126,9 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>Source Font Fileの文字検査は公開APIの <code>Font.HasCharacter(char)</code> を使用します。補助面の文字はCharacter Tableに保存されている場合に確認できます。</p>
 <h3 id="対象と結果">対象と結果</h3>
 <p>検索対象は <code>Assets/</code> に限り、Packages内の設定は列挙しません。起点のUXMLと検証するText SettingsはAssets内に置いてください。 Text SettingsがAssets外、または既定フォントがPackages内の場合は、その設定の検査を省略して理由を結果に残します。</p>
-<p>不備は最初の1件で止めず、一覧として報告します。ビルド時は有効な検証の結果をまとめ、不備があれば1回の <code>BuildFailedException</code> で停止します。</p>
 <p>XML構文エラーなどである起点の検査を続けられなくても、その理由を記録して他の起点を検証します。手動検証はビルドを開始しません。</p>
-<h2 id="内部構造">内部構造</h2>
-<div class="table-scroll"><table><thead><tr><th>型</th><th>役割</th></tr></thead><tbody><tr><td>BuildValidationConfig / BuildValidationSettingProvider</td><td>設定の保存とProject Settings画面</td></tr><tr><td>BuildValidationMenu / BuildValidationBuildProcessor</td><td>手動実行とビルド前処理の入口</td></tr><tr><td>UxmlDependencyValidator / UxmlSourceReference</td><td>Unity上の依存検査と、Unity APIを使わない参照文字列の解析</td></tr><tr><td>FontSettingsValidator / FontSnapshot</td><td>SerializedObjectからの読み取りと、取得した値だけによる規則判定</td></tr><tr><td>BuildValidationReport</td><td>エラー一覧と結果メッセージ</td></tr></tbody></table></div>
-<p>実装はすべてEditorアセンブリ内にあり、検証用の公開APIは追加しません。自動初期化や常時ポーリングも行いません。</p>
+<h2 id="確かめ方">確かめ方</h2>
+<ol><li>手動検証を実行し、ダイアログとConsoleにエラーが出なくなるまで直す。</li><li>必要な方の <code>Validate On Build</code> を有効にする。</li><li>意図的に不備を作った状態（例: 必須要素名に存在しない名前を入れる）でビルドし、止まることを確かめてから戻す。</li></ol>
 <h2 id="関連">関連</h2>
 <ul><li><a href="../EditorTools.html">Editor機能</a></li><li><a href="../index.html">ドキュメント索引</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Modules/BuildValidation.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>

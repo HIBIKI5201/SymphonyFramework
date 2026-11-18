@@ -98,21 +98,28 @@ th { background: var(--code-bg); white-space: nowrap; }
 <nav class="doc-nav"><a href="../index.html">Symphony Framework Documentation</a></nav>
 <h1 id="autoenumgenerator">AutoEnumGenerator</h1>
 <p>Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenumを自動生成します。</p>
+<h2 id="目的と範囲">目的と範囲</h2>
+<p>シーン名・タグ名・レイヤー・Audio Groupを文字列で書かずに済むようにし、綴りの誤りをコンパイル時に見つけられるようにします。</p>
+<ul><li><strong>すること</strong>: 変更を検知したenumの再生成、C#の識別子にできない名前の解決、生成先アセンブリの用意と参照の注入</li><li><strong>しないこと</strong>: 生成したenumの手での編集の保持（再生成で上書きする）、ポーズカテゴリーの生成（<a href="PauseManager.html">Pause Manager</a>）</li></ul>
 <h2 id="入口">入口</h2>
 <div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.Editor</code></td></tr><tr><td>主な公開型</td><td><code>AutoEnumGenerator</code> / <code>EnumGenerator</code> / <code>AutoEnumGeneratorConfig</code></td></tr><tr><td>メニューパス</td><td>自動実行。手動生成は <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code> の <code>Auto Enum Generator</code> パネル</td></tr><tr><td>設定の保存先</td><td><code>ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset</code></td></tr></tbody></table></div>
+<h2 id="仕組みの要点">仕組みの要点</h2>
+<ol><li><strong>元の設定が変わると、自動で再生成します。</strong> シーン・タグ・レイヤーはそれぞれ設定で自動更新を止められます。</li><li><strong>シーンのenumの値はBuild Settingsの登録順です。</strong> シーンの並びを変えると値も変わります。</li><li><strong>予約語は除外せず<code>@</code>を付けて残します。</strong> シーンを足しただけでenumからシーンが消えないようにするためです。</li></ol>
+<h2 id="機能一覧">機能一覧</h2>
+<div class="table-scroll"><table><thead><tr><th>ID</th><th>生成物</th><th>生成元</th></tr></thead><tbody><tr><td>ENUM-01</td><td><code>SceneListEnum.cs</code></td><td>Build Settingsのシーン一覧（<strong>登録順が値になる</strong>）</td></tr><tr><td>ENUM-02</td><td><code>TagsEnum.cs</code></td><td><code>ProjectSettings/TagManager.asset</code> のタグ</td></tr><tr><td>ENUM-03</td><td><code>LayersEnum.cs</code></td><td>同上のレイヤー（フラグenum）</td></tr><tr><td>ENUM-04</td><td><code>AudioGroupTypeEnum.cs</code></td><td><code>AudioConfig</code> のグループ名</td></tr><tr><td>ENUM-05</td><td><code>SymphonyFrameWork.Enum.asmdef</code></td><td>上記を含むアセンブリ</td></tr></tbody></table></div>
+<p>生成先は <code>Assets/Scripts/SymphonyFrameWork/</code> です。</p>
 <h2 id="editor機能">Editor機能</h2>
-<p>Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupの変更を検知して、対応するenumを自動生成します。</p>
 <p><strong>入口</strong>: 自動実行。手動生成はSymphony Administratorの <code>Auto Enum Generator</code> パネルから</p>
-<p><strong>生成物</strong>: <code>Assets/Scripts/SymphonyFrameWork/</code></p>
-<div class="table-scroll"><table><thead><tr><th>ファイル</th><th>生成元</th></tr></thead><tbody><tr><td><code>SceneListEnum.cs</code></td><td>Build Settingsのシーン一覧（<strong>登録順が値になります</strong>）</td></tr><tr><td><code>TagsEnum.cs</code></td><td><code>ProjectSettings/TagManager.asset</code> のタグ</td></tr><tr><td><code>LayersEnum.cs</code></td><td>同上のレイヤー（フラグenum）</td></tr><tr><td><code>AudioGroupTypeEnum.cs</code></td><td><code>AudioConfig</code> のグループ名</td></tr><tr><td><code>SymphonyFrameWork.Enum.asmdef</code></td><td>上記を含むアセンブリ</td></tr></tbody></table></div>
 <p><strong>設定</strong>: <code>ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset</code>。シーン・タグ・レイヤーそれぞれについて自動更新の有効・無効を切り替えられます。</p>
-<p><strong>変更の検知</strong>: <code>TagsAndLayersPostProcessor</code>（<code>AssetPostprocessor</code>）がタグ・レイヤー設定ファイルの変更を、<code>EditorBuildSettings.sceneListChanged</code> がシーン一覧の変更を検知します。検知した変更は <code>SymphonyEditorOrchestrator</code> へ通知され、まとめて1回処理されます。</p>
+<p><strong>変更の検知</strong>: タグ・レイヤーの設定ファイルとBuild Settingsのシーン一覧の変更を検知し、続けて起きた変更はまとめて1回だけ生成します。</p>
 <p><strong>補助メニュー</strong>: <code>Tools &gt; SymphonyFrameWork &gt; Debug &gt; CreateResourcesFolder</code> は、生成先の <code>Resources</code> フォルダを手動で作り直すためのものです。通常は自動生成に任せてください。</p>
 <p><strong>列挙子名の解決</strong>: シーン名・タグ名・グループ名は、そのままではC#の識別子にできないことがあります。生成前に次のように解決します。</p>
 <div class="table-scroll"><table><thead><tr><th>候補</th><th>生成される列挙子</th><th>備考</th></tr></thead><tbody><tr><td><code>Title</code></td><td><code>Title</code></td><td>そのまま使えます</td></tr><tr><td><code>class</code>、<code>int</code> など<strong>C#の予約語</strong></td><td><code>@class</code>、<code>@int</code></td><td><code>@</code> を前置してエスケープします。<strong>名前は消えません。</strong>利用側は <code>SceneListEnum.@class</code> と書きます</td></tr><tr><td><code>var</code>、<code>value</code>、<code>record</code> など文脈キーワード</td><td><code>var</code>、<code>value</code>、<code>record</code></td><td>識別子として使えるため、そのままです</td></tr><tr><td><code>1st Scene</code> のように識別子にできない文字列</td><td>生成されません</td><td>警告を出して除外します</td></tr><tr><td><code>value__</code></td><td>生成されません</td><td>コンパイラがenumの値の格納に使う名前で、<code>@</code> を付けても列挙子にできません</td></tr></tbody></table></div>
 <p>解決後に同じ名前になる候補（<code>class</code> と <code>@class</code> など）は1つの列挙子にまとめ、最初に現れた並び順を保ちます。</p>
 <p><strong>注意点</strong>:</p>
 <ul><li><strong>生成されたenumを手で編集しないでください。</strong> 再生成で失われます。</li><li><strong>予約語を含む候補は、除外ではなくエスケープされます。</strong> シーンを追加しただけで <code>SceneListEnum</code> からそのシーンが消える事態を避けるためです。</li><li>利用側のasmdefから生成enumを直接使う場合は、<code>SymphonyFrameWork.Enum</code> を参照に追加してください。</li><li><code>SymphonyFrameWork.asmdef</code> から <code>SymphonyFrameWork.Enum</code> への参照は、Editor起動時に自動で注入されます。</li></ul>
+<h2 id="確かめ方">確かめ方</h2>
+<ul><li>Build Settingsへシーンを足した後、<code>SceneListEnum.cs</code> に列挙子が増えていることを見る。</li><li>増えない場合は、設定で自動更新が有効か、Consoleに除外の警告が出ていないかを見る。手動で生成し直すときはSymphony Administratorの <code>Auto Enum Generator</code> パネルを使う。</li></ul>
 <h2 id="関連">関連</h2>
 <ul><li><a href="ProjectStructureTools.html">Project Structure Tools</a></li><li><a href="../EditorTools.html">EditorTools.md</a></li><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Modules/AutoEnumGenerator.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>

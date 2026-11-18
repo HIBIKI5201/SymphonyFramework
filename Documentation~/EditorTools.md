@@ -24,11 +24,11 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [FolderGenerator](./Modules/ProjectStructureTools.md#foldergenerator) | `Tools > SymphonyFrameWork > FolderGenerator` |
 | [AssemblyGenerator](./Modules/ProjectStructureTools.md#assemblygenerator) | メニューなし。他のEditor機能から呼ばれる |
 | [SymphonyPackageLoader](./Modules/ProjectStructureTools.md#symphonypackageloader) | `Tools > SymphonyFrameWork > SymphonyPackageLoader` |
-| [SymphonyDebugHUD](./Modules/Debug.md#symphonydebughud) | `Shift + D + P`、`Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
-| [ログのファイル出力](./Modules/Debug.md#ログのファイル出力) | 自動実行 |
-| [SymphonyMcpTools](./Modules/Debug.md#symphonymcptools) | メニューなし。外部ツールから呼ぶ |
+| [SymphonyDebugHUD](./Modules/Debug.md#editor機能) | `Shift + D + P`、`Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
+| [ログのファイル出力](./Modules/Debug.md#editor機能) | 自動実行 |
+| [SymphonyMcpTools](./Modules/Debug.md#機能一覧) | メニューなし。外部ツールから呼ぶ |
 | [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFrameWork` |
-| [ポーズカテゴリーの生成](./Modules/PauseManager.md#editor機能) | `Project Settings > SymphonyFrameWork > Pause Category`。設定した名前から `PauseManager.IPausable` を継承した空のinterfaceを生成する |
+| [ポーズカテゴリーの生成](./Modules/PauseManager.md#ポーズカテゴリーの生成) | `Project Settings > SymphonyFrameWork > Pause Category`。設定した名前から `PauseManager.IPausable` を継承した空のinterfaceを生成する |
 | [Build Validation](./Modules/BuildValidation.md) | `Project Settings > SymphonyFrameWork > Build Validation`、`Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies` / `Validate Fonts` |
 | [Scene Blockの依存検証](./Modules/SceneBlock.md#editor機能) | `SceneBlockAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |

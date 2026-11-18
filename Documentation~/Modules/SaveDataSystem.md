@@ -1,19 +1,44 @@
 # Save Data System
 
-保存したデータを型単位で読み込み、保持、保存、削除します。
+保存したいデータを型単位で読み込み、保持、保存、削除します。
+
+## 目的と範囲
+
+セーブデータを型ごとに1つのインスタンスとして持ち、保存先の違いを意識せずに読み書きできるようにします。
+
+- **すること**: 型単位の読み込み・キャッシュ・保存・削除・存在確認、保存先の差し替え（`SaveDataLoaderStrategy`）、保存先の失敗の診断
+- **しないこと**: 暗黙の同期読み込み（`Get<T>()`は読み込み済みの値だけを返す）、複数スロットの管理、暗号化（必要なら独自ローダーで行う）
 
 ## 入口
 
 | 項目 | 内容 |
 | --- | --- |
 | namespace | `SymphonyFrameWork.System.SaveSystem` |
-| 主な公開型 | `SaveStore` / `SaveDataContent` / `SaveDataLoaderStrategy` |
+| 主な公開型 | `SaveStore` / `SaveDataContent` / `SaveDataLoaderStrategy` / `SaveDataEntryInfo` / `SaveDataOperationException` |
 | メニューパス | `Project Settings > SymphonyFrameWork > Save System`、`Window > SymphonyFrameWork > Symphony Administrator` の `Save Data` パネル |
 | 設定の保存先 | `Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset` |
 
-## クイックスタート
+## 仕組みの要点
 
-保存したいデータを`SaveDataContent`の派生classとして定義します。
+1. **データは型ごとに1つのインスタンスとしてキャッシュされます。** `LoadAsync<T>()`が返すインスタンスを編集し、`SaveAsync<T>()`でそのまま保存します。
+2. **初回は必ず`await SaveStore.LoadAsync<T>()`で読みます。** `Get<T>()`は読み込み済みの値だけを返します。非同期で読むローダーを同期で待つと完了できなくなるためです。
+3. **保存先はローダーで決まります。** 既定はJSONをPlayerPrefsへ保存します。ファイルやクラウドへ保存する場合は`SaveDataLoaderStrategy`を継承し、Project Settingsで選びます。
+
+## 機能一覧
+
+| ID | 機能 | 使うAPI | 結果 |
+| --- | --- | --- | --- |
+| SAVE-01 | 読み込み | `SaveStore.LoadAsync<T>()` | 保存先から読み、キャッシュしたインスタンスを返す |
+| SAVE-02 | 取得 | `SaveStore.Get<T>()` / `IsLoaded<T>()` | 読み込み済みのインスタンスを返す・読み込み済みか調べる |
+| SAVE-03 | 保存 | `SaveStore.SaveAsync<T>()` | キャッシュしたインスタンスを保存先へ書く |
+| SAVE-04 | 削除 | `SaveStore.DeleteAsync<T>()` | 保存値を消し、キャッシュを既定値へ戻す |
+| SAVE-05 | 存在確認 | `SaveStore.Exists<T>()` | 保存先にデータがあるか調べる |
+| SAVE-06 | キャッシュの一覧 | `SaveStore.GetEntries()` | 型名の昇順に並んだ`SaveDataEntryInfo`のスナップショット |
+| SAVE-07 | 保存先の差し替え | `SaveDataLoaderStrategy`（利用側が継承） | Project Settingsの選択肢へ自動で並ぶ |
+
+各APIには`Type`を受け取る版もあります。
+
+## クイックスタート
 
 ```csharp
 using System;
@@ -27,121 +52,85 @@ public sealed class PlayerData : SaveDataContent
 }
 ```
 
-初回は`LoadAsync<T>()`で読み込み、戻り値のインスタンスを編集して保存します。
-
 ```csharp
 PlayerData data = await SaveStore.LoadAsync<PlayerData>();
 data.Gold += 100;
-
 await SaveStore.SaveAsync<PlayerData>();
-await SaveStore.DeleteAsync<PlayerData>();
-```
 
-読み込み済みであれば、同じインスタンスを`Get<T>()`で同期的に取り出せます。**`Get<T>()`は暗黙の読み込みを行いません。** 未読み込みの型を渡すと`InvalidOperationException`になります。非同期I/Oを行うローダーで暗黙の同期読み込みを許すと、待機を同期ブロックして完了不能になるためです。
-
-```csharp
 if (SaveStore.IsLoaded<PlayerData>())
 {
     PlayerData cached = SaveStore.Get<PlayerData>();
 }
 ```
 
-既定ではJSONをPlayerPrefsへ保存します。別のシリアライザ、ファイル、クラウド等を使う場合は`SaveDataLoaderStrategy`を継承し、Project Settingsから選択します。
+## うまくいかないとき
 
-## 実装時の注意
+| 起きること | この機能の動き | 対処 |
+| --- | --- | --- |
+| 未読み込みの型を`Get<T>()`した | `InvalidOperationException`を投げる | 先に`await SaveStore.LoadAsync<T>()`を呼ぶ。分からないときは`IsLoaded<T>()`で調べる |
+| 保存先で失敗した | `SaveDataOperationException`を投げる | `Operation`、`DataType`、`LoaderType`、`InnerException`で、どの操作・型・ローダーで失敗したかを見る |
+| 処理をキャンセルした | `OperationCanceledException`のまま伝える | 呼び出し側で捕捉する |
+| ローダーが未設定 | 警告を出し、既定の`JsonUtility`ローダーを使う | Project SettingsのSave Systemでローダーを選ぶ |
 
-- 保存型は`SaveDataContent`を継承した、デフォルトコンストラクタを持つ具象classにする。
-- **旧`SaveDataRegistry`は3.0.0で削除済みである。** `SaveStore`を使う。
-- **初回取得は`await SaveStore.LoadAsync<T>()`を使い、戻り値でインスタンスを受け取る。** `Get<T>()`は読み込み済みの値だけを返し、未読み込みなら`InvalidOperationException`を投げる。暗黙の同期読み込みは3.0.0で廃止した。
-- `Get<T>()`を使う前に読み込み済みか分からない場合は`SaveStore.IsLoaded<T>()`で確認する。
-- `SaveStore`が保持する型単位のキャッシュを編集する。別インスタンスとの二重管理を作らない。
-- 保存先の失敗は`SaveDataOperationException`の`Operation`、`DataType`、`LoaderType`、`InnerException`で診断する。キャンセルは`OperationCanceledException`のまま伝播する。
-- 独自`SaveDataLoaderStrategy`はProject Settingsの選択肢へ自動登録される。設定ScriptableObjectを手動生成しない。
-- 独自ローダーが実装する`LoadJsonAsync`／`SaveJsonAsync`／`DeleteCoreAsync`は`Awaitable`を返す。同期的に完了する場合は`SymphonyAwaitable.Completed()`と`SymphonyAwaitable.FromResult(json)`を使い、`null`を返さない。
-- キャッシュ済みの一覧は`SaveStore.GetEntries()`で取得する。型名の昇順で並んだ取得時点のスナップショットとして扱う。
-- **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られるため、両者は別の状態である。読み込み済みかどうかは`SaveDataEntryInfo.IsLoaded`で判定する。
+## 守ること
+
+- 保存型は`SaveDataContent`を継承した、引数なしコンストラクタを持つ具象classにする。
+- `SaveStore`がキャッシュするインスタンスを編集する。別のインスタンスを作って二重に管理しない。
+- **`Data != null`を「読み込み済み」の判定に使わない。** キャッシュは初回アクセス時に既定値で作られる。読み込み済みかは`SaveDataEntryInfo.IsLoaded`で調べる。
+- 独自ローダーの`LoadJsonAsync`／`SaveJsonAsync`／`DeleteCoreAsync`は`Awaitable`を返す。同期で終わる場合は`SymphonyAwaitable.Completed()`と`SymphonyAwaitable.FromResult(json)`を返し、`null`を返さない。
+- 独自ローダーの設定ScriptableObjectを手で作らない。Project Settingsの選択肢へ自動で並ぶ。
+- 旧`SaveDataRegistry`は3.0.0で削除した。`SaveStore`を使う。
 
 ## Editor機能
 
 ### Save System設定
 
-`SaveStore` が使用するセーブローダーと、Save Data パネルへ表示する型を選択します。
-
 **入口**: `Project Settings > SymphonyFrameWork > Save System`
 
 | 項目 | 内容 |
 | --- | --- |
-| Loader | `SaveDataLoaderStrategy` を継承したローダー。`[SerializeReference]` で選択する |
-| Current Loader Type | 現在設定されているローダーの型名（読み取り専用） |
-| Managed Save Data Types | Save Data パネルへ表示する型のチェックボックス。名前空間の階層で並ぶ |
+| Loader | `SaveDataLoaderStrategy`を継承したローダー。`[SerializeReference]`で選ぶ |
+| Current Loader Type | 今のローダーの型名（読み取り専用） |
+| Managed Save Data Types | Save Dataパネルへ表示する型のチェックボックス。名前空間の階層で並ぶ |
 
-**保存先**: ローダーは `Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset`、管理対象のチェックは `ProjectSettings/Packages/symphonyframework/SaveDataVisibilityConfig.asset`
+**保存先**: ローダーは`Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset`、管理対象のチェックは`ProjectSettings/Packages/symphonyframework/SaveDataVisibilityConfig.asset`
 
-**注意点**:
-
-- ローダーが未設定の場合、`SaveStore` は既定の `JsonUtility` ローダーへフォールバックします。警告が表示されます。
-- **`SaveDataConfig` がまだ無い状態でこの画面を開いても、生成は始まりません。** 未生成である旨と `設定アセットを生成` ボタンが表示されます。設定アセットの生成はEditor起動時にまとめて行われる処理であり、画面を開いた副作用として走らせないためです。ボタンを押すと、起動時と同じ経路（`SymphonyEditorOrchestrator`）で生成されます。
-- 独自ローダーは `SaveDataLoaderStrategy` を継承してください。共通の検証とデータ復旧は基底クラスが担当します。
-- ローダーを変更すると、その場で `SaveStore` が読み直します。
+- ローダーを変えると、その場で`SaveStore`が読み直します。
+- `SaveDataConfig`がまだ無い状態で開くと、未生成である旨と`設定アセットを生成`ボタンが出ます。画面を開くだけでは生成しません。
 
 #### Managed Save Data Types
 
-`SaveDataContent` を継承した型は、プロジェクト内のどのアセンブリにあってもこの一覧へ並びます。チェックを外した型は Save Data パネルへ表示されません。
+`SaveDataContent`を継承した型は、どのアセンブリにあってもこの一覧へ並びます。チェックを外した型はSave Dataパネルへ出ません。
 
-**既定値は、テスト用アセンブリの型が `false`、それ以外の型が `true` です。** テスト用アセンブリかどうかは、そのアセンブリが `nunit.framework` または `UnityEngine.TestRunner` を参照しているかで判定します。**この判定は既定値を決めるためだけに使います。** 意図と違う場合はチェックを操作してください。
-
-一覧は名前空間の階層で並びます。**分岐の無い名前空間は1行にまとめて表示します。** 例えば `SpaceA.ScopeB` の下にしか型が無ければ `SpaceA.ScopeB` の1行になり、`SpaceA.ScopeE` の型が加わった時点で `SpaceA` の下が `ScopeB` と `ScopeE` に分かれます。名前空間の行のチェックは、その配下の型をまとめて切り替えます。配下が混在している場合は混在表示になり、押すとすべて管理対象になります。
-
-- **設定へ保存されるのは、操作して切り替えた型だけです。** 既定のままの型は保存されないため、画面を開くだけでは設定ファイルが増えません。
-- 型を追加すると、既定値に従って自動的に一覧へ現れます。既存の設定を書き換える必要はありません。
-- **この設定はEditorの表示だけに効きます。** `SaveStore.Get<T>()` などの実行時APIは、チェックの有無に関係なく従来どおり動きます。
+| 規則 | 内容 |
+| --- | --- |
+| 既定値 | テスト用アセンブリ（`nunit.framework`または`UnityEngine.TestRunner`を参照する）の型は`false`、それ以外は`true` |
+| 並び | 名前空間の階層。分岐の無い名前空間は1行にまとめる |
+| 名前空間の行 | 配下の型をまとめて切り替える。混在しているときは混在表示になり、押すとすべて管理対象になる |
+| 保存 | 操作して切り替えた型だけを保存する。画面を開くだけでは設定ファイルは増えない |
+| 効く範囲 | **Editorの表示だけ。** `SaveStore`などの実行時APIはチェックに関係なく動く |
 
 ### Save Data パネル
 
 **入口**: `Window > SymphonyFrameWork > Symphony Administrator`
 
-| パネル | 内容 |
-| --- | --- |
-| Save Data | 管理対象のセーブデータ型、Inspectorの接続状態、保存状態 |
+Managed Save Data Typesでチェックが入っている型を一覧にし、選んだ型をInspectorで編集できます。設定を変えると、開き直さずに一覧が入れ替わります。
 
-一覧に並ぶのは、Save System設定の `Managed Save Data Types` でチェックが入っている型だけです。設定を変えると、パネルを開き直さずにその場で一覧が入れ替わります。管理対象が1つも無い場合は、設定画面への導線を表示します。
+Inspectorの編集先はランプで示します。
 
-一覧から型を選ぶと、Inspectorのバインド元をランプで表示します。ランプは、Registry正本へ接続中なら緑、Window専用インスタンスへ保存値を読み込み済みなら黄、新規のWindow専用インスタンスなら赤、未選択なら消灯です。ロード中は赤のまま `Loading…` を表示し、完了までInspectorを編集できません。
+| ランプ | 編集先 | Load | Save | Delete |
+| --- | --- | --- | --- | --- |
+| 緑 | 実行中の`SaveStore`のインスタンス | 保存先から読み直す | 保存する | 保存値を消して既定値へ戻す |
+| 黄 | パネル専用のインスタンス（保存値を読み込み済み） | パネル専用へ読み込む | 保存する。`SaveStore`へは登録しない | 保存値を消して作り直す |
+| 赤 | パネル専用の新しいインスタンス | 同上 | 同上 | 同上 |
 
-| 操作 | 接続中（緑） | 非接続（黄・赤） |
-| --- | --- | --- |
-| Load | Registry正本を保存先から読み直す | Window専用インスタンスへ読み込む |
-| Save | Registry正本を保存する | Window専用インスタンスを保存し、Registryへは登録しない |
-| Delete | 保存値を削除してRegistry正本を既定値へ戻す | 保存値を削除してWindow専用インスタンスを作り直す |
+ロード中は赤のまま`Loading…`を表示し、終わるまで編集できません。パネル専用のインスタンスを編集すると`未保存の変更あり`が出ます。`Play Mode へ持ち越す`を有効にすると、Play Modeに入るときにその内容を保存先へ書き出します。この設定は開発者ごとの`UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`に保存され、既定は無効です。
 
-非接続のInspectorを編集すると `未保存の変更あり` が表示されます。`Play Mode へ持ち越す` を有効にすると、Play Mode突入時にその内容を保存先へ書き出します。この設定は開発者ごとの `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` に保存され、既定は無効です。
+## 確かめ方
 
-## 内部構造
-
-Save DataのRuntime内部も同じ形で、処理順、読み取り変換、表示状態を分離しています。
-
-```mermaid
-flowchart LR
-    Facade["SaveStore"] -->|Command| Service["SaveDataService"]
-    Service --> Registry["SaveDataEntryRegistry"]
-    Registry --> Entity["SaveDataEntryEntity"]
-    Facade -->|Query| Query["SaveDataQuery"]
-    Query --> Registry
-    Query --> Info["SaveDataEntryInfo"]
-    Query --> Dto["SaveDataDto"]
-    Service --> Loader["SaveDataLoaderStrategy"]
-    Service -->|状態変更event| ViewModel["SaveDataViewModel"]
-    ViewModel -->|ReactiveProperty| Window["SaveDataWindow"]
-    Window -->|問い合わせ・Command| ViewStore["SaveDataViewStore"]
-    ViewStore -->|問い合わせ| Query
-    ViewStore -->|Command| Service
-```
-
-`SaveDataQuery`だけがRegistry／Entityを読み取り、利用側には`SaveDataEntryInfo`、Viewには内部Dtoを返します。`SaveDataWindow`は表示状態を`SaveDataViewModel`から購読し、操作と問い合わせは`SaveDataViewStore`へ送ります。状態が変わったときにバインド元を評価し、解決した状態が変わった場合、または接続中のRegistry正本が差し替わった場合だけInspectorを再バインドします。
-
-`SaveDataViewStore`は表示状態を持たず、問い合わせをQueryへ、CommandをServiceへ委譲します。Window専用インスタンスのLoad／Save／DeleteはServiceのdetached操作へ渡され、通常操作と同じLoaderと例外変換を使いますが、Registryを読み書きせず、状態変更eventも発行しません。
-
-永続化データが存在するかどうか（`Exists`）はQueryに含めません。ローダーへのI/Oであり、状態が変わるたびに全型分の問い合わせが走るためです。
+- Play Mode中にSave Dataパネルで型を選び、ランプが緑で、`LoadAsync`後の値が表示されることを見る。
+- Play Modeに入らずに保存値を確かめる場合は、パネルの`Load`で読み込む（黄になる）。
+- コードから確かめる場合は`SaveStore.GetEntries()`の`IsLoaded`と`SaveDate`をログへ出す。
 
 ## 関連
 

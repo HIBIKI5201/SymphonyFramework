@@ -2,6 +2,13 @@
 
 UXML/USSの依存切れとフォント設定の不備を、手動実行またはプレイヤービルド前に検出するEditor機能です。
 
+## 目的と範囲
+
+Editorでは見えているのに、クリーンな環境でビルドすると画面が欠けたり文字が消えたりする種類の不備を、ビルド前に見つけます。
+
+- **すること**: UXML/USSの参照の検査、TextMesh ProとUI Toolkitのフォント設定の検査、不備の一覧表示、ビルド前検証で不備があればビルドを止める
+- **しないこと**: 不備の自動修正、Packages内の設定の検査、常時の監視（実行するのは手動検証とビルド前だけ）。利用側から呼ぶ公開APIはありません
+
 ## 入口
 
 | 操作 | 場所 |
@@ -10,11 +17,25 @@ UXML/USSの依存切れとフォント設定の不備を、手動実行または
 | UXMLの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies` |
 | フォントの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate Fonts` |
 
+## 仕組みの要点
+
+1. **ビルド前の検証は、UXML・Fontとも既定で無効です。** 更新しただけで既存プロジェクトのビルドが止まらないようにするためです。
+2. **不備は最初の1件で止めず、一覧で報告します。** ビルド時は有効な検証の結果をまとめ、不備があれば1回の`BuildFailedException`で止めます。
+3. **検索するのは`Assets/`の中だけです。** 起点のUXMLと検証するText SettingsはAssets内に置きます。
+
+## 機能一覧
+
+| ID | 機能 | 入口 | 結果 |
+| --- | --- | --- | --- |
+| BV-01 | UXML/USSの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies` | 結果をConsoleとダイアログへ出す |
+| BV-02 | フォントの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate Fonts` | 同上 |
+| BV-03 | ビルド前の検証 | 設定の `Validate On Build` | 不備があればビルドを止める |
+
 ## Editor機能
 
 ### 設定
 
-**ビルド前の検証は、UXML・Fontともに既定で無効です。** まず手動検証で結果を確認し、必要な方の `Validate On Build` を有効にしてください。
+まず手動検証で結果を確認し、必要な方の `Validate On Build` を有効にしてください。
 手動検証は `Validate On Build` の値にかかわらず実行され、結果をConsoleとダイアログへ表示します。
 
 | UXMLの項目 | 既定値 | 内容 |
@@ -82,21 +103,13 @@ Source Font Fileの文字検査は公開APIの `Font.HasCharacter(char)` を使�
 検索対象は `Assets/` に限り、Packages内の設定は列挙しません。起点のUXMLと検証するText SettingsはAssets内に置いてください。
 Text SettingsがAssets外、または既定フォントがPackages内の場合は、その設定の検査を省略して理由を結果に残します。
 
-不備は最初の1件で止めず、一覧として報告します。ビルド時は有効な検証の結果をまとめ、不備があれば1回の `BuildFailedException` で停止します。
-
 XML構文エラーなどである起点の検査を続けられなくても、その理由を記録して他の起点を検証します。手動検証はビルドを開始しません。
 
-## 内部構造
+## 確かめ方
 
-| 型 | 役割 |
-| --- | --- |
-| BuildValidationConfig / BuildValidationSettingProvider | 設定の保存とProject Settings画面 |
-| BuildValidationMenu / BuildValidationBuildProcessor | 手動実行とビルド前処理の入口 |
-| UxmlDependencyValidator / UxmlSourceReference | Unity上の依存検査と、Unity APIを使わない参照文字列の解析 |
-| FontSettingsValidator / FontSnapshot | SerializedObjectからの読み取りと、取得した値だけによる規則判定 |
-| BuildValidationReport | エラー一覧と結果メッセージ |
-
-実装はすべてEditorアセンブリ内にあり、検証用の公開APIは追加しません。自動初期化や常時ポーリングも行いません。
+1. 手動検証を実行し、ダイアログとConsoleにエラーが出なくなるまで直す。
+2. 必要な方の `Validate On Build` を有効にする。
+3. 意図的に不備を作った状態（例: 必須要素名に存在しない名前を入れる）でビルドし、止まることを確かめてから戻す。
 
 ## 関連
 

@@ -18,7 +18,7 @@
 | HUD、ログ、処理時間計測を使う | [Debug.md](./Documentation~/Modules/Debug.md) |
 | Awaitable、Tween、文字列、Componentの補助を使う | [Utility.md](./Documentation~/Modules/Utility.md) |
 | Inspector属性を使う | [InspectorAttributes.md](./Documentation~/Modules/InspectorAttributes.md) |
-| アセンブリ、フォルダ、初期化順、公開型の関係を調べる | [Architecture.md](./Documentation~/Architecture.md) |
+| アセンブリ、フォルダ、初期化順、公開の入口と拡張点を調べる | [Architecture.md](./Documentation~/Architecture.md) |
 | AutoEnumGeneratorを使う | [AutoEnumGenerator.md](./Documentation~/Modules/AutoEnumGenerator.md) |
 | Asset Store Tools Packagerを使う | [AssetStoreToolsPackager.md](./Documentation~/Modules/AssetStoreToolsPackager.md) |
 | FolderGenerator、AssemblyGenerator、SymphonyPackageLoaderを使う | [ProjectStructureTools.md](./Documentation~/Modules/ProjectStructureTools.md) |
@@ -28,7 +28,7 @@
 | バージョン差分の経緯を調べる | [CHANGELOG.md](./CHANGELOG.md) |
 | フレームワーク本体を開発・変更する | [SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md) |
 
-**モジュール文書は1ファイルで完結します。** クイックスタート、実装時の注意、対応するEditor機能、内部構造がそろっているため、1つのモジュールを使うために複数の文書を読む必要はありません。
+**モジュール文書は1ファイルで完結します。** 機能一覧、クイックスタート、うまくいかないとき、守ること、対応するEditor機能がそろっているため、1つのモジュールを使うために複数の文書を読む必要はありません。
 
 人が読む場合は、Unityから`Window > SymphonyFrameWork > Documentation`でブラウザ版（`Documentation~/Html/`）を開けます。**AIエージェントはMarkdownの正本を読んでください。** HTMLは同じ内容の生成物です。
 
@@ -46,7 +46,7 @@
 
 ## 2. 文書の読み方
 
-- モジュール文書を、API利用例、実装時の注意、対応するEditor機能、内部構造の正本とする。コード例をAGENTS.mdや他の案内文書へ複製しない。
+- モジュール文書を、API利用例、失敗時の動き、守ること、対応するEditor機能の正本とする。コード例をAGENTS.mdや他の案内文書へ複製しない。
 - 実装前は[Documentation~/Modules/](./Documentation~/Modules/)から対象モジュールの文書だけを読む。
 - 検証時だけ[AgentVerification.md](./Documentation~/AgentVerification.md)を読む。
 - 文書と導入済みコードが食い違う場合は、現在のバージョンの公開シグネチャ、XMLドキュメント、CHANGELOGを確認する。推測で古いAPIへ合わせない。

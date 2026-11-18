@@ -2,6 +2,13 @@
 
 Asset Store Tools配下のフォルダをパッケージ化し、別プロジェクトへの差分インポートを補助します。
 
+## 目的と範囲
+
+Asset Storeで購入したアセットを、複数のプロジェクトで同じ版にそろえて使えるようにします。
+
+- **すること**: フォルダごとの`.unitypackage`出力、出力手順（パイプライン）の組み替え、リビジョンの記録と、更新されたパッケージだけの取り込み
+- **しないこと**: パイプラインの自動生成、Asset Storeへのアップロード、統合パッケージ（Combine）の差分取り込み
+
 ## 入口
 
 | 項目 | 内容 |
@@ -10,6 +17,23 @@ Asset Store Tools配下のフォルダをパッケージ化し、別プロジェ
 | 主な公開型 | `AssetStoreToolsPackager` / `AssetStoreToolsPackagerData` / `AssetStoreToolsPackagePipeline` / `AssetStoreToolsPackageStepStrategy` |
 | メニューパス | `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder` |
 | 設定の保存先 | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` / `<Asset Store Tools Path>/PackagerConfig.json` |
+
+## 仕組みの要点
+
+1. **「どこにあるか」と「どう出すか」はProject Settings、「何を詰めるか」は`PackagerConfig.json`に書きます。** `PackagerConfig.json`は`Assets/`配下にあり、利用側のリポジトリで版管理します。
+2. **出力は、確認ウィンドウで中身を見てから実行します。** パイプラインの手順は「全手順の`Plan`」→「全手順の`Execute`」の順に走り、絞り込みは出力より先に効きます。
+3. **取り込みはリビジョンの比較で選びます。** 出力側の`PackageManifest.json`と、ローカルの`ExportedVersion.json`を突き合わせ、更新されたものだけを既定で選びます。
+
+## 機能一覧
+
+| ID | 機能 | 入口 | 結果 |
+| --- | --- | --- | --- |
+| ASTP-01 | 出力 | Packagerウィンドウの Export タブ | 選んだフォルダを`.unitypackage`にする |
+| ASTP-02 | パイプラインの作成 | `Create Default Pipeline`、`Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline` | 出力手順のアセットを作る |
+| ASTP-03 | 自作の手順 | `AssetStoreToolsPackageStepStrategy`を継承 | パイプラインへ手順を足す |
+| ASTP-04 | コードからの出力 | `AssetStoreToolsPackager.Export(string[], AssetStoreToolsPackagePipeline)` | Project Settingsへのアサインなしで出力する |
+| ASTP-05 | 差分の取り込み | Packagerウィンドウの Import タブ | `New`と`Updated`だけを既定で選んで取り込む |
+| ASTP-06 | リビジョンの記録 | 自動 | 対象フォルダの変更を検知してリビジョンを加算する |
 
 ## Editor機能
 
@@ -28,8 +52,6 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 | Export Pipelines | Packagerウィンドウで選べる出力パイプライン | 同上 |
 | Ignored Directories | パッケージ対象から除外するフォルダ名 | `<Asset Store Tools Path>/PackagerConfig.json` |
 | Force Include Extensions | 依存関係に載らなくても必ず含める拡張子 | 同上 |
-
-**設定の分担**: 「どこにあるか」（パス）と「どう出すか」（パイプライン）がProject Settings、「何を詰めるか」（除外・強制包含）が `PackagerConfig.json` です。`PackagerConfig.json` は `Assets/` 配下にあるため、利用側のリポジトリで版管理し、手で編集できます。
 
 **Export Pipelines**:
 
@@ -153,7 +175,7 @@ public sealed class NotifyStrategy : AssetStoreToolsPackageStepStrategy
 
 2種類のログは意味が違います。`PackageVersions.json` は「編集の履歴」、`ExportedVersion.json` は「出荷時点のスナップショット」です。`ExportedVersion.json` はパッケージへ同梱されるため、**インポート先のプロジェクトでは「今そこに入っているパッケージのリビジョン」**を表します。これと `PackageManifest.json` を突き合わせれば、インポートが必要なパッケージだけを判別できます。
 
-**リビジョンの加算**: `AssetStoreToolsVersionPostProcessor`（`AssetPostprocessor`）が対象ディレクトリ配下の変更を検知し、`SymphonyEditorOrchestrator` へ通知します。実際の書き出しはOrchestratorがまとめて1回だけ行います。
+**リビジョンの加算**: 対象ディレクトリ配下のアセットの変更を検知して加算します。続けて起きた変更は、まとめて1回だけ書き出します。
 
 **注意点**:
 
@@ -167,6 +189,11 @@ public sealed class NotifyStrategy : AssetStoreToolsPackageStepStrategy
 - 確認ウィンドウで「（対象アセットなし）」と表示されたフォルダは、出力時に警告になります。`Used Dependencies` を有効にしていて、そのフォルダのアセットがプロジェクト内で1つも使われていない場合に起きます。
 - `Used Dependencies` は `AssetDatabase.GetDependencies` で依存関係を追います。この依存関係グラフに載らないファイル（`.asmdef` など）は `Force Include Extensions` で補います。
 - `.bundle` と `.framework` はUnityが単一アセットとして扱うため、フォルダに見えても中身のファイルではなくフォルダごと出力されます。
+
+## 確かめ方
+
+- 出力後、Consoleの完了ログのリンクから出力先を開き、フォルダごとの`.unitypackage`と`PackageManifest.json`があることを見る。
+- 取り込み側のプロジェクトでImportタブを開き、変えたパッケージだけが`Updated`になっていることを見る。
 
 ## 関連
 

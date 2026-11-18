@@ -97,9 +97,16 @@ th { background: var(--code-bg); white-space: nowrap; }
 <body>
 <nav class="doc-nav"><a href="../index.html">Symphony Framework Documentation</a></nav>
 <h1 id="scene-loader">Scene Loader</h1>
-<p>Scene Loaderは非同期ロード、進捗、複数シーン、優先度によるActive Scene切り替えをまとめて扱います。</p>
+<p>シーンの非同期ロードとアンロード、進捗、複数シーン、優先度によるActive Sceneの切り替えをまとめて扱います。</p>
+<h2 id="目的と範囲">目的と範囲</h2>
+<p>シーン遷移の入口を1つにし、ロードしたシーンへの依存注入と初期化の完了までを待てるようにします。</p>
+<ul><li><strong>すること</strong>: シーン名を指定したロード・アンロード（単体・複数）、進捗の通知、優先度によるActive Sceneの選択、ルートGameObjectへの依存注入と<code>IInitializeAsync</code>の待機、追跡中のシーンの状態の照会</li><li><strong>しないこと</strong>: 依存関係を持つシーン群のまとめたロード（<a href="SceneBlock.html">Scene Block</a>）、Build Settingsへのシーンの登録、ロード画面の表示</li></ul>
 <h2 id="入口">入口</h2>
-<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System.SceneLoad</code></td></tr><tr><td>主な公開型</td><td><code>SceneLoader</code> / <code>SceneLoadRequest</code> / <code>SceneLoadInfo</code> / <code>IInitializeAsync</code></td></tr><tr><td>補足</td><td><code>IInitializeAsync</code> は 5.0.0 で <code>SymphonyFrameWork</code> からこのnamespaceへ移りました</td></tr><tr><td>メニューパス</td><td><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code> の <code>Scene Load</code> パネル</td></tr><tr><td>設定の保存先</td><td><code>Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset</code></td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System.SceneLoad</code></td></tr><tr><td>主な公開型</td><td><code>SceneLoader</code> / <code>SceneLoadRequest</code> / <code>SceneLoadInfo</code> / <code>SceneLoadStateEnum</code> / <code>IInitializeAsync</code> / <code>SceneInitializationException</code></td></tr><tr><td>メニューパス</td><td><code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code> の <code>Scene Load</code> パネル</td></tr><tr><td>設定の保存先</td><td><code>Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset</code></td></tr></tbody></table></div>
+<h2 id="仕組みの要点">仕組みの要点</h2>
+<ol><li><strong>シーンはいつもAdditiveでロードします。</strong> <code>LoadSceneMode.Single</code>を指定すると、対象をAdditiveでロードした後に他の追跡シーンをアンロードします。</li><li><strong>Active Sceneは優先度で決まります。</strong> ロードしたシーンの優先度が今のActive Scene以上ならActiveにします。<code>SceneLoadRequest</code>はシーン名と優先度を1つの値として持ちます。</li><li><strong>ロードはシーンの初期化が終わるまで完了しません。</strong> ルートGameObjectの<code>IInjectable&lt;T...&gt;</code>へ<a href="ServiceLocator.html">Service Locator</a>から依存を注入し、<code>IInitializeAsync</code>の完了を待ってから<code>true</code>を返します。</li><li><strong>状態はスナップショットで読みます。</strong> <code>GetSceneInfos</code>と<code>TryGetSceneInfo</code>が返す<code>SceneLoadInfo</code>は、取得した時点の値から変わりません。</li></ol>
+<h2 id="機能一覧">機能一覧</h2>
+<div class="table-scroll"><table><thead><tr><th>ID</th><th>機能</th><th>使うAPI</th><th>結果</th></tr></thead><tbody><tr><td>SCN-01</td><td>ロード</td><td><code>LoadSceneAsync</code> / <code>LoadScenesAsync</code></td><td>成功で<code>true</code>。進捗を<code>IProgress&lt;float&gt;</code>へ通知する</td></tr><tr><td>SCN-02</td><td>アンロード</td><td><code>UnloadSceneAsync</code> / <code>UnloadScenesAsync</code></td><td>成功で<code>true</code></td></tr><tr><td>SCN-03</td><td>Active Sceneの切り替え</td><td><code>SetActiveScene</code></td><td>指定した追跡シーンをActiveにする</td></tr><tr><td>SCN-04</td><td>ロード済みシーンの追跡</td><td><code>RegisterLoadedScene</code></td><td><code>SceneLoader</code>を通さずにロードされたシーンを、優先度付きで追跡へ加える</td></tr><tr><td>SCN-05</td><td>ロード完了の待機</td><td><code>WaitForLoadSceneAsync</code> / <code>RegisterAfterSceneLoad</code></td><td>指定シーンのロード完了まで待つ、または完了後に1回だけ処理を呼ぶ</td></tr><tr><td>SCN-06</td><td>状態の照会</td><td><code>GetSceneInfos</code> / <code>TryGetSceneInfo</code> / <code>TryGetState</code> / <code>IsExist</code> / <code>GetExistScene</code></td><td>名前、状態、優先度、進捗、Activeかどうかを返す</td></tr><tr><td>SCN-07</td><td>初期化の待機</td><td><code>IInitializeAsync</code>（利用側が実装）</td><td>ロード完了の前に<code>InitializeAsync</code>を待つ</td></tr><tr><td>SCN-08</td><td>Play開始時の初期シーン処理</td><td>Main Toolbarの<code>Symphony Framework &gt; Scene Init</code></td><td>次回のPlay Mode開始時に、初期シーンの処理を行うか切り替える</td></tr></tbody></table></div>
 <h2 id="クイックスタート">クイックスタート</h2>
 <p>対象シーンをBuild Settingsへ追加してから、名前を指定してロードします。</p>
 <pre><code class="language-csharp">using System;
@@ -124,34 +131,23 @@ public async void OpenGameScene()
         SceneLoader.SetActiveScene(&quot;Game&quot;);
     }
 }</code></pre>
-<p><code>SceneLoadRequest</code>はシーン名とActive Scene選択用の優先度を1つの値として扱います。複数シーンでは<code>SceneLoadRequest[]</code>を<code>LoadScenesAsync</code>へ渡せるため、シーン名と優先度の対応を崩しません。進捗の推奨契約は<code>IProgress&lt;float&gt;</code>です。既存のシーン名と<code>Action&lt;float&gt;</code>を使うoverloadも互換性のため利用できます。</p>
-<p>追跡中の全シーンは、変更不能な<code>SceneLoadInfo</code>のスナップショットとして取得できます。取得後にロード状態が変わっても、既に取得した値は変化しません。</p>
-<pre><code class="language-csharp">foreach (SceneLoadInfo sceneInfo in SceneLoader.GetSceneInfos())
-{
-    Debug.Log(
-        $&quot;{sceneInfo.SceneName}: {sceneInfo.State}, &quot;
-        + $&quot;Priority={sceneInfo.Priority}, Progress={sceneInfo.Progress:P0}, &quot;
-        + $&quot;Active={sceneInfo.IsActive}&quot;);
-}
-
-if (SceneLoader.TryGetSceneInfo(&quot;Game&quot;, out SceneLoadInfo gameScene))
-{
-    Debug.Log($&quot;Game scene progress: {gameScene.Progress:P0}&quot;);
-}</code></pre>
-<p>ルートGameObjectが<code>IInjectable&lt;T...&gt;</code>や<code>IInitializeAsync</code>を実装している場合は、注入と初期化の完了も待機します。</p>
-<h2 id="実装時の注意">実装時の注意</h2>
-<ul><li>対象シーンがBuild SettingsのScene Listにあることを、シーン名をコードへ書く前に確認する。</li><li>シーン遷移は原則<code>SceneLoader</code>を使う。<code>SceneManager.LoadScene</code>を直接使うと、優先度管理、依存注入、<code>IInitializeAsync</code>が働かない。</li><li><code>LoadSceneMode.Single</code>は対象をAdditiveでロードした後、他の追跡シーンをアンロードする。現在のシーンを残す場合は<code>Additive</code>を使う。</li><li>依存注入または<code>IInitializeAsync</code>の失敗は<code>SceneInitializationException</code>。Build Settings未登録など通常のロード失敗はfalseで返る。</li><li>追跡中のScene名が分からない状態で一覧を調べる場合は<code>SceneLoader.GetSceneInfos()</code>を使う。既知のScene名だけを調べる場合は<code>TryGetSceneInfo</code>を使い、戻る<code>SceneLoadInfo</code>を取得時点のスナップショットとして扱う。</li></ul>
+<p>複数シーンは<code>SceneLoadRequest[]</code>を<code>LoadScenesAsync</code>へ渡すと、シーン名と優先度の対応を崩さずにロードできます。シーン名と<code>Action&lt;float&gt;</code>を受け取るoverloadも互換のために残っています。</p>
+<h2 id="状態">状態</h2>
+<p><code>SceneLoadInfo.State</code>は<code>SceneLoadStateEnum</code>の値をとります。</p>
+<div class="table-scroll"><table><thead><tr><th>状態</th><th>意味</th></tr></thead><tbody><tr><td><code>None</code></td><td>追跡していない</td></tr><tr><td><code>Loading</code></td><td>ロード中</td></tr><tr><td><code>Complete</code></td><td>ロードが完了した</td></tr><tr><td><code>Unloading</code></td><td>アンロード中</td></tr></tbody></table></div>
+<h2 id="うまくいかないとき">うまくいかないとき</h2>
+<div class="table-scroll"><table><thead><tr><th>起きること</th><th>この機能の動き</th><th>対処</th></tr></thead><tbody><tr><td>シーンがBuild Settingsに無い</td><td><code>false</code>を返す</td><td>Build SettingsのScene Listへ追加する</td></tr><tr><td>依存注入か<code>IInitializeAsync</code>が失敗した</td><td><code>SceneInitializationException</code>を投げる</td><td>内側の例外を見て、注入する型が登録済みか、初期化処理が例外を投げていないかを確かめる</td></tr><tr><td>シーン名がnull・空・空白</td><td><code>ArgumentException</code>を投げる</td><td>呼び出し側の値を直す</td></tr><tr><td><code>SceneManager.LoadScene</code>で遷移した</td><td>優先度、依存注入、<code>IInitializeAsync</code>が働かない</td><td><code>SceneLoader</code>を使う。既にロード済みのシーンは<code>RegisterLoadedScene</code>で追跡へ加える</td></tr></tbody></table></div>
+<h2 id="守ること">守ること</h2>
+<ul><li>シーン名をコードへ書く前に、Build SettingsのScene Listにあることを確かめる。<a href="AutoEnumGenerator.html">AutoEnumGenerator</a>の<code>SceneListEnum</code>を使うと綴りの誤りを防げる。</li><li>シーン遷移は原則<code>SceneLoader</code>を使う。</li><li>今のシーンを残したい場合は<code>LoadSceneMode.Additive</code>を使う。</li><li>追跡中のシーン名が分からないときは<code>GetSceneInfos()</code>、既知のシーンだけを調べるときは<code>TryGetSceneInfo</code>を使う。</li></ul>
 <h2 id="editor機能">Editor機能</h2>
 <p><strong>入口</strong>: <code>Window &gt; SymphonyFrameWork &gt; Symphony Administrator</code></p>
-<div class="table-scroll"><table><thead><tr><th>パネル</th><th>内容</th></tr></thead><tbody><tr><td>Scene Load</td><td>ロード済みシーンと進行中のロード</td></tr><tr><td>Main Toolbar の <code>Symphony Framework &gt; Scene Init</code></td><td>次回のPlay Mode開始時に初期シーン処理を実行するか切り替える</td></tr></tbody></table></div>
-<p><code>Scene Load</code> パネルはPlay Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
-<p><code>Scene Init</code> はUnity 6000.3以降で使用できます。メインツールバー右側の音符アイコン付き<code>Symphony Framework</code>プルダウンから選びます。変更は<code>Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset</code>へ保存され、Inspectorの「エディタでの再生時にシーンをリセットしてロードを実行するか」と同じ設定へ反映されます。Play Mode開始後の変更は実行中のシーンを切り替えず、次のPlay Mode開始から反映されます。</p>
-<h2 id="内部構造">内部構造</h2>
-<p>Scene Loadの内部では、Commandと読み取りを分離しています。</p>
-<figure class="mermaid-diagram"><img src="../Diagrams/c41415631af8d85b.svg" alt="flowchart の図" /></figure>
-<p><code>SceneLoadQuery</code>だけがRegistry／Entityを読み取り、利用側には<code>SceneLoadInfo</code>、Viewには内部Dtoを返します。<code>SceneLoadWindow</code>はViewModelを購読し、RuntimeのRegistryやEntityを直接参照しません。</p>
+<div class="table-scroll"><table><thead><tr><th>パネル・メニュー</th><th>内容</th></tr></thead><tbody><tr><td>Scene Load</td><td>ロード済みシーンと進行中のロード</td></tr><tr><td>Main Toolbar の <code>Symphony Framework &gt; Scene Init</code></td><td>次回のPlay Mode開始時に初期シーン処理を実行するか切り替える</td></tr></tbody></table></div>
+<p><code>Scene Load</code>パネルはPlay Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表示します。</p>
+<p><code>Scene Init</code>はUnity 6000.3以降で使えます。メインツールバー右側の音符アイコン付き<code>Symphony Framework</code>プルダウンから選びます。変更は<code>SceneLoadConfig.asset</code>へ保存され、Inspectorの「エディタでの再生時にシーンをリセットしてロードを実行するか」と同じ設定です。Play Mode開始後の変更は、次のPlay Mode開始から反映されます。</p>
+<h2 id="確かめ方">確かめ方</h2>
+<ul><li>Play Mode中に<code>Scene Load</code>パネルを開き、ロードしたシーンの状態が<code>Complete</code>になり、Activeのシーンが想定どおりかを見る。</li><li>コードから確かめる場合は<code>SceneLoader.GetSceneInfos()</code>の結果をログへ出す。</li></ul>
 <h2 id="関連">関連</h2>
-<ul><li><a href="ServiceLocator.html">Service Locator</a></li><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
+<ul><li><a href="ServiceLocator.html">Service Locator</a></li><li><a href="SceneBlock.html">Scene Block</a></li><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Modules/SceneLoader.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>
 </html>

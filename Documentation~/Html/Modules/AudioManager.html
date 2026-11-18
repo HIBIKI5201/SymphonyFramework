@@ -97,11 +97,19 @@ th { background: var(--code-bg); white-space: nowrap; }
 <body>
 <nav class="doc-nav"><a href="../index.html">Symphony Framework Documentation</a></nav>
 <h1 id="audio-manager">Audio Manager</h1>
-<p>AudioMixerのグループごとにAudioSourceを管理し、音量を変更します。</p>
+<p>AudioMixerのグループごとにAudioSourceを用意し、グループ単位で音量を変えます。</p>
+<h2 id="目的と範囲">目的と範囲</h2>
+<p>BGM・SEなどの出力先ごとに、再生用のAudioSourceと音量の操作口を1つずつ持てるようにします。</p>
+<ul><li><strong>すること</strong>: グループごとのAudioSourceの生成と保持（シーン遷移後も残る）、0〜1の比率による音量の変更</li><li><strong>しないこと</strong>: クリップの選択と再生（取得したAudioSourceで利用側が行う）、音量設定の保存、AudioMixerやグループの作成</li></ul>
 <h2 id="入口">入口</h2>
 <div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.System</code></td></tr><tr><td>主な公開型</td><td><code>AudioManager</code></td></tr><tr><td>メニューパス</td><td>なし</td></tr><tr><td>設定の保存先</td><td><code>Assets/Resources/SymphonyFrameWork/AudioConfig.asset</code></td></tr></tbody></table></div>
+<h2 id="仕組みの要点">仕組みの要点</h2>
+<ol><li><strong>グループは<code>AudioConfig.asset</code>に書いた名前で引きます。</strong> 名前はAudioMixer内のグループ名と一致させます。</li><li><strong>AudioSourceは、最初に<code>GetAudioSource</code>か<code>VolumeSliderChanged</code>を呼んだ時点でまとめて作られます。</strong> AudioMixerが未設定ならAudioSourceも、それを持つGameObjectも作られません。</li><li><strong>音量はAudioMixerの公開パラメーターへdBで書き込みます。</strong> 利用側は0〜1の比率を渡し、dBへの変換はこのモジュールが行います。</li></ol>
+<h2 id="機能一覧">機能一覧</h2>
+<div class="table-scroll"><table><thead><tr><th>ID</th><th>機能</th><th>使うAPI</th><th>結果</th></tr></thead><tbody><tr><td>AUD-01</td><td>AudioSourceの取得</td><td><code>AudioManager.GetAudioSource(name)</code></td><td>指定グループへ出力するAudioSourceを返す。未登録なら<code>null</code></td></tr><tr><td>AUD-02</td><td>音量の変更</td><td><code>AudioManager.VolumeSliderChanged(name, value)</code></td><td>グループの公開パラメーターへ、比率から変換したdBを設定する</td></tr></tbody></table></div>
+<p><code>AudioConfig.asset</code>の項目は次のとおりです。</p>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>Audio Mixer</td><td>再生と音量制御に使うAudioMixer</td></tr><tr><td>Audio Group Setting List &gt; Audio Group Name</td><td>AudioMixer内のグループ名</td></tr><tr><td>Audio Group Setting List &gt; Exposed Parameter Name</td><td>音量変更に使う公開パラメーター名</td></tr><tr><td>Audio Group Setting List &gt; Is Loop</td><td>このグループのAudioSourceをループ再生にするか</td></tr></tbody></table></div>
 <h2 id="クイックスタート">クイックスタート</h2>
-<p><code>AudioConfig.asset</code>へAudioMixerとグループを登録すると、グループ名からAudioSourceを取得できます。</p>
 <pre><code class="language-csharp">using SymphonyFrameWork.System;
 using UnityEngine;
 
@@ -110,15 +118,14 @@ bgm.clip = bgmClip;
 bgm.Play();
 
 AudioManager.VolumeSliderChanged(&quot;BGM&quot;, 0.5f);</code></pre>
-<p>AudioSourceはグループごとに必要になった時点で生成され、シーン遷移後も保持されます。音量は0〜1の比率で指定します。</p>
-<h2 id="実装時の注意">実装時の注意</h2>
-<ul><li><code>GetAudioSource</code>で使うグループ名が<code>AudioConfig.asset</code>へ登録済みか確認する。</li><li><code>VolumeSliderChanged</code>へ渡す値はdBではなく0〜1の比率。</li></ul>
-<h2 id="内部構造">内部構造</h2>
-<p>Audioは読み取り経路の利用者（Editor WindowとMCP診断）が無いため、QueryとViewModelを持ちません。</p>
-<figure class="mermaid-diagram"><img src="../Diagrams/3d977d49a2d42b6e.svg" alt="flowchart の図" /></figure>
-<p><code>AudioSourceHost</code>は<strong>最初にAudioSourceを求められた時点で初めてGameObjectを生成します。</strong> AudioMixerが未割り当てなどでAudioSourceを1つも作らない場合、GameObjectも作られません。</p>
+<h2 id="うまくいかないとき">うまくいかないとき</h2>
+<div class="table-scroll"><table><thead><tr><th>起きること</th><th>この機能の動き</th><th>対処</th></tr></thead><tbody><tr><td>AudioMixerが未設定</td><td>警告「オーディオミキサーがアサインされていません」を1回だけ出す。<code>GetAudioSource</code>は<code>null</code></td><td><code>AudioConfig.asset</code>のAudio Mixerを設定する</td></tr><tr><td>グループ名がAudioMixerに無い</td><td>そのグループのAudioSourceを作らない</td><td>Audio Group Nameを、AudioMixer内のグループ名と一致させる</td></tr><tr><td>未登録のグループ名を渡した</td><td><code>GetAudioSource</code>は<code>null</code>、<code>VolumeSliderChanged</code>は何もしない</td><td><code>AudioConfig.asset</code>へグループを足す</td></tr><tr><td>公開パラメーターが見つからない</td><td><code>VolumeSliderChanged</code>が警告「&lt;グループ名&gt;のボリュームがありません」を出し、音量を変えない</td><td>AudioMixerで音量を公開し、その名前をExposed Parameter Nameへ書く</td></tr><tr><td>名前が空、または比率が0〜1の外</td><td><code>ArgumentException</code>、<code>ArgumentOutOfRangeException</code>を投げる</td><td>呼び出し側の値を直す</td></tr><tr><td>初期化前に呼んだ</td><td><code>SymphonyNotInitializedException</code>を投げる</td><td>呼び出しを初期化後へ移す</td></tr></tbody></table></div>
+<h2 id="守ること">守ること</h2>
+<ul><li><code>VolumeSliderChanged</code>へ渡す値はdBではなく0〜1の比率にする。</li><li>グループ名の綴りの誤りを防ぐには、<a href="AutoEnumGenerator.html">AutoEnumGenerator</a>が生成する<code>AudioGroupTypeEnum</code>の<code>ToString()</code>を渡す。</li></ul>
+<h2 id="確かめ方">確かめ方</h2>
+<ul><li>Play Modeで<code>GetAudioSource</code>を呼び、戻り値が<code>null</code>でないことと、<code>outputAudioMixerGroup</code>が目的のグループであることを確かめる。</li><li>Console（または<code>Library/SymphonyFrameWork/Cache/Log.txt</code>）に、グループごとの「正常に追加されました」が出ていることを見る。</li></ul>
 <h2 id="関連">関連</h2>
-<ul><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
+<ul><li><a href="AutoEnumGenerator.html">AutoEnumGenerator</a></li><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Modules/AudioManager.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>
 </html>

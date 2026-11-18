@@ -1,197 +1,74 @@
 # Symphony Frameworkの構成
 
-この文書は、パッケージ内を移動するときや、公開型どうしの関係を確認するときの構成図です。モジュールごとのAPI使用例、実装時の注意、Editor機能、内部構造は[Modules/](./Modules/)を参照してください。
+この文書は、利用側のコードから見たパッケージの構成です。どのアセンブリを参照し、どの型を入口にし、何が自動で動くかをまとめています。モジュールごとの使い方は[Modules/](./Modules/)を参照してください。
 
 ## アセンブリ
 
-```mermaid
-flowchart LR
-    Consumer["利用側アセンブリ"] --> Runtime["SymphonyFrameWork"]
-    Consumer -. "自動生成enumを使う場合" .-> Enum["SymphonyFrameWork.Enum"]
-    Editor["SymphonyFrameWork.Editor"] --> Runtime
-    Editor --> Core["SymphonyFrameWork.Core"]
-    Runtime --> Core
-    Runtime --> Addressables["Unity.Addressables"]
-    Runtime --> ResourceManager["Unity.ResourceManager"]
-    Runtime --> Enum
-```
+| アセンブリ | 内容 | 利用側からの参照 |
+| --- | --- | --- |
+| `SymphonyFrameWork` | Runtime API、Component、設定型、Utility | 参照する |
+| `SymphonyFrameWork.Enum` | プロジェクトのScene、Tag、Layer、Audio Groupから生成するenum | 生成enumを使う場合だけ参照する |
+| `SymphonyFrameWork.PauseCategory` | Project Settingsから生成したポーズカテゴリー | 生成したカテゴリーを使う場合だけ参照する |
+| `SymphonyFrameWork.Core` | RuntimeとEditorが共有する定数と基盤 | 通常は不要 |
+| `SymphonyFrameWork.Editor` | 設定画面、管理ウィンドウ、Drawer、Generator。Playerビルドには含まれない | Editor用asmdefから必要なときだけ |
 
-- `SymphonyFrameWork`: Runtime API、Component、設定型、Utilityを含むメインアセンブリ。
-- `SymphonyFrameWork.Core`: RuntimeとEditorが共有する定数・基盤。利用側が通常直接参照する必要はない。
-- `SymphonyFrameWork.Editor`: Editor専用の設定画面、管理ウィンドウ、Drawer、Generator。Playerビルドには含まれない。
-- `SymphonyFrameWork.Enum`: 利用プロジェクトのScene、Tag、Layer、Audio Groupから生成されるアセンブリ。利用する場合だけ消費者側asmdefから参照する。
-
-参照方向は`Editor → Runtime → Core`です。RuntimeまたはCoreからEditorへ逆参照しません。
+Runtimeのコードから`SymphonyFrameWork.Editor`を参照しないでください。
 
 ## パッケージのディレクトリ
 
 ```text
 SymphonyFrameWork/
 ├─ Core/                    Runtime／Editor共通の定数と基盤
-│  └─ Internal/            パッケージ内部だけで使う実装
 ├─ Runtime/                 Playerビルドへ含まれる機能
 │  ├─ Attribute/           Inspector属性
 │  ├─ Component/           GameObjectへ追加するComponent
-│  ├─ Configs/             設定の検索とinternal設定型
 │  ├─ Debug/               HUD、Logger、StopWatch
 │  ├─ Interface/           注入・初期化などの公開契約
-│  ├─ Orchestrator/        自動初期化を行うComposition Root
 │  ├─ Service/             Scene、Service Locator、Save、Audio、Pause
 │  └─ Utility/             Awaitable、Tween、文字列等の補助
 ├─ Editor/                  Editor専用UI、Drawer、Generator
-├─ Samples~/Runtime/        Package Managerから導入する利用例（Unityのインポート対象外）
+├─ Samples~/Runtime/        Package Managerから導入する利用例
 ├─ Tests/                   EditMode／PlayModeテスト
-└─ Documentation~/         Asset Importされない利用者向け詳細文書（Modules/にモジュール別文書）
+└─ Documentation~/         利用者向けの文書（Modules/にモジュール別文書）
 ```
 
-各機能の`Internal/`は公開APIではありません。利用側コードとSampleは`Internal/`の型へ依存しません。
+**各フォルダの`Internal/`は公開APIではありません。** 利用側のコードは`Internal/`の型に依存しないでください。
+
+## 公開の入口と拡張点
+
+主要な機能はstaticなFacadeから使います。`new`や`.Instance`は使いません。
+
+| モジュール | 入口（Facade） | 利用側が実装・継承する型 |
+| --- | --- | --- |
+| [Service Locator](./Modules/ServiceLocator.md) | `ServiceLocator`、`ServiceInjector` | `IInjectable<T...>` |
+| [Scene Loader](./Modules/SceneLoader.md) | `SceneLoader` | `IInitializeAsync` |
+| [Scene Block](./Modules/SceneBlock.md) | `SceneBlockLoader` | `SceneBlockAsset`（アセットとして作る） |
+| [Save Data System](./Modules/SaveDataSystem.md) | `SaveStore` | `SaveDataContent`、`SaveDataLoaderStrategy` |
+| [Audio Manager](./Modules/AudioManager.md) | `AudioManager` | なし |
+| [Pause Manager](./Modules/PauseManager.md) | `PauseManager` | `PauseManager.IPausable`とその派生カテゴリー |
+
+照会APIが返す`ServiceRegistrationInfo`、`SceneLoadInfo`、`SceneBlockInfo`、`SaveDataEntryInfo`、`PauseInfo`は、取得した時点のスナップショットです。後から状態が変わっても値は変わりません。
+
+`SceneLoadConfig`、`AudioConfig`、`SaveDataConfig`は`internal`です。InspectorかProject Settingsから設定し、型として参照しないでください。
 
 ## 起動と終了
 
-`SymphonyOrchestrator`がComposition Rootです。利用側でBootstrapを作る必要はありません。
+`SymphonyOrchestrator`が自動で初期化します。利用側でBootstrap用のGameObjectやシーンを作る必要はありません。
 
-```mermaid
-sequenceDiagram
-    participant Unity
-    participant Orchestrator as SymphonyOrchestrator
-    participant Systems as Subsystems
-    participant Scene as Initial Scene
+1. 最初のシーンのロード前に、前回の状態を破棄し、常駐用のオブジェクトを作る。
+2. Save → Pause → Service Locator → Scene → Audio → Debug HUD の順に初期化する。
+3. 最初のシーンのロード後に、`SceneLoadConfig`の設定でシーンの管理を始める。
+4. Play Modeを終えると、初期化と逆の順に解放する。
 
-    Unity->>Orchestrator: BeforeSceneLoad
-    Orchestrator->>Orchestrator: 前回の状態をShutdown
-    Orchestrator->>Orchestrator: DontDestroyOnLoadオブジェクト生成
-    Orchestrator->>Systems: Save → Pause → Service → Scene → Audio → HUDを初期化
-    Unity->>Scene: 最初のシーンをロード
-    Unity->>Orchestrator: AfterSceneLoad
-    Orchestrator->>Systems: SceneLoadConfigを渡してシーン管理開始
-    Note over Orchestrator,Systems: 終了時は初期化と逆順にResetRuntimeState
-```
-
-Play ModeのDomain Reloadが無効でも状態を持ち越さないよう、開始時に既存状態を破棄し、終了時は初期化済みサブシステムを逆順で解放します。
-
-## 公開Facadeと拡張点
-
-```mermaid
-classDiagram
-    class ServiceLocator {
-        <<static>>
-        RegisterInstance()
-        RegisterInstanceWithAutoDispose()
-        UnregisterInstance()
-        GetRequiredInstance()
-        GetRegistrationInfos()
-        TryGetRegistrationInfo()
-    }
-    class ServiceRegistrationInfo {
-        <<readonly struct>>
-        ServiceType
-        Instance
-        LocateTypeEnum
-    }
-    class ServiceInjector {
-        <<static>>
-        Inject()
-    }
-    class IInjectable {
-        <<interface>>
-        Inject()
-    }
-    class SceneLoader {
-        <<static>>
-        LoadScene()
-        UnloadScene()
-        SetActiveScene()
-        GetSceneInfos()
-        TryGetSceneInfo()
-    }
-    class SceneLoadRequest {
-        <<readonly struct>>
-        SceneName
-        Priority
-    }
-    class SceneLoadInfo {
-        <<readonly struct>>
-        SceneName
-        State
-        Priority
-        Progress
-        IsActive
-    }
-    class IInitializeAsync {
-        <<interface>>
-        InitializeAsync()
-    }
-    class SaveStore {
-        <<static>>
-        Get()
-        LoadAsync()
-        SaveAsync()
-        DeleteAsync()
-    }
-    class SaveDataContent {
-        <<abstract>>
-    }
-    class SaveDataLoaderStrategy {
-        <<abstract>>
-        LoadJsonAsync()
-        SaveJsonAsync()
-        DeleteCoreAsync()
-        SerializeToJson()
-        OverwriteFromJson()
-    }
-    class AudioManager {
-        <<static>>
-        GetAudioSource()
-        VolumeSliderChanged()
-    }
-    class PauseManager {
-        <<static>>
-        Pause
-        PausableWaitForSecondAsync()
-    }
-    class IPausable {
-        <<interface>>
-        OnPause()
-        OnResume()
-    }
-
-    ServiceInjector ..> ServiceLocator : 登録済み依存を取得
-    ServiceLocator --> ServiceRegistrationInfo : 登録状態のスナップショット
-    ServiceInjector --> IInjectable : 注入
-    SceneLoader --> SceneLoadRequest : ロード対象と優先度
-    SceneLoader --> SceneLoadInfo : 追跡状態のスナップショット
-    SceneLoader ..> ServiceInjector : ルートへ自動注入
-    SceneLoader --> IInitializeAsync : 完了を待機
-    SaveStore --> SaveDataContent : 型単位でキャッシュ
-    SaveStore --> SaveDataLoaderStrategy : 永続化を委譲
-    PauseManager --> IPausable : 状態を通知
-```
-
-Facadeは利用側の入口、interfaceと抽象classは利用側が実装する拡張点です。ConfigとManagerの内部実装はFacadeの背後に隠し、利用側へ公開しません。
-
-サブシステム個別の内部構造は、各モジュール文書を参照してください。
-
-- [Scene Load](./Modules/SceneLoader.md#内部構造)
-- [Service Locate](./Modules/ServiceLocator.md#内部構造)
-- [Save Data](./Modules/SaveDataSystem.md#内部構造)
-- [Pause](./Modules/PauseManager.md#内部構造)
-- [Audio](./Modules/AudioManager.md#内部構造)
+Domain Reloadを無効にしていても、状態は次のPlay Modeへ持ち越されません。初期化前や解放後に呼んだときの動きは、各モジュール文書の「うまくいかないとき」にあります。
 
 ## シーンロード時の連携
 
-```mermaid
-flowchart TD
-    Request["SceneLoader.LoadScene"] --> Load["シーンを非同期ロード"]
-    Load --> Roots["ルートGameObjectを走査"]
-    Roots --> Inject{"IInjectableを実装?"}
-    Inject -- Yes --> Resolve["ServiceLocatorから依存を解決して注入"]
-    Inject -- No --> Initialize
-    Resolve --> Initialize{"IInitializeAsyncを実装?"}
-    Initialize -- Yes --> Await["InitializeAsyncの完了を待機"]
-    Initialize -- No --> Complete["優先度を評価してロード完了"]
-    Await --> Complete
-    Resolve -. "失敗" .-> Exception["SceneInitializationException"]
-    Await -. "失敗" .-> Exception
-```
+`SceneLoader`（と`SceneBlockLoader`）でロードしたシーンは、次の順で準備されます。
 
-この連携が必要なシーンではUnity標準の`SceneManager.LoadScene`を直接使わず、`SceneLoader`を入口にします。
+1. シーンを非同期でロードする。
+2. ルートGameObjectのうち`IInjectable<T...>`を実装したものへ、`ServiceLocator`から依存を注入する。
+3. `IInitializeAsync`を実装したものの`InitializeAsync`を待つ。
+4. 優先度を評価してActive Sceneを決め、ロードを完了する。
+
+2か3で失敗すると`SceneInitializationException`になります。この連携が必要なシーンでは`SceneManager.LoadScene`を直接使わず、`SceneLoader`を入口にしてください。

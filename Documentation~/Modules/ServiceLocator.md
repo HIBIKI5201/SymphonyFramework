@@ -1,6 +1,13 @@
 # Service Locator
 
-共有したいインスタンスを登録し、必要な場所から型で取得します。
+共有したいインスタンスを型で登録し、必要な場所から型で取得します。
+
+## 目的と範囲
+
+シーンやクラスをまたいで使うインスタンスを、参照を手で受け渡さずに取り出せるようにします。
+
+- **すること**: インスタンスの登録・解除・取得、登録の待機、コンストラクタ・`IInjectable`への依存の注入、登録状態の一覧
+- **しないこと**: 依存の再帰的な生成（登録済みのインスタンスだけを渡す）、`CreateInstance`で作ったインスタンスの自動登録、シーンのロード（[Scene Loader](./SceneLoader.md)）
 
 ## 入口
 
@@ -11,7 +18,30 @@
 | メニューパス | `Window > SymphonyFrameWork > Symphony Administrator` の `Service Locate` パネル |
 | 設定の保存先 | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`（Service Locatorのログ設定） |
 
+## 仕組みの要点
+
+1. **1つの型につき1つのインスタンスを登録します。** 同じ型を2つ目に登録しようとすると`RegisterInstance`は`false`を返し、候補は呼び出し側の持ち物のまま残ります。
+2. **登録方式は2つです。** `LocateTypeEnum.Locator`は参照だけを登録し、`LocateTypeEnum.Singleton`はComponentを永続管理オブジェクトの配下へ移します。
+3. **注入の経路は、生成を誰が握るかで選びます。** 自分で生成するピュアC#の型は`ServiceInjector.CreateInstance<T>()`、Unityが生成する`MonoBehaviour`は`IInjectable<T...>`、実行時に`Instantiate`したものは`ServiceInjector.Inject(...)`です。
+4. **登録状態はスナップショットで読みます。** `GetRegistrationInfos`と`TryGetRegistrationInfo`が返す`ServiceRegistrationInfo`は、取得した時点の値から変わりません。
+
+## 機能一覧
+
+| ID | 機能 | 使うAPI | 結果 |
+| --- | --- | --- | --- |
+| SL-01 | 登録と解除 | `RegisterInstance` / `UnregisterInstance` / `DestroyInstance` | 型ごとに1件を登録する。`DestroyInstance`は登録を解除し、インスタンスも解放する |
+| SL-02 | 重複時の自動解放 | `RegisterInstanceWithAutoDispose` | 型が重複したとき、候補を`Dispose`またはGameObject破棄する |
+| SL-03 | 取得 | `GetRequiredInstance` / `TryGetInstance` / `GetInstance` | 必須なら例外、任意なら`false`、互換用は`null`を返す |
+| SL-04 | 登録の待機 | `GetInstanceAsync` / `TryGetInstanceAsync` / `RegisterAfterLocate` | 登録されるまで待つ、または登録後に処理を呼ぶ |
+| SL-05 | コンストラクタ注入 | `ServiceInjector.CreateInstance<T>()` | 引数を登録済みのインスタンスから解決して生成する |
+| SL-06 | `IInjectable`への注入 | `ServiceInjector.Inject(...)` | `Inject`メソッドへ登録済みのインスタンスを渡す。シーンのルートには`SceneLoader`が自動で行う |
+| SL-07 | Inspectorからの登録 | `ServiceLocateComponent` | `Auto Register`を有効にしたComponentを、同じフレームの`Start`より前に登録する |
+| SL-08 | 取得結果のキャッシュ | `SymphonyLocateObject<T>` | 初回だけ`ServiceLocator`から取得し、以降は保持した参照を返す |
+| SL-09 | 登録状態の一覧 | `GetRegistrationInfos` / `TryGetRegistrationInfo` / `IsExistInstance` | 型、インスタンス、登録方式のスナップショットを返す |
+
 ## クイックスタート
+
+登録と解除は、同じライフサイクルの対として書きます。
 
 ```csharp
 using SymphonyFrameWork.System.ServiceLocate;
@@ -38,28 +68,7 @@ GameSession awaited = await ServiceLocator.GetInstanceAsync<GameSession>(
     token: destroyCancellationToken);
 ```
 
-`Locator`は参照だけを登録し、`Singleton`はComponentを永続管理オブジェクト配下へ移動します。GameObjectへ`ServiceLocateComponent`を追加してInspectorから登録することもできます。
-
-通常の`RegisterInstance`が型重複で`false`を返した場合、渡した候補の所有権は呼び出し側に残ります。重複した新規候補を以後使わず、自動的に`Dispose`またはGameObject破棄してよい場合だけ、所有権移譲を明示する`RegisterInstanceWithAutoDispose`を使います。
-
-```csharp
-ServiceLocator.RegisterInstanceWithAutoDispose(
-    newSession,
-    LocateTypeEnum.Singleton);
-```
-
-登録中の型、payload、登録方式を一覧で診断する場合は、取得時点の不変な`ServiceRegistrationInfo`を使います。既知の型だけを調べる場合は`TryGetRegistrationInfo`を使えます。
-
-```csharp
-foreach (ServiceRegistrationInfo registration
-         in ServiceLocator.GetRegistrationInfos())
-{
-    Debug.Log(
-        $"{registration.ServiceType.Name}: {registration.LocateType}");
-}
-```
-
-ピュアC#の型は`ServiceInjector.CreateInstance<T>()`で生成すると、コンストラクタの引数がService Locatorから解決されます。
+ピュアC#の型は`CreateInstance`で生成すると、コンストラクタの引数が登録済みのインスタンスから解決されます。
 
 ```csharp
 public sealed class BattleService
@@ -68,6 +77,7 @@ public sealed class BattleService
     private readonly AudioPlayer _audioPlayer;
 
     // publicなコンストラクタのうち、引数が最も多いものが使われる。
+    // 既定値を持つ引数は、登録が無ければ既定値になる。
     public BattleService(SaveStore saveStore, AudioPlayer audioPlayer, int retryCount = 3)
     {
         _saveStore = saveStore;
@@ -78,31 +88,27 @@ public sealed class BattleService
 BattleService service = ServiceInjector.CreateInstance<BattleService>();
 ```
 
-注入の3つの経路は、**生成を誰が握るか**で使い分けます。
+## うまくいかないとき
 
-| 経路 | 使う場面 |
-| --- | --- |
-| `ServiceInjector.CreateInstance<T>()` | 生成をこちらで行えるピュアC#の型。コンストラクタで受け取れるため`readonly`にできる |
-| `IInjectable<T...>` | Unityが生成する`MonoBehaviour`。シーンロード時に`SceneLoader`が自動で注入する |
-| `ServiceInjector.Inject(...)` | 実行時に`Instantiate`したオブジェクトへの手動注入 |
+| 起きること | この機能の動き | 対処 |
+| --- | --- | --- |
+| 同じ型を2回登録した | `RegisterInstance`が`false`を返す。候補は解放しない | 古い登録を解除してから登録する。候補を捨ててよいなら`RegisterInstanceWithAutoDispose`を使う |
+| 必須の型が未登録 | `GetRequiredInstance`が`ServiceNotRegisteredException`を投げる | 任意の依存なら`TryGetInstance`を使う |
+| 待機が期限を過ぎた | `GetInstanceAsync`が`TimeoutException`を投げる。`TryGetInstanceAsync`は`false`を返す | 登録側が`grace`（秒）の間に登録しているか、Service Locateパネルで確かめる |
+| 待機をキャンセルした | `OperationCanceledException`を投げる（`TryGetInstanceAsync`も同じ） | 呼び出し側で捕捉する |
+| `CreateInstance`の引数を解決できない | 既定値の無い引数が未登録なら`ServiceNotRegisteredException`。インスタンスは作らない | 依存を先に登録するか、引数へ既定値を付ける |
+| `CreateInstance`の候補が決まらない | 引数の数が同じ`public`コンストラクタが並ぶと`InvalidOperationException` | `public`なコンストラクタを1つに絞る |
+| Play Mode終了後に解除・照会した | `UnregisterInstance`、`DestroyInstance`、`IsExistInstance`、`GetInstance`、`TryGetInstance`、`GetRegistrationInfos`、`TryGetRegistrationInfo`は`false`・`null`・空一覧を返す | 何もしなくてよい。`OnDestroy`や`OnDisable`で初期化状態を確認する必要は無い |
+| 初期化前に登録・必須取得・待機をした | `RegisterInstance`系、`GetRequiredInstance`、`GetInstanceAsync`、`TryGetInstanceAsync`、`RegisterAfterLocate`が`SymphonyNotInitializedException`を投げる | Edit Modeや、Play Mode開始時の初期化より前から呼んでいないか確かめる |
 
-## 実装時の注意
+## 守ること
 
-- 登録と解除を同じライフサイクルの対として書く。基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。この`RegisterInstance`呼び出しは同期的に反映される。
-- `ServiceLocateComponent`のInspectorによる自動登録（`Auto Register`）は、コンポーネントの有効化順に依存せず、同じフレームの`Start`呼び出しより必ず先に反映される（内部でOnEnableとStartの間の同期フェーズへ遅延する）。
-- 解除と照会（`UnregisterInstance`、`DestroyInstance`、`IsExistInstance`、`GetInstance`、`TryGetInstance`、`GetRegistrationInfos`、`TryGetRegistrationInfo`）は、Play Mode終了でLocatorが解放された後でも安全なno-opとして`false`／`null`／空一覧を返す。`OnDestroy`や`OnDisable`で初期化状態を確認する必要はない。登録（`RegisterInstance`系）、`GetRequiredInstance`、待機（`GetInstanceAsync`、`TryGetInstanceAsync`、`RegisterAfterLocate`）は未初期化で`SymphonyNotInitializedException`を投げる。
-- 通常の`RegisterInstance`がfalseの場合も候補の所有権は呼び出し側に残る。型重複時に候補を自動解放してよい場合だけ`RegisterInstanceWithAutoDispose`へ所有権を移す。
-- `LocateTypeEnum.Locator`は参照だけを登録する。`LocateTypeEnum.Singleton`はComponentを管理オブジェクト配下へ移動するため、シーンローカルなオブジェクトには使わない。
-- 任意依存は`TryGetInstance<T>`、nullを許容する既存コードは`GetInstance<T>`、必須依存は`GetRequiredInstance<T>`を使う。
-- 登録中の型と登録方式を一覧で調べる場合は`GetRegistrationInfos()`、既知の型だけを調べる場合は`TryGetRegistrationInfo(Type, out ...)`を使う。返る`ServiceRegistrationInfo`は取得時点のスナップショットとして扱う。
-- `GetInstanceAsync<T>`の期限超過は`TimeoutException`、呼び出し側キャンセルは`OperationCanceledException`。`TryGetInstanceAsync<T>`がfalseへ変換するのは期限超過だけ。
-- `SceneLoader`が自動注入するのはロードしたシーンのルートにある`IInjectable<T...>`。実行時`Instantiate`したオブジェクトには`ServiceInjector.Inject(...)`を手動で呼ぶ。
-- **`CreateInstance`は`public`なコンストラクタのうち引数が最も多いものを使う。** 引数の数が同じ`public`なコンストラクタが並ぶと`InvalidOperationException`になる。`public`なコンストラクタを1つに絞れば決まる。
-- **`CreateInstance`の引数は、登録が無くても既定値があれば既定値を使う。** 設定値をコンストラクタへ書ける。既定値も無い引数が解決できない場合は`ServiceNotRegisteredException`になり、**インスタンスは生成されない。**
-- **`CreateInstance`は生成したインスタンスをService Locatorへ登録しない。** 登録が必要なら戻り値を`RegisterInstance`へ渡す。
-- `CreateInstance`は依存を再帰的に生成しない。コンストラクタの引数は登録済みのインスタンスだけから解決する。
-- 同じインスタンスを繰り返し引く場合は`SymphonyLocateObject<T>`でキャッシュする。初回に`ServiceLocator`から取得し、以降は保持した参照を返す。
-- **`ServiceLocateComponent`・`SymphonyLocateObject<T>`・`IInjectable`は 5.0.0 でこのnamespaceへ移りました。** 5.0.0 より前はそれぞれ`SymphonyFrameWork.Utility`と`SymphonyFrameWork`にありました。移行方法は[CHANGELOG.md](../../CHANGELOG.md)の`### Breaking`にあります。
+- 基本形は`OnEnable`で`RegisterInstance`、`OnDisable`で`UnregisterInstance`。`RegisterInstance`はその場で反映される。
+- `LocateTypeEnum.Singleton`はComponentを管理オブジェクトの配下へ移すため、シーンローカルなオブジェクトには使わない。
+- 任意の依存は`TryGetInstance<T>`、必須の依存は`GetRequiredInstance<T>`を使う。`GetInstance<T>`は`null`を許す既存コード向けである。
+- 実行時に`Instantiate`したオブジェクトには`ServiceInjector.Inject(...)`を自分で呼ぶ。`SceneLoader`が自動で注入するのは、ロードしたシーンのルートにある`IInjectable<T...>`だけである。
+- `CreateInstance`の戻り値を共有したい場合は、自分で`RegisterInstance`へ渡す。
+- `ServiceLocateComponent`・`SymphonyLocateObject<T>`・`IInjectable`は5.0.0でこのnamespaceへ移った。それより前の版からの移行方法は[CHANGELOG.md](../../CHANGELOG.md)の`### Breaking`にある。
 
 ## Editor機能
 
@@ -126,36 +132,13 @@ Play Mode中のみ内容を持ちます。Edit Modeでは未接続状態を表�
 | Get Instance | インスタンスの取得ログを出力するか |
 | Destroy Instance | インスタンスの破棄ログを出力するか |
 
-**保存先**: `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`
+**保存先**: `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`。開発者ごとの設定のため、**版管理へ含めないでください。**
 
-**注意点**:
+## 確かめ方
 
-- `UserSettings/` は開発者ごとの設定です。**版管理へ含めないでください。** 他の開発者のログ設定を上書きします。
-
-## 内部構造
-
-Service LocateのRuntime内部では、登録Command、読み取り変換、表示状態、Unity所有処理を分離しています。
-
-```mermaid
-flowchart LR
-    Locator["ServiceLocator"] -->|Command| Service["ServiceLocateService"]
-    Service --> Registry["ServiceLocateRegistry"]
-    Registry --> Entity["ServiceRegistrationEntity"]
-    Locator -->|Query| Query["ServiceLocateQuery"]
-    Query --> Registry
-    Query --> Info["ServiceRegistrationInfo"]
-    Query --> Dto["ServiceLocateDto"]
-    Service -->|状態変更event| ViewModel["ServiceLocateViewModel"]
-    ViewModel -->|ReactiveProperty| Window["ServiceLocateWindow"]
-    Service --> HostContract["IServiceHost"]
-    Host["ServiceHostComponent"] --> HostContract
-    Host --> Unity["Component / Transform / Destroy"]
-    Orchestrator["SymphonyOrchestrator"] -->|生成・注入| Host
-```
-
-`ServiceLocateQuery`だけがRegistry／Entityを読み取り、利用側には`ServiceRegistrationInfo`、Viewには内部Dtoを返します。`ServiceLocateWindow`はViewModelを購読し、登録状態が変わったときだけ再描画します。
-
-通常登録が型重複で失敗しても候補payloadを解放しません。`RegisterInstanceWithAutoDispose`を選んだ場合だけ、失敗した候補を`ServiceHostComponent`が`IDisposable`またはComponentとして解放します。RegistryとEntityはUnity APIを参照しません。
+- Play Mode中に`Service Locate`パネルを開き、登録した型が一覧に出ることを確かめる。
+- 登録や取得の順序を追う場合は、ログ設定の`Set Instance`と`Get Instance`を有効にしてConsoleを見る。
+- コードから確かめる場合は`ServiceLocator.GetRegistrationInfos()`の結果をログへ出す。
 
 ## 関連
 
