@@ -96,20 +96,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// <returns> 同一インスタンスの登録を解除できた場合はtrue。 </returns>
         public static bool UnregisterInstance<T>(T instance) where T : class
         {
-            // 未初期化または候補がnullなら、解除対象の登録は存在しない。
-            if (!IsInitialized) { return false; }
-            if (instance == null) { return false; }
-
-            // 現在の登録と同一参照でない候補から、別のインスタンスを解除させない。
-            if (!_query.TryGetInstance(
-                    typeof(T),
-                    out object registeredInstance)
-                || !ReferenceEquals(instance, registeredInstance))
-            {
-                return false;
-            }
-
-            return UnregisterInstance(typeof(T));
+            return UnregisterSameInstance(typeof(T), instance);
         }
 
         /// <summary>
@@ -485,6 +472,35 @@ namespace SymphonyFrameWork.System.ServiceLocate
         }
 
         /// <summary>
+        ///     指定したインスタンスが現在の登録と同一の場合だけ登録解除する。
+        /// </summary>
+        /// <param name="type"> 登録解除する実行時型。 </param>
+        /// <param name="instance"> 現在の登録と同一か確認するインスタンス。 </param>
+        /// <returns> 同一インスタンスの登録を解除できた場合はtrue。 </returns>
+        /// <remarks>
+        ///     型引数を持てない <see cref="ServiceLocateComponent" /> の自動解除と、
+        ///     <see cref="UnregisterInstance{T}(T)" /> が共有する。
+        ///     未初期化、未登録、別インスタンスの登録はいずれも警告を出さずfalseを返す。
+        /// </remarks>
+        internal static bool UnregisterSameInstance(Type type, object instance)
+        {
+            // 未初期化または候補がnullなら、解除対象の登録は存在しない。
+            if (!IsInitialized) { return false; }
+            if (type == null || instance == null) { return false; }
+
+            // 現在の登録と同一参照でない候補から、別のインスタンスを解除させない。
+            if (!_query.TryGetInstance(
+                    type,
+                    out object registeredInstance)
+                || !ReferenceEquals(instance, registeredInstance))
+            {
+                return false;
+            }
+
+            return UnregisterInstance(type);
+        }
+
+        /// <summary>
         ///     フレームワークの同期フェーズでの登録を保留する。
         /// </summary>
         /// <param name="type"> 登録キーとして使用する実行時型。 </param>
@@ -580,7 +596,7 @@ namespace SymphonyFrameWork.System.ServiceLocate
         /// </summary>
         /// <param name="instance"> 判定する登録payload。 </param>
         /// <returns> 現在利用可能な参照の場合はtrue。 </returns>
-        private static bool IsAvailableInstance(object instance)
+        internal static bool IsAvailableInstance(object instance)
         {
             // 通常のnullは登録payloadとして利用できない。
             if (instance == null) { return false; }
