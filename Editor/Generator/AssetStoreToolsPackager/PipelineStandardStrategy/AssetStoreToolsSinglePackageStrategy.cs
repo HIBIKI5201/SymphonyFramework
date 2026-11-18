@@ -6,6 +6,7 @@ using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -16,6 +17,12 @@ namespace SymphonyFramework.Editor
     ///     Execute段階の手順。個別出力したパッケージだけが差分インポートの単位になる。
     /// </remarks>
     [Serializable]
+    // 型の名前空間とアセンブリ名はAssetStoreToolsPackagePipelineの[SerializeReference]へ焼かれている。
+    // これが無いと、6.x以前に保存したパイプラインアセットで手順が解決できなくなる。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsSinglePackageStrategy : AssetStoreToolsStandardStrategy
     {
         #region 外部向けAPI

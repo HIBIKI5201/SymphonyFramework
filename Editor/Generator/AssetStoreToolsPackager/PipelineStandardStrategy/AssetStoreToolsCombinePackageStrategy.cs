@@ -5,6 +5,7 @@ using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -24,6 +25,12 @@ namespace SymphonyFramework.Editor
     ///     </para>
     /// </remarks>
     [Serializable]
+    // 型の名前空間とアセンブリ名はAssetStoreToolsPackagePipelineの[SerializeReference]へ焼かれている。
+    // これが無いと、6.x以前に保存したパイプラインアセットで手順が解決できなくなる。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsCombinePackageStrategy : AssetStoreToolsStandardStrategy
     {
         #region 外部向けAPI
