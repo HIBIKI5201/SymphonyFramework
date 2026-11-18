@@ -2,6 +2,13 @@
 
 Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenumを自動生成します。
 
+## 目的と範囲
+
+シーン名・タグ名・レイヤー・Audio Groupを文字列で書かずに済むようにし、綴りの誤りをコンパイル時に見つけられるようにします。
+
+- **すること**: 変更を検知したenumの再生成、C#の識別子にできない名前の解決、生成先アセンブリの用意と参照の注入
+- **しないこと**: 生成したenumの手での編集の保持（再生成で上書きする）、ポーズカテゴリーの生成（[Pause Manager](./PauseManager.md)）
+
 ## 入口
 
 | 項目 | 内容 |
@@ -11,25 +18,31 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenum
 | メニューパス | 自動実行。手動生成は `Window > SymphonyFrameWork > Symphony Administrator` の `Auto Enum Generator` パネル |
 | 設定の保存先 | `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset` |
 
-## Editor機能
+## 仕組みの要点
 
-Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupの変更を検知して、対応するenumを自動生成します。
+1. **元の設定が変わると、自動で再生成します。** シーン・タグ・レイヤーはそれぞれ設定で自動更新を止められます。
+2. **シーンのenumの値はBuild Settingsの登録順です。** シーンの並びを変えると値も変わります。
+3. **予約語は除外せず`@`を付けて残します。** シーンを足しただけでenumからシーンが消えないようにするためです。
+
+## 機能一覧
+
+| ID | 生成物 | 生成元 |
+| --- | --- | --- |
+| ENUM-01 | `SceneListEnum.cs` | Build Settingsのシーン一覧（**登録順が値になる**） |
+| ENUM-02 | `TagsEnum.cs` | `ProjectSettings/TagManager.asset` のタグ |
+| ENUM-03 | `LayersEnum.cs` | 同上のレイヤー（フラグenum） |
+| ENUM-04 | `AudioGroupTypeEnum.cs` | `AudioConfig` のグループ名 |
+| ENUM-05 | `SymphonyFrameWork.Enum.asmdef` | 上記を含むアセンブリ |
+
+生成先は `Assets/Scripts/SymphonyFrameWork/` です。
+
+## Editor機能
 
 **入口**: 自動実行。手動生成はSymphony Administratorの `Auto Enum Generator` パネルから
 
-**生成物**: `Assets/Scripts/SymphonyFrameWork/`
-
-| ファイル | 生成元 |
-| --- | --- |
-| `SceneListEnum.cs` | Build Settingsのシーン一覧（**登録順が値になります**） |
-| `TagsEnum.cs` | `ProjectSettings/TagManager.asset` のタグ |
-| `LayersEnum.cs` | 同上のレイヤー（フラグenum） |
-| `AudioGroupTypeEnum.cs` | `AudioConfig` のグループ名 |
-| `SymphonyFrameWork.Enum.asmdef` | 上記を含むアセンブリ |
-
 **設定**: `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset`。シーン・タグ・レイヤーそれぞれについて自動更新の有効・無効を切り替えられます。
 
-**変更の検知**: `TagsAndLayersPostProcessor`（`AssetPostprocessor`）がタグ・レイヤー設定ファイルの変更を、`EditorBuildSettings.sceneListChanged` がシーン一覧の変更を検知します。検知した変更は `SymphonyEditorOrchestrator` へ通知され、まとめて1回処理されます。
+**変更の検知**: タグ・レイヤーの設定ファイルとBuild Settingsのシーン一覧の変更を検知し、続けて起きた変更はまとめて1回だけ生成します。
 
 **補助メニュー**: `Tools > SymphonyFrameWork > Debug > CreateResourcesFolder` は、生成先の `Resources` フォルダを手動で作り直すためのものです。通常は自動生成に任せてください。
 
@@ -51,6 +64,11 @@ Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupの変更�
 - **予約語を含む候補は、除外ではなくエスケープされます。** シーンを追加しただけで `SceneListEnum` からそのシーンが消える事態を避けるためです。
 - 利用側のasmdefから生成enumを直接使う場合は、`SymphonyFrameWork.Enum` を参照に追加してください。
 - `SymphonyFrameWork.asmdef` から `SymphonyFrameWork.Enum` への参照は、Editor起動時に自動で注入されます。
+
+## 確かめ方
+
+- Build Settingsへシーンを足した後、`SceneListEnum.cs` に列挙子が増えていることを見る。
+- 増えない場合は、設定で自動更新が有効か、Consoleに除外の警告が出ていないかを見る。手動で生成し直すときはSymphony Administratorの `Auto Enum Generator` パネルを使う。
 
 ## 関連
 

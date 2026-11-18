@@ -1,6 +1,13 @@
 # Scene Block
 
-まとめてロードする複数シーンと、その依存関係を1つのアセットとして定義し、依存順にロードします。`SceneLoader`による単体シーンのロードと併用できます。
+まとめてロードする複数シーンと、その依存関係を1つのアセットとして定義し、依存順にロードします。
+
+## 目的と範囲
+
+「町」「ダンジョン」のような、いくつものシーンで成り立つ場面を1回の呼び出しで切り替えられるようにします。
+
+- **すること**: 依存関係の検証、依存順（段階ごと）のロード、ブロック単位のアンロード、複数ブロックで共有するシーンの保持の管理
+- **しないこと**: Additive以外のロード（既存のシーンを一掃するときは[Scene Loader](./SceneLoader.md)）、失敗時の巻き戻し、ブロックの外でロードされたシーンのアンロード
 
 ## 入口
 
@@ -11,20 +18,36 @@
 | メニューパス | `Assets > Create > Symphony Framework > Scene Block` |
 | 設定の保存先 | 利用側プロジェクトの `SceneBlockAsset` アセット |
 
-## クイックスタート
+## 仕組みの要点
 
-`Assets > Create > Symphony Framework > Scene Block` でアセットを作り、Inspectorでエントリを並べます。
+1. **ロード順は`Depends On`だけで決まります。** 依存の無いシーンどうしは同じ段階で同時にロードし、エントリの並び順は影響しません。
+2. **シーンごとに「どのブロックが保持しているか」を記録し、保持が空になったときだけアンロードします。** 同じシーンを複数のブロックへ書けます。
+3. **ブロックのロードを始めた時点で既にロードされていたシーンは、利用側の持ち物として扱います。** どのブロックのアンロードでも落ちません。
+4. **内部では[Scene Loader](./SceneLoader.md)でロードします。** 依存注入、`IInitializeAsync`、優先度によるActive Sceneの選択はScene Loaderと同じに働きます。
+
+## 機能一覧
+
+| ID | 機能 | 使うAPI・操作 | 結果 |
+| --- | --- | --- | --- |
+| BLK-01 | ブロックの定義 | `Assets > Create > Symphony Framework > Scene Block` | シーン、依存、優先度、残すかどうかを持つアセットを作る |
+| BLK-02 | 依存の検証 | `SceneBlockAsset`のInspector | ロードの段階数と各段階のシーン、または検出した異常をすべて表示する |
+| BLK-03 | ロード | `SceneBlockLoader.LoadAsync` | 全シーンを依存順にロードする。進捗はブロック全体で0から1 |
+| BLK-04 | アンロード | `SceneBlockLoader.UnloadAsync` | ブロックの保持を解き、保持が残らないシーンだけをアンロードする |
+| BLK-05 | 状態の照会 | `IsLoaded` / `TryGetBlockInfo` / `GetBlockInfos` | ブロック名、状態、進捗、保持シーン、段階数を返す |
+
+アセットの項目は次のとおりです。
 
 | フィールド | 内容 |
 | --- | --- |
-| Block Name | ブロックの識別名。空の場合はアセット名を使う |
-| Entries | このブロックがロードするシーンの一覧 |
-| Entries > Scene Name | ロードするシーン名。Build Settings のシーンから選ぶ |
-| Entries > Depends On | **このシーンより先にロードを完了させるシーン名。** 候補は同じブロックに登録済みのシーンだけに絞られる |
-| Entries > Priority | Active Scene 選択に使用する優先度。`SceneLoadRequest` の優先度と同じ意味 |
+| Block Name | ブロックの識別名。空ならアセット名を使う |
+| Entries > Scene Name | ロードするシーン名。Build Settingsのシーンから選ぶ |
+| Entries > Depends On | **このシーンより先にロードを完了させるシーン名。** 候補は同じブロックのシーンだけ |
+| Entries > Priority | Active Sceneの選択に使う優先度。`SceneLoadRequest`と同じ意味 |
 | Entries > Is Persistent | ブロックをアンロードしてもこのシーンを残す |
 
-`Depends On` に何も書かないシーンは、互いに依存しないため同時にロードできます。次の例では `Town_Base` を先に読み、`Town_Props` と `Town_Npc` を同時に読み、最後に `Town_Ui` を読む3段階になります。
+## クイックスタート
+
+次の定義では、`Town_Base`を先に読み、`Town_Props`と`Town_Npc`を同時に読み、最後に`Town_Ui`を読む3段階になります。
 
 ```text
 Scene Block: TownBlock
@@ -33,8 +56,6 @@ Scene Block: TownBlock
 ├─ Town_Npc    Depends On: [Town_Base]    Priority: 0
 └─ Town_Ui     Depends On: [Town_Props]   Priority: 0
 ```
-
-アセットを `SceneBlockLoader` へ渡すとロードできます。
 
 ```csharp
 using SymphonyFrameWork.System.SceneBlock;
@@ -47,74 +68,67 @@ public sealed class BlockSwitcher : MonoBehaviour
 
     private async Awaitable EnterDungeonAsync()
     {
-        // 先に次をロードしてから前をアンロードすると、共通シーンの保持が途切れない。
+        // 次をロードしてから前をアンロードすると、共通シーンの保持が途切れない。
         await SceneBlockLoader.LoadAsync(_dungeonBlock, token: destroyCancellationToken);
         await SceneBlockLoader.UnloadAsync(_townBlock, token: destroyCancellationToken);
     }
 }
 ```
 
-| メソッド | 内容 |
+## 状態
+
+`SceneBlockInfo.State`は`SceneBlockLoadStateEnum`の値をとります。
+
+| 状態 | 意味 |
 | --- | --- |
-| `LoadAsync` | ブロックの全シーンを依存順にロードする。進捗はブロック全体で0から1へ通知する |
-| `UnloadAsync` | ブロックの保持を解き、保持が残らないシーンだけをアンロードする |
-| `IsLoaded` | ブロックが追跡中か確認する |
-| `TryGetBlockInfo` / `GetBlockInfos` | ブロック名、状態、進捗、保持シーン、層の数を取得する |
+| `None` | 追跡していない |
+| `Loading` | ブロックのシーンをロード中。失敗・キャンセルした後もこの状態のまま残る |
+| `Complete` | ブロックの全シーンのロードが完了した |
+| `Unloading` | ブロックのシーンをアンロード中 |
 
-### シーンを保持する規則
-
-**シーンごとに「どのブロックが保持しているか」を追跡し、保持が空になったときだけアンロードします。**
+シーンごとの保持は次の規則で決まります。
 
 | 状況 | ロード時 | アンロード時 |
 | --- | --- | --- |
 | どのブロックも保持しておらず、ロードもされていない | ロードして保持へ加える | 保持が空になればアンロードする |
 | 他のブロックが保持している | ロードせず保持だけ加える | 保持が残るのでアンロードしない |
-| ブロック外でロード済み | ロードせず保持だけ加える | **アンロードしない** |
-| `Is Persistent` が有効 | 通常どおりロードする | **アンロードしない** |
+| ブロックの外でロード済み | ロードせず保持だけ加える | **アンロードしない** |
+| `Is Persistent`が有効 | 通常どおりロードする | **アンロードしない** |
 
-**ブロックのロードを開始した時点で既にロードされていたシーンは、利用側の所有物として扱います。** `SceneLoader.LoadSceneAsync` で直接ロードしたシーンや、起動時の初期シーンがこれに当たります。そのシーンはどのブロックのアンロードでも落ちないため、落とす場合は `SceneLoader.UnloadSceneAsync` を呼んでください。
+## うまくいかないとき
 
-## 実装時の注意
+| 起きること | この機能の動き | 対処 |
+| --- | --- | --- |
+| シーン名の重複、自分への依存、存在しないシーンへの依存、循環依存、空のシーン名・依存 | `SceneBlockPlanException`を投げる。`Descriptions`と`Message`に検出した異常がすべて入る | Inspectorの検証結果を見て、全件をまとめて直す |
+| ロードに失敗した、キャンセルした | ロード済みのシーンを巻き戻さない。成立した保持だけを記録し、状態は`Loading`のまま | `LoadAsync`をもう一度呼ぶと未完了の段階から再試行する。`UnloadAsync`を呼ぶと成立済みの保持を片付ける |
+| 同じ名前のブロックを2つロードした | `InvalidOperationException`を投げる | `Block Name`を重ならないようにする |
+| ロード中にアンロード、アンロード中にロードした | `InvalidOperationException`を投げる | 前の処理を待ってから呼ぶ |
+| ロード完了済みの同じアセットをロードした | 何もせず成功する | 対処は要らない |
+| ブロックの外でロードしたシーンが残る | どのブロックのアンロードでも落とさない | `SceneLoader.UnloadSceneAsync`で落とす |
 
-- **`Depends On` は「先に読むシーン」を書きます。** 「このシーンの後に読むシーン」ではありません。`A` の後に `B` を読みたい場合は、`B` のエントリへ `A` を書きます。
-- **依存の相手は同じブロックのエントリに存在している必要があります。** 存在しないシーン名を書くと `SceneBlockPlanException` になります。
-- **`SceneBlockPlanException` は検出した異常をすべて報告します。** `Descriptions` に全件が入り、`Message` にも件数と全文が含まれます。1件直すたびに読み込み直す必要はありません。
-- 検出する異常は、シーン名の重複、自分自身への依存、存在しないシーンへの依存、循環依存、シーン名や依存が空の4種類です。
-- **同じシーンを複数のブロックへ書けます。** 1つのシーンが複数のブロックに属することは異常ではありません。
-- エントリの並び順はロード順に影響しません。順序は `Depends On` だけで決まります。
-- ブロックが読むシーンは、利用側の Build Settings に登録されている必要があります。
-- **ブロックを切り替えるときは「次をロード → 前をアンロード」の順にしてください。** 逆順にすると、両方のブロックに属するシーンの保持が一度空になり、アンロードと再ロードが走ります。
-- **ロードに失敗したりキャンセルしたりしても、ロード済みのシーンは巻き戻しません。** 保持は成立した分だけ記録され、ブロックの状態は `Loading` のまま残ります。`LoadAsync` を再度呼ぶと未完了の層から再試行し、`UnloadAsync` を呼ぶと成立済みの保持を片付けます。
-- **同じ名前のブロックを2つロードすると `InvalidOperationException` になります。** 保持がどちらのアセットのものか判別できなくなるためです。同じアセットがロード完了済みなら、再ロードは何もせず成功します。ロード処理の実行中にアンロードする場合と、アンロード処理の実行中にロードする場合も `InvalidOperationException` になります。
-- 進捗は層ごとではなくブロック全体で 0 から 1 へ通知します。
-- `SceneBlockLoader` は Additive のロードだけを行います。既存のシーンを一掃する場合は `SceneLoader` 側の API を使ってください。
+## 守ること
+
+- **`Depends On`には「先に読むシーン」を書く。** `A`の後に`B`を読みたい場合は、`B`のエントリへ`A`を書く。
+- ブロックを切り替えるときは「次をロード → 前をアンロード」の順にする。逆にすると、両方に属するシーンの保持が一度空になり、アンロードと再ロードが走る。
+- ブロックが読むシーンは、利用側のBuild Settingsへ登録する。
 
 ## Editor機能
 
 | 機能 | 内容 |
 | --- | --- |
-| Symphony Administrator の Scene Block パネル | Play Mode中、追跡しているブロックの名前、状態、進捗、実行層の数、保持しているシーン名を一覧表示する |
-| `SceneBlockAsset` のInspector | 依存グラフの検証結果を表示する。解決できる場合は**何段階でロードするか**と各段階のシーン名、解決できない場合は検出した異常をすべて並べる |
-| `Depends On` の候補の絞り込み | **同じブロックに登録済みのシーンだけを選択肢に出す。** ブロックの外のシーンは選べないため、存在しない依存を書いてしまう経路がなくなる。既に保存済みの依存は、エントリから消えた後も選択肢に残る |
+| Symphony Administrator の Scene Block パネル | Play Mode中、追跡しているブロックの名前、状態、進捗、段階数、保持しているシーン名を一覧表示する |
+| `SceneBlockAsset`のInspector | 依存の検証結果を表示する。解決できる場合は段階数と各段階のシーン名、できない場合は検出した異常をすべて並べる |
+| `Depends On`の候補の絞り込み | 同じブロックに登録済みのシーンだけを選択肢に出す。保存済みの依存は、エントリから消えた後も選択肢に残る |
 
-**Inspectorの表示はPlay Modeに入る前に確認できます。** 循環依存や存在しないシーンへの依存は、実行してロードするまで待たずにここで分かります。
+`Depends On`の候補は、エントリが1件も無いブロックでは空になります。先に`Scene Name`を埋めてください。
 
-**`Depends On` の候補は、エントリを1件も追加していないブロックでは空になります。** 先に `Scene Name` を埋めてから依存を書いてください。
+## 確かめ方
 
-## 内部構造
-
-`SceneBlockLoader` は `SceneLoader` の内部Serviceを土台にして動きます。`SymphonyOrchestrator` が `SceneLoader` の初期化後に `SceneBlockLoader` を初期化し、終了処理は登録の逆順で実行します。
-
-| 層 | 型 | 役割 |
-| --- | --- | --- |
-| Adaptor | `SceneBlockLoader` | 公開エントリポイント |
-| Application | `SceneBlockService` | 層順のロードと保持規則の実行 |
-| Application | `SceneBlockRegistry` | ブロックの追跡と、シーンごとの保持元の記録 |
-| Domain | `SceneBlockLoadEntity` | ブロック1件の実行計画と状態 |
-| Domain | `SceneBlockGraphPlanner` | 依存グラフの検証とトポロジカル層の算出 |
+- Play Modeに入る前に`SceneBlockAsset`のInspectorを開き、段階数と各段階のシーンが意図どおりかを見る。循環や存在しない依存はここで分かる。
+- Play Mode中に`Scene Block`パネルを開き、ブロックの状態が`Complete`になり、保持しているシーンが想定どおりかを見る。
+- 利用例はPackage Managerからインポートできる Scene Block Sample にある。
 
 ## 関連
 
 - [Scene Loader](./SceneLoader.md)
-- Scene Block Sample（Package Managerからインポートできます）
 - [CHANGELOG.md](../../CHANGELOG.md)

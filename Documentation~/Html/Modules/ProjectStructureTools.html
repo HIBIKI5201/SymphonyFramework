@@ -98,8 +98,13 @@ th { background: var(--code-bg); white-space: nowrap; }
 <nav class="doc-nav"><a href="../index.html">Symphony Framework Documentation</a></nav>
 <h1 id="project-structure-tools">Project Structure Tools</h1>
 <p>プロジェクトのフォルダ構成、Assembly Definition、推奨Unityパッケージの導入を補助します。</p>
+<h2 id="目的と範囲">目的と範囲</h2>
+<p>新しいプロジェクトを始めるときの雛形づくりを、手作業なしで済ませられるようにします。</p>
+<ul><li><strong>すること</strong>: 定義ファイルに従ったフォルダの生成、asmdefの生成とGUID参照の追加、推奨パッケージの不足の確認と導入</li><li><strong>しないこと</strong>: 既存のフォルダやasmdefの上書き、利用者の確認を経ないパッケージの導入</li></ul>
 <h2 id="入口">入口</h2>
 <div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFrameWork.Editor</code></td></tr><tr><td>主な公開型</td><td><code>FolderGenerator</code> / <code>AssemblyGenerator</code> / <code>AssemblyDefinitionData</code> / <code>SymphonyPackageLoader</code></td></tr><tr><td>メニューパス</td><td><code>Tools &gt; SymphonyFrameWork &gt; FolderGenerator</code> / <code>SymphonyPackageLoader</code></td></tr><tr><td>設定の保存先</td><td><code>FolderStructure.md</code> / <code>PackageList.txt</code>。Assembly Definitionは指定パスへ生成</td></tr></tbody></table></div>
+<h2 id="機能一覧">機能一覧</h2>
+<div class="table-scroll"><table><thead><tr><th>ID</th><th>機能</th><th>入口</th><th>結果</th></tr></thead><tbody><tr><td>PST-01</td><td>フォルダの生成</td><td><code>Tools &gt; SymphonyFrameWork &gt; FolderGenerator</code></td><td><code>FolderStructure.md</code> の構成を <code>Assets/</code> に作る。既存のフォルダは作り直さない</td></tr><tr><td>PST-02</td><td>asmdefの生成</td><td>他のEditor機能から呼ばれる（メニューなし）</td><td>無いasmdefだけを作り、参照を重複なく足す</td></tr><tr><td>PST-03</td><td>推奨パッケージの導入</td><td><code>Tools &gt; SymphonyFrameWork &gt; SymphonyPackageLoader</code></td><td>不足分をダイアログで確かめてから導入する</td></tr></tbody></table></div>
 <h2 id="editor機能">Editor機能</h2>
 <h3 id="foldergenerator">FolderGenerator</h3>
 <p>Markdownで定義したフォルダ構成を <code>Assets/</code> 配下へ生成します。プロジェクト開始時の雛形づくりに使います。</p>
@@ -108,7 +113,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>既に存在するフォルダは作り直しません。生成したフォルダはダイアログとConsoleに一覧で出ます。</p>
 <h3 id="assemblygenerator">AssemblyGenerator</h3>
 <p>Assembly Definition（<code>.asmdef</code>）の生成と、既存asmdefへのGUID参照追加を行います。</p>
-<p><strong>入口</strong>: メニューはありません。<code>PackageInitializer</code> などの他のEditor機能から呼ばれます。</p>
+<p><strong>入口</strong>: メニューはありません。Frameworkの初期設定など、他のEditor機能から呼ばれます。</p>
 <p><strong>注意点</strong>:</p>
 <ul><li>既に存在する <code>.asmdef</code> は上書きしません。</li><li>参照の追加はGUID重複を避けます。同じ参照を二重に追加しません。</li></ul>
 <h3 id="symphonypackageloader">SymphonyPackageLoader</h3>
@@ -117,6 +122,8 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p><strong>対象パッケージの定義</strong>: <code>&lt;Frameworkルート&gt;/Editor/PackageLoader/PackageList.txt</code>（1行1パッケージ）</p>
 <p><strong>注意点</strong>:</p>
 <ul><li>Package Managerの初期化が終わっていない場合は何もしません。</li><li>導入は利用者の確認を経てから実行されます。無断でインストールしません。</li></ul>
+<h2 id="確かめ方">確かめ方</h2>
+<ul><li>FolderGeneratorの実行後、ダイアログとConsoleに出た一覧のフォルダが <code>Assets/</code> にあることを見る。</li><li>SymphonyPackageLoaderの実行後、Package Managerで対象パッケージが導入済みになっていることを見る。</li></ul>
 <h2 id="関連">関連</h2>
 <ul><li><a href="AutoEnumGenerator.html">AutoEnumGenerator</a></li><li><a href="../EditorTools.html">EditorTools.md</a></li><li><a href="../Architecture.html">Architecture.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Modules/ProjectStructureTools.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>

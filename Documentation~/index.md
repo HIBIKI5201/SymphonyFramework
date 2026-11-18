@@ -1,6 +1,6 @@
 # Symphony Framework Documentation
 
-Symphony Frameworkの文書の入口です。**モジュールごとの文書は1ファイルで完結**しており、使い方、実装時の注意、対応するEditor機能、内部構造がまとまっています。
+Symphony Frameworkの文書の入口です。**モジュールごとの文書は1ファイルで完結**しており、目的と範囲、仕組みの要点、機能一覧、使い方、うまくいかないとき、守ること、対応するEditor機能、確かめ方がまとまっています。利用者が使うための情報だけを載せ、フレームワーク内部のクラス構成は載せません。
 
 はじめて使う場合は[README](../README.md)から読んでください。インストール、初期設定、最小のコード例があります。
 
@@ -28,7 +28,7 @@ Symphony Frameworkの文書の入口です。**モジュールごとの文書は
 | --- | --- |
 | [README](../README.md) | 概要、インストール、初期設定、クイックスタート |
 | [Editor機能](./EditorTools.md) | Symphony Frameworkが追加するEditor拡張の索引 |
-| [パッケージ構成](./Architecture.md) | レイヤーと公開型どうしの関係 |
+| [パッケージ構成](./Architecture.md) | アセンブリ、公開の入口と拡張点、起動と終了の順序 |
 | [非推奨APIと削除予定](./Deprecations.md) | `[Obsolete]` を付けたAPIと、その移行先 |
 | [変更履歴](../CHANGELOG.md) | バージョンごとの追加・変更・修正 |
 

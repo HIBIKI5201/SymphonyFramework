@@ -97,41 +97,38 @@ th { background: var(--code-bg); white-space: nowrap; }
 <body>
 <nav class="doc-nav"><a href="index.html">Symphony Framework Documentation</a></nav>
 <h1 id="symphony-frameworkの構成">Symphony Frameworkの構成</h1>
-<p>この文書は、パッケージ内を移動するときや、公開型どうしの関係を確認するときの構成図です。モジュールごとのAPI使用例、実装時の注意、Editor機能、内部構造は<a href="index.html">Modules/</a>を参照してください。</p>
+<p>この文書は、利用側のコードから見たパッケージの構成です。どのアセンブリを参照し、どの型を入口にし、何が自動で動くかをまとめています。モジュールごとの使い方は<a href="index.html">Modules/</a>を参照してください。</p>
 <h2 id="アセンブリ">アセンブリ</h2>
-<figure class="mermaid-diagram"><img src="Diagrams/7bbcde6e604775c7.svg" alt="flowchart の図" /></figure>
-<ul><li><code>SymphonyFrameWork</code>: Runtime API、Component、設定型、Utilityを含むメインアセンブリ。</li><li><code>SymphonyFrameWork.Core</code>: RuntimeとEditorが共有する定数・基盤。利用側が通常直接参照する必要はない。</li><li><code>SymphonyFrameWork.Editor</code>: Editor専用の設定画面、管理ウィンドウ、Drawer、Generator。Playerビルドには含まれない。</li><li><code>SymphonyFrameWork.Enum</code>: 利用プロジェクトのScene、Tag、Layer、Audio Groupから生成されるアセンブリ。利用する場合だけ消費者側asmdefから参照する。</li></ul>
-<p>参照方向は<code>Editor → Runtime → Core</code>です。RuntimeまたはCoreからEditorへ逆参照しません。</p>
+<div class="table-scroll"><table><thead><tr><th>アセンブリ</th><th>内容</th><th>利用側からの参照</th></tr></thead><tbody><tr><td><code>SymphonyFrameWork</code></td><td>Runtime API、Component、設定型、Utility</td><td>参照する</td></tr><tr><td><code>SymphonyFrameWork.Enum</code></td><td>プロジェクトのScene、Tag、Layer、Audio Groupから生成するenum</td><td>生成enumを使う場合だけ参照する</td></tr><tr><td><code>SymphonyFrameWork.PauseCategory</code></td><td>Project Settingsから生成したポーズカテゴリー</td><td>生成したカテゴリーを使う場合だけ参照する</td></tr><tr><td><code>SymphonyFrameWork.Core</code></td><td>RuntimeとEditorが共有する定数と基盤</td><td>通常は不要</td></tr><tr><td><code>SymphonyFrameWork.Editor</code></td><td>設定画面、管理ウィンドウ、Drawer、Generator。Playerビルドには含まれない</td><td>Editor用asmdefから必要なときだけ</td></tr></tbody></table></div>
+<p>Runtimeのコードから<code>SymphonyFrameWork.Editor</code>を参照しないでください。</p>
 <h2 id="パッケージのディレクトリ">パッケージのディレクトリ</h2>
 <pre><code class="language-text">SymphonyFrameWork/
 ├─ Core/                    Runtime／Editor共通の定数と基盤
-│  └─ Internal/            パッケージ内部だけで使う実装
 ├─ Runtime/                 Playerビルドへ含まれる機能
 │  ├─ Attribute/           Inspector属性
 │  ├─ Component/           GameObjectへ追加するComponent
-│  ├─ Configs/             設定の検索とinternal設定型
 │  ├─ Debug/               HUD、Logger、StopWatch
 │  ├─ Interface/           注入・初期化などの公開契約
-│  ├─ Orchestrator/        自動初期化を行うComposition Root
 │  ├─ Service/             Scene、Service Locator、Save、Audio、Pause
 │  └─ Utility/             Awaitable、Tween、文字列等の補助
 ├─ Editor/                  Editor専用UI、Drawer、Generator
-├─ Samples~/Runtime/        Package Managerから導入する利用例（Unityのインポート対象外）
+├─ Samples~/Runtime/        Package Managerから導入する利用例
 ├─ Tests/                   EditMode／PlayModeテスト
-└─ Documentation~/         Asset Importされない利用者向け詳細文書（Modules/にモジュール別文書）</code></pre>
-<p>各機能の<code>Internal/</code>は公開APIではありません。利用側コードとSampleは<code>Internal/</code>の型へ依存しません。</p>
+└─ Documentation~/         利用者向けの文書（Modules/にモジュール別文書）</code></pre>
+<p><strong>各フォルダの<code>Internal/</code>は公開APIではありません。</strong> 利用側のコードは<code>Internal/</code>の型に依存しないでください。</p>
+<h2 id="公開の入口と拡張点">公開の入口と拡張点</h2>
+<p>主要な機能はstaticなFacadeから使います。<code>new</code>や<code>.Instance</code>は使いません。</p>
+<div class="table-scroll"><table><thead><tr><th>モジュール</th><th>入口（Facade）</th><th>利用側が実装・継承する型</th></tr></thead><tbody><tr><td><a href="Modules/ServiceLocator.html">Service Locator</a></td><td><code>ServiceLocator</code>、<code>ServiceInjector</code></td><td><code>IInjectable&lt;T...&gt;</code></td></tr><tr><td><a href="Modules/SceneLoader.html">Scene Loader</a></td><td><code>SceneLoader</code></td><td><code>IInitializeAsync</code></td></tr><tr><td><a href="Modules/SceneBlock.html">Scene Block</a></td><td><code>SceneBlockLoader</code></td><td><code>SceneBlockAsset</code>（アセットとして作る）</td></tr><tr><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td><td><code>SaveStore</code></td><td><code>SaveDataContent</code>、<code>SaveDataLoaderStrategy</code></td></tr><tr><td><a href="Modules/AudioManager.html">Audio Manager</a></td><td><code>AudioManager</code></td><td>なし</td></tr><tr><td><a href="Modules/PauseManager.html">Pause Manager</a></td><td><code>PauseManager</code></td><td><code>PauseManager.IPausable</code>とその派生カテゴリー</td></tr></tbody></table></div>
+<p>照会APIが返す<code>ServiceRegistrationInfo</code>、<code>SceneLoadInfo</code>、<code>SceneBlockInfo</code>、<code>SaveDataEntryInfo</code>、<code>PauseInfo</code>は、取得した時点のスナップショットです。後から状態が変わっても値は変わりません。</p>
+<p><code>SceneLoadConfig</code>、<code>AudioConfig</code>、<code>SaveDataConfig</code>は<code>internal</code>です。InspectorかProject Settingsから設定し、型として参照しないでください。</p>
 <h2 id="起動と終了">起動と終了</h2>
-<p><code>SymphonyOrchestrator</code>がComposition Rootです。利用側でBootstrapを作る必要はありません。</p>
-<figure class="mermaid-diagram"><img src="Diagrams/52b4b9bb4fe5c13b.svg" alt="sequenceDiagram の図" /></figure>
-<p>Play ModeのDomain Reloadが無効でも状態を持ち越さないよう、開始時に既存状態を破棄し、終了時は初期化済みサブシステムを逆順で解放します。</p>
-<h2 id="公開facadeと拡張点">公開Facadeと拡張点</h2>
-<figure class="mermaid-diagram"><img src="Diagrams/3d676ed20553d7a6.svg" alt="classDiagram の図" /></figure>
-<p>Facadeは利用側の入口、interfaceと抽象classは利用側が実装する拡張点です。ConfigとManagerの内部実装はFacadeの背後に隠し、利用側へ公開しません。</p>
-<p>サブシステム個別の内部構造は、各モジュール文書を参照してください。</p>
-<ul><li><a href="Modules/SceneLoader.html#内部構造">Scene Load</a></li><li><a href="Modules/ServiceLocator.html#内部構造">Service Locate</a></li><li><a href="Modules/SaveDataSystem.html#内部構造">Save Data</a></li><li><a href="Modules/PauseManager.html#内部構造">Pause</a></li><li><a href="Modules/AudioManager.html#内部構造">Audio</a></li></ul>
+<p><code>SymphonyOrchestrator</code>が自動で初期化します。利用側でBootstrap用のGameObjectやシーンを作る必要はありません。</p>
+<ol><li>最初のシーンのロード前に、前回の状態を破棄し、常駐用のオブジェクトを作る。</li><li>Save → Pause → Service Locator → Scene → Audio → Debug HUD の順に初期化する。</li><li>最初のシーンのロード後に、<code>SceneLoadConfig</code>の設定でシーンの管理を始める。</li><li>Play Modeを終えると、初期化と逆の順に解放する。</li></ol>
+<p>Domain Reloadを無効にしていても、状態は次のPlay Modeへ持ち越されません。初期化前や解放後に呼んだときの動きは、各モジュール文書の「うまくいかないとき」にあります。</p>
 <h2 id="シーンロード時の連携">シーンロード時の連携</h2>
-<figure class="mermaid-diagram"><img src="Diagrams/7930a518feca6893.svg" alt="flowchart の図" /></figure>
-<p>この連携が必要なシーンではUnity標準の<code>SceneManager.LoadScene</code>を直接使わず、<code>SceneLoader</code>を入口にします。</p>
+<p><code>SceneLoader</code>（と<code>SceneBlockLoader</code>）でロードしたシーンは、次の順で準備されます。</p>
+<ol><li>シーンを非同期でロードする。</li><li>ルートGameObjectのうち<code>IInjectable&lt;T...&gt;</code>を実装したものへ、<code>ServiceLocator</code>から依存を注入する。</li><li><code>IInitializeAsync</code>を実装したものの<code>InitializeAsync</code>を待つ。</li><li>優先度を評価してActive Sceneを決め、ロードを完了する。</li></ol>
+<p>2か3で失敗すると<code>SceneInitializationException</code>になります。この連携が必要なシーンでは<code>SceneManager.LoadScene</code>を直接使わず、<code>SceneLoader</code>を入口にしてください。</p>
 <p class="source-note">この文書は <code>Assets/SymphonyFrameWork/Documentation~/Architecture.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>
 </html>

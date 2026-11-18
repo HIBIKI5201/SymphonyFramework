@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.15.0**
+- 現在のバージョン: **6.15.1**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -118,7 +118,7 @@ asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してくだ�
 | [Utility](./Documentation~/Modules/Utility.md) | `SymphonyAwaitable`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`、`SymphonyVisualElement` |
 | [Inspector属性](./Documentation~/Modules/InspectorAttributes.md) | `[ReadOnly]`、`[DisplayText]`、`[TagSelector]`、`[SceneNameSelector]`、`[SubclassSelector]` |
 
-各モジュールの文書に、クイックスタート、実装時の注意、対応するEditor機能、内部構造がまとまっています。
+各モジュールの文書に、目的と範囲、機能一覧、クイックスタート、うまくいかないとき、守ること、対応するEditor機能、確かめ方がまとまっています。
 
 ## Editor・デバッグ支援
 
