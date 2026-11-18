@@ -26,8 +26,8 @@ namespace SymphonyFramework.Editor
             }
         }
 
-        /// <summary> Service Locatorへのインスタンス登録ログを出力するか。 </summary>
-        public bool IsServiceLocatorSetInstanceLogEnabled
+        /// <summary> Partituraへのインスタンス登録ログを出力するか。 </summary>
+        public bool IsPartituraRegisterLogEnabled
         {
             get => _isServiceLocatorSetInstanceLogEnabled;
             set
@@ -37,8 +37,8 @@ namespace SymphonyFramework.Editor
             }
         }
 
-        /// <summary> Service Locatorからのインスタンス取得ログを出力するか。 </summary>
-        public bool IsServiceLocatorGetInstanceLogEnabled
+        /// <summary> Partituraからのインスタンス取得ログを出力するか。 </summary>
+        public bool IsPartituraGetLogEnabled
         {
             get => _isServiceLocatorGetInstanceLogEnabled;
             set
@@ -48,8 +48,8 @@ namespace SymphonyFramework.Editor
             }
         }
 
-        /// <summary> Service Locatorからのインスタンス破棄ログを出力するか。 </summary>
-        public bool IsServiceLocatorDestroyInstanceLogEnabled
+        /// <summary> Partituraからのインスタンス破棄ログを出力するか。 </summary>
+        public bool IsPartituraUnregisterLogEnabled
         {
             get => _isServiceLocatorDestroyInstanceLogEnabled;
             set
@@ -77,13 +77,14 @@ namespace SymphonyFramework.Editor
         [SerializeField, Tooltip("Framework配下のアセット移動に対する保護モード。")]
         private AssetProtectionModeEnum _assetProtectionMode = AssetProtectionModeEnum.Enabled;
 
-        [SerializeField, Tooltip("Service Locatorへのインスタンス登録ログを出力するか。")]
+        // 保存済みの UserSettings を読めるよう、シリアライズ名は 6.x の名前のまま残す。
+        [SerializeField, Tooltip("Partituraへのインスタンス登録ログを出力するか。")]
         private bool _isServiceLocatorSetInstanceLogEnabled = true;
 
-        [SerializeField, Tooltip("Service Locatorからのインスタンス取得ログを出力するか。")]
+        [SerializeField, Tooltip("Partituraからのインスタンス取得ログを出力するか。")]
         private bool _isServiceLocatorGetInstanceLogEnabled;
 
-        [SerializeField, Tooltip("Service Locatorからのインスタンス破棄ログを出力するか。")]
+        [SerializeField, Tooltip("Partituraからのインスタンス破棄ログを出力するか。")]
         private bool _isServiceLocatorDestroyInstanceLogEnabled = true;
 
         [SerializeField, Tooltip("非接続で編集したセーブデータをPlay Modeへ持ち越すか。")]

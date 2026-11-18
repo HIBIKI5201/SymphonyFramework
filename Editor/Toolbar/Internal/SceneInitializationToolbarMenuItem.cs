@@ -79,7 +79,7 @@ namespace SymphonyFramework.Editor
         /// </summary>
         internal SceneInitializationToolbarMenuItem()
             : this(
-                SymphonyConfigLocator.GetConfig<SceneLoadConfig>(),
+                SymphonyConfigProvider.GetConfig<SceneLoadConfig>(),
                 AssetDatabase.SaveAssets)
         {
         }

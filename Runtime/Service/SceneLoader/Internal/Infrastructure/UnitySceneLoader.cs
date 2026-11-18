@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using SymphonyFramework.Debugger.Logger;
-using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Services;
 using SymphonyFramework.Utility;
 
 using UnityEngine;
@@ -173,7 +173,7 @@ namespace SymphonyFramework.System.SceneLoad
             {
                 try
                 {
-                    ServiceInjector.TryAutoInject(injectable);
+                    Partitura.TryAutoInject(injectable);
                 }
                 catch (OperationCanceledException)
                 {

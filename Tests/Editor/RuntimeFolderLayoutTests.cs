@@ -18,7 +18,7 @@ namespace SymphonyFramework.Tests
         /// <summary> <c>Runtime/Service/</c> の直下にある想定のサブシステム。 </summary>
         private static readonly string[] SubsystemDirectories =
         {
-            "Audio", "Pause", "SaveSystem", "SceneLoader", "ServiceLocator",
+            "Audio", "Pause", "SaveSystem", "SceneLoader",
         };
 
         /// <summary> サブシステムはすべて Runtime/Service/ の下にある。 </summary>
@@ -36,6 +36,22 @@ namespace SymphonyFramework.Tests
                     Is.True,
                     $"'{subsystem}' が Runtime/Service/ の下にありません。");
             }
+        }
+
+        /// <summary> Partitura は Runtime/Services/ にあり、旧置き場には残っていない。 </summary>
+        [Test]
+        public void Partitura_LivesInRuntimeServices()
+        {
+            string runtime = Path.Combine(EditorSymphonyConstant.FRAMEWORK_PATH, "Runtime");
+
+            Assert.That(
+                File.Exists(Path.Combine(runtime, "Services", "Partitura.cs")),
+                Is.True,
+                "Partitura.cs が Runtime/Services/ にありません。");
+            Assert.That(
+                Directory.Exists(Path.Combine(runtime, "Service", "ServiceLocator")),
+                Is.False,
+                "Runtime/Service/ServiceLocator/ は Runtime/Services/ へ移しました（7.0.0、#225）。");
         }
 
         /// <summary> 旧名の Runtime/System/ は残っていない。 </summary>

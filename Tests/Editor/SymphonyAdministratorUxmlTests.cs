@@ -22,7 +22,7 @@ namespace SymphonyFramework.Tests
 
             TemplateContainer container = windowTree.Instantiate();
             PauseWindow pauseWindow = container.Q<PauseWindow>();
-            ServiceLocateWindow serviceLocateWindow = container.Q<ServiceLocateWindow>();
+            PartituraWindow serviceLocateWindow = container.Q<PartituraWindow>();
             SceneLoadWindow sceneLoadWindow = container.Q<SceneLoadWindow>();
             SaveDataWindow saveDataWindow = container.Q<SaveDataWindow>();
             AutoEnumGeneratorWindow autoEnumGeneratorWindow =

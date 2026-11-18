@@ -104,7 +104,7 @@ namespace SymphonyFramework.Editor
             new Dictionary<SymphonyDocumentPageEnum, string>
             {
                 [SymphonyDocumentPageEnum.Index] = "index",
-                [SymphonyDocumentPageEnum.ServiceLocator] = "Modules/ServiceLocator",
+                [SymphonyDocumentPageEnum.Partitura] = "Modules/Partitura",
                 [SymphonyDocumentPageEnum.SceneLoader] = "Modules/SceneLoader",
                 [SymphonyDocumentPageEnum.SceneBlock] = "Modules/SceneBlock",
                 [SymphonyDocumentPageEnum.SaveDataSystem] = "Modules/SaveDataSystem",

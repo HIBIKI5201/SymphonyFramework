@@ -12,11 +12,11 @@ namespace SymphonyFramework.Tests
     /// <summary> 未初期化時のSymphonyMcpToolsが有効なJSONを返すことを検証する。 </summary>
     public sealed class SymphonyMcpToolsTests
     {
-        /// <summary> Service Locatorが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Partituraが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
-        public void GetServiceLocatorJson_WhenUninitialized_ReturnsValidJson()
+        public void GetPartituraJson_WhenUninitialized_ReturnsValidJson()
         {
-            AssertUninitializedJson(SymphonyMcpTools.GetServiceLocatorJson);
+            AssertUninitializedJson(SymphonyMcpTools.GetPartituraJson);
         }
 
         /// <summary> Scene Loaderが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>

@@ -71,7 +71,7 @@ namespace SymphonyFramework.Editor.SettingProvider
             SymphonyDocumentationGUI.DrawOpenButton(SymphonyDocumentPageEnum.SaveDataSystem);
 
             // 画面を開いただけでRuntime Configの生成を始めず、取得できたものだけを描画する。
-            SaveDataConfig config = SymphonyConfigLocator.GetConfig<SaveDataConfig>();
+            SaveDataConfig config = SymphonyConfigProvider.GetConfig<SaveDataConfig>();
             // 未生成の状態でも例外にせず、生成の導線だけを出す。
             if (config == null)
             {

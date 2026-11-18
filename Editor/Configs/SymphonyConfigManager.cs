@@ -53,7 +53,7 @@ namespace SymphonyFramework.Editor
         /// <returns> 設定アセットまたは配置先フォルダを生成した場合はtrue。 </returns>
         private static bool FileCheck<T>() where T : ScriptableObject
         {
-            string path = SymphonyConfigLocator.GetFullPath<T>();
+            string path = SymphonyConfigProvider.GetFullPath<T>();
             // Config型に対応する既知の保存先が無い場合は、推測したパスへ生成しない。
             if (path == null)
             {
@@ -83,7 +83,7 @@ namespace SymphonyFramework.Editor
         /// </summary>
         private static void EditorFileCheck<T>() where T : ScriptableSingleton<T>
         {
-            _ = SymphonyEditorConfigLocator.GetConfig<T>();
+            _ = SymphonyEditorConfigProvider.GetConfig<T>();
         }
 
         /// <summary>

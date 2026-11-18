@@ -71,7 +71,7 @@ namespace SymphonyFramework.Editor
 
             // 利用者ごとの保護モードを移動判定時に読み、設定変更を即座に反映する。
             SymphonyUserSettingConfig config =
-                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+                SymphonyEditorConfigProvider.GetConfig<SymphonyUserSettingConfig>();
 
             // 保護を強制するか、操作単位で確認するか、Unityへ委譲するかを設定どおりに選ぶ。
             switch (config.AssetProtectionMode)
