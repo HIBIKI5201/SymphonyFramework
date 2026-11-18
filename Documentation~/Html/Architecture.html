@@ -109,7 +109,8 @@ th { background: var(--code-bg); white-space: nowrap; }
 │  ├─ Component/           GameObjectへ追加するComponent
 │  ├─ Debug/               HUD、Logger、StopWatch
 │  ├─ Interface/           注入・初期化などの公開契約
-│  ├─ Service/             Scene、Service Locator、Save、Audio、Pause
+│  ├─ Service/             Scene、Save、Audio、Pause（7.0.0 で機能別フォルダへ移す途中）
+│  ├─ Services/            Partitura（Service Locator）
 │  └─ Utility/             Awaitable、Tween、文字列等の補助
 ├─ Editor/                  Editor専用UI、Drawer、Generator
 ├─ Samples~/Runtime/        Package Managerから導入する利用例
@@ -118,16 +119,16 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p><strong>各フォルダの<code>Internal/</code>は公開APIではありません。</strong> 利用側のコードは<code>Internal/</code>の型に依存しないでください。</p>
 <h2 id="公開の入口と拡張点">公開の入口と拡張点</h2>
 <p>主要な機能はstaticなFacadeから使います。<code>new</code>や<code>.Instance</code>は使いません。</p>
-<div class="table-scroll"><table><thead><tr><th>モジュール</th><th>入口（Facade）</th><th>利用側が実装・継承する型</th></tr></thead><tbody><tr><td><a href="Modules/ServiceLocator.html">Service Locator</a></td><td><code>ServiceLocator</code>、<code>ServiceInjector</code></td><td><code>IInjectable&lt;T...&gt;</code></td></tr><tr><td><a href="Modules/SceneLoader.html">Scene Loader</a></td><td><code>SceneLoader</code></td><td><code>IInitializeAsync</code></td></tr><tr><td><a href="Modules/SceneBlock.html">Scene Block</a></td><td><code>SceneBlockLoader</code></td><td><code>SceneBlockAsset</code>（アセットとして作る）</td></tr><tr><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td><td><code>SaveStore</code></td><td><code>SaveDataContent</code>、<code>SaveDataLoaderStrategy</code></td></tr><tr><td><a href="Modules/AudioManager.html">Audio Manager</a></td><td><code>AudioManager</code></td><td>なし</td></tr><tr><td><a href="Modules/PauseManager.html">Pause Manager</a></td><td><code>PauseManager</code></td><td><code>PauseManager.IPausable</code>とその派生カテゴリー</td></tr></tbody></table></div>
+<div class="table-scroll"><table><thead><tr><th>モジュール</th><th>入口（Facade）</th><th>利用側が実装・継承する型</th></tr></thead><tbody><tr><td><a href="Modules/Partitura.html">Partitura</a></td><td><code>Partitura</code></td><td><code>IInjectable&lt;T...&gt;</code></td></tr><tr><td><a href="Modules/SceneLoader.html">Scene Loader</a></td><td><code>SceneLoader</code></td><td><code>IInitializeAsync</code></td></tr><tr><td><a href="Modules/SceneBlock.html">Scene Block</a></td><td><code>SceneBlockLoader</code></td><td><code>SceneBlockAsset</code>（アセットとして作る）</td></tr><tr><td><a href="Modules/SaveDataSystem.html">Save Data System</a></td><td><code>SaveStore</code></td><td><code>SaveDataContent</code>、<code>SaveDataLoaderStrategy</code></td></tr><tr><td><a href="Modules/AudioManager.html">Audio Manager</a></td><td><code>AudioManager</code></td><td>なし</td></tr><tr><td><a href="Modules/PauseManager.html">Pause Manager</a></td><td><code>PauseManager</code></td><td><code>PauseManager.IPausable</code>とその派生カテゴリー</td></tr></tbody></table></div>
 <p>照会APIが返す<code>ServiceRegistrationInfo</code>、<code>SceneLoadInfo</code>、<code>SceneBlockInfo</code>、<code>SaveDataEntryInfo</code>、<code>PauseInfo</code>は、取得した時点のスナップショットです。後から状態が変わっても値は変わりません。</p>
 <p><code>SceneLoadConfig</code>、<code>AudioConfig</code>、<code>SaveDataConfig</code>は<code>internal</code>です。InspectorかProject Settingsから設定し、型として参照しないでください。</p>
 <h2 id="起動と終了">起動と終了</h2>
 <p><code>SymphonyOrchestrator</code>が自動で初期化します。利用側でBootstrap用のGameObjectやシーンを作る必要はありません。</p>
-<ol><li>最初のシーンのロード前に、前回の状態を破棄し、常駐用のオブジェクトを作る。</li><li>Save → Pause → Service Locator → Scene → Audio → Debug HUD の順に初期化する。</li><li>最初のシーンのロード後に、<code>SceneLoadConfig</code>の設定でシーンの管理を始める。</li><li>Play Modeを終えると、初期化と逆の順に解放する。</li></ol>
+<ol><li>最初のシーンのロード前に、前回の状態を破棄し、常駐用のオブジェクトを作る。</li><li>Save → Pause → Partitura → Scene → Audio → Debug HUD の順に初期化する。</li><li>最初のシーンのロード後に、<code>SceneLoadConfig</code>の設定でシーンの管理を始める。</li><li>Play Modeを終えると、初期化と逆の順に解放する。</li></ol>
 <p>Domain Reloadを無効にしていても、状態は次のPlay Modeへ持ち越されません。初期化前や解放後に呼んだときの動きは、各モジュール文書の「うまくいかないとき」にあります。</p>
 <h2 id="シーンロード時の連携">シーンロード時の連携</h2>
 <p><code>SceneLoader</code>（と<code>SceneBlockLoader</code>）でロードしたシーンは、次の順で準備されます。</p>
-<ol><li>シーンを非同期でロードする。</li><li>ルートGameObjectのうち<code>IInjectable&lt;T...&gt;</code>を実装したものへ、<code>ServiceLocator</code>から依存を注入する。</li><li><code>IInitializeAsync</code>を実装したものの<code>InitializeAsync</code>を待つ。</li><li>優先度を評価してActive Sceneを決め、ロードを完了する。</li></ol>
+<ol><li>シーンを非同期でロードする。</li><li>ルートGameObjectのうち<code>IInjectable&lt;T...&gt;</code>を実装したものへ、<code>Partitura</code>から依存を注入する。</li><li><code>IInitializeAsync</code>を実装したものの<code>InitializeAsync</code>を待つ。</li><li>優先度を評価してActive Sceneを決め、ロードを完了する。</li></ol>
 <p>2か3で失敗すると<code>SceneInitializationException</code>になります。この連携が必要なシーンでは<code>SceneManager.LoadScene</code>を直接使わず、<code>SceneLoader</code>を入口にしてください。</p>
 <p class="source-note">この文書は <code>Assets/SymphonyFramework/Documentation~/Architecture.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>

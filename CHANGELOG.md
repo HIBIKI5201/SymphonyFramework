@@ -1,5 +1,40 @@
 ﻿# Changelog
 
+## [6.17.0] - 2026-11-18
+Service Locator を `Partitura` へ改名し、取得・解除の入口を整理しました。7.0.0 へ向けた命名の全面整理（#227）の2つ目です（#225、#233）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`ServiceLocator` と `ServiceInjector` を `Partitura`（名前空間 `SymphonyFramework.Services`）へまとめました。** 名前の対応は次のとおりです。
+
+| 6.16.0 | 6.17.0 |
+| --- | --- |
+| `using SymphonyFramework.System.ServiceLocate;` | `using SymphonyFramework.Services;` |
+| `ServiceLocator.RegisterInstance` / `RegisterInstanceWithAutoDispose` | `Partitura.Register` / `RegisterWithAutoDispose` |
+| `ServiceLocator.UnregisterInstance` / `DestroyInstance` / `IsExistInstance` | `Partitura.Unregister` / `Destroy` / `IsRegistered` |
+| `ServiceLocator.GetRequiredInstance<T>()` | `Partitura.Get<T>()` |
+| `ServiceLocator.GetInstance<T>()`（無ければ `null`） | 削除。`Partitura.TryGet<T>(out T)` を使う |
+| `ServiceLocator.TryGetInstance` / `GetInstanceAsync` / `TryGetInstanceAsync` | `Partitura.TryGet` / `GetAsync` / `TryGetAsync` |
+| `ServiceLocator.RegisterAfterLocate<T>(Action<T>)` | `Partitura.WhenRegistered<T>(Action<T>)` |
+| `ServiceLocator.RegisterAfterLocate<T>(Action)` | 削除。`WhenRegistered<T>(_ => …)` と書く |
+| `ServiceInjector.Inject` / `CreateInstance` | `Partitura.Inject` / `CreateInstance` |
+| `ServiceLocateComponent` | `ServiceComponent` |
+| `SymphonyLocateObject<T>`（`GetInstance` / `GetInstanceAsync` / `TryGetInstance`） | `PartituraReference<T>`（`Get` / `GetAsync` / `TryGet`） |
+| `LocateTypeEnum.Singleton` / `.Locator` | `ServiceLifetimeEnum.Persistent` / `.Scene` |
+| `ServiceRegistrationInfo.LocateType` | `ServiceRegistrationInfo.Lifetime` |
+| `SymphonyConfigLocator`（public） | `SymphonyConfigProvider`（internal） |
+| `SymphonyEditorConfigLocator` | `SymphonyEditorConfigProvider` |
+| `SymphonyMcpTools.GetServiceLocatorJson`（`effectiveLocateType`） | `SymphonyMcpTools.GetPartituraJson`（`effectiveLifetime`） |
+| `SymphonyDocumentPageEnum.ServiceLocator` | `SymphonyDocumentPageEnum.Partitura` |
+
+- **インスタンスを渡す `Destroy(instance)` と `IsRegistered(instance)` は、現在の登録と同じ参照のときだけ動くようにしました。** 6.16.0 までの `DestroyInstance(instance)` と `IsExistInstance(instance)` は、渡したインスタンスを見ずに型だけで処理していました。`Unregister(instance)` は 6.15.2 から同じ動きです。
+- **`PartituraReference<T>.Get()` は、キャッシュが無く登録も無い場合に `ServiceNotRegisteredException` を投げます。** 6.16.0 までの `SymphonyLocateObject<T>.GetInstance()` は `null` を返していました。無いかもしれない場合は `TryGet` を使ってください。
+
+### Change
+
+- `ServiceComponent` の Inspector に保存された登録方式は、値の順序を変えていないためそのまま引き継がれます。`UserSettings` のログ設定も引き継がれます。
+- Symphony Administrator のパネル名、Project Settings のログ設定の項目名（`Register` / `Get` / `Unregister / Destroy`）、モジュール文書（`Documentation~/Modules/Partitura.md`）、サンプル（`Partitura Sample`）を新しい名前にしました。モジュール文書へ「どの入口を使うか」の表を加えました。
+
 ## [6.16.0] - 2026-11-18
 ルート名前空間、アセンブリ名、生成物のフォルダ名の表記を `SymphonyFrameWork` から `SymphonyFramework` へそろえました。7.0.0 へ向けた命名の全面整理（#227）の1つ目です。**利用側コードの `using` と、名前で参照している asmdef は書き換えが必要です。** 旧名前空間からの自動移行は 7.0.0 でまとめて入れます。
 

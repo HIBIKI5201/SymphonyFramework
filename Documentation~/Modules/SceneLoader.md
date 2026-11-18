@@ -22,7 +22,7 @@
 
 1. **シーンはいつもAdditiveでロードします。** `LoadSceneMode.Single`を指定すると、対象をAdditiveでロードした後に他の追跡シーンをアンロードします。
 2. **Active Sceneは優先度で決まります。** ロードしたシーンの優先度が今のActive Scene以上ならActiveにします。`SceneLoadRequest`はシーン名と優先度を1つの値として持ちます。
-3. **ロードはシーンの初期化が終わるまで完了しません。** ルートGameObjectの`IInjectable<T...>`へ[Service Locator](./ServiceLocator.md)から依存を注入し、`IInitializeAsync`の完了を待ってから`true`を返します。
+3. **ロードはシーンの初期化が終わるまで完了しません。** ルートGameObjectの`IInjectable<T...>`へ[Partitura](./Partitura.md)から依存を注入し、`IInitializeAsync`の完了を待ってから`true`を返します。
 4. **状態はスナップショットで読みます。** `GetSceneInfos`と`TryGetSceneInfo`が返す`SceneLoadInfo`は、取得した時点の値から変わりません。
 
 ## 機能一覧
@@ -116,7 +116,7 @@ public async void OpenGameScene()
 
 ## 関連
 
-- [Service Locator](./ServiceLocator.md)
+- [Partitura](./Partitura.md)
 - [Scene Block](./SceneBlock.md)
 - [Architecture.md](../Architecture.md)
 - [Deprecations.md](../Deprecations.md)

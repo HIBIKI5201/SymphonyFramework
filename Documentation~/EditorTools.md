@@ -42,7 +42,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset` | enum自動生成の有効・無効 | 含める（プロジェクト共有） |
 | `ProjectSettings/Packages/symphonyframework/BuildValidationConfig.asset` | ビルド前検証の有効・無効、UXMLの起点、フォントの検証条件 | 含める（プロジェクト共有） |
 | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` | Packagerの入出力パス | 含める（プロジェクト共有） |
-| `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Service Locatorのログ設定、Save DataのPlay Mode持ち越し | **含めない（開発者ごと）** |
+| `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Partituraのログ設定、Save DataのPlay Mode持ち越し | **含めない（開発者ごと）** |
 | `Assets/Resources/SymphonyFramework/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` / `DebugHUDConfig` | 含める |
 | `<Asset Store Tools Path>/PackagerConfig.json` | Packagerの除外フォルダと強制包含拡張子 | 含める |
 | `<Asset Store Tools Path>/PackageVersions.json` | ディレクトリごとの現在リビジョン | 含める |
@@ -73,7 +73,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 
 | パネル | 内容 |
 | --- | --- |
-| Service Locate | 登録済みインスタンスの一覧と登録状態 |
+| Partitura | 登録済みインスタンスの一覧と登録状態 |
 | Scene Load | ロード済みシーンと進行中のロード |
 | Scene Block | 追跡中のScene Blockの状態、進捗、保持しているシーン |
 | Save Data | 全対応型の一覧、Registry／Window専用インスタンスの接続状態、非接続編集とPlay Modeへの持ち越し |
@@ -131,14 +131,14 @@ Framework全体の個人設定とプロジェクト共有設定です。
 | 項目 | 内容 |
 | --- | --- |
 | Asset Protection Mode | Framework配下のアセット移動に対する保護の強さ。`Enabled` / `Warning` / `Disabled` |
-| Service Locator Logs | 登録、取得、破棄のEditorログを開発者ごとに切り替える |
+| Partitura Logs | 登録、取得、破棄のEditorログを開発者ごとに切り替える |
 | Debug HUD Shortcut | EditorとDevelopment BuildでHUD表示を切り替えるInput Action。既定は`Shift + D + P` |
 
 **保存先**:
 
 | 設定 | ファイル |
 | --- | --- |
-| Asset Protection / Service Locator Logs | `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset` |
+| Asset Protection / Partitura Logs | `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset` |
 | Debug HUD Shortcut | `Assets/Resources/SymphonyFramework/DebugHUDConfig.asset` |
 
 **注意点**:

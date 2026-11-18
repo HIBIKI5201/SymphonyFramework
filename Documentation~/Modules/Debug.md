@@ -37,7 +37,7 @@ Game ViewのHUD、ログ、処理時間の計測、Runtime状態の読み取り�
 | DBG-05 | 例外ログ | `SymphonyDebugLogger.LogException` | Consoleへはスタックトレース付き、ファイルへは型名と理由を1行で出す |
 | DBG-06 | nullの診断 | `LogAndCheckComponentNull`（拡張メソッド） | nullなら警告を出して`true`を返す |
 | DBG-07 | 処理時間の計測 | `SymphonyStopWatch.Start` / `Stop` | IDごとの経過時間を`Stop`でログへ出す |
-| DBG-08 | 状態の読み取り | `SymphonyMcpTools`の各メソッド | Service Locator、Scene Loader、Save Dataなどの状態をJSONで返す |
+| DBG-08 | 状態の読み取り | `SymphonyMcpTools`の各メソッド | Partitura、Scene Loader、Save Dataなどの状態をJSONで返す |
 | DBG-09 | ログファイルの読み取り | `SymphonyMcpTools.GetLogFileJson(lines)` | 書き込み待ちを出し切ってから、直近の行（既定200、1〜1000）をJSONで返す |
 
 ## クイックスタート
@@ -94,7 +94,7 @@ Debug HUDパネルはEdit Modeでは`-`を表示し、Show / Hideは押せませ
 
 ## 関連
 
-- [Service Locator](./ServiceLocator.md)
+- [Partitura](./Partitura.md)
 - [Scene Loader](./SceneLoader.md)
 - [Save Data System](./SaveDataSystem.md)
 - [Deprecations.md](../Deprecations.md)

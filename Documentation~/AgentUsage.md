@@ -11,7 +11,7 @@ APIの説明、コード例、実装時に誤りやすい判断は各モジュ�
 
 | 機能 | namespace | 主な入口 | モジュール文書 |
 | --- | --- | --- | --- |
-| Service Locator | `SymphonyFramework.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](./Modules/ServiceLocator.md) |
+| Partitura（Partitura） | `SymphonyFramework.Services` | `Partitura` | [Partitura](./Modules/Partitura.md) |
 | Scene Loader | `SymphonyFramework.System.SceneLoad` | `SceneLoader` | [Scene Loader](./Modules/SceneLoader.md) |
 | Save Data System | `SymphonyFramework.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](./Modules/SaveDataSystem.md) |
 | Audio Manager | `SymphonyFramework.System` | `AudioManager` | [Audio Manager](./Modules/AudioManager.md) |
