@@ -1,12 +1,12 @@
-﻿using SymphonyFrameWork.Attribute;
-using SymphonyFrameWork.Debugger.Logger;
+﻿using SymphonyFramework.Attribute;
+using SymphonyFramework.Debugger.Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SerializeReferenceの具象型を選択する。

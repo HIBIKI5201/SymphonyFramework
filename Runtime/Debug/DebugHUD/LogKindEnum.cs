@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Debugger.Logger
+﻿namespace SymphonyFramework.Debugger.Logger
 {
     /// <summary>
     ///     出力するログの重要度を表す。

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System.SceneLoad
+namespace SymphonyFramework.System.SceneLoad
 {
     /// <summary>
     ///     ロードしたシーンのルートオブジェクト初期化に失敗した場合に発生する例外。

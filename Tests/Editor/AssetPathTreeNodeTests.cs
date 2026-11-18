@@ -1,10 +1,10 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using System.Linq;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> アセットパスの一覧から階層ツリーを組み立てる契約を検証する。 </summary>
     public sealed class AssetPathTreeNodeTests

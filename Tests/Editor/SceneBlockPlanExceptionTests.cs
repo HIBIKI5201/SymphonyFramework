@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SceneBlockPlanExceptionが検出した全異常を保持して伝える契約を検証する。

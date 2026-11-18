@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     Save DataのView操作と問い合わせを集約する。

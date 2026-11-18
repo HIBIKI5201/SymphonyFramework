@@ -1,6 +1,6 @@
-﻿using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.Utility;
+﻿using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Save Storeのキャッシュ確認、編集、保存操作を提供する。
@@ -72,7 +72,7 @@ namespace SymphonyFrameWork.Editor
 
         #region 内部処理
 
-        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataWindow.SelectedTypeName";
+        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFramework.SaveDataWindow.SelectedTypeName";
 
         /// <summary> 対応するセーブデータ型がプロジェクトに1つも無いことを示す文言。 </summary>
         private const string NO_SAVE_DATA_TYPE_MESSAGE =
@@ -81,7 +81,7 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 管理対象の型が1つも無いことと、設定画面への導線を示す文言。 </summary>
         private const string NO_MANAGED_TYPE_MESSAGE =
             "管理対象のセーブデータ型がありません。"
-            + "Project Settings > SymphonyFrameWork > Save System で管理対象を設定してください。";
+            + "Project Settings > SymphonyFramework > Save System で管理対象を設定してください。";
 
         /// <summary> 一覧からの明示選択を促す文言。 </summary>
         private const string SELECT_TYPE_MESSAGE = "Save Data Types からセーブデータを選択してください。";

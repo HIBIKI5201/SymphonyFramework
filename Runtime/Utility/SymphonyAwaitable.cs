@@ -3,11 +3,11 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Utility
+namespace SymphonyFramework.Utility
 {
     /// <summary>
     ///     UnityのAwaitableを合成し、Taskとの相互変換を提供する。

@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.System.ServiceLocate;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ServiceRegistrationEntityの値と登録状態遷移を検証する。 </summary>
     public sealed class ServiceRegistrationEntityTests

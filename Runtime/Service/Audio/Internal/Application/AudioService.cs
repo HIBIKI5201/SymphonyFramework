@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     ConfigからAudioSourceを構築し、音量をAudioMixerへ反映する。

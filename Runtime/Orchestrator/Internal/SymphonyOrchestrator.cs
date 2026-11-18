@@ -2,22 +2,22 @@
 using System.Collections.Generic;
 using System.Threading;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.HUD;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.System.SceneBlock;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.HUD;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.System;
+using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.System.SceneBlock;
+using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.System.ServiceLocate;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Orchestrator
+namespace SymphonyFramework.Orchestrator
 {
     /// <summary>
-    ///     SymphonyFrameWorkの永続オブジェクトを管理するComposition Root。
+    ///     SymphonyFrameworkの永続オブジェクトを管理するComposition Root。
     /// </summary>
     internal static class SymphonyOrchestrator
     {

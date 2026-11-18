@@ -2,13 +2,13 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
 using UnityEditor;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SceneBlockAssetがシリアライズ済みの値を読み取り専用で公開する契約を検証する。

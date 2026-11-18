@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     AudioSourceと所有オブジェクトの寿命を扱う。

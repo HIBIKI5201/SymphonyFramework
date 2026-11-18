@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Save Data Inspectorのバインド元と表示値を解決する。

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System.SceneLoad
+namespace SymphonyFramework.System.SceneLoad
 {
     /// <summary>
     ///     Scene RegistryとEntityを公開InfoまたはView用Dtoへ変換する。

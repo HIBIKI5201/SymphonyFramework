@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.System.SceneBlock
+﻿namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     Scene Blockの依存グラフで検出した異常の種類を表す。

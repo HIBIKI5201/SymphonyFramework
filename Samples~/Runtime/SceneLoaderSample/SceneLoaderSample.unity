@@ -239,7 +239,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d086645ce394eaca3f5da1460bb77f0, type: 3}
   m_Name:
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Samples.SceneLoaderSample.SceneLoaderSample_Controller
+  m_EditorClassIdentifier: SymphonyFramework::SymphonyFramework.Samples.SceneLoaderSample.SceneLoaderSample_Controller
 --- !u!4 &2002
 Transform:
   m_ObjectHideFlags: 0

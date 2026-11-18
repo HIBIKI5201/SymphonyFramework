@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     Scene Block 1件の実行計画と状態遷移を検証する。

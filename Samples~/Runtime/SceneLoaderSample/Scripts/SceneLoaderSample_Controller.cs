@@ -1,11 +1,11 @@
-﻿using SymphonyFrameWork.System.SceneLoad;
+﻿using SymphonyFramework.System.SceneLoad;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.Samples.SceneLoaderSample
+namespace SymphonyFramework.Samples.SceneLoaderSample
 {
     /// <summary> SceneLoaderによる追加ロード、優先度に基づくActive Scene切り替え、ロード完了待機を実演する。 </summary>
     public sealed class SceneLoaderSample_Controller : MonoBehaviour

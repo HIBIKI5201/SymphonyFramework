@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System.SceneLoad
+namespace SymphonyFramework.System.SceneLoad
 {
     /// <summary>
     ///     シーン名を同一性としてロード状態、進捗、優先度を保持する。

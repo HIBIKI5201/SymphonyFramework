@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.Core
+namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     UnityEngine.Objectを遅延生成し、破棄後に生成し直す参照を保持する。

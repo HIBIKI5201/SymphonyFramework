@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.HUD;
+﻿using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.HUD;
 
 using UnityEditor;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Symphony Debug HUDのEditorメニュー入口を提供する。

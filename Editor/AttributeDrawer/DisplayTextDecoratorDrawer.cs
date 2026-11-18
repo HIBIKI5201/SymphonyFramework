@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Attribute
+namespace SymphonyFramework.Attribute
 {
     /// <summary>
     ///     文字列をInspectorへ描画する。

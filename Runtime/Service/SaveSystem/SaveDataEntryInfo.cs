@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     キャッシュされたセーブデータの読み取り用スナップショットを表す。

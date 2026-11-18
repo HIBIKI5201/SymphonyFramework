@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Samples.PauseManagerSample
+﻿namespace SymphonyFramework.Samples.PauseManagerSample
 {
     /// <summary>
     ///     UI演出カテゴリーに属する往復移動オブジェクト。

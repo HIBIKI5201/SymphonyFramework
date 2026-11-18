@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System.SceneBlock
+namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     追跡中Scene Blockと、シーンごとの保持元を保持する。

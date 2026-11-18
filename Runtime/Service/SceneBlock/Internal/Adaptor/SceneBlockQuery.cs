@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System.SceneBlock
+namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     Scene Blockの追跡状態を、公開API向けの不変なスナップショットへ変換する。

@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     JsonUtilityとPlayerPrefsを使用するsealedな具象I/Oを提供する。

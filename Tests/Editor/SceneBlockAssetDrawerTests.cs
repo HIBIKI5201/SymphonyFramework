@@ -1,13 +1,13 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.Editor;
+using SymphonyFramework.System.SceneBlock;
 
 using UnityEditor;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SceneBlockAssetの専用Inspectorが対象型へ結び付いていることを検証する。

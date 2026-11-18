@@ -1,13 +1,13 @@
 ﻿using System;
 
-using SymphonyFrameWork.Debugger.HUD;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Debugger.HUD;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary> Debug HUDの状態表示とShow / Hide操作を提供する。 </summary>
     [UxmlElement]

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     カテゴリーごとのポーズ状態と変更判定を保持する。

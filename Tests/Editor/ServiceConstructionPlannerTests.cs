@@ -4,9 +4,9 @@ using System.Reflection;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.System.ServiceLocate;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     コンストラクタ注入で使うコンストラクタの選択と、引数の解決を検証する。

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Config
+namespace SymphonyFramework.Config
 {
     /// <summary>
     ///     シーン管理の設定を保持する。

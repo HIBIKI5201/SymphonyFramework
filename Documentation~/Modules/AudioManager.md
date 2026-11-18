@@ -13,10 +13,10 @@ BGM・SEなどの出力先ごとに、再生用のAudioSourceと音量の操作�
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.System` |
+| namespace | `SymphonyFramework.System` |
 | 主な公開型 | `AudioManager` |
 | メニューパス | なし |
-| 設定の保存先 | `Assets/Resources/SymphonyFrameWork/AudioConfig.asset` |
+| 設定の保存先 | `Assets/Resources/SymphonyFramework/AudioConfig.asset` |
 
 ## 仕組みの要点
 
@@ -43,7 +43,7 @@ BGM・SEなどの出力先ごとに、再生用のAudioSourceと音量の操作�
 ## クイックスタート
 
 ```csharp
-using SymphonyFrameWork.System;
+using SymphonyFramework.System;
 using UnityEngine;
 
 AudioSource bgm = AudioManager.GetAudioSource("BGM");
@@ -72,7 +72,7 @@ AudioManager.VolumeSliderChanged("BGM", 0.5f);
 ## 確かめ方
 
 - Play Modeで`GetAudioSource`を呼び、戻り値が`null`でないことと、`outputAudioMixerGroup`が目的のグループであることを確かめる。
-- Console（または`Library/SymphonyFrameWork/Cache/Log.txt`）に、グループごとの「正常に追加されました」が出ていることを見る。
+- Console（または`Library/SymphonyFramework/Cache/Log.txt`）に、グループごとの「正常に追加されました」が出ていることを見る。
 
 ## 関連
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     Service Locatorへ登録された1件の状態を表す不変なスナップショット。

@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.System.ServiceLocate;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> fake Hostを用いてService Locateの所有権と処理順を検証する。 </summary>
     public sealed class ServiceLocateServiceTests

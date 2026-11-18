@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.System.ServiceLocate
+﻿namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     インスタンスの登録方式を定義する。

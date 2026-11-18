@@ -1,7 +1,7 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Config
+namespace SymphonyFramework.Config
 {
     /// <summary>
     ///     Symphony Frameworkの設定アセットに対するパス解決とロードを提供する。

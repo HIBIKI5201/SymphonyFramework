@@ -1,10 +1,10 @@
-﻿using SymphonyFrameWork.Attribute;
+﻿using SymphonyFramework.Attribute;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     stringフィールドをBuild Settingsのシーン名選択欄として描画する。

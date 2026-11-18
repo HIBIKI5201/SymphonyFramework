@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.System.ServiceLocate;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.System.ServiceLocate;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Service Locatorの登録状態とデバッグログ設定を表示する。

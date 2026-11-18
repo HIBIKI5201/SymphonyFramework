@@ -1,9 +1,9 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.System;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     IPausableの登録と通知の契約を検証する。

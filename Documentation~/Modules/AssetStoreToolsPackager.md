@@ -13,9 +13,9 @@ Asset Storeで購入したアセットを、複数のプロジェクトで同じ
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.Editor` |
+| namespace | `SymphonyFramework.Editor` |
 | 主な公開型 | `AssetStoreToolsPackager` / `AssetStoreToolsPackagerData` / `AssetStoreToolsPackagePipeline` / `AssetStoreToolsPackageStepStrategy` |
-| メニューパス | `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder` |
+| メニューパス | `Tools > SymphonyFramework > ExportAssetStoreToolsFolder` |
 | 設定の保存先 | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` / `<Asset Store Tools Path>/PackagerConfig.json` |
 
 ## 仕組みの要点
@@ -29,7 +29,7 @@ Asset Storeで購入したアセットを、複数のプロジェクトで同じ
 | ID | 機能 | 入口 | 結果 |
 | --- | --- | --- | --- |
 | ASTP-01 | 出力 | Packagerウィンドウの Export タブ | 選んだフォルダを`.unitypackage`にする |
-| ASTP-02 | パイプラインの作成 | `Create Default Pipeline`、`Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline` | 出力手順のアセットを作る |
+| ASTP-02 | パイプラインの作成 | `Create Default Pipeline`、`Assets > Create > SymphonyFramework > Asset Store Tools Package Pipeline` | 出力手順のアセットを作る |
 | ASTP-03 | 自作の手順 | `AssetStoreToolsPackageStepStrategy`を継承 | パイプラインへ手順を足す |
 | ASTP-04 | コードからの出力 | `AssetStoreToolsPackager.Export(string[], AssetStoreToolsPackagePipeline)` | Project Settingsへのアサインなしで出力する |
 | ASTP-05 | 差分の取り込み | Packagerウィンドウの Import タブ | `New`と`Updated`だけを既定で選んで取り込む |
@@ -41,7 +41,7 @@ Asset Storeで購入したアセットを、複数のプロジェクトで同じ
 
 Packagerが使う入出力パスと、パッケージへ何を詰めるかの設定です。
 
-**入口**: `Project Settings > SymphonyFrameWork > Asset Store Tools Packager`
+**入口**: `Project Settings > SymphonyFramework > Asset Store Tools Packager`
 
 **項目**:
 
@@ -55,7 +55,7 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 
 **Export Pipelines**:
 
-- `Create Default Pipeline` を押すと、`Singles → Used Dependencies → Create ZIP` のテンプレートを `Assets/Editor/SymphonyFrameWork/Configs/` へ生成してアサインします。**同名のアセットがある場合は上書きせず別名で作ります。**
+- `Create Default Pipeline` を押すと、`Singles → Used Dependencies → Create ZIP` のテンプレートを `Assets/Editor/SymphonyFramework/Configs/` へ生成してアサインします。**同名のアセットがある場合は上書きせず別名で作ります。**
 - `Add` で空の要素を足し、既存のパイプラインアセットをアサインできます。
 - **パイプラインは自動生成しません。** 利用側のリポジトリへ意図しないアセットを増やさないためで、Runtimeの設定アセットが自動生成されるのは Framework の動作に必須だからです。パイプラインは「使う人が構成するもの」です。
 - パス項目と同じく、**変更した時点で保存します。** `PackagerConfig.json` のような `Save` / `Reload` はありません。
@@ -69,7 +69,7 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 
 `Asset Store Tools Path` 配下の各フォルダを `.unitypackage` として出力します。Asset Store由来のアセットを別プロジェクトへ持ち込むためのツールです。
 
-**入口**: `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder`
+**入口**: `Tools > SymphonyFramework > ExportAssetStoreToolsFolder`
 
 ウィンドウは **Export** と **Import** の2タブです。Export で `.unitypackage` を出力し、Import で別プロジェクトの出力物のうち更新されたものだけを取り込みます。
 
@@ -96,7 +96,7 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 
 3.6.0 から、出力手順を順序付きの Strategy 列として組み替えられます。
 
-**入口**: `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline`、または `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` の `Create Default Pipeline`
+**入口**: `Assets > Create > SymphonyFramework > Asset Store Tools Package Pipeline`、または `Project Settings > SymphonyFramework > Asset Store Tools Packager` の `Create Default Pipeline`
 
 作成したアセットの `Steps` へ、サブクラスセレクターで手順を並べます。ウィンドウから選べるようにするには、Project Settings の `Export Pipelines` へアサインします。
 
@@ -116,7 +116,7 @@ Packagerが使う入出力パスと、パッケージへ何を詰めるかの設
 - **1つの手順が例外を投げても、記録して次の手順へ進みます。** 自作手順の失敗でフレームワーク側の出力まで止めないためです。
 - コードから実行する場合は `AssetStoreToolsPackager.Export(string[], AssetStoreToolsPackagePipeline)` を呼びます。Project Settings へのアサインは不要です。
 
-**自作の手順を追加する**: `AssetStoreToolsPackageStepStrategy` を継承し、`[Serializable]` を付けます。置き場は `SymphonyFrameWork.Editor` を参照する Editor 用 asmdef です。
+**自作の手順を追加する**: `AssetStoreToolsPackageStepStrategy` を継承し、`[Serializable]` を付けます。置き場は `SymphonyFramework.Editor` を参照する Editor 用 asmdef です。
 
 ```csharp
 [Serializable]

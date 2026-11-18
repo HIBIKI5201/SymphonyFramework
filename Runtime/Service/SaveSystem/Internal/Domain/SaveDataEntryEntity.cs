@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     セーブデータ型ごとのキャッシュ状態を保持する。

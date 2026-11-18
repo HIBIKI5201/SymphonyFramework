@@ -2,7 +2,7 @@
 
 このファイルは、Symphony Frameworkを導入したプロジェクトで作業するAIエージェント向けの**ドキュメント導線と常時ルール**です。API説明やコード例を重複させず、必要な文書の該当箇所だけを読めるようにしています。
 
-パッケージは通常`Packages/symphonyframework/`、ソース導入時は`Assets/SymphonyFrameWork/`にあります。以下の相対リンクはどちらの配置でもパッケージルートから解決してください。
+パッケージは通常`Packages/symphonyframework/`、ソース導入時は`Assets/SymphonyFramework/`にあります。以下の相対リンクはどちらの配置でもパッケージルートから解決してください。
 
 ## 0. 作業内容ごとの参照先
 
@@ -30,19 +30,19 @@
 
 **モジュール文書は1ファイルで完結します。** 機能一覧、クイックスタート、うまくいかないとき、守ること、対応するEditor機能がそろっているため、1つのモジュールを使うために複数の文書を読む必要はありません。
 
-人が読む場合は、Unityから`Window > SymphonyFrameWork > Documentation`でブラウザ版（`Documentation~/Html/`）を開けます。**AIエージェントはMarkdownの正本を読んでください。** HTMLは同じ内容の生成物です。
+人が読む場合は、Unityから`Window > SymphonyFramework > Documentation`でブラウザ版（`Documentation~/Html/`）を開けます。**AIエージェントはMarkdownの正本を読んでください。** HTMLは同じ内容の生成物です。
 
 ## 1. 常に守ること
 
 1. `Packages/manifest.json`またはパッケージの`package.json`で、実際の導入バージョンを確認する。
-2. 利用側コードだけを`Assets/`へ書き、`Packages/symphonyframework/`や`Assets/SymphonyFrameWork/`のパッケージ本体を直接編集しない。
-3. 利用側asmdefから`SymphonyFrameWork`を参照する。自動生成enumを使う場合だけ`SymphonyFrameWork.Enum`も参照する。
+2. 利用側コードだけを`Assets/`へ書き、`Packages/symphonyframework/`や`Assets/SymphonyFramework/`のパッケージ本体を直接編集しない。
+3. 利用側asmdefから`SymphonyFramework`を参照する。自動生成enumを使う場合だけ`SymphonyFramework.Enum`も参照する。
 4. `SceneLoadConfig`、`AudioConfig`、`SaveDataConfig`は`internal`である。InspectorまたはProject Settingsから設定し、型として参照しない。
 5. 主要APIはstatic Facadeである。`new`や`.Instance`を使わない。
 6. 初期化は`SymphonyOrchestrator`が自動実行する。Bootstrap用GameObjectや専用シーンを作らない。
-7. Runtimeコードから`SymphonyFrameWork.Editor`を参照しない。
+7. Runtimeコードから`SymphonyFramework.Editor`を参照しない。
 8. 登録APIと解除APIを同じライフサイクルの対として実装する。
-9. `Library/SymphonyFrameWork/Cache/Log.txt`はEditor用の生成キャッシュである。編集もコミットもせず、不要なら削除してよい。
+9. `Library/SymphonyFramework/Cache/Log.txt`はEditor用の生成キャッシュである。編集もコミットもせず、不要なら削除してよい。
 
 ## 2. 文書の読み方
 

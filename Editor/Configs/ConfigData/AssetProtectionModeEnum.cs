@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Editor
+﻿namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     アセット移動に対する保護の強さを表す。

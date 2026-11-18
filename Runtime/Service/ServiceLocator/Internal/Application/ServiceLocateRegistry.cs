@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     型をキーにService Registration Entityと登録待機callbackを所有する。

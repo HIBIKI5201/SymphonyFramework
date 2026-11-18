@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     セーブデータの状態変更を表示用ReactivePropertyへ変換する。

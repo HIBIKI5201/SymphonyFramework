@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     Authoringのエントリ一覧から依存順の実行層を作る変換と、異常の説明を検証する。

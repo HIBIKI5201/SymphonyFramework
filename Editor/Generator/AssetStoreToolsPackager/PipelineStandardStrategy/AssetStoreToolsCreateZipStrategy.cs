@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEngine;
 using CompressionLevel = System.IO.Compression.CompressionLevel;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     出力フォルダをZIP化する手順。

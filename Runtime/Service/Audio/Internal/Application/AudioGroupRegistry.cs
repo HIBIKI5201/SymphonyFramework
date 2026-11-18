@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     AudioMixerグループの登録と構築状態を保持する。

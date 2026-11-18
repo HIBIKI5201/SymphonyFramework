@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using UnityEditor;
 
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> Scene Block管理パネルのUXML契約を検証する。 </summary>
     public sealed class SceneBlockWindowTests
@@ -36,7 +36,7 @@ namespace SymphonyFrameWork.Tests
 
             // ルートへ足し忘れると、パネルを作ってもAdministratorに現れない。
             TemplateContainer container = tree.Instantiate();
-            Assert.That(container.Q<SymphonyFrameWork.Editor.SceneBlockWindow>(), Is.Not.Null);
+            Assert.That(container.Q<SymphonyFramework.Editor.SceneBlockWindow>(), Is.Not.Null);
         }
     }
 }

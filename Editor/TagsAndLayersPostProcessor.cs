@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     シーン一覧、タグ、レイヤーの変更を監視する。

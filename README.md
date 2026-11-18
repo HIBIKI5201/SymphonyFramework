@@ -58,7 +58,7 @@ https://github.com/HIBIKI5201/SymphonyFramework.git
 ソースを直接配置する場合は、フレームワークのルートを次のパスにします。
 
 ```text
-Assets/SymphonyFrameWork
+Assets/SymphonyFramework
 ```
 
 Editor拡張のパス判定とアセット保護がこの配置を前提とするため、フォルダ名は変更しないでください。
@@ -81,28 +81,28 @@ Editor拡張のパス判定とアセット保護がこの配置を前提とす�
 
 ```text
 Assets/
-├─ Resources/SymphonyFrameWork/
+├─ Resources/SymphonyFramework/
 │  ├─ SceneLoadConfig.asset
 │  ├─ AudioConfig.asset
 │  ├─ SaveDataConfig.asset
 │  └─ DebugHUDConfig.asset
-└─ Scripts/SymphonyFrameWork/
+└─ Scripts/SymphonyFramework/
    ├─ SceneListEnum.cs
    ├─ TagsEnum.cs
    ├─ LayersEnum.cs
    ├─ AudioGroupTypeEnum.cs
-   └─ SymphonyFrameWork.Enum.asmdef
+   └─ SymphonyFramework.Enum.asmdef
 ```
 
 主な設定場所:
 
-- `Window > SymphonyFrameWork > Symphony Administrator`: 各機能の状態確認とenum生成
-- `Project Settings > SymphonyFrameWork`: Debug HUD Shortcut、アセット保護、Service Locatorのログ設定
-- `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択
+- `Window > SymphonyFramework > Symphony Administrator`: 各機能の状態確認とenum生成
+- `Project Settings > SymphonyFramework`: Debug HUD Shortcut、アセット保護、Service Locatorのログ設定
+- `Project Settings > SymphonyFramework > Save System`: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択
 - `SceneLoadConfig.asset`: 再生開始時のシーン初期化
 - `AudioConfig.asset`: AudioMixerとグループ設定
 
-asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してください。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も追加します。
+asmdefを使うゲーム側コードは`SymphonyFramework`を参照してください。自動生成enumを直接使う場合だけ`SymphonyFramework.Enum`も追加します。
 
 ## 機能ごとの使い方
 
@@ -172,7 +172,7 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
   - [利用コードの検証手順](./Documentation~/AgentVerification.md)
 - [Symphony Framework Document](https://lying-foxglove-81a.notion.site/Symphony-Framework-Document-19b7c2c6cc02806b9b97cb8a97c9f11a?pvs=74)
 
-同じ内容をブラウザで読めるHTMLが`Documentation~/Html/`にあります。**Unityから`Window > SymphonyFrameWork > Documentation`を選ぶと索引がブラウザで開きます。** Project Settingsの各画面にある`ドキュメントを開く`からは、その画面に対応するモジュール文書が開きます。
+同じ内容をブラウザで読めるHTMLが`Documentation~/Html/`にあります。**Unityから`Window > SymphonyFramework > Documentation`を選ぶと索引がブラウザで開きます。** Project Settingsの各画面にある`ドキュメントを開く`からは、その画面に対応するモジュール文書が開きます。
 
 **正本はMarkdownで、HTMLは生成物です。** 内容の修正はMarkdown側へ行ってください。
 

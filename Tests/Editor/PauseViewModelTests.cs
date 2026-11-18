@@ -4,9 +4,9 @@ using System.Linq;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System;
+using SymphonyFramework.System;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     PauseViewModelがServiceの状態変更を表示値へ反映する契約を検証する。

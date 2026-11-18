@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System;
+using SymphonyFramework.System;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     PauseCategoryResolverの契約を検証する。

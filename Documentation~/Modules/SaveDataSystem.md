@@ -13,10 +13,10 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.System.SaveSystem` |
+| namespace | `SymphonyFramework.System.SaveSystem` |
 | 主な公開型 | `SaveStore` / `SaveDataContent` / `SaveDataLoaderStrategy` / `SaveDataEntryInfo` / `SaveDataOperationException` |
-| メニューパス | `Project Settings > SymphonyFrameWork > Save System`、`Window > SymphonyFrameWork > Symphony Administrator` の `Save Data` パネル |
-| 設定の保存先 | `Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset` |
+| メニューパス | `Project Settings > SymphonyFramework > Save System`、`Window > SymphonyFramework > Symphony Administrator` の `Save Data` パネル |
+| 設定の保存先 | `Assets/Resources/SymphonyFramework/SaveDataConfig.asset` |
 
 ## 仕組みの要点
 
@@ -42,7 +42,7 @@
 
 ```csharp
 using System;
-using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFramework.System.SaveSystem;
 
 [Serializable]
 public sealed class PlayerData : SaveDataContent
@@ -85,7 +85,7 @@ if (SaveStore.IsLoaded<PlayerData>())
 
 ### Save System設定
 
-**入口**: `Project Settings > SymphonyFrameWork > Save System`
+**入口**: `Project Settings > SymphonyFramework > Save System`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -93,7 +93,7 @@ if (SaveStore.IsLoaded<PlayerData>())
 | Current Loader Type | 今のローダーの型名（読み取り専用） |
 | Managed Save Data Types | Save Dataパネルへ表示する型のチェックボックス。名前空間の階層で並ぶ |
 
-**保存先**: ローダーは`Assets/Resources/SymphonyFrameWork/SaveDataConfig.asset`、管理対象のチェックは`ProjectSettings/Packages/symphonyframework/SaveDataVisibilityConfig.asset`
+**保存先**: ローダーは`Assets/Resources/SymphonyFramework/SaveDataConfig.asset`、管理対象のチェックは`ProjectSettings/Packages/symphonyframework/SaveDataVisibilityConfig.asset`
 
 - ローダーを変えると、その場で`SaveStore`が読み直します。
 - `SaveDataConfig`がまだ無い状態で開くと、未生成である旨と`設定アセットを生成`ボタンが出ます。画面を開くだけでは生成しません。
@@ -112,7 +112,7 @@ if (SaveStore.IsLoaded<PlayerData>())
 
 ### Save Data パネル
 
-**入口**: `Window > SymphonyFrameWork > Symphony Administrator`
+**入口**: `Window > SymphonyFramework > Symphony Administrator`
 
 Managed Save Data Typesでチェックが入っている型を一覧にし、選んだ型をInspectorで編集できます。設定を変えると、開き直さずに一覧が入れ替わります。
 
@@ -124,7 +124,7 @@ Inspectorの編集先はランプで示します。
 | 黄 | パネル専用のインスタンス（保存値を読み込み済み） | パネル専用へ読み込む | 保存する。`SaveStore`へは登録しない | 保存値を消して作り直す |
 | 赤 | パネル専用の新しいインスタンス | 同上 | 同上 | 同上 |
 
-ロード中は赤のまま`Loading…`を表示し、終わるまで編集できません。パネル専用のインスタンスを編集すると`未保存の変更あり`が出ます。`Play Mode へ持ち越す`を有効にすると、Play Modeに入るときにその内容を保存先へ書き出します。この設定は開発者ごとの`UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset`に保存され、既定は無効です。
+ロード中は赤のまま`Loading…`を表示し、終わるまで編集できません。パネル専用のインスタンスを編集すると`未保存の変更あり`が出ます。`Play Mode へ持ち越す`を有効にすると、Play Modeに入るときにその内容を保存先へ書き出します。この設定は開発者ごとの`UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset`に保存され、既定は無効です。
 
 ## 確かめ方
 

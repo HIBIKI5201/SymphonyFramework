@@ -1,14 +1,14 @@
 ﻿using System;
 using System.IO;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     設定アセットの存在を保証する。
@@ -33,7 +33,7 @@ namespace SymphonyFrameWork.Editor
             hasAssetChanges |= FileCheck<SaveDataConfig>();
             hasAssetChanges |= FileCheck<DebugHUDConfig>();
 
-            // 個人設定はEditorPrefsではなく、UserSettings/SymphonyFrameWork配下へ保存する。
+            // 個人設定はEditorPrefsではなく、UserSettings/SymphonyFramework配下へ保存する。
             // ScriptableSingletonはinstanceの取得時に既存アセットをロードし、無ければ保存可能なインスタンスを用意する。
             CreateUserSettingFolder();
             EditorFileCheck<AutoEnumGeneratorConfig>();

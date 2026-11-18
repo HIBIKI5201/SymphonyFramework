@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.System.SceneLoad
+namespace SymphonyFramework.System.SceneLoad
 {
     /// <summary>
     ///     Scene Loadの処理順、状態遷移、優先度判断を実行する。

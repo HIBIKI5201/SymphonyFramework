@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     公開型のテスト網羅を、増やす方向にしか動かないよう固定する。

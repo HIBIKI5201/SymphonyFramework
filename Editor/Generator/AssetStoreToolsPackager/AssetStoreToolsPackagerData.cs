@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Asset Store Tools Packagerのプロジェクト共有パス設定を保持する。

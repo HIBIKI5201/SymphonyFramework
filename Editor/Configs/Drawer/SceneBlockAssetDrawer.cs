@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
 using UnityEditor;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SceneBlockAssetの依存グラフの検証結果と実行層をInspectorへ表示する。

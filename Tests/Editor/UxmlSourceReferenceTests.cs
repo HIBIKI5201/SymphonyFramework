@@ -1,8 +1,8 @@
-﻿using SymphonyFrameWork.Editor;
+﻿using SymphonyFramework.Editor;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     UXML参照のパス解決とGUID抽出を検証する。

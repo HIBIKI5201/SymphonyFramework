@@ -1,10 +1,10 @@
 ﻿using System.IO;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     サブシステムの置き場が <c>Runtime/Service/</c> である契約を検証する。

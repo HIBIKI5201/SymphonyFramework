@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Utility;
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     利用側がJSON変換を実装するPlayerPrefs向け抽象Strategyを提供する。

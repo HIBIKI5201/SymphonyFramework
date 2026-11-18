@@ -2,7 +2,7 @@
 using System.IO;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Execute段階の手順が共有する、出力先パスと確定済みの計画。

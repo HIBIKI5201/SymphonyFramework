@@ -1,13 +1,13 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+﻿using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
-    ///     SymphonyFrameWorkの管理パネルを表示する。
+    ///     SymphonyFrameworkの管理パネルを表示する。
     /// </summary>
     public sealed class SymphonyAdministrator : EditorWindow
     {

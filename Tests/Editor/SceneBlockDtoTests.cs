@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SceneBlockDtoがViewModelへ渡す表示値と、内容比較の契約を検証する。

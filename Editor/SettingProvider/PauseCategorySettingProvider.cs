@@ -3,7 +3,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor.SettingProvider
+namespace SymphonyFramework.Editor.SettingProvider
 {
     /// <summary>
     ///     ポーズカテゴリーのProject Settings画面を提供する。

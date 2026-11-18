@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     ディレクトリごとに<c>.unitypackage</c>を出力し、差分インポート用のマニフェストを書く手順。

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     パッケージ出力の1手順を表す拡張点。

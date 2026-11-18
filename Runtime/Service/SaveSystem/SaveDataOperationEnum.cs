@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.System.SaveSystem
+﻿namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     セーブデータに対して実行した操作の種類を表す。

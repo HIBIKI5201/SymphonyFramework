@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Editor
+﻿namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     インポート先での状態を表す。

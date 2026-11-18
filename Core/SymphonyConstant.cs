@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Core
+﻿namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     ランタイム用の定数値を持つ。
@@ -11,7 +11,7 @@
         public const string SYMPHONY_PACKAGE = "symphonyframework";
 
         /// <summary> Frameworkの表示名およびAssets配下のルート名。 </summary>
-        public const string SYMPHONY_FRAMEWORK = "SymphonyFrameWork";
+        public const string SYMPHONY_FRAMEWORK = "SymphonyFramework";
 
         /// <summary> Frameworkのバージョン。 </summary>
         /// <remarks>

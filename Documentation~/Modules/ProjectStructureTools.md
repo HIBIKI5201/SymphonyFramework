@@ -13,18 +13,18 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.Editor` |
+| namespace | `SymphonyFramework.Editor` |
 | 主な公開型 | `FolderGenerator` / `AssemblyGenerator` / `AssemblyDefinitionData` / `SymphonyPackageLoader` |
-| メニューパス | `Tools > SymphonyFrameWork > FolderGenerator` / `SymphonyPackageLoader` |
+| メニューパス | `Tools > SymphonyFramework > FolderGenerator` / `SymphonyPackageLoader` |
 | 設定の保存先 | `FolderStructure.md` / `PackageList.txt`。Assembly Definitionは指定パスへ生成 |
 
 ## 機能一覧
 
 | ID | 機能 | 入口 | 結果 |
 | --- | --- | --- | --- |
-| PST-01 | フォルダの生成 | `Tools > SymphonyFrameWork > FolderGenerator` | `FolderStructure.md` の構成を `Assets/` に作る。既存のフォルダは作り直さない |
+| PST-01 | フォルダの生成 | `Tools > SymphonyFramework > FolderGenerator` | `FolderStructure.md` の構成を `Assets/` に作る。既存のフォルダは作り直さない |
 | PST-02 | asmdefの生成 | 他のEditor機能から呼ばれる（メニューなし） | 無いasmdefだけを作り、参照を重複なく足す |
-| PST-03 | 推奨パッケージの導入 | `Tools > SymphonyFrameWork > SymphonyPackageLoader` | 不足分をダイアログで確かめてから導入する |
+| PST-03 | 推奨パッケージの導入 | `Tools > SymphonyFramework > SymphonyPackageLoader` | 不足分をダイアログで確かめてから導入する |
 
 ## Editor機能
 
@@ -32,7 +32,7 @@
 
 Markdownで定義したフォルダ構成を `Assets/` 配下へ生成します。プロジェクト開始時の雛形づくりに使います。
 
-**入口**: `Tools > SymphonyFrameWork > FolderGenerator`
+**入口**: `Tools > SymphonyFramework > FolderGenerator`
 
 **定義ファイル**: `<Frameworkルート>/Editor/Generator/FolderGenerate/FolderStructure.md`
 
@@ -53,7 +53,7 @@ Assembly Definition（`.asmdef`）の生成と、既存asmdefへのGUID参照追
 
 Frameworkが推奨するUnity公式パッケージの導入状況を確認し、不足分の導入をダイアログで確認します。
 
-**入口**: `Tools > SymphonyFrameWork > SymphonyPackageLoader`
+**入口**: `Tools > SymphonyFramework > SymphonyPackageLoader`
 
 **対象パッケージの定義**: `<Frameworkルート>/Editor/PackageLoader/PackageList.txt`（1行1パッケージ）
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFramework.System.SaveSystem;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SaveDataQueryがEntityを公開Infoと表示用Dtoへ変換する契約を検証する。

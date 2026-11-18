@@ -1,10 +1,10 @@
-﻿using SymphonyFrameWork.Debugger.HUD;
-using SymphonyFrameWork.Exceptions;
+﻿using SymphonyFramework.Debugger.HUD;
+using SymphonyFramework.Exceptions;
 using System;
 using System.Text;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.DebuggerSample
+namespace SymphonyFramework.Samples.DebuggerSample
 {
     /// <summary> SymphonyDebugHUDへ追加テキストを登録・解除する対のパターンを実演する。 </summary>
     public sealed class DebuggerSample_HudProbe : MonoBehaviour

@@ -1,11 +1,11 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+﻿using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Frameworkのドキュメントをブラウザで開く。

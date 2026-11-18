@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.Editor.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Editor.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Unity Editorのhost lifecycleをEditorモジュールの初期化と終了へ変換する。

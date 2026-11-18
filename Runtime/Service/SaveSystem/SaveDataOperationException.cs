@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System.SaveSystem
+namespace SymphonyFramework.System.SaveSystem
 {
     /// <summary>
     ///     セーブデータ操作のI/O失敗を表す。

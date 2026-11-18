@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SceneBlockPlanResultの成功・失敗Factoryの契約を検証する。

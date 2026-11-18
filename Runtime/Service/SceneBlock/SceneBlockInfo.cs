@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System.SceneBlock
+namespace SymphonyFramework.System.SceneBlock
 {
     /// <summary>
     ///     追跡中Scene Blockの状態を表す不変なスナップショット。

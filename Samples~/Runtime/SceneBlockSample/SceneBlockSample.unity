@@ -239,7 +239,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 682844bd61c0452fb32fb4fbe5441117, type: 3}
   m_Name:
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Samples.SceneBlockSample.SceneBlockSample_Controller
+  m_EditorClassIdentifier: SymphonyFramework::SymphonyFramework.Samples.SceneBlockSample.SceneBlockSample_Controller
   _townBlock: {fileID: 11400000, guid: 61d887d453364058af0a39eab5d9a830, type: 2}
   _dungeonBlock: {fileID: 11400000, guid: 246d5884995c41cdb4e86f24808a5fe9, type: 2}
 --- !u!4 &2002

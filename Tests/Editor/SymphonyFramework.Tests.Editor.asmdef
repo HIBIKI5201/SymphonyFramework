@@ -1,10 +1,10 @@
 {
-    "name": "SymphonyFrameWork.Tests.Editor",
-    "rootNamespace": "SymphonyFrameWork.Tests",
+    "name": "SymphonyFramework.Tests.Editor",
+    "rootNamespace": "SymphonyFramework.Tests",
     "references": [
-        "SymphonyFrameWork",
-        "SymphonyFrameWork.Core",
-        "SymphonyFrameWork.Editor",
+        "SymphonyFramework",
+        "SymphonyFramework.Core",
+        "SymphonyFramework.Editor",
         "Unity.InputSystem",
         "UnityEngine.TestRunner"
     ],

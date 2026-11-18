@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System.SceneLoad
+namespace SymphonyFramework.System.SceneLoad
 {
     /// <summary>
     ///     ロードするシーン名とActive Scene選択用の優先度を表す。

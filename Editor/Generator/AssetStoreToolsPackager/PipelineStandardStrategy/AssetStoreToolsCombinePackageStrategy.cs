@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     全ディレクトリを1つの<c>.unitypackage</c>へまとめて出力する手順。

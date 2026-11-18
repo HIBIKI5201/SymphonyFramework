@@ -13,9 +13,9 @@ Editorでは見えているのに、クリーンな環境でビルドすると�
 
 | 操作 | 場所 |
 | --- | --- |
-| 設定 | `Project Settings > SymphonyFrameWork > Build Validation` |
-| UXMLの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies` |
-| フォントの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate Fonts` |
+| 設定 | `Project Settings > SymphonyFramework > Build Validation` |
+| UXMLの手動検証 | `Tools > SymphonyFramework > Build Validation > Validate UXML Dependencies` |
+| フォントの手動検証 | `Tools > SymphonyFramework > Build Validation > Validate Fonts` |
 
 ## 仕組みの要点
 
@@ -27,8 +27,8 @@ Editorでは見えているのに、クリーンな環境でビルドすると�
 
 | ID | 機能 | 入口 | 結果 |
 | --- | --- | --- | --- |
-| BV-01 | UXML/USSの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies` | 結果をConsoleとダイアログへ出す |
-| BV-02 | フォントの手動検証 | `Tools > SymphonyFrameWork > Build Validation > Validate Fonts` | 同上 |
+| BV-01 | UXML/USSの手動検証 | `Tools > SymphonyFramework > Build Validation > Validate UXML Dependencies` | 結果をConsoleとダイアログへ出す |
+| BV-02 | フォントの手動検証 | `Tools > SymphonyFramework > Build Validation > Validate Fonts` | 同上 |
 | BV-03 | ビルド前の検証 | 設定の `Validate On Build` | 不備があればビルドを止める |
 
 ## Editor機能

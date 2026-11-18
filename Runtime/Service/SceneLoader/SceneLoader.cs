@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Config;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.System.SceneLoad
+namespace SymphonyFramework.System.SceneLoad
 {
     /// <summary>
     ///     シーンのロード、アンロード、Active Scene選択を提供する公開エントリポイント。

@@ -3,7 +3,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Project Settings画面と管理パネルへ、対応するドキュメントを開くボタンを配置する。

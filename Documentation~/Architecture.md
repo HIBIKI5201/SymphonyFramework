@@ -6,18 +6,18 @@
 
 | アセンブリ | 内容 | 利用側からの参照 |
 | --- | --- | --- |
-| `SymphonyFrameWork` | Runtime API、Component、設定型、Utility | 参照する |
-| `SymphonyFrameWork.Enum` | プロジェクトのScene、Tag、Layer、Audio Groupから生成するenum | 生成enumを使う場合だけ参照する |
-| `SymphonyFrameWork.PauseCategory` | Project Settingsから生成したポーズカテゴリー | 生成したカテゴリーを使う場合だけ参照する |
-| `SymphonyFrameWork.Core` | RuntimeとEditorが共有する定数と基盤 | 通常は不要 |
-| `SymphonyFrameWork.Editor` | 設定画面、管理ウィンドウ、Drawer、Generator。Playerビルドには含まれない | Editor用asmdefから必要なときだけ |
+| `SymphonyFramework` | Runtime API、Component、設定型、Utility | 参照する |
+| `SymphonyFramework.Enum` | プロジェクトのScene、Tag、Layer、Audio Groupから生成するenum | 生成enumを使う場合だけ参照する |
+| `SymphonyFramework.PauseCategory` | Project Settingsから生成したポーズカテゴリー | 生成したカテゴリーを使う場合だけ参照する |
+| `SymphonyFramework.Core` | RuntimeとEditorが共有する定数と基盤 | 通常は不要 |
+| `SymphonyFramework.Editor` | 設定画面、管理ウィンドウ、Drawer、Generator。Playerビルドには含まれない | Editor用asmdefから必要なときだけ |
 
-Runtimeのコードから`SymphonyFrameWork.Editor`を参照しないでください。
+Runtimeのコードから`SymphonyFramework.Editor`を参照しないでください。
 
 ## パッケージのディレクトリ
 
 ```text
-SymphonyFrameWork/
+SymphonyFramework/
 ├─ Core/                    Runtime／Editor共通の定数と基盤
 ├─ Runtime/                 Playerビルドへ含まれる機能
 │  ├─ Attribute/           Inspector属性

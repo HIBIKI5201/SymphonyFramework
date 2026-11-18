@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ドキュメントページから同梱HTMLとGitHub URLを解決する処理を検証する。 </summary>
     public sealed class SymphonyDocumentPathResolverTests

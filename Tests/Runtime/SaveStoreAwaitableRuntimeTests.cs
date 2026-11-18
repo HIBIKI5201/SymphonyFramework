@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SaveStoreの非同期APIがAwaitableへ移行しても、往復と重複排除の契約を

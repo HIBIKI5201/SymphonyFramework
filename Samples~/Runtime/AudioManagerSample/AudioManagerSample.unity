@@ -239,7 +239,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 33be514d9429448ea1f188683638d876, type: 3}
   m_Name:
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Samples.AudioManagerSample.AudioManagerSample_Controller
+  m_EditorClassIdentifier: SymphonyFramework::SymphonyFramework.Samples.AudioManagerSample.AudioManagerSample_Controller
   _audioGroupName: BGM
 --- !u!4 &2002
 Transform:

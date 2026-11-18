@@ -6,15 +6,15 @@ using System.Reflection;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using UnityEditor;
 using UnityEditor.Toolbars;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> Symphony Frameworkのメインツールバーメニューを検証する。 </summary>
     public sealed class SymphonyMainToolbarTests

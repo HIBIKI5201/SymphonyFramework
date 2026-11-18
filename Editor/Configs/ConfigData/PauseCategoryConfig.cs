@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     自動生成するポーズカテゴリーの名前を保持する。

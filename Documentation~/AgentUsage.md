@@ -11,11 +11,11 @@ APIの説明、コード例、実装時に誤りやすい判断は各モジュ�
 
 | 機能 | namespace | 主な入口 | モジュール文書 |
 | --- | --- | --- | --- |
-| Service Locator | `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](./Modules/ServiceLocator.md) |
-| Scene Loader | `SymphonyFrameWork.System.SceneLoad` | `SceneLoader` | [Scene Loader](./Modules/SceneLoader.md) |
-| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](./Modules/SaveDataSystem.md) |
-| Audio Manager | `SymphonyFrameWork.System` | `AudioManager` | [Audio Manager](./Modules/AudioManager.md) |
-| Pause Manager | `SymphonyFrameWork.System` | `PauseManager` | [Pause Manager](./Modules/PauseManager.md) |
+| Service Locator | `SymphonyFramework.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](./Modules/ServiceLocator.md) |
+| Scene Loader | `SymphonyFramework.System.SceneLoad` | `SceneLoader` | [Scene Loader](./Modules/SceneLoader.md) |
+| Save Data System | `SymphonyFramework.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](./Modules/SaveDataSystem.md) |
+| Audio Manager | `SymphonyFramework.System` | `AudioManager` | [Audio Manager](./Modules/AudioManager.md) |
+| Pause Manager | `SymphonyFramework.System` | `PauseManager` | [Pause Manager](./Modules/PauseManager.md) |
 
 ## 非推奨APIと移行
 

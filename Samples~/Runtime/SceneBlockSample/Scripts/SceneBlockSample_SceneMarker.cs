@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.SceneBlockSample
+namespace SymphonyFramework.Samples.SceneBlockSample
 {
     /// <summary> ブロックがロードするメンバーシーンの生存確認用マーカー。 </summary>
     public sealed class SceneBlockSample_SceneMarker : MonoBehaviour

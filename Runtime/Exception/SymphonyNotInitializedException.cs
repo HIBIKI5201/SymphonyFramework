@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.Exceptions
+namespace SymphonyFramework.Exceptions
 {
     /// <summary>
     ///     Symphony Frameworkの初期化前に機能へアクセスした場合に発生する例外。

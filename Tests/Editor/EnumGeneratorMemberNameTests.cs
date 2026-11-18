@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using NUnit.Framework;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> EnumGeneratorが、候補文字列をそのままコンパイルできる列挙子名へ解決する契約を検証する。 </summary>
     public sealed class EnumGeneratorMemberNameTests

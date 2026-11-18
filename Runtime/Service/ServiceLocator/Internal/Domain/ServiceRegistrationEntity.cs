@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     Service Locatorへ登録された1件のサービスと状態を保持する。

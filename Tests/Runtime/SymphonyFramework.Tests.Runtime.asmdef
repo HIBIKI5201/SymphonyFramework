@@ -1,8 +1,8 @@
 {
-    "name": "SymphonyFrameWork.Tests.Runtime",
-    "rootNamespace": "SymphonyFrameWork.Tests",
+    "name": "SymphonyFramework.Tests.Runtime",
+    "rootNamespace": "SymphonyFramework.Tests",
     "references": [
-        "SymphonyFrameWork",
+        "SymphonyFramework",
         "UnityEngine.TestRunner"
     ],
     "includePlatforms": [],

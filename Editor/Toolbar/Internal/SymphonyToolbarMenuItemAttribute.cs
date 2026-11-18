@@ -1,5 +1,5 @@
 ﻿#if UNITY_6000_3_OR_NEWER
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     ツールバープルダウンから探索する項目型を示す。

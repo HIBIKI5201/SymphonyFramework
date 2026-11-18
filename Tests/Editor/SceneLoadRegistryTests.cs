@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.System.SceneLoad;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SceneLoadRegistryの登録、検索、同期、完了通知を検証する。 </summary>
     public sealed class SceneLoadRegistryTests

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     出力対象を、プロジェクト内で使用中のアセットと強制包含拡張子だけへ絞り込む手順。

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.System.SceneLoad
+namespace SymphonyFramework.System.SceneLoad
 {
     /// <summary>
     ///     ApplicationからUnityのScene操作を利用するための最小契約。

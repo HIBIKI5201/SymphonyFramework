@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.Attribute;
+﻿using SymphonyFramework.Attribute;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     stringフィールドをプロジェクトのタグ選択欄として描画する。

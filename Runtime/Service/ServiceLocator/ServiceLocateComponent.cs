@@ -1,10 +1,10 @@
 ﻿using System;
 
-using SymphonyFrameWork.Attribute;
+using SymphonyFramework.Attribute;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     Inspectorで指定したComponentをService Locatorへ登録する。

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     ポーズ対象が属するカテゴリーを、実装しているinterfaceから解決する。

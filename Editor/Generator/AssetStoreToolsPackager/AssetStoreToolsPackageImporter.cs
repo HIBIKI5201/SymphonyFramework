@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     出力済みパッケージの一覧取得と、選択したパッケージのインポートを担う。

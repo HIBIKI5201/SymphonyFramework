@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Editor
+﻿namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     フレームワークが標準で用意する手順の基底型。

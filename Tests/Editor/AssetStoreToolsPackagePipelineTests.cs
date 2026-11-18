@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> パッケージ出力パイプラインの絞り込み、テンプレート、手順の実行を検証する。 </summary>
     public sealed class AssetStoreToolsPackagePipelineTests

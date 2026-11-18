@@ -1,8 +1,8 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.System;
+using SymphonyFramework.System;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> PauseInfoが取得時点の管理状態を値として表す契約を検証する。 </summary>
     public sealed class PauseInfoTests

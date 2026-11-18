@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.System.ServiceLocate
+﻿namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     Service LocatorのEditor向けログ出力可否を保持する。

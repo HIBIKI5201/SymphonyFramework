@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.SceneLoaderSample
+namespace SymphonyFramework.Samples.SceneLoaderSample
 {
     /// <summary> 追加ロードされるサブシーンの生存確認用マーカー。 </summary>
     public sealed class SceneLoaderSample_SceneMarker : MonoBehaviour

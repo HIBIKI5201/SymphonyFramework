@@ -13,7 +13,7 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.System.SceneBlock` |
+| namespace | `SymphonyFramework.System.SceneBlock` |
 | 主な公開型 | `SceneBlockLoader` / `SceneBlockAsset` / `SceneBlockEntry` / `SceneBlockInfo` / `SceneBlockLoadStateEnum` / `SceneBlockPlanException` |
 | メニューパス | `Assets > Create > Symphony Framework > Scene Block` |
 | 設定の保存先 | 利用側プロジェクトの `SceneBlockAsset` アセット |
@@ -58,7 +58,7 @@ Scene Block: TownBlock
 ```
 
 ```csharp
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 using UnityEngine;
 
 public sealed class BlockSwitcher : MonoBehaviour

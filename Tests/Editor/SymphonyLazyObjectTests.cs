@@ -1,12 +1,12 @@
 ﻿using System;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using NUnit.Framework;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SymphonyLazyObjectが遅延生成し、Unity側の破棄を検知して作り直す契約を検証する。

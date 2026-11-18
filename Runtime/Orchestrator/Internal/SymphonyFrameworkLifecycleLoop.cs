@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 
-namespace SymphonyFrameWork.Orchestrator
+namespace SymphonyFramework.Orchestrator
 {
     /// <summary>
     ///     UnityのPlayerLoopへ、OnEnableとStartの間で実行されるフレームワークの同期フェーズを挿入する。

@@ -1,8 +1,8 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.System.ServiceLocate;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ServiceRegistrationInfoの値と参照同一性による等値契約を検証する。 </summary>
     public sealed class ServiceRegistrationInfoTests

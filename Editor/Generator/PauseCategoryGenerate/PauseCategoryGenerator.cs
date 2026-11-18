@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     ポーズカテゴリーのinterfaceを利用側プロジェクトへ自動生成する。
     /// </summary>
     /// <remarks>
     ///     <para>
-    ///         生成物は <c>Assets/Scripts/SymphonyFrameWork/PauseCategory/</c> 配下へ書き出し、
-    ///         専用のAssembly Definitionから <c>SymphonyFrameWork</c> を参照する。
+    ///         生成物は <c>Assets/Scripts/SymphonyFramework/PauseCategory/</c> 配下へ書き出し、
+    ///         専用のAssembly Definitionから <c>SymphonyFramework</c> を参照する。
     ///     </para>
     ///     <para>
     ///         **自動生成enumと同じ場所へは置けない。** カテゴリーは
-    ///         <c>PauseManager.IPausable</c> を継承するため <c>SymphonyFrameWork</c> の参照が要るが、
-    ///         <c>SymphonyFrameWork</c> 側が <c>SymphonyFrameWork.Enum</c> を参照しているため循環する。
+    ///         <c>PauseManager.IPausable</c> を継承するため <c>SymphonyFramework</c> の参照が要るが、
+    ///         <c>SymphonyFramework</c> 側が <c>SymphonyFramework.Enum</c> を参照しているため循環する。
     ///     </para>
     /// </remarks>
     public static class PauseCategoryGenerator
@@ -32,7 +32,7 @@ namespace SymphonyFrameWork.Editor
         public static string GeneratePath => EditorSymphonyConstant.ENUM_PATH + "/PauseCategory";
 
         /// <summary> 生成物を収めるAssembly Definitionの名前。 </summary>
-        public const string ASSEMBLY_NAME = "SymphonyFrameWork.PauseCategory";
+        public const string ASSEMBLY_NAME = "SymphonyFramework.PauseCategory";
 
         /// <summary>
         ///     Project Settingsに設定されたカテゴリーのinterfaceを生成する。
@@ -144,7 +144,7 @@ namespace SymphonyFrameWork.Editor
         /// </remarks>
         internal static string BuildSource(string interfaceName)
         {
-            return "using SymphonyFrameWork.System;\n"
+            return "using SymphonyFramework.System;\n"
                    + "\n"
                    + "/// <summary>\n"
                    + "///     Symphony Frameworkが自動生成したポーズカテゴリー。\n"
@@ -179,7 +179,7 @@ namespace SymphonyFrameWork.Editor
             // 生成物がPauseManager.IPausableを継承できるよう、フレームワークへの参照を入れる。
             AssemblyGenerator.AddAsssemblyReference(
                 $"{selfPath}.asmdef",
-                $"{EditorSymphonyConstant.FRAMEWORK_PATH}/SymphonyFrameWork.asmdef");
+                $"{EditorSymphonyConstant.FRAMEWORK_PATH}/SymphonyFramework.asmdef");
         }
 
         /// <summary>

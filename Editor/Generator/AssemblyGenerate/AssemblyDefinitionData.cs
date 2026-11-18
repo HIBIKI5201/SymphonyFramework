@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Unity Assembly Definitionファイルへシリアライズする設定値を保持する。

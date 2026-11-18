@@ -13,10 +13,10 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFrameWork.System.SceneLoad` |
+| namespace | `SymphonyFramework.System.SceneLoad` |
 | 主な公開型 | `SceneLoader` / `SceneLoadRequest` / `SceneLoadInfo` / `SceneLoadStateEnum` / `IInitializeAsync` / `SceneInitializationException` |
-| メニューパス | `Window > SymphonyFrameWork > Symphony Administrator` の `Scene Load` パネル |
-| 設定の保存先 | `Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset` |
+| メニューパス | `Window > SymphonyFramework > Symphony Administrator` の `Scene Load` パネル |
+| 設定の保存先 | `Assets/Resources/SymphonyFramework/SceneLoadConfig.asset` |
 
 ## 仕組みの要点
 
@@ -44,7 +44,7 @@
 
 ```csharp
 using System;
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.System.SceneLoad;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -98,7 +98,7 @@ public async void OpenGameScene()
 
 ## Editor機能
 
-**入口**: `Window > SymphonyFrameWork > Symphony Administrator`
+**入口**: `Window > SymphonyFramework > Symphony Administrator`
 
 | パネル・メニュー | 内容 |
 | --- | --- |

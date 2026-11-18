@@ -1,11 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     ServiceLocatorに登録されているインスタンスを保持する。

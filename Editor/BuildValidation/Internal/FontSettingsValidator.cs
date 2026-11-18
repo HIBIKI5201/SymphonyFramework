@@ -6,7 +6,7 @@ using UnityEngine;
 
 using Object = UnityEngine.Object;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SerializedObjectからフォント設定を読み取り、純粋な規則へ渡す。

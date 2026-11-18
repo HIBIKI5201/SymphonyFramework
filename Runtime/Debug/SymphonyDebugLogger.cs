@@ -2,13 +2,13 @@
 using System.Diagnostics;
 using System.Text;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using UnityEngine;
 
 using Debug = UnityEngine.Debug;
 
-namespace SymphonyFrameWork.Debugger.Logger
+namespace SymphonyFramework.Debugger.Logger
 {
     /// <summary>
     ///     用途と重要度に応じたデバッグログを発行する。

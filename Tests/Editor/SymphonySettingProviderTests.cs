@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Editor.SettingProvider;
+using SymphonyFramework.Config;
+using SymphonyFramework.Editor.SettingProvider;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SymphonySettingProviderのDebug HUD設定編集状態を検証する。 </summary>
     public sealed class SymphonySettingProviderTests

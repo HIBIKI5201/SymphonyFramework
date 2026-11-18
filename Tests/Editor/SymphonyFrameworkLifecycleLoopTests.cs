@@ -1,11 +1,11 @@
 using NUnit.Framework;
 
-using SymphonyFrameWork.Orchestrator;
+using SymphonyFramework.Orchestrator;
 
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> PlayerLoopへの同期フェーズ挿入・除去を検証する。 </summary>
     public sealed class SymphonyFrameworkLifecycleLoopTests

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using UnityEditor;
 using UnityEngine;
@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     実際のUI Toolkitフォントのシリアライズ項目を検証する。

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.System.ServiceLocate
+namespace SymphonyFramework.System.ServiceLocate
 {
     /// <summary>
     ///     アプリケーションで共有するサービスの登録と取得を管理する。

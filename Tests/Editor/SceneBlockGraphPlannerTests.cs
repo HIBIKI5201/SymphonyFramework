@@ -4,9 +4,9 @@ using System.Linq;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneBlock;
+using SymphonyFramework.System.SceneBlock;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SceneBlockGraphPlannerのトポロジカル層とグラフ検証を検証する。

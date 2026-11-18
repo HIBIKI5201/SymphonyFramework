@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.System
+namespace SymphonyFramework.System
 {
     /// <summary>
     ///     カテゴリー1件の表示用更新値を表す。

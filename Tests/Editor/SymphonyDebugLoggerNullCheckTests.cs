@@ -1,13 +1,13 @@
 ﻿using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using NUnit.Framework;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SymphonyDebugLoggerのnull診断APIが、真のnullと破棄済み参照の双方を扱える契約を検証する。 </summary>
     public sealed class SymphonyDebugLoggerNullCheckTests

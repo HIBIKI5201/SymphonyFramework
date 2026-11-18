@@ -1,8 +1,8 @@
-﻿using SymphonyFrameWork.System;
+﻿using SymphonyFramework.System;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Samples.PauseManagerSample
+namespace SymphonyFramework.Samples.PauseManagerSample
 {
     /// <summary>
     ///     Pause中は停止する往復移動オブジェクトの共通部分。
