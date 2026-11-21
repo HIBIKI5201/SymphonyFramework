@@ -1,18 +1,24 @@
 ﻿using System;
 using System.Threading.Tasks;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Utility
+namespace SymphonyFramework.Utility
 {
     /// <summary>
     ///     VisualElementをC#から制御する基底クラスを提供する。
     /// </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Utility）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Utility",
+        sourceAssembly: "SymphonyFrameWork")]
     public abstract partial class SymphonyVisualElement : VisualElement
     {
         #region 外部向けAPI

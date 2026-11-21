@@ -1,14 +1,20 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+﻿using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
-    ///     SymphonyFrameWorkの管理パネルを表示する。
+    ///     SymphonyFrameworkの管理パネルを表示する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class SymphonyAdministrator : EditorWindow
     {
         #region 外部向けAPI
@@ -35,8 +41,9 @@ namespace SymphonyFrameWork.Editor
         private const string WINDOW_NAME = "Symphony Administrator";
 
         private PauseWindow _pauseWindow;
-        private ServiceLocateWindow _serviceLocatorWindow;
-        private SceneLoadWindow _sceneLoaderWindow;
+        private PartituraWindow _partituraWindow;
+        private AttaccaWindow _sceneLoaderWindow;
+        private SuiteWindow _sceneBlockWindow;
         private AutoEnumGeneratorWindow _generatorWindow;
         private SaveDataWindow _saveDataRegistryWindow;
         private DebugHUDWindow _debugHUDWindow;
@@ -53,8 +60,9 @@ namespace SymphonyFrameWork.Editor
             if (container != null)
             {
                 _pauseWindow = container.Q<PauseWindow>();
-                _serviceLocatorWindow = container.Q<ServiceLocateWindow>();
-                _sceneLoaderWindow = container.Q<SceneLoadWindow>();
+                _partituraWindow = container.Q<PartituraWindow>();
+                _sceneLoaderWindow = container.Q<AttaccaWindow>();
+                _sceneBlockWindow = container.Q<SuiteWindow>();
                 _generatorWindow = container.Q<AutoEnumGeneratorWindow>();
                 _saveDataRegistryWindow = container.Q<SaveDataWindow>();
                 _debugHUDWindow = container.Q<DebugHUDWindow>();
@@ -75,13 +83,15 @@ namespace SymphonyFrameWork.Editor
         {
             // OnEnableで開始した長寿命な購読を対で解除し、Window破棄後のコールバックを防ぐ。
             _pauseWindow?.Dispose();
-            _serviceLocatorWindow?.Dispose();
+            _partituraWindow?.Dispose();
             _sceneLoaderWindow?.Dispose();
+            _sceneBlockWindow?.Dispose();
             _saveDataRegistryWindow?.Dispose();
             _debugHUDWindow?.Dispose();
             _pauseWindow = null;
-            _serviceLocatorWindow = null;
+            _partituraWindow = null;
             _sceneLoaderWindow = null;
+            _sceneBlockWindow = null;
             _saveDataRegistryWindow = null;
             _debugHUDWindow = null;
         }

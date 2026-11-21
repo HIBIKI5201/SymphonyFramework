@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Services;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ServiceRegistrationEntityの値と登録状態遷移を検証する。 </summary>
     public sealed class ServiceRegistrationEntityTests
@@ -18,11 +18,11 @@ namespace SymphonyFrameWork.Tests
             var entity = new ServiceRegistrationEntity(
                 typeof(object),
                 instance,
-                LocateTypeEnum.Singleton);
+                ServiceLifetimeEnum.Persistent);
 
             Assert.That(entity.ServiceType, Is.EqualTo(typeof(object)));
             Assert.That(entity.Instance, Is.SameAs(instance));
-            Assert.That(entity.LocateType, Is.EqualTo(LocateTypeEnum.Singleton));
+            Assert.That(entity.Lifetime, Is.EqualTo(ServiceLifetimeEnum.Persistent));
             Assert.That(entity.IsRegistered, Is.True);
         }
 
@@ -33,7 +33,7 @@ namespace SymphonyFrameWork.Tests
             var entity = new ServiceRegistrationEntity(
                 typeof(object),
                 new object(),
-                LocateTypeEnum.Locator);
+                ServiceLifetimeEnum.Scene);
 
             bool first = entity.Unregister();
             bool second = entity.Unregister();
@@ -51,7 +51,7 @@ namespace SymphonyFrameWork.Tests
                 _ = new ServiceRegistrationEntity(
                     null,
                     new object(),
-                    LocateTypeEnum.Locator));
+                    ServiceLifetimeEnum.Scene));
         }
 
         /// <summary> payloadがnullならDomain不変条件違反として拒否する。 </summary>
@@ -62,7 +62,7 @@ namespace SymphonyFrameWork.Tests
                 _ = new ServiceRegistrationEntity(
                     typeof(object),
                     null,
-                    LocateTypeEnum.Locator));
+                    ServiceLifetimeEnum.Scene));
         }
     }
 }

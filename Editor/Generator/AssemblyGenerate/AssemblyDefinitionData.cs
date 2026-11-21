@@ -1,11 +1,17 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Unity Assembly Definitionファイルへシリアライズする設定値を保持する。
     /// </summary>
     [Serializable]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssemblyDefinitionData
     {
         #region 外部向けAPI

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using UnityEditor;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     パッケージ対象ディレクトリの変更を検知し、リビジョンの加算を処理待ちへ積む。

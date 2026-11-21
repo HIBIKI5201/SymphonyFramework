@@ -1,4 +1,4 @@
-﻿namespace SymphonyFrameWork.Editor
+﻿namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Save Data Inspectorが参照するインスタンスの所有元を表す。

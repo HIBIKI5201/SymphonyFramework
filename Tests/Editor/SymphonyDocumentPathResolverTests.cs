@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> ドキュメントページから同梱HTMLとGitHub URLを解決する処理を検証する。 </summary>
     public sealed class SymphonyDocumentPathResolverTests
@@ -20,13 +20,13 @@ namespace SymphonyFrameWork.Tests
             try
             {
                 string expected = Path.GetFullPath(
-                    Path.Combine(root, "Documentation~/Html/Modules/SceneLoader.html"));
+                    Path.Combine(root, "Documentation~/Html/Modules/Attacca.html"));
                 Directory.CreateDirectory(Path.GetDirectoryName(expected));
                 File.WriteAllText(expected, "<!DOCTYPE html>");
 
                 bool resolved = SymphonyDocumentPathResolver.TryResolveLocalPath(
                     root,
-                    SymphonyDocumentPageEnum.SceneLoader,
+                    SymphonyDocumentPageEnum.Attacca,
                     out string localPath);
 
                 Assert.That(resolved, Is.True);
@@ -48,7 +48,7 @@ namespace SymphonyFrameWork.Tests
             {
                 bool resolved = SymphonyDocumentPathResolver.TryResolveLocalPath(
                     root,
-                    SymphonyDocumentPageEnum.SceneLoader,
+                    SymphonyDocumentPageEnum.Attacca,
                     out string localPath);
 
                 Assert.That(resolved, Is.False);
@@ -66,7 +66,7 @@ namespace SymphonyFrameWork.Tests
         {
             bool resolved = SymphonyDocumentPathResolver.TryResolveLocalPath(
                 string.Empty,
-                SymphonyDocumentPageEnum.SceneLoader,
+                SymphonyDocumentPageEnum.Attacca,
                 out string localPath);
 
             Assert.That(resolved, Is.False);
@@ -78,18 +78,18 @@ namespace SymphonyFrameWork.Tests
         public void ResolveFallbackUrl_KnownPage_PointsToMarkdownOnMain()
         {
             string url = SymphonyDocumentPathResolver.ResolveFallbackUrl(
-                SymphonyDocumentPageEnum.SceneLoader);
+                SymphonyDocumentPageEnum.Attacca);
 
             Assert.That(
                 url,
                 Is.EqualTo(
                     SymphonyDocumentPathResolver.REPOSITORY_URL
-                    + "/blob/main/Documentation~/Modules/SceneLoader.md"));
+                    + "/blob/main/Documentation~/Modules/Attacca.md"));
         }
 
-        /// <summary> 索引には正本のMarkdownが無いため、モジュール文書の一覧を指す。 </summary>
+        /// <summary> 索引は、mainブランチ上の正本Markdownを指す。 </summary>
         [Test]
-        public void ResolveFallbackUrl_IndexPage_PointsToModulesDirectory()
+        public void ResolveFallbackUrl_IndexPage_PointsToIndexMarkdownOnMain()
         {
             string url = SymphonyDocumentPathResolver.ResolveFallbackUrl(
                 SymphonyDocumentPageEnum.Index);
@@ -98,7 +98,7 @@ namespace SymphonyFrameWork.Tests
                 url,
                 Is.EqualTo(
                     SymphonyDocumentPathResolver.REPOSITORY_URL
-                    + "/tree/main/Documentation~/Modules"));
+                    + "/blob/main/Documentation~/index.md"));
         }
 
         /// <summary>

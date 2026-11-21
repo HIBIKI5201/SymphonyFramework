@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFramework.SaveData;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Editorで管理可能なセーブデータ型を探索する。
@@ -83,7 +83,7 @@ namespace SymphonyFrameWork.Editor
                 return false;
             }
 
-            // SaveStoreが生成できるよう、引数なしコンストラクタを持つ型だけを許可する。
+            // Manuscriptが生成できるよう、引数なしコンストラクタを持つ型だけを許可する。
             if (type.GetConstructor(Type.EmptyTypes) == null) { return false; }
 
             // セーブデータ契約を満たさない型は、同じ生成条件を持っていても対象外とする。

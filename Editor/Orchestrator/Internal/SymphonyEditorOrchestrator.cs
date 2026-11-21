@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.Editor.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Editor.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Unity Editorのhost lifecycleをEditorモジュールの初期化と終了へ変換する。
@@ -164,6 +164,11 @@ namespace SymphonyFrameWork.Editor
             {
                 // 初期化中に発生したhost変更も失わないよう、モジュールより先に通知経路を確立する。
                 SubscribeHostCallbacks();
+
+                // 6.x以前の表記の生成物を、設定アセットの存在確認より前に現在の表記へ移す。
+                // 移さずに進むと、大文字小文字を区別する環境で既定値の設定が新しく作られる。
+                initializingModuleName = nameof(RootFolderCaseMigration);
+                _requiresAssetDatabaseRefresh |= RootFolderCaseMigration.Run();
 
                 // Configと生成enum、Editor用依存を先に整え、後続モジュールが利用できる状態にする。
                 initializingModuleName = nameof(PackageInitializer);

@@ -1,18 +1,24 @@
 ﻿using System;
 using System.IO;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     設定アセットの存在を保証する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class SymphonyConfigManager
     {
         #region 外部向けAPI
@@ -33,7 +39,7 @@ namespace SymphonyFrameWork.Editor
             hasAssetChanges |= FileCheck<SaveDataConfig>();
             hasAssetChanges |= FileCheck<DebugHUDConfig>();
 
-            // 個人設定はEditorPrefsではなく、UserSettings/SymphonyFrameWork配下へ保存する。
+            // 個人設定はEditorPrefsではなく、UserSettings/SymphonyFramework配下へ保存する。
             // ScriptableSingletonはinstanceの取得時に既存アセットをロードし、無ければ保存可能なインスタンスを用意する。
             CreateUserSettingFolder();
             EditorFileCheck<AutoEnumGeneratorConfig>();
@@ -53,7 +59,7 @@ namespace SymphonyFrameWork.Editor
         /// <returns> 設定アセットまたは配置先フォルダを生成した場合はtrue。 </returns>
         private static bool FileCheck<T>() where T : ScriptableObject
         {
-            string path = SymphonyConfigLocator.GetFullPath<T>();
+            string path = SymphonyConfigProvider.GetFullPath<T>();
             // Config型に対応する既知の保存先が無い場合は、推測したパスへ生成しない。
             if (path == null)
             {
@@ -83,7 +89,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private static void EditorFileCheck<T>() where T : ScriptableSingleton<T>
         {
-            _ = SymphonyEditorConfigLocator.GetConfig<T>();
+            _ = SymphonyEditorConfigProvider.GetConfig<T>();
         }
 
         /// <summary>

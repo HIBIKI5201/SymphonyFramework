@@ -1,11 +1,17 @@
 ﻿using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork
+namespace SymphonyFramework
 {
     /// <summary>
     ///     文字列のユーティリティクラス。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyStringUtil
     {
         #region 外部向けAPI

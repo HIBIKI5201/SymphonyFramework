@@ -4,19 +4,25 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.Editor.SettingProvider;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Editor.SettingProvider;
 
 using UnityEditor;
 using UnityEngine;
-using static SymphonyFrameWork.Editor.AssetStoreToolsPackager;
+using static SymphonyFramework.Editor.AssetStoreToolsPackager;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Asset Store Toolsの出力対象とパッケージ形式を選択するEditorWindow。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackageWindow : EditorWindow
     {
         #region 外部向けAPI
@@ -225,7 +231,7 @@ namespace SymphonyFrameWork.Editor
             {
                 EditorGUILayout.HelpBox(
                     "出力パイプラインがアサインされていません。\n"
-                    + "Project Settings > SymphonyFrameWork > Asset Store Tools Packager で"
+                    + "Project Settings > SymphonyFramework > Asset Store Tools Packager で"
                     + "アサインしてください。",
                     MessageType.Info);
 

@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SymphonyAwaitableの完了、合成、キャンセル、timeout、Taskブリッジを検証する。 </summary>
     public sealed class SymphonyAwaitableTests

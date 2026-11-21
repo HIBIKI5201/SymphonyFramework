@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.SaveData;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SaveDataViewStoreが問い合わせと操作をQuery／Serviceへ委譲する契約を検証する。

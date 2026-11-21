@@ -5,20 +5,26 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
 
 using FileMode = System.IO.FileMode;
 using Task = System.Threading.Tasks.Task;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     enumを自動生成する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class EnumGenerator
     {
         #region 外部向けAPI
@@ -84,7 +90,7 @@ namespace SymphonyFrameWork.Editor
             // 出力内容を作る前に候補を列挙子名へ解決し、使えない候補と重複を取り除く。
             IReadOnlyList<string> hash = ResolveEnumMemberNames(strings);
 
-            // 自動生成物は利用側のAssets/Scripts/SymphonyFrameWork配下へ置き、手編集を前提にしない。
+            // 自動生成物は利用側のAssets/Scripts/SymphonyFramework配下へ置き、手編集を前提にしない。
             CreateResourcesFolder($"{EditorSymphonyConstant.ENUM_PATH}/");
 
             // 書き込み前に出力先と全ソース行を確定し、途中状態の内容を生成しない。
@@ -143,7 +149,7 @@ namespace SymphonyFrameWork.Editor
         ///     </para>
         ///     <para>
         ///         予約語は除外せず <c>@</c> を前置してエスケープする。除外すると、その名前のシーンが
-        ///         <c>SceneListEnum</c> から消えて <c>SceneLoader</c> から参照できなくなり、
+        ///         <c>SceneListEnum</c> から消えて <c>Attacca</c> から参照できなくなり、
         ///         利用者の意図を壊すためである。
         ///     </para>
         /// </remarks>
@@ -219,25 +225,18 @@ namespace SymphonyFrameWork.Editor
 
             // Assembly Definitionの生成前後を比較し、実際にAssetDatabase更新が必要かを判定する。
             string enumAsmdefPath =
-                EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum.asmdef";
-            string mainAsmdefPath =
-                EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork.asmdef";
+                EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum.asmdef";
             string previousEnumAsmdef = File.Exists(enumAsmdefPath)
                 ? File.ReadAllText(enumAsmdefPath)
                 : null;
-            string previousMainAsmdef = File.Exists(mainAsmdefPath)
-                ? File.ReadAllText(mainAsmdefPath)
-                : null;
 
-            // enum用asmdefを用意し、PackageInitializerと同じ参照注入を適用する。
+            // enum用asmdefを用意し、PackageInitializerと同じくFrameworkへの参照を入れる。
             AssemblyGenerator.CreateEnumAssembly(
-                EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum",
-                EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork");
+                EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum",
+                EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework");
 
             hasAssetChanges |= !File.Exists(enumAsmdefPath) ||
                                previousEnumAsmdef != File.ReadAllText(enumAsmdefPath);
-            hasAssetChanges |= File.Exists(mainAsmdefPath) &&
-                               previousMainAsmdef != File.ReadAllText(mainAsmdefPath);
             return hasAssetChanges;
         }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFrameWork.Core
+namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     ViewModelの表示状態を読み取り、変更を購読する契約。

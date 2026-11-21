@@ -1,11 +1,11 @@
 ﻿#if UNITY_6000_3_OR_NEWER
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using UnityEditor;
 using UnityEditor.Toolbars;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Symphony Frameworkのメインツールバー入口を登録する。

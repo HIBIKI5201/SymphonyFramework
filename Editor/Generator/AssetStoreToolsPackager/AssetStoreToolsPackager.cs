@@ -1,16 +1,22 @@
-﻿using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+﻿using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     AssetStoreToolsフォルダをパッケージ化する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class AssetStoreToolsPackager
     {
         #region 外部向けAPI
@@ -74,39 +80,6 @@ namespace SymphonyFrameWork.Editor
 
             Export(plan);
         }
-
-        /// <summary>
-        ///     指定ディレクトリを選択された形式で出力する。
-        /// </summary>
-        /// <remarks>
-        ///     指定を等価な手順の並びへ変換してパイプラインへ委譲する。動作は3.5.0までと同じ。
-        /// </remarks>
-        /// <param name="directories"> 出力対象のディレクトリ。 </param>
-        /// <param name="mode"> 個別出力と統合出力の指定。 </param>
-        /// <param name="createZip"> 出力後にZIP化するか。 </param>
-        /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
-#pragma warning disable CS0618
-        [Obsolete(
-            "パイプラインへ移行しました。Export(string[], "
-            + nameof(AssetStoreToolsPackagePipeline) + ")を使用してください。",
-            error: false)]
-        public static void Export(
-            string[] directories,
-            PackageModeEnum mode,
-            bool createZip = false,
-            bool usedDependencies = false)
-        {
-            AssetStoreToolsPackagePlan plan = AssetStoreToolsPackagePipelineRunner.CreatePlan(
-                directories,
-                CreateStepsFromOptions(mode, createZip, usedDependencies),
-                LEGACY_PIPELINE_NAME);
-
-            // 旧APIでも計画を作れない場合は、新しい実行経路へ不完全な入力を渡さない。
-            if (plan == null) { return; }
-
-            Export(plan);
-        }
-#pragma warning restore CS0618
 
         /// <summary>
         ///     出力内容を確定した計画を組み立てる。
@@ -173,40 +146,6 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     個別または統合パッケージの出力形式を表す。
-        /// </summary>
-        /// <remarks>
-        ///     <see cref="Combine" />を除くと<see cref="Singles" />と<see cref="Nothing" />しか残らず、
-        ///     enumとして意味を失うため、次のメジャー更新でenumごと削除する。
-        /// </remarks>
-        [Flags]
-        [Obsolete(
-            "パイプラインへ移行しました。" + nameof(AssetStoreToolsPackagePipeline) + "を使用してください。",
-            error: false)]
-        public enum PackageModeEnum : byte
-        {
-            #region 外部向けAPI
-
-            /// <summary> パッケージを出力しない無効な状態。 </summary>
-            Nothing = 0,
-
-            /// <summary> 選択ディレクトリを個別のパッケージとして出力する。 </summary>
-            Singles = 1 << 0,
-
-            /// <summary> 選択ディレクトリを1つの統合パッケージとして出力する。 </summary>
-            /// <remarks>
-            ///     統合パッケージはディレクトリ単位で取り出せないため、差分インポートの単位にならない。
-            ///     この形式で出力してもPackageManifest.jsonは作られない。
-            /// </remarks>
-            [Obsolete(
-                "差分インポートに対応しないため廃止予定です。" + nameof(Singles) + "を使用してください。",
-                error: false)]
-            Combine = 1 << 1,
-
-            #endregion
-        }
-
-        /// <summary>
         ///     パッケージ候補ディレクトリの表示名、パス、除外状態を保持する。
         /// </summary>
         public sealed class PackageDirectoryInfo
@@ -228,44 +167,6 @@ namespace SymphonyFrameWork.Editor
         #endregion
 
         #region 内部処理
-
-        /// <summary> 旧来のフラグ指定で組み立てた計画に付ける名前。 </summary>
-        private const string LEGACY_PIPELINE_NAME = "Export Mode Options";
-
-        /// <summary>
-        ///     旧来のフラグ指定を、等価な手順の並びへ変換する。
-        /// </summary>
-        /// <remarks>
-        ///     並び順は3.5.0までの実行順と一致させている。
-        ///     絞り込みはPlan段階のため、Execute段階の手順より先に走る。
-        /// </remarks>
-        /// <param name="mode"> 個別出力と統合出力の指定。 </param>
-        /// <param name="createZip"> 出力後にZIP化するか。 </param>
-        /// <param name="usedDependencies"> 使用中アセットと強制包含拡張子だけへ絞るか。 </param>
-        /// <returns> 指定に対応する手順の並び。 </returns>
-        // 非推奨のPackageModeEnumは削除まで動作を維持する必要があるため、
-        // 廃止予定の警告をここでは抑止する。利用側の指定に対しては警告が出る。
-#pragma warning disable CS0618
-        private static List<AssetStoreToolsPackageStepStrategy> CreateStepsFromOptions(
-            PackageModeEnum mode,
-            bool createZip,
-            bool usedDependencies)
-        {
-            List<AssetStoreToolsPackageStepStrategy> steps = new();
-
-            // 旧APIの絞り込みはPlan段階で実行する必要があるため、最初の手順へ変換する。
-            if (usedDependencies) { steps.Add(new AssetStoreToolsUsedDependenciesStrategy()); }
-
-            // フラグの組み合わせを維持し、個別出力を統合出力より先に実行する。
-            if ((mode & PackageModeEnum.Singles) != 0) { steps.Add(new AssetStoreToolsSinglePackageStrategy()); }
-            if ((mode & PackageModeEnum.Combine) != 0) { steps.Add(new AssetStoreToolsCombinePackageStrategy()); }
-
-            // ZIP化は先行手順の成果物をまとめるため、常に最後へ置く。
-            if (createZip) { steps.Add(new AssetStoreToolsCreateZipStrategy()); }
-
-            return steps;
-        }
-#pragma warning restore CS0618
 
         #endregion
     }

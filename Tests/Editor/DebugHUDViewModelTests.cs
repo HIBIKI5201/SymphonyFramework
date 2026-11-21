@@ -2,9 +2,9 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Debugger.HUD;
+using SymphonyFramework.Debugger.HUD;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> DebugHUDViewModelの差分通知と破棄契約を検証する。 </summary>
     public sealed class DebugHUDViewModelTests

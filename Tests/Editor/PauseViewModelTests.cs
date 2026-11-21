@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System;
+using SymphonyFramework.Pause;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     PauseViewModelがServiceの状態変更を表示値へ反映する契約を検証する。
@@ -12,8 +14,28 @@ namespace SymphonyFrameWork.Tests
     /// </summary>
     public sealed class PauseViewModelTests
     {
+        /// <summary> 検証用のカテゴリー。 </summary>
+        private interface IGameplayCategory : IPausable { }
+
+        /// <summary> 検証用のカテゴリー。 </summary>
+        private interface IUiCategory : IPausable { }
+
         /// <summary> 検証用のポーズ対象。 </summary>
-        private sealed class TestPausable : PauseManager.IPausable
+        private sealed class TestPausable : IPausable
+        {
+            public void Pause() { }
+            public void Resume() { }
+        }
+
+        /// <summary> ゲームプレイカテゴリーの検証用ポーズ対象。 </summary>
+        private sealed class GameplayPausable : IGameplayCategory
+        {
+            public void Pause() { }
+            public void Resume() { }
+        }
+
+        /// <summary> UIカテゴリーの検証用ポーズ対象。 </summary>
+        private sealed class UiPausable : IUiCategory
         {
             public void Pause() { }
             public void Resume() { }
@@ -61,9 +83,9 @@ namespace SymphonyFrameWork.Tests
 
         /// <summary> ポーズ状態の変更が表示値へ反映される。 </summary>
         [Test]
-        public void SetPaused_UpdatesState()
+        public void SetPausedAll_UpdatesState()
         {
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
 
             Assert.That(_viewModel.State.Value.IsPaused, Is.True);
         }
@@ -85,13 +107,88 @@ namespace SymphonyFrameWork.Tests
         [Test]
         public void SameValue_DoesNotNotify()
         {
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
 
             int notifiedCount = 0;
             using IDisposable subscription =
                 _viewModel.State.Subscribe(_ => notifiedCount++, notifyCurrent: false);
 
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
+
+            Assert.That(notifiedCount, Is.Zero);
+        }
+
+        /// <summary>
+        ///     カテゴリーごとの表示値が、登録済みの全カテゴリー分そろう。
+        /// </summary>
+        /// <remarks>
+        ///     状態側だけを見ると、まだ誰も止めていないカテゴリーを取りこぼす。
+        /// </remarks>
+        [Test]
+        public void Categories_IncludeEveryRegisteredCategory()
+        {
+            _service.Register(new GameplayPausable());
+            _service.Register(new UiPausable());
+
+            IReadOnlyList<PauseCategoryDto> categories = _viewModel.State.Value.Categories;
+
+            Assert.That(
+                categories.Select(category => category.CategoryName),
+                Is.EquivalentTo(new[] { nameof(IGameplayCategory), nameof(IUiCategory) }));
+        }
+
+        /// <summary>
+        ///     カテゴリーの表示値は表示名の昇順で並ぶ。
+        /// </summary>
+        /// <remarks>
+        ///     **辞書の列挙順は保証されない。** 並びが揺れると、内容が同じでも
+        ///     ViewModelが変化として通知してしまう。
+        /// </remarks>
+        [Test]
+        public void Categories_AreSortedByName()
+        {
+            _service.Register(new UiPausable());
+            _service.Register(new GameplayPausable());
+            _service.Register(new TestPausable());
+
+            IReadOnlyList<PauseCategoryDto> categories = _viewModel.State.Value.Categories;
+            List<string> names = categories.Select(category => category.CategoryName).ToList();
+
+            Assert.That(names, Is.Ordered.Using((IComparer<string>)StringComparer.Ordinal));
+        }
+
+        /// <summary> カテゴリーのポーズ状態と件数が表示値へ反映される。 </summary>
+        [Test]
+        public void Categories_ReflectStateAndCount()
+        {
+            _service.Register(new GameplayPausable());
+            _service.SetPaused(typeof(IGameplayCategory), true);
+
+            PauseCategoryDto category = _viewModel.State.Value.Categories
+                .First(item => item.CategoryName == nameof(IGameplayCategory));
+
+            Assert.That(category.IsPaused, Is.True);
+            Assert.That(category.PausableCount, Is.EqualTo(1));
+        }
+
+        /// <summary>
+        ///     カテゴリーの内容が同じなら通知しない。
+        /// </summary>
+        /// <remarks>
+        ///     **一覧を参照で比べると、毎回新しいListを作るQueryでは常に変化扱いになる。**
+        ///     ここが壊れると、表示が毎フレーム更新される。
+        /// </remarks>
+        [Test]
+        public void Categories_SameContent_DoesNotNotify()
+        {
+            _service.Register(new GameplayPausable());
+            _service.SetPaused(typeof(IGameplayCategory), true);
+
+            int notifiedCount = 0;
+            using IDisposable subscription =
+                _viewModel.State.Subscribe(_ => notifiedCount++, notifyCurrent: false);
+
+            _service.SetPaused(typeof(IGameplayCategory), true);
 
             Assert.That(notifiedCount, Is.Zero);
         }
@@ -103,7 +200,7 @@ namespace SymphonyFrameWork.Tests
             _viewModel.Dispose();
             _viewModel.Dispose();
 
-            _service.SetPaused(true);
+            _service.SetPausedAll(true);
 
             Assert.That(_viewModel.State.Value.IsPaused, Is.False);
         }

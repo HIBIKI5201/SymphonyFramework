@@ -1,14 +1,20 @@
-﻿using SymphonyFrameWork.Utility;
+﻿using SymphonyFramework.Utility;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     enum自動更新設定と手動生成操作を提供する。
     /// </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed partial class AutoEnumGeneratorWindow : SymphonyVisualElement
     {
         #region 外部向けAPI
@@ -38,7 +44,7 @@ namespace SymphonyFrameWork.Editor
             SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.AutoEnumGenerator);
 
             // すべてのToggleを同じ設定アセットへ接続し、変更を即時反映する。
-            AutoEnumGeneratorConfig config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
+            AutoEnumGeneratorConfig config = SymphonyEditorConfigProvider.GetConfig<AutoEnumGeneratorConfig>();
 
             (Toggle toggle, Button button) sceneList = GetElement("scene");
             sceneList.toggle.value = config.AutoSceneListUpdate;

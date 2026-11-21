@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     1回のパッケージ出力で何をどう出力するかを確定した計画。
@@ -13,6 +14,11 @@ namespace SymphonyFrameWork.Editor
     ///     利用側のStrategyからは<see cref="AssetStoreToolsPackagePlanEntry.FilterAssetPaths" />で
     ///     出力対象を絞り込むことだけができる。
     /// </remarks>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackagePlan
     {
         #region 外部向けAPI
@@ -72,6 +78,11 @@ namespace SymphonyFrameWork.Editor
     /// <summary>
     ///     出力ディレクトリ1件を保持する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackagePlanEntry
     {
         #region 外部向けAPI

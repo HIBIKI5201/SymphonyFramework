@@ -1,8 +1,8 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 
 using System;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     変更されたアセットのパスから、リビジョンを加算する対象ディレクトリ名を解決する。

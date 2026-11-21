@@ -1,10 +1,16 @@
 ﻿using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork
+namespace SymphonyFramework
 {
     /// <summary>
     ///     コンポーネントに関するユーティリティクラス。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyComponentUtil
     {
         #region 外部向けAPI
@@ -37,11 +43,11 @@ namespace SymphonyFrameWork
             where T : Component
         {
             // 起点自身を検索対象へ含めないため、直下の子ごとに子孫検索を行う。
-            // TODO(#179): GetComponentInChildrenは検索の起点自身をincludeInactiveの値に関わらず
-            //             対象へ含めるため、直下の子が非アクティブでも返ってしまう。
-            //             includeInactiveがfalseのときは非アクティブな子を起点から外す。
             foreach (Transform child in self)
             {
+                // Unityは検索起点自身をincludeInactiveに関わらず含めるため、非アクティブな起点を除外する。
+                if (!includeInactive && !child.gameObject.activeInHierarchy) { continue; }
+
                 T component = child.GetComponentInChildren<T>(includeInactive);
 
                 // Transformの列挙順で最初に見つかったComponentを返す。

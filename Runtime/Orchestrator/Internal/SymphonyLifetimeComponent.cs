@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SymphonyFrameWork.Orchestrator
+namespace SymphonyFramework.Orchestrator
 {
     /// <summary>
     ///     SymphonyOrchestratorのランタイム上のライフタイムを表す。

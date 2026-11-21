@@ -1,12 +1,17 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.CompilerServices;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Core
+namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     エディタ用の定数値を持つ。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Core）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Core",
+        sourceAssembly: "SymphonyFrameWork.Core")]
     public static class EditorSymphonyConstant
     {
         #region 外部向けAPI
@@ -45,10 +50,6 @@ namespace SymphonyFrameWork.Core
 
         /// <summary> Asset Store Toolsの既定ルートパス。 </summary>
         public const string ASSET_STORE_TOOLS_PATH = "Assets/AssetStoreTools";
-
-        /// <summary> パッケージ対象から除外するフォルダ名の設定ファイル。 </summary>
-        [Obsolete("PackagerConfig.jsonへ移行しました。ASSET_STORE_TOOLS_CONFIG_FILE_NAMEを使用してください。", error: false)]
-        public const string ASSET_STORE_TOOLS_IGNORE_FILE = ASSET_STORE_TOOLS_PATH + "/ignore.txt";
 
         /// <summary> パッケージ化設定ファイルの名前。対象フォルダ直下に置かれる。 </summary>
         public const string ASSET_STORE_TOOLS_CONFIG_FILE_NAME = "PackagerConfig.json";

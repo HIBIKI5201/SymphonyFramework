@@ -2,20 +2,20 @@
 using System.IO;
 using System.Linq;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using NUnit.Framework;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     サンプルがUnityのインポート対象外に置かれ、パッケージ本体のアセンブリへ入らない契約を検証する。
     /// </summary>
     /// <remarks>
     ///     チルダ無しの <c>Samples/</c> に置くと、asmdefが無い限りサンプルが
-    ///     <c>SymphonyFrameWork</c> アセンブリへ取り込まれ、Package Managerからのインポートと
+    ///     <c>SymphonyFramework</c> アセンブリへ取り込まれ、Package Managerからのインポートと
     ///     二重定義になる。利用側プロジェクトのコンパイルが通らなくなるため、配置自体を検査する。
     /// </remarks>
     public sealed class SamplePackagingTests
@@ -36,7 +36,7 @@ namespace SymphonyFrameWork.Tests
                 Directory.Exists(Path.Combine(EditorSymphonyConstant.FRAMEWORK_PATH, "Samples")),
                 Is.False,
                 "チルダ無しの 'Samples' はUnityのインポート対象になり、"
-                + "サンプルがSymphonyFrameWorkアセンブリへ取り込まれます。");
+                + "サンプルがSymphonyFrameworkアセンブリへ取り込まれます。");
         }
 
         /// <summary> 末尾チルダのフォルダは.metaを持たない。 </summary>
@@ -86,7 +86,7 @@ namespace SymphonyFrameWork.Tests
             Type[] shipped = typeof(SymphonyConstant).Assembly.GetTypes()
                 .Concat(typeof(Debugger.Logger.SymphonyDebugLogger).Assembly.GetTypes())
                 .Where(type => type.Namespace != null
-                    && type.Namespace.StartsWith("SymphonyFrameWork.Samples", StringComparison.Ordinal))
+                    && type.Namespace.StartsWith("SymphonyFramework.Samples", StringComparison.Ordinal))
                 .ToArray();
 
             Assert.That(

@@ -1,16 +1,21 @@
-﻿using SymphonyFrameWork.Attribute;
-using System;
+﻿using SymphonyFramework.Attribute;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     stringフィールドをBuild Settingsのシーン名選択欄として描画する。
     /// </summary>
     [CustomPropertyDrawer(typeof(SceneNameSelectorAttribute))]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class SceneNameSelectorDrawer : PropertyDrawer
     {
         #region 外部向けAPI
@@ -34,13 +39,34 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            // 保存済みの値がBuild Settingsから外れている場合は、先頭のシーンを既定値とする。
-            int index = Array.IndexOf(SceneList, property.stringValue);
-            if (index < 0) { index = 0; }
+            // 属性がフィルターを指定している場合だけ候補を絞る。指定ミスは値を変えずに表示で知らせる。
+            if (!SelectorFilterUtility.TryCreateMask(
+                    SceneList,
+                    ((SceneNameSelectorAttribute)attribute).FilterMethodName,
+                    property.serializedObject.targetObject,
+                    out bool[] mask,
+                    out string errorMessage))
+            {
+                EditorGUI.LabelField(position, label.text, errorMessage);
+                return;
+            }
 
-            // Popupの選択結果をシリアライズ対象のシーン名へ反映する。
-            int selectedIndex = EditorGUI.Popup(position, label.text, index, SceneList);
-            property.stringValue = SceneList[selectedIndex];
+            string[] selectableScenes = SelectorFilterUtility.ApplyMask(SceneList, mask);
+
+            // フィルターが全候補を落とした場合も、Popupを描かずシリアライズ済みの値を残す。
+            if (selectableScenes.Length == 0)
+            {
+                EditorGUI.LabelField(position, label.text, "条件に一致するシーンがありません。");
+                return;
+            }
+
+            // 保存済みの値が候補から外れている場合も、表示だけを先頭のシーンへ補正する。
+            int displayIndex = SelectorFilterUtility.ResolveDisplayIndex(selectableScenes, property.stringValue);
+
+            // ユーザーがPopupを操作した場合だけ、選択結果をシリアライズ対象へ反映する。
+            EditorGUI.BeginChangeCheck();
+            int selectedIndex = EditorGUI.Popup(position, label.text, displayIndex, selectableScenes);
+            if (EditorGUI.EndChangeCheck()) { property.stringValue = selectableScenes[selectedIndex]; }
         }
 
         #endregion

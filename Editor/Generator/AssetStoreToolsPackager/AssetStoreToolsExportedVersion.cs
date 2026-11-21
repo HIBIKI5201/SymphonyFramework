@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     パッケージが出力された時点のリビジョンを保持する。

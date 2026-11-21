@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Execute段階の手順が共有する、出力先パスと確定済みの計画。
@@ -11,6 +12,11 @@ namespace SymphonyFrameWork.Editor
     ///     生成できるのは<see cref="AssetStoreToolsPackagePipelineRunner" />だけで、
     ///     1回の出力につき1つだけ作られる。
     /// </remarks>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackageExportContext
     {
         #region 外部向けAPI

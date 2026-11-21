@@ -1,5 +1,5 @@
 ﻿#if UNITY_6000_3_OR_NEWER
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Symphony Frameworkのツールバープルダウンへ表示する1項目を表す。

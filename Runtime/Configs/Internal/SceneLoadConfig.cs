@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using SymphonyFramework.Scenes;
 using UnityEngine;
 
-namespace SymphonyFrameWork.Config
+namespace SymphonyFramework.Config
 {
     /// <summary>
     ///     シーン管理の設定を保持する。
@@ -22,6 +23,9 @@ namespace SymphonyFrameWork.Config
         /// <summary> 起動時のシーン整理でアンロードしないシーン名の一覧。 </summary>
         public string[] ResetIgnoreSceneList => _resetIgnoreSceneList;
 
+        /// <summary> 起動時に初期シーンの後でロードするSuiteの一覧。 </summary>
+        public SuiteAsset[] InitializeSuiteList => _initializeSuiteList;
+
         #endregion
 
         #region 内部処理
@@ -33,6 +37,8 @@ namespace SymphonyFrameWork.Config
         private string[] _initializeSceneList;
         [SerializeField, Tooltip("リセットしてもアンロードされないシーン")]
         private string[] _resetIgnoreSceneList;
+        [SerializeField, Tooltip("初期化時に初期シーンの後でロードするSuite")]
+        private SuiteAsset[] _initializeSuiteList;
 
         #endregion
     }

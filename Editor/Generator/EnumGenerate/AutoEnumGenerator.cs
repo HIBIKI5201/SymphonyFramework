@@ -2,19 +2,25 @@
 using System.IO;
 using System.Linq;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     プロジェクト設定変更に応じてシーン、タグ、レイヤーのenumを自動生成する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class AutoEnumGenerator
     {
         #region 外部向けAPI
@@ -102,7 +108,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         internal static void Initialize()
         {
-            _config = SymphonyEditorConfigLocator.GetConfig<AutoEnumGeneratorConfig>();
+            _config = SymphonyEditorConfigProvider.GetConfig<AutoEnumGeneratorConfig>();
             _hasAssetChanges = false;
 
             // Domain Reloadなしで再初期化されても購読が重複しないよう、既存接続を破棄してから登録する。
@@ -194,7 +200,7 @@ namespace SymphonyFrameWork.Editor
         /// <param name="refreshAssetDatabase"> 生成後にAssetDatabaseを更新する場合はtrue。 </param>
         internal static void AudioEnumGenerate(bool refreshAssetDatabase)
         {
-            AudioConfig config = SymphonyConfigLocator.GetConfig<AudioConfig>();
+            AudioConfig config = SymphonyConfigProvider.GetConfig<AudioConfig>();
             string[] list;
 
             // AudioConfigがあれば設定順のグループ名を使い、無ければ空のenumとして安全に再生成する。

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.SaveData;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SaveDataViewModelがServiceの状態変更を表示用一覧へ反映する契約を検証する。

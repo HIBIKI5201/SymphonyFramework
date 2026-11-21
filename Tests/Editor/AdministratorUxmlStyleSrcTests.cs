@@ -3,11 +3,11 @@ using System.Text.RegularExpressions;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using UnityEditor;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     Symphony AdministratorのUXMLが参照するUSSについて、

@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SceneLoad;
+using SymphonyFramework.Scenes;
 
 using UnityEngine.SceneManagement;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> SceneLoadViewModelの初期値、通知抑制、購読解除を検証する。 </summary>
     public sealed class SceneLoadViewModelTests

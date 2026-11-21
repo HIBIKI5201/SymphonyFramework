@@ -1,6 +1,6 @@
-﻿using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.Utility;
+﻿using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.SaveData;
+using SymphonyFramework.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +8,19 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Save Storeのキャッシュ確認、編集、保存操作を提供する。
     /// </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed partial class SaveDataWindow : SymphonyVisualElement, IDisposable
     {
         #region 外部向けAPI
@@ -44,7 +50,7 @@ namespace SymphonyFrameWork.Editor
 
             // Windowより長生きするstatic eventとReactivePropertyの購読を対にして解除する。
             SaveDataVisibilityConfig.instance.OnChanged -= SaveDataVisibilityChangedHandler;
-            SaveStore.OnCurrentViewModelChanged -= ViewModelChangedHandler;
+            Manuscript.OnCurrentViewModelChanged -= ViewModelChangedHandler;
             EditorApplication.playModeStateChanged -= PlayModeStateChangedHandler;
             UnbindViewModel();
 
@@ -72,7 +78,7 @@ namespace SymphonyFrameWork.Editor
 
         #region 内部処理
 
-        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFrameWork.SaveDataWindow.SelectedTypeName";
+        private const string SELECTED_TYPE_SESSION_KEY = "SymphonyFramework.SaveDataWindow.SelectedTypeName";
 
         /// <summary> 対応するセーブデータ型がプロジェクトに1つも無いことを示す文言。 </summary>
         private const string NO_SAVE_DATA_TYPE_MESSAGE =
@@ -81,7 +87,7 @@ namespace SymphonyFrameWork.Editor
         /// <summary> 管理対象の型が1つも無いことと、設定画面への導線を示す文言。 </summary>
         private const string NO_MANAGED_TYPE_MESSAGE =
             "管理対象のセーブデータ型がありません。"
-            + "Project Settings > SymphonyFrameWork > Save System で管理対象を設定してください。";
+            + "Project Settings > SymphonyFramework > Manuscript で管理対象を設定してください。";
 
         /// <summary> 一覧からの明示選択を促す文言。 </summary>
         private const string SELECT_TYPE_MESSAGE = "Save Data Types からセーブデータを選択してください。";
@@ -177,7 +183,7 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            SaveDataViewStore viewStore = SaveStore.CurrentViewStore;
+            SaveDataViewStore viewStore = Manuscript.CurrentViewStore;
             // Composition未初期化時は保存経路が無いため、Play Mode遷移を妨げない。
             if (viewStore == null) { return; }
 
@@ -228,7 +234,7 @@ namespace SymphonyFrameWork.Editor
             RebindDebugState(null);
 
             // 管理操作と状態表示に使うVisualElementを生成済みUXMLへ接続する。
-            SymphonyDocumentationGUI.BindOpenButton(root, SymphonyDocumentPageEnum.SaveDataSystem);
+            SymphonyDocumentationGUI.BindOpenButton(root, SymphonyDocumentPageEnum.Manuscript);
 
             _currentLoaderLabel = root.Q<Label>("save-current-loader");
             _loadedEntriesCountLabel = root.Q<Label>("save-loaded-entries");
@@ -257,7 +263,7 @@ namespace SymphonyFrameWork.Editor
             EnsureTypeListCurrent();
 
             // ViewModelはCompositionが所有し、Windowは差し替え通知と購読ハンドルだけを所有する。
-            SaveStore.OnCurrentViewModelChanged += ViewModelChangedHandler;
+            Manuscript.OnCurrentViewModelChanged += ViewModelChangedHandler;
             EditorApplication.playModeStateChanged += PlayModeStateChangedHandler;
             BindViewModel();
 
@@ -272,7 +278,7 @@ namespace SymphonyFrameWork.Editor
             // ViewModelはCompositionが所有するため、Windowは既存の購読ハンドルだけを置き換える。
             UnbindViewModel();
 
-            SaveDataViewModel viewModel = _disposed ? null : SaveStore.CurrentViewModel;
+            SaveDataViewModel viewModel = _disposed ? null : Manuscript.CurrentViewModel;
             // Edit ModeでもComposition未初期化または破棄後なら、空の一覧を未接続表示として使用する。
             if (viewModel == null)
             {
@@ -581,7 +587,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         private void UpdateCurrentBinding()
         {
-            SaveDataViewStore viewStore = SaveStore.CurrentViewStore;
+            SaveDataViewStore viewStore = Manuscript.CurrentViewStore;
             bool isRegistryLoaded = _selectedType != null
                 && viewStore != null
                 && viewStore.IsLoaded(_selectedType);
@@ -1050,10 +1056,10 @@ namespace SymphonyFrameWork.Editor
         private static SaveDataViewStore GetCurrentViewStoreOrThrow()
         {
             // 操作のたびにCompositionが現在所有するViewStoreを取得する。
-            SaveDataViewStore viewStore = SaveStore.CurrentViewStore;
+            SaveDataViewStore viewStore = Manuscript.CurrentViewStore;
             if (viewStore == null)
             {
-                throw new InvalidOperationException("Save Data Systemが初期化されていません。");
+                throw new InvalidOperationException("Manuscriptが初期化されていません。");
             }
 
             return viewStore;
@@ -1182,7 +1188,7 @@ namespace SymphonyFrameWork.Editor
         private static string GetCurrentLoaderName()
         {
             // 未初期化時はローダー取得を避け、診断用の代替表示を返す。
-            SaveDataViewStore viewStore = SaveStore.CurrentViewStore;
+            SaveDataViewStore viewStore = Manuscript.CurrentViewStore;
             return viewStore?.CurrentLoaderName ?? "(uninitialized)";
         }
 
@@ -1226,7 +1232,7 @@ namespace SymphonyFrameWork.Editor
             // ViewModelのDtoを型で索引化し、対応型一覧との照合を一度ずつで済ませる。
             Dictionary<Type, SaveDataDto> cachedEntries = _cachedEntries
                 .ToDictionary(entry => entry.DataType);
-            SaveDataViewStore viewStore = SaveStore.CurrentViewStore;
+            SaveDataViewStore viewStore = Manuscript.CurrentViewStore;
 
             List<SaveDataEntryRow> rows = new(_saveDataTypes.Count);
             // 対応型の固定順を維持し、Runtime状態と永続化状態を一つの行へ統合する。

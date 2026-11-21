@@ -1,8 +1,8 @@
 ﻿using System;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
-namespace SymphonyFrameWork.Debugger.HUD
+namespace SymphonyFramework.Debugger.HUD
 {
     /// <summary> Debug HUDの状態変更を表示用ReactivePropertyへ変換する。 </summary>
     internal sealed class DebugHUDViewModel : IDisposable

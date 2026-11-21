@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFramework.SaveData;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SaveDataEntryEntityとSaveDataEntryRegistryの契約を検証する。

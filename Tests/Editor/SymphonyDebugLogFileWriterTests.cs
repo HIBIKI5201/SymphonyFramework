@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     Debugログファイルの保存先を検証する。

@@ -11,11 +11,12 @@ APIの説明、コード例、実装時に誤りやすい判断は各モジュ�
 
 | 機能 | namespace | 主な入口 | モジュール文書 |
 | --- | --- | --- | --- |
-| Service Locator | `SymphonyFrameWork.System.ServiceLocate` | `ServiceLocator`, `ServiceInjector` | [Service Locator](./Modules/ServiceLocator.md) |
-| Scene Loader | `SymphonyFrameWork.System.SceneLoad` | `SceneLoader` | [Scene Loader](./Modules/SceneLoader.md) |
-| Save Data System | `SymphonyFrameWork.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](./Modules/SaveDataSystem.md) |
-| Audio Manager | `SymphonyFrameWork.System` | `AudioManager` | [Audio Manager](./Modules/AudioManager.md) |
-| Pause Manager | `SymphonyFrameWork.System` | `PauseManager` | [Pause Manager](./Modules/PauseManager.md) |
+| Partitura | `SymphonyFramework.Services` | `Partitura` | [Partitura](./Modules/Partitura.md) |
+| Attacca | `SymphonyFramework.Scenes` | `Attacca` | [Attacca](./Modules/Attacca.md) |
+| Suite | `SymphonyFramework.Scenes` | `Suite`, `SuiteAsset` | [Suite](./Modules/Suite.md) |
+| Manuscript | `SymphonyFramework.SaveData` | `Manuscript`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Manuscript](./Modules/Manuscript.md) |
+| Sonority | `SymphonyFramework.Audio` | `Sonority` | [Sonority](./Modules/Sonority.md) |
+| Fermata | `SymphonyFramework.Pause` | `Fermata` | [Fermata](./Modules/Fermata.md) |
 
 ## 非推奨APIと移行
 
