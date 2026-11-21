@@ -1,10 +1,16 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Exceptions
 {
     /// <summary>
     ///     Symphony Frameworkの初期化前に機能へアクセスした場合に発生する例外。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Exceptions）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Exceptions",
+        sourceAssembly: "SymphonyFrameWork")]
     public sealed class SymphonyNotInitializedException : Exception
     {
         #region 外部向けAPI

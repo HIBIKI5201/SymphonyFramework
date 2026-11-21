@@ -1,5 +1,25 @@
 ﻿# Changelog
 
+## [7.0.0] - 2026-11-21
+名前空間・アセンブリ・主要な型の名前をそろえ直したメジャー更新です（#227）。6.16.0〜6.20.0 の変更をまとめて配布し、**6.x の名前から移るための転送を加えました。** 6.x（6.15.2）から上げる手順は [Migration7.md](./Documentation~/Migration7.md) にまとめています。
+
+### Breaking
+
+- **6.16.0〜6.20.0 の変更がすべて入ります。** 名前空間 `SymphonyFrameWork.*` は `SymphonyFramework.*` へ、`System` の下の機能は `Services` / `Scenes` / `SaveData` / `Audio` / `Pause` へ移りました。Facade は `Partitura`、`Attacca`、`Suite`、`Manuscript`、`Sonority`、`Fermata` へ改名しました。個々の対応は下の 6.16.0〜6.20.0 と移行ガイドを見てください。
+- 6.x で `[Obsolete]` にしていた API（`SymphonyDebugLogger.DirectLog` など）は、転送を残さず削除しています（6.20.0）。
+
+### Add
+
+- **6.x の名前の Facade を、新しい Facade へ転送する `[Obsolete]` 型として残しました。** `ServiceLocator`、`ServiceInjector`、`SymphonyLocateObject<T>`、`SceneLoader`、`SceneBlockLoader`、`SaveStore`、`AudioManager`、`PauseManager` です。6.x と同じ名前空間・同じシグネチャで呼べます。戻り値の意味は 6.x に合わせています（`ServiceLocator.GetInstance`、`SymphonyLocateObject<T>.GetInstance`、`AudioManager.GetAudioSource` は未登録で `null`、インスタンスを渡す `DestroyInstance` / `IsExistInstance` は型だけで処理）。
+- **利用側が実装・継承する 6.x の型を、新しい型を継承した `[Obsolete]` 型として残しました。** `IInjectable` / `IInjectable<T0…T3>`、`PauseManager.IPausable`（`RegisterPauseManager` 付き）、`SaveDataContent`、`SaveDataLoaderStrategy`、`PlayerPrefsSaveDataLoaderStrategy`、`LocateTypeEnum` です。旧ローダーは、旧 `SaveDataContent` を受け取る `SerializeToJson` / `OverwriteFromJson` の override がそのまま動くよう橋渡しします。
+- **6.x の名前空間を残し、`using SymphonyFrameWork.X;` の行がコンパイルできるようにしました。** 名前空間だけ移った型と、`SceneBlock*` から `Suite*` へ改名した型、`ServiceLocateComponent`、`IInitializeAsync` には 6.x の名前を指す `[MovedFrom]` を付け、Unity の API Updater が利用側スクリプトを書き換えます。
+- 移行ガイド `Documentation~/Migration7.md` を加えました。
+
+### Change
+
+- 旧 `PauseManager.IPausable` をカテゴリーに指定した場合と、旧 `PauseManager.IPausable` だけを実装した対象は、6.x と同じく既定カテゴリー（新しい `IPausable`）として扱います。これにより 6.x のポーズカテゴリーの生成物がコンパイルでき、Editor の起動時の移行（6.20.0）が走ります。
+- 転送用の旧名は [Deprecations.md](./Documentation~/Deprecations.md) に載せ、8.0.0 で削除します。
+
 ## [6.20.0] - 2026-11-21
 `PauseManager` を `Fermata` へ改名し、非推奨APIをすべて片付けました。ポーズカテゴリーの生成物は自動生成enumのアセンブリへまとめました。7.0.0 へ向けた命名の全面整理（#227）の5つ目です（#225）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
 

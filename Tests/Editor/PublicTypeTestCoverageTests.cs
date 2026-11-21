@@ -190,6 +190,9 @@ namespace SymphonyFramework.Tests
 
                 foreach (string path in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories))
                 {
+                    // 6.x からの転送クラスは旧名と新名でテストが二重になるため、Version7CompatibilityTests でまとめて検証する。
+                    if (IsObsoleteShim(path)) { continue; }
+
                     foreach (Match match in PublicTypePattern.Matches(File.ReadAllText(path)))
                     {
                         names.Add(match.Groups["name"].Value);
@@ -198,6 +201,17 @@ namespace SymphonyFramework.Tests
             }
 
             return names;
+        }
+
+        /// <summary>
+        ///     <c>Obsolete/</c> フォルダの下にある、移行期間だけの転送クラスかを判定する。
+        /// </summary>
+        /// <param name="path"> 判定するファイルのパス。 </param>
+        /// <returns> 転送クラスのファイルならtrue。 </returns>
+        private static bool IsObsoleteShim(string path)
+        {
+            string normalized = path.Replace('\\', '/');
+            return normalized.Contains("/Obsolete/", StringComparison.Ordinal);
         }
 
         /// <summary>

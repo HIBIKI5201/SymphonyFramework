@@ -1,10 +1,16 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Scenes
 {
     /// <summary>
     ///     追跡中シーンの状態を表す不変なスナップショット。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.SceneLoad）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SceneLoad",
+        sourceAssembly: "SymphonyFrameWork")]
     public readonly struct SceneLoadInfo : IEquatable<SceneLoadInfo>
     {
         #region 外部向けAPI

@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.20.0**
+- 現在のバージョン: **7.0.0**（6.x から上げる場合は [移行ガイド](./Documentation~/Migration7.md)）
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -154,6 +154,7 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
 - [変更履歴](./CHANGELOG.md)
 - [パッケージ構成・クラス図](./Documentation~/Architecture.md)
 - [Editor機能](./Documentation~/EditorTools.md)
+- [6.x から 7.0.0 への移行](./Documentation~/Migration7.md)
 - [非推奨APIと削除予定](./Documentation~/Deprecations.md)
 - Modules/
   - [Partitura](./Documentation~/Modules/Partitura.md)

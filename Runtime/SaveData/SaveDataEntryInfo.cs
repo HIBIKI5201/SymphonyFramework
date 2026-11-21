@@ -1,10 +1,16 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.SaveData
 {
     /// <summary>
     ///     キャッシュされたセーブデータの読み取り用スナップショットを表す。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.SaveSystem）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SaveSystem",
+        sourceAssembly: "SymphonyFrameWork")]
     public readonly struct SaveDataEntryInfo
     {
         #region 外部向けAPI

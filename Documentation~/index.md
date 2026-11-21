@@ -29,6 +29,7 @@ Symphony Frameworkの文書の入口です。**モジュールごとの文書は
 | [README](../README.md) | 概要、インストール、初期設定、クイックスタート |
 | [Editor機能](./EditorTools.md) | Symphony Frameworkが追加するEditor拡張の索引 |
 | [パッケージ構成](./Architecture.md) | アセンブリ、公開の入口と拡張点、起動と終了の順序 |
+| [6.x から 7.0.0 への移行](./Migration7.md) | 名前の対応、挙動が変わった点、自動で移行されるもの |
 | [非推奨APIと削除予定](./Deprecations.md) | `[Obsolete]` を付けたAPIと、その移行先 |
 | [変更履歴](../CHANGELOG.md) | バージョンごとの追加・変更・修正 |
 

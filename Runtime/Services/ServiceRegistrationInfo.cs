@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Services
 {
     /// <summary>
     ///     Partituraへ登録された1件の状態を表す不変なスナップショット。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.ServiceLocate）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.ServiceLocate",
+        sourceAssembly: "SymphonyFrameWork")]
     public readonly struct ServiceRegistrationInfo : IEquatable<ServiceRegistrationInfo>
     {
         #region 外部向けAPI

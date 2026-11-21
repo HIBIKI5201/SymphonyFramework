@@ -1,10 +1,16 @@
 ﻿using System.Threading.Tasks;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Scenes
 {
     /// <summary>
     ///     非同期で初期化するインターフェース。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.SceneLoad）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SceneLoad",
+        sourceAssembly: "SymphonyFrameWork")]
     public interface IInitializeAsync
     {
         #region 外部向けAPI

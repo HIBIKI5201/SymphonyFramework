@@ -8,6 +8,7 @@ using SymphonyFramework.Utility;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -15,6 +16,12 @@ namespace SymphonyFramework.Editor
     ///     Partituraの登録状態とデバッグログ設定を表示する。
     /// </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Editor.ServiceLocateWindow）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor",
+        sourceClassName: "ServiceLocateWindow")]
     public sealed partial class PartituraWindow :
         SymphonyVisualElement,
         IDisposable

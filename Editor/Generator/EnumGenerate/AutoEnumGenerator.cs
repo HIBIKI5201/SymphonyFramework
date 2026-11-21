@@ -9,12 +9,18 @@ using SymphonyFramework.Debugger.Logger;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     プロジェクト設定変更に応じてシーン、タグ、レイヤーのenumを自動生成する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class AutoEnumGenerator
     {
         #region 外部向けAPI

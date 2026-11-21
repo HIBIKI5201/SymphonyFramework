@@ -13,12 +13,18 @@ using UnityEngine;
 
 using FileMode = System.IO.FileMode;
 using Task = System.Threading.Tasks.Task;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     enumを自動生成する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class EnumGenerator
     {
         #region 外部向けAPI

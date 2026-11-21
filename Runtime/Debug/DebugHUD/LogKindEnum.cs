@@ -1,8 +1,15 @@
-﻿namespace SymphonyFramework.Debugger.Logger
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace SymphonyFramework.Debugger.Logger
 {
     /// <summary>
     ///     出力するログの重要度を表す。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Debugger.Logger）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Debugger.Logger",
+        sourceAssembly: "SymphonyFrameWork")]
     public enum LogKindEnum
     {
         #region 外部向けAPI

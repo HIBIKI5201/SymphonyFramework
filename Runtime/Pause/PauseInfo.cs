@@ -1,10 +1,16 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Pause
 {
     /// <summary>
     ///     ポーズ機構の管理状態を取得時点の不変値として表す。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System",
+        sourceAssembly: "SymphonyFrameWork")]
     public readonly struct PauseInfo : IEquatable<PauseInfo>
     {
         #region 外部向けAPI

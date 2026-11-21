@@ -7,12 +7,18 @@ using SymphonyFramework.Core;
 using UnityEngine;
 
 using Debug = UnityEngine.Debug;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Debugger.Logger
 {
     /// <summary>
     ///     用途と重要度に応じたデバッグログを発行する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Debugger.Logger）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Debugger.Logger",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyDebugLogger
     {
         #region 外部向けAPI

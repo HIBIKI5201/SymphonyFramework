@@ -8,6 +8,7 @@ using SymphonyFramework.Utility;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -15,6 +16,12 @@ namespace SymphonyFramework.Editor
     ///     Attaccaが追跡するシーン状態を一覧表示する。
     /// </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Editor.SceneLoadWindow）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor",
+        sourceClassName: "SceneLoadWindow")]
     public sealed partial class AttaccaWindow : SymphonyVisualElement, IDisposable
     {
         #region 外部向けAPI

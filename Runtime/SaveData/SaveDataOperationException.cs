@@ -1,10 +1,16 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.SaveData
 {
     /// <summary>
     ///     セーブデータ操作のI/O失敗を表す。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.SaveSystem）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SaveSystem",
+        sourceAssembly: "SymphonyFrameWork")]
     public sealed class SaveDataOperationException : Exception
     {
         #region 外部向けAPI

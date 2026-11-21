@@ -1,10 +1,17 @@
 ﻿using UnityEditor;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Editor用ScriptableSingleton設定へのアクセスを提供する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor.SymphonyEditorConfigLocator）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor",
+        sourceClassName: "SymphonyEditorConfigLocator")]
     public static class SymphonyEditorConfigProvider
     {
         #region 外部向けAPI

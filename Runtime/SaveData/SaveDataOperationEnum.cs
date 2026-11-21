@@ -1,8 +1,15 @@
-﻿namespace SymphonyFramework.SaveData
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace SymphonyFramework.SaveData
 {
     /// <summary>
     ///     セーブデータに対して実行した操作の種類を表す。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.SaveSystem）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SaveSystem",
+        sourceAssembly: "SymphonyFrameWork")]
     public enum SaveDataOperationEnum
     {
         #region 外部向けAPI

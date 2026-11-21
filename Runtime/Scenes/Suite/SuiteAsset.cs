@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Scenes
 {
@@ -16,6 +17,12 @@ namespace SymphonyFramework.Scenes
     [CreateAssetMenu(
         menuName = "Symphony Framework/Suite",
         fileName = "Suite")]
+    // 6.x の名前（SymphonyFrameWork.System.SceneBlock.SceneBlockAsset）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SceneBlock",
+        sourceAssembly: "SymphonyFrameWork",
+        sourceClassName: "SceneBlockAsset")]
     public sealed class SuiteAsset : ScriptableObject
     {
         #region 外部向けAPI

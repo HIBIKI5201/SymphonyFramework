@@ -3,6 +3,7 @@
 using SymphonyFramework.Attribute;
 
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Services
 {
@@ -10,6 +11,12 @@ namespace SymphonyFramework.Services
     ///     Inspectorで指定したComponentをPartituraへ登録する。
     /// </summary>
     [HelpURL("https://www.notion.so/SymphonyLocate-19d7c2c6cc02809ea815c3a750fa95ca?pvs=4")]
+    // 6.x の名前（SymphonyFrameWork.System.ServiceLocate.ServiceLocateComponent）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.ServiceLocate",
+        sourceAssembly: "SymphonyFrameWork",
+        sourceClassName: "ServiceLocateComponent")]
     public sealed class ServiceComponent : MonoBehaviour
     {
         #region 内部処理

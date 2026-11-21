@@ -1,6 +1,7 @@
 ﻿using SymphonyFramework.Attribute;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -21,6 +22,11 @@ namespace SymphonyFramework.Editor
     [CreateAssetMenu(
         fileName = nameof(AssetStoreToolsPackagePipeline),
         menuName = "SymphonyFramework/Asset Store Tools Package Pipeline")]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackagePipeline : ScriptableObject
     {
         #region 外部向けAPI

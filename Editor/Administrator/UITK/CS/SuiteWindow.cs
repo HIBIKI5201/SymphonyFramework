@@ -7,6 +7,7 @@ using SymphonyFramework.Utility;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -14,6 +15,12 @@ namespace SymphonyFramework.Editor
     ///     Suiteが追跡するブロックの状態を一覧表示する。
     /// </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Editor.SceneBlockWindow）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor",
+        sourceClassName: "SceneBlockWindow")]
     public sealed partial class SuiteWindow : SymphonyVisualElement, IDisposable
     {
         #region 外部向けAPI

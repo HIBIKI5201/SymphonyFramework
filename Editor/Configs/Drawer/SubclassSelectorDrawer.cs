@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 namespace SymphonyFramework.Editor
 {
     /// <summary>
@@ -16,6 +17,11 @@ namespace SymphonyFramework.Editor
     ///     選択候補の具象型はActivator.CreateInstanceで生成できる必要がある。
     /// </remarks>
     [CustomPropertyDrawer(typeof(SubclassSelectorAttribute))]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class SubclassSelectorDrawer : PropertyDrawer
     {
         #region 外部向けAPI

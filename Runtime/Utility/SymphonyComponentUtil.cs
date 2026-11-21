@@ -1,10 +1,16 @@
 ﻿using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework
 {
     /// <summary>
     ///     コンポーネントに関するユーティリティクラス。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyComponentUtil
     {
         #region 外部向けAPI

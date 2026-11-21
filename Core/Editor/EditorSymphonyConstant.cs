@@ -1,11 +1,17 @@
 ﻿using System.IO;
 using System.Runtime.CompilerServices;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     エディタ用の定数値を持つ。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Core）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Core",
+        sourceAssembly: "SymphonyFrameWork.Core")]
     public static class EditorSymphonyConstant
     {
         #region 外部向けAPI
