@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using SymphonyFramework.Debugger.Logger;
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 using UnityEngine;
 
 namespace SymphonyFramework.Utility
@@ -75,7 +74,7 @@ namespace SymphonyFramework.Utility
             CancellationToken token = default) where T : struct
         {
             return PausableTweeningCore(
-                static () => PauseManager.IsPausedAny(), s, action, e, d, curve, token);
+                static () => Fermata.IsPausedAny(), s, action, e, d, curve, token);
         }
 
         /// <summary>
@@ -98,87 +97,10 @@ namespace SymphonyFramework.Utility
             AnimationCurve curve = null,
             CancellationToken token = default)
             where T : struct
-            where TCategory : PauseManager.IPausable
+            where TCategory : IPausable
         {
             return PausableTweeningCore(
-                static () => PauseManager.IsPaused<TCategory>(), s, action, e, d, curve, token);
-        }
-
-        /// <summary>
-        ///     指定時間にわたり開始値から終了値まで線形補間する。
-        /// </summary>
-        /// <typeparam name="T"> 線形補間する値の型。 </typeparam>
-        /// <param name="s"> 開始値。 </param>
-        /// <param name="action"> 補間値を受け取る処理。 </param>
-        /// <param name="e"> 終了値。 </param>
-        /// <param name="d"> 補間時間。 </param>
-        /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        [Obsolete("旧型式です。" + nameof(Tweening) + "を使用する事を推奨します")]
-        public static async Task TweeningLerp<T>(T s, Action<T> action, T e, float d,
-            CancellationToken token = default) where T : struct
-        {
-            float timer = Time.time;
-
-            // 旧APIの既存契約どおり、指定時間内は毎フレーム線形補間値を通知する。
-            while (Time.time <= timer + d)
-            {
-                float elapsed = Time.time - timer;
-                float t = Mathf.Clamp01(elapsed / d);
-                T? result = LerpValue((s, e), t);
-
-                // 補間を定義していない型は実行を継続できないため、実行環境でも確認できるログを残す。
-                if (result == null)
-                {
-                    SymphonyDebugLogger.LogDirect($"{typeof(T).Name}型は{nameof(TweeningLerp)}に対応していません");
-                    return;
-                }
-                // action未指定は通知だけを省略し、時間待機自体は継続する既存契約を維持する。
-                action?.Invoke(result.Value);
-                await Awaitable.NextFrameAsync();
-            }
-
-            // フレーム間隔による端数にかかわらず、正常完了時は終了値を必ず通知する。
-            action?.Invoke(e);
-        }
-
-        /// <summary>
-        ///     指定時間にわたりカーブを適用して開始値から終了値まで補間する。
-        /// </summary>
-        /// <typeparam name="T"> カーブ補間する値の型。 </typeparam>
-        /// <param name="s"> 開始値。 </param>
-        /// <param name="action"> 補間値を受け取る処理。 </param>
-        /// <param name="e"> 終了値。 </param>
-        /// <param name="d"> 補間時間。 </param>
-        /// <param name="curve"> 補間割合へ適用するAnimationCurve。 </param>
-        /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        [Obsolete("旧型式です。" + nameof(Tweening) + "を使用する事を推奨します")]
-        public static async Task TweeningCurve<T>(T s, Action<T> action, T e, float d, AnimationCurve curve,
-            CancellationToken token = default) where T : struct
-        {
-            // 旧APIでもカーブの最終キー時刻に依存せず、0から1の経過率で評価できる形へ揃える。
-            curve = NormalizeCurve(curve);
-            float timer = Time.time;
-
-            // 旧APIの既存契約どおり、指定時間内は毎フレームカーブ補間値を通知する。
-            while (Time.time <= timer + d)
-            {
-                float elapsed = Time.time - timer;
-                float t = Mathf.Clamp01(elapsed / d);
-                T? result = CurveValue((s, e), t, curve);
-
-                // 補間を定義していない型は実行を継続できないため、実行環境でも確認できるログを残す。
-                if (result == null)
-                {
-                    SymphonyDebugLogger.LogDirect($"{typeof(T).Name}型は{nameof(TweeningCurve)}に対応していません");
-                    return;
-                }
-                // action未指定は通知だけを省略し、時間待機自体は継続する既存契約を維持する。
-                action?.Invoke(result.Value);
-                await Awaitable.NextFrameAsync();
-            }
-
-            // フレーム間隔による端数にかかわらず、正常完了時は終了値を必ず通知する。
-            action?.Invoke(e);
+                static () => Fermata.IsPaused<TCategory>(), s, action, e, d, curve, token);
         }
 
         #endregion

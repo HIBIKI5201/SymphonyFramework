@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 using SymphonyFramework.Utility;
 
 using UnityEngine;
@@ -14,31 +14,31 @@ using UnityEngine.TestTools;
 namespace SymphonyFramework.Tests
 {
     /// <summary>
-    ///     PauseManagerの非同期APIがAwaitableへ移行してもタイミングとキャンセルの
+    ///     Fermataの非同期APIがAwaitableへ移行してもタイミングとキャンセルの
     ///     契約を保つことを検証する。フレーム進行を伴うためPlayModeで実行する。
-    ///     PauseManagerはSymphonyOrchestratorがPlay Mode開始時に初期化する。
+    ///     FermataはSymphonyOrchestratorがPlay Mode開始時に初期化する。
     /// </summary>
-    public sealed class PauseAwaitableRuntimeTests
+    public sealed class FermataAwaitableRuntimeTests
     {
         /// <summary> 待機APIの検証用カテゴリー。 </summary>
-        private interface IWaitCategory : PauseManager.IPausable { }
+        private interface IWaitCategory : IPausable { }
 
         /// <summary> 各テストの後でポーズ状態を戻し、次のテストへ持ち越さない。 </summary>
         [TearDown]
         public void TearDown()
         {
-            if (PauseManager.IsInitialized)
+            if (Fermata.IsInitialized)
             {
-                PauseManager.SetPauseAll(false);
+                Fermata.SetPauseAll(false);
             }
         }
 
-        /// <summary> PausableNextFrameAsyncを待機するとフレームが進む。 </summary>
+        /// <summary> NextFrameAsyncを待機するとフレームが進む。 </summary>
         [UnityTest]
-        public IEnumerator PausableNextFrameAsync_AdvancesFrame()
+        public IEnumerator NextFrameAsync_AdvancesFrame()
         {
             int startFrame = Time.frameCount;
-            Task task = SymphonyAwaitable.AsTask(PauseManager.PausableNextFrameAsync<IWaitCategory>());
+            Task task = SymphonyAwaitable.AsTask(Fermata.NextFrameAsync<IWaitCategory>());
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -46,13 +46,13 @@ namespace SymphonyFramework.Tests
             Assert.That(Time.frameCount, Is.GreaterThan(startFrame));
         }
 
-        /// <summary> PausableWaitForSecondAsyncは指定秒の経過後に完了する。 </summary>
+        /// <summary> WaitForSecondsAsyncは指定秒の経過後に完了する。 </summary>
         [UnityTest]
-        public IEnumerator PausableWaitForSecondAsync_CompletesAfterDuration()
+        public IEnumerator WaitForSecondsAsync_CompletesAfterDuration()
         {
             float startedAt = Time.realtimeSinceStartup;
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableWaitForSecondAsync<IWaitCategory>(0.1f));
+                Fermata.WaitForSecondsAsync<IWaitCategory>(0.1f));
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -68,12 +68,12 @@ namespace SymphonyFramework.Tests
         ///     戻り値型ではなくタイミングの契約を検証する。
         /// </summary>
         [UnityTest]
-        public IEnumerator PausableWaitForSecondAsync_DoesNotAdvanceWhilePaused()
+        public IEnumerator WaitForSecondsAsync_DoesNotAdvanceWhilePaused()
         {
-            PauseManager.SetPause<IWaitCategory>(true);
+            Fermata.SetPause<IWaitCategory>(true);
 
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableWaitForSecondAsync<IWaitCategory>(0.1f));
+                Fermata.WaitForSecondsAsync<IWaitCategory>(0.1f));
 
             for (int i = 0; i < 30; i++)
             {
@@ -82,7 +82,7 @@ namespace SymphonyFramework.Tests
 
             Assert.That(task.IsCompleted, Is.False, "ポーズ中に待機が完了してはいけない。");
 
-            PauseManager.SetPause<IWaitCategory>(false);
+            Fermata.SetPause<IWaitCategory>(false);
 
             yield return new WaitUntil(() => task.IsCompleted);
             task.GetAwaiter().GetResult();
@@ -94,7 +94,7 @@ namespace SymphonyFramework.Tests
         ///     TaskCanceledExceptionに化けてしまい、利用側が実際に受け取る型を測れない。
         /// </summary>
         [UnityTest]
-        public IEnumerator PausableWaitForSecondAsync_Canceled_ThrowsOperationCanceled()
+        public IEnumerator WaitForSecondsAsync_Canceled_ThrowsOperationCanceled()
         {
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
@@ -105,7 +105,7 @@ namespace SymphonyFramework.Tests
             {
                 try
                 {
-                    await PauseManager.PausableWaitForSecondAsync<IWaitCategory>(0.1f, cancellation.Token);
+                    await Fermata.WaitForSecondsAsync<IWaitCategory>(0.1f, cancellation.Token);
                 }
                 catch (Exception exception)
                 {
@@ -120,13 +120,13 @@ namespace SymphonyFramework.Tests
             Assert.That(captured, Is.InstanceOf<OperationCanceledException>());
         }
 
-        /// <summary> PausableInvokeを待機すると、指定秒後に処理が実行されている。 </summary>
+        /// <summary> InvokeAsyncを待機すると、指定秒後に処理が実行されている。 </summary>
         [UnityTest]
-        public IEnumerator PausableInvoke_Awaited_RunsAction()
+        public IEnumerator InvokeAsync_Awaited_RunsAction()
         {
             bool invoked = false;
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableInvoke<IWaitCategory>(() => invoked = true, 0.05f));
+                Fermata.InvokeAsync<IWaitCategory>(() => invoked = true, 0.05f));
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -139,11 +139,11 @@ namespace SymphonyFramework.Tests
         ///     fire-and-forgetとして使える契約を、Awaitableを返す形にしても保つ。
         /// </summary>
         [UnityTest]
-        public IEnumerator PausableInvoke_NotAwaited_StillRunsAction()
+        public IEnumerator InvokeAsync_NotAwaited_StillRunsAction()
         {
             bool invoked = false;
 
-            _ = PauseManager.PausableInvoke<IWaitCategory>(() => invoked = true, 0.05f);
+            _ = Fermata.InvokeAsync<IWaitCategory>(() => invoked = true, 0.05f);
 
             float startedAt = Time.realtimeSinceStartup;
             yield return new WaitUntil(
@@ -158,21 +158,21 @@ namespace SymphonyFramework.Tests
         ///     try/catchでは捕まえられなかった。
         /// </summary>
         [Test]
-        public void PausableInvoke_InvalidArguments_ThrowSynchronously()
+        public void InvokeAsync_InvalidArguments_ThrowSynchronously()
         {
             Assert.Throws<ArgumentNullException>(
-                () => PauseManager.PausableInvoke<IWaitCategory>(null, 0.05f));
+                () => Fermata.InvokeAsync<IWaitCategory>(null, 0.05f));
             Assert.Throws<ArgumentOutOfRangeException>(
-                () => PauseManager.PausableInvoke<IWaitCategory>(() => { }, -1f));
+                () => Fermata.InvokeAsync<IWaitCategory>(() => { }, -1f));
         }
 
-        /// <summary> PausableDestroyは指定秒後にGameObjectを破棄する。 </summary>
+        /// <summary> DestroyAsyncは指定秒後にGameObjectを破棄する。 </summary>
         [UnityTest]
-        public IEnumerator PausableDestroy_Awaited_DestroysObject()
+        public IEnumerator DestroyAsync_Awaited_DestroysObject()
         {
-            var target = new GameObject(nameof(PausableDestroy_Awaited_DestroysObject));
+            var target = new GameObject(nameof(DestroyAsync_Awaited_DestroysObject));
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableDestroy<IWaitCategory>(target, 0.05f));
+                Fermata.DestroyAsync<IWaitCategory>(target, 0.05f));
 
             yield return new WaitUntil(() => task.IsCompleted);
 
@@ -186,19 +186,19 @@ namespace SymphonyFramework.Tests
 
         /// <summary> 破棄対象がnullなら同期的に例外になる。 </summary>
         [Test]
-        public void PausableDestroy_NullObject_ThrowsSynchronously()
+        public void DestroyAsync_NullObject_ThrowsSynchronously()
         {
             Assert.Throws<ArgumentNullException>(
-                () => PauseManager.PausableDestroy<IWaitCategory>(null, 0.05f));
+                () => Fermata.DestroyAsync<IWaitCategory>(null, 0.05f));
         }
 
-        /// <summary> PausableWaitUntilは条件成立で完了する。 </summary>
+        /// <summary> WaitUntilAsyncは条件成立で完了する。 </summary>
         [UnityTest]
-        public IEnumerator PausableWaitUntil_CompletesWhenConditionMet()
+        public IEnumerator WaitUntilAsync_CompletesWhenConditionMet()
         {
             bool condition = false;
             Task task = SymphonyAwaitable.AsTask(
-                PauseManager.PausableWaitUntil<IWaitCategory>(() => condition));
+                Fermata.WaitUntilAsync<IWaitCategory>(() => condition));
 
             for (int i = 0; i < 3; i++)
             {

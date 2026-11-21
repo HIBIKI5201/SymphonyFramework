@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace SymphonyFramework.Core
@@ -45,10 +44,6 @@ namespace SymphonyFramework.Core
 
         /// <summary> Asset Store Toolsの既定ルートパス。 </summary>
         public const string ASSET_STORE_TOOLS_PATH = "Assets/AssetStoreTools";
-
-        /// <summary> パッケージ対象から除外するフォルダ名の設定ファイル。 </summary>
-        [Obsolete("PackagerConfig.jsonへ移行しました。ASSET_STORE_TOOLS_CONFIG_FILE_NAMEを使用してください。", error: false)]
-        public const string ASSET_STORE_TOOLS_IGNORE_FILE = ASSET_STORE_TOOLS_PATH + "/ignore.txt";
 
         /// <summary> パッケージ化設定ファイルの名前。対象フォルダ直下に置かれる。 </summary>
         public const string ASSET_STORE_TOOLS_CONFIG_FILE_NAME = "PackagerConfig.json";

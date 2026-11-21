@@ -26,8 +26,8 @@
         /// <summary> Sonorityモジュール。 </summary>
         Sonority,
 
-        /// <summary> Pause Managerモジュール。 </summary>
-        PauseManager,
+        /// <summary> Fermataモジュール。 </summary>
+        Fermata,
 
         /// <summary> HUD、ログ、処理時間計測のモジュール。 </summary>
         Debug,

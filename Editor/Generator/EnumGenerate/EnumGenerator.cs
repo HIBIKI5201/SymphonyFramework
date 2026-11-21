@@ -220,24 +220,17 @@ namespace SymphonyFramework.Editor
             // Assembly Definitionの生成前後を比較し、実際にAssetDatabase更新が必要かを判定する。
             string enumAsmdefPath =
                 EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum.asmdef";
-            string mainAsmdefPath =
-                EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework.asmdef";
             string previousEnumAsmdef = File.Exists(enumAsmdefPath)
                 ? File.ReadAllText(enumAsmdefPath)
                 : null;
-            string previousMainAsmdef = File.Exists(mainAsmdefPath)
-                ? File.ReadAllText(mainAsmdefPath)
-                : null;
 
-            // enum用asmdefを用意し、PackageInitializerと同じ参照注入を適用する。
+            // enum用asmdefを用意し、PackageInitializerと同じくFrameworkへの参照を入れる。
             AssemblyGenerator.CreateEnumAssembly(
                 EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum",
                 EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework");
 
             hasAssetChanges |= !File.Exists(enumAsmdefPath) ||
                                previousEnumAsmdef != File.ReadAllText(enumAsmdefPath);
-            hasAssetChanges |= File.Exists(mainAsmdefPath) &&
-                               previousMainAsmdef != File.ReadAllText(mainAsmdefPath);
             return hasAssetChanges;
         }
 

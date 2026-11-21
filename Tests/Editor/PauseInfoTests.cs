@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 namespace SymphonyFramework.Tests
 {
@@ -48,9 +48,9 @@ namespace SymphonyFramework.Tests
         [Test]
         public void Constructor_WithCategory_ExposesCategory()
         {
-            PauseInfo info = new(true, 1, typeof(PauseManager.IPausable));
+            PauseInfo info = new(true, 1, typeof(IPausable));
 
-            Assert.That(info.Category, Is.EqualTo(typeof(PauseManager.IPausable)));
+            Assert.That(info.Category, Is.EqualTo(typeof(IPausable)));
         }
 
         /// <summary> カテゴリーを省略した場合は全体を表すnullになる。 </summary>
@@ -65,7 +65,7 @@ namespace SymphonyFramework.Tests
         public void Equals_DifferentCategory_AreNotEqual()
         {
             PauseInfo overall = new(true, 2);
-            PauseInfo categorized = new(true, 2, typeof(PauseManager.IPausable));
+            PauseInfo categorized = new(true, 2, typeof(IPausable));
 
             Assert.That(overall == categorized, Is.False);
         }
@@ -74,8 +74,8 @@ namespace SymphonyFramework.Tests
         [Test]
         public void Equals_SameCategory_AreEqual()
         {
-            PauseInfo left = new(true, 2, typeof(PauseManager.IPausable));
-            PauseInfo right = new(true, 2, typeof(PauseManager.IPausable));
+            PauseInfo left = new(true, 2, typeof(IPausable));
+            PauseInfo right = new(true, 2, typeof(IPausable));
 
             Assert.That(left == right, Is.True);
             Assert.That(left.GetHashCode(), Is.EqualTo(right.GetHashCode()));

@@ -2,7 +2,7 @@
 
 using SymphonyFramework.Core;
 
-namespace SymphonyFramework.System
+namespace SymphonyFramework.Pause
 {
     /// <summary>
     ///     ポーズ機構の状態変更を表示用ReactivePropertyへ変換する。

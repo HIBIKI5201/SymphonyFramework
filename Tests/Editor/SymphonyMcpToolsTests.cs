@@ -36,7 +36,7 @@ namespace SymphonyFramework.Tests
             AssertUninitializedJson(SymphonyMcpTools.GetManuscriptJson);
         }
 
-        /// <summary> Pause Managerが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Fermataが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
         public void GetPauseJson_WhenUninitialized_ReturnsValidJson()
         {

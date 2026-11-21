@@ -5,27 +5,27 @@ using System.Collections.Generic;
 using NUnit.Framework;
 
 using SymphonyFramework.Exceptions;
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 namespace SymphonyFramework.Tests
 {
     /// <summary>
-    ///     PauseManagerのカテゴリー版公開APIを検証する。
+    ///     Fermataのカテゴリー版公開APIを検証する。
     /// </summary>
     /// <remarks>
     ///     staticな状態を持つため、テストごとに初期化と破棄を対で行う。
     ///     Domain Reloadが無効なプロジェクトのため、後始末を怠ると次のテストへ状態が漏れる。
     /// </remarks>
-    public sealed class PauseManagerTests
+    public sealed class FermataTests
     {
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IGameplayCategory : PauseManager.IPausable { }
+        private interface IGameplayCategory : IPausable { }
 
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IUiCategory : PauseManager.IPausable { }
+        private interface IUiCategory : IPausable { }
 
         /// <summary> カテゴリーではない検証用の具象型。 </summary>
-        private sealed class ConcretePausable : PauseManager.IPausable
+        private sealed class ConcretePausable : IPausable
         {
             public void Pause() { }
             public void Resume() { }
@@ -45,14 +45,14 @@ namespace SymphonyFramework.Tests
         [SetUp]
         public void SetUp()
         {
-            PauseManager.ResetRuntimeState();
+            Fermata.ResetRuntimeState();
         }
 
         /// <summary> 次のテストへstatic状態を残さない。 </summary>
         [TearDown]
         public void TearDown()
         {
-            PauseManager.ResetRuntimeState();
+            Fermata.ResetRuntimeState();
         }
 
         /// <summary> 未初期化のカテゴリー操作は初期化前アクセスとして拒否する。 </summary>
@@ -60,7 +60,7 @@ namespace SymphonyFramework.Tests
         public void SetPause_NotInitialized_Throws()
         {
             Assert.That(
-                () => PauseManager.SetPause<IGameplayCategory>(true),
+                () => Fermata.SetPause<IGameplayCategory>(true),
                 Throws.TypeOf<SymphonyNotInitializedException>());
         }
 
@@ -69,7 +69,7 @@ namespace SymphonyFramework.Tests
         public void IsPaused_NotInitialized_Throws()
         {
             Assert.That(
-                () => PauseManager.IsPaused<IGameplayCategory>(),
+                () => Fermata.IsPaused<IGameplayCategory>(),
                 Throws.TypeOf<SymphonyNotInitializedException>());
         }
 
@@ -78,10 +78,10 @@ namespace SymphonyFramework.Tests
         public void SetPauseAll_NotInitialized_Throws()
         {
             Assert.That(
-                () => PauseManager.SetPauseAll(true),
+                () => Fermata.SetPauseAll(true),
                 Throws.TypeOf<SymphonyNotInitializedException>());
             Assert.That(
-                () => PauseManager.IsPausedAny(),
+                () => Fermata.IsPausedAny(),
                 Throws.TypeOf<SymphonyNotInitializedException>());
         }
 
@@ -90,7 +90,7 @@ namespace SymphonyFramework.Tests
         public void GetPauseInfo_NotInitialized_Throws()
         {
             Assert.That(
-                () => PauseManager.GetPauseInfo<IGameplayCategory>(),
+                () => Fermata.GetPauseInfo<IGameplayCategory>(),
                 Throws.TypeOf<SymphonyNotInitializedException>());
         }
 
@@ -104,16 +104,16 @@ namespace SymphonyFramework.Tests
         [Test]
         public void SetPause_ConcreteType_Throws()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
 
             Assert.That(
-                () => PauseManager.SetPause<ConcretePausable>(true),
+                () => Fermata.SetPause<ConcretePausable>(true),
                 Throws.TypeOf<ArgumentException>());
             Assert.That(
-                () => PauseManager.IsPaused<ConcretePausable>(),
+                () => Fermata.IsPaused<ConcretePausable>(),
                 Throws.TypeOf<ArgumentException>());
             Assert.That(
-                () => PauseManager.GetPauseInfo<ConcretePausable>(),
+                () => Fermata.GetPauseInfo<ConcretePausable>(),
                 Throws.TypeOf<ArgumentException>());
         }
 
@@ -124,36 +124,36 @@ namespace SymphonyFramework.Tests
         [Test]
         public void SetPause_IPausableItself_IsAllowed()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
 
-            Assert.DoesNotThrow(() => PauseManager.SetPause<PauseManager.IPausable>(true));
-            Assert.That(PauseManager.IsPaused<PauseManager.IPausable>(), Is.True);
+            Assert.DoesNotThrow(() => Fermata.SetPause<IPausable>(true));
+            Assert.That(Fermata.IsPaused<IPausable>(), Is.True);
         }
 
         /// <summary> カテゴリーごとに独立してポーズ状態を持つ。 </summary>
         [Test]
         public void SetPause_PerCategory_IsIndependent()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
 
-            PauseManager.SetPause<IGameplayCategory>(true);
+            Fermata.SetPause<IGameplayCategory>(true);
 
-            Assert.That(PauseManager.IsPaused<IGameplayCategory>(), Is.True);
-            Assert.That(PauseManager.IsPaused<IUiCategory>(), Is.False);
-            Assert.That(PauseManager.IsPausedAny(), Is.True);
+            Assert.That(Fermata.IsPaused<IGameplayCategory>(), Is.True);
+            Assert.That(Fermata.IsPaused<IUiCategory>(), Is.False);
+            Assert.That(Fermata.IsPausedAny(), Is.True);
         }
 
         /// <summary> 一括操作は全カテゴリーへ届く。 </summary>
         [Test]
         public void SetPauseAll_AffectsEveryCategory()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
             GameplayPausable pausable = new();
-            PauseManager.IPausable.RegisterPauseManager(pausable);
+            Fermata.Register(pausable);
 
-            PauseManager.SetPauseAll(true);
+            Fermata.SetPauseAll(true);
 
-            Assert.That(PauseManager.IsPaused<IGameplayCategory>(), Is.True);
+            Assert.That(Fermata.IsPaused<IGameplayCategory>(), Is.True);
             Assert.That(pausable.PauseCount, Is.EqualTo(1));
         }
 
@@ -161,25 +161,25 @@ namespace SymphonyFramework.Tests
         [Test]
         public void SetPauseAll_False_ReleasesEveryCategory()
         {
-            PauseManager.Initialize();
-            PauseManager.SetPause<IGameplayCategory>(true);
-            PauseManager.SetPause<IUiCategory>(true);
+            Fermata.Initialize();
+            Fermata.SetPause<IGameplayCategory>(true);
+            Fermata.SetPause<IUiCategory>(true);
 
-            PauseManager.SetPauseAll(false);
+            Fermata.SetPauseAll(false);
 
-            Assert.That(PauseManager.IsPausedAny(), Is.False);
+            Assert.That(Fermata.IsPausedAny(), Is.False);
         }
 
         /// <summary> カテゴリー単位の購読者へ、そのカテゴリーの変化だけが届く。 </summary>
         [Test]
         public void AddPauseChangedHandler_ReceivesOnlyOwnCategory()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
             List<bool> received = new();
-            PauseManager.AddPauseChangedHandler<IGameplayCategory>(received.Add);
+            Fermata.AddPauseChangedHandler<IGameplayCategory>(received.Add);
 
-            PauseManager.SetPause<IUiCategory>(true);
-            PauseManager.SetPause<IGameplayCategory>(true);
+            Fermata.SetPause<IUiCategory>(true);
+            Fermata.SetPause<IGameplayCategory>(true);
 
             Assert.That(received, Is.EqualTo(new[] { true }));
         }
@@ -188,13 +188,13 @@ namespace SymphonyFramework.Tests
         [Test]
         public void RemovePauseChangedHandler_StopsNotification()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
             List<bool> received = new();
             Action<bool> handler = received.Add;
-            PauseManager.AddPauseChangedHandler<IGameplayCategory>(handler);
-            PauseManager.RemovePauseChangedHandler<IGameplayCategory>(handler);
+            Fermata.AddPauseChangedHandler<IGameplayCategory>(handler);
+            Fermata.RemovePauseChangedHandler<IGameplayCategory>(handler);
 
-            PauseManager.SetPause<IGameplayCategory>(true);
+            Fermata.SetPause<IGameplayCategory>(true);
 
             Assert.That(received, Is.Empty);
         }
@@ -203,11 +203,11 @@ namespace SymphonyFramework.Tests
         [Test]
         public void GetPauseInfo_Category_ReflectsCategoryState()
         {
-            PauseManager.Initialize();
-            PauseManager.IPausable.RegisterPauseManager(new GameplayPausable());
-            PauseManager.SetPause<IGameplayCategory>(true);
+            Fermata.Initialize();
+            Fermata.Register(new GameplayPausable());
+            Fermata.SetPause<IGameplayCategory>(true);
 
-            PauseInfo info = PauseManager.GetPauseInfo<IGameplayCategory>();
+            PauseInfo info = Fermata.GetPauseInfo<IGameplayCategory>();
 
             Assert.That(info.IsPaused, Is.True);
             Assert.That(info.PausableSubscriberCount, Is.EqualTo(1));
@@ -218,37 +218,39 @@ namespace SymphonyFramework.Tests
         [Test]
         public void GetPauseInfo_Overall_HasNoCategory()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
 
-            PauseInfo info = PauseManager.GetPauseInfo();
+            PauseInfo info = Fermata.GetPauseInfo();
 
             Assert.That(info.Category, Is.Null);
         }
 
         /// <summary>
-        ///     既存の Pause プロパティは全カテゴリーへ対応する。
+        ///     カテゴリーを指定しない通知は、全カテゴリーをまとめた状態の変化だけを受け取る。
         /// </summary>
-        /// <remarks> 従来の利用コードの挙動を変えないことを保証する。 </remarks>
+        /// <remarks> 2つ目のカテゴリーを止めても「いずれかがポーズ中」は変わらないため通知しない。 </remarks>
         [Test]
-        public void Pause_Property_MatchesSetPauseAll()
+        public void AddPauseChangedHandler_WithoutCategory_ReceivesOverallChanges()
         {
-            PauseManager.Initialize();
-            GameplayPausable pausable = new();
-            PauseManager.IPausable.RegisterPauseManager(pausable);
+            Fermata.Initialize();
+            List<bool> received = new();
+            Action<bool> handler = received.Add;
+            Fermata.AddPauseChangedHandler(handler);
 
-            // 非推奨APIの互換性そのものを検証するテストであるため、警告だけを抑止する。
-#pragma warning disable 618
-            PauseManager.Pause = true;
+            Fermata.SetPause<IGameplayCategory>(true);
+            Fermata.SetPause<IUiCategory>(true);
+            Fermata.SetPauseAll(false);
+            Fermata.RemovePauseChangedHandler(handler);
+            Fermata.SetPauseAll(true);
 
-            Assert.That(PauseManager.Pause, Is.True);
-            Assert.That(PauseManager.IsPaused<IGameplayCategory>(), Is.True);
-            Assert.That(pausable.PauseCount, Is.EqualTo(1));
+            Assert.That(received, Is.EqualTo(new[] { true, false }));
+        }
 
-            PauseManager.Pause = false;
-
-            Assert.That(PauseManager.Pause, Is.False);
-#pragma warning restore 618
-            Assert.That(pausable.ResumeCount, Is.EqualTo(1));
+        /// <summary> カテゴリーを指定しない通知も、未初期化では例外を投げる。 </summary>
+        [Test]
+        public void AddPauseChangedHandler_WithoutCategory_NotInitialized_Throws()
+        {
+            Assert.Throws<SymphonyNotInitializedException>(() => Fermata.AddPauseChangedHandler(_ => { }));
         }
 
         /// <summary>
@@ -259,37 +261,37 @@ namespace SymphonyFramework.Tests
         ///     呼び出し元のtry/catchでは捕まえられない。
         /// </remarks>
         [Test]
-        public void PausableWaiters_ConcreteType_ThrowSynchronously()
+        public void Waiters_ConcreteType_ThrowSynchronously()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
 
             Assert.That(
-                () => PauseManager.PausableNextFrameAsync<ConcretePausable>(),
+                () => Fermata.NextFrameAsync<ConcretePausable>(),
                 Throws.TypeOf<ArgumentException>());
             Assert.That(
-                () => PauseManager.PausableWaitForSecondAsync<ConcretePausable>(0.1f),
+                () => Fermata.WaitForSecondsAsync<ConcretePausable>(0.1f),
                 Throws.TypeOf<ArgumentException>());
             Assert.That(
-                () => PauseManager.PausableWaitUntil<ConcretePausable>(() => true),
+                () => Fermata.WaitUntilAsync<ConcretePausable>(() => true),
                 Throws.TypeOf<ArgumentException>());
             Assert.That(
-                () => PauseManager.PausableInvoke<ConcretePausable>(() => { }, 0.1f),
+                () => Fermata.InvokeAsync<ConcretePausable>(() => { }, 0.1f),
                 Throws.TypeOf<ArgumentException>());
         }
 
         /// <summary>
-        ///     PausableWaitForSecondの検証は最初のMoveNextまで遅延する。
+        ///     WaitForSecondsの検証は最初のMoveNextまで遅延する。
         /// </summary>
         /// <remarks>
         ///     イテレータであるという従来からの挙動を保っている。
         ///     Enumeratorを受け取るだけでは何も起きない。
         /// </remarks>
         [Test]
-        public void PausableWaitForSecond_ValidationIsDeferredToFirstMoveNext()
+        public void WaitForSeconds_ValidationIsDeferredToFirstMoveNext()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
 
-            IEnumerator enumerator = PauseManager.PausableWaitForSecond<ConcretePausable>(0.1f);
+            IEnumerator enumerator = Fermata.WaitForSeconds<ConcretePausable>(0.1f);
 
             Assert.That(enumerator, Is.Not.Null, "Enumeratorを受け取るだけでは投げない。");
             Assert.That(() => enumerator.MoveNext(), Throws.TypeOf<ArgumentException>());
@@ -304,17 +306,17 @@ namespace SymphonyFramework.Tests
         [Test]
         public void ResetRuntimeState_ClearsCategoriesAndUninitializes()
         {
-            PauseManager.Initialize();
-            PauseManager.SetPause<IGameplayCategory>(true);
+            Fermata.Initialize();
+            Fermata.SetPause<IGameplayCategory>(true);
 
-            PauseManager.ResetRuntimeState();
+            Fermata.ResetRuntimeState();
 
             Assert.That(
-                () => PauseManager.IsPaused<IGameplayCategory>(),
+                () => Fermata.IsPaused<IGameplayCategory>(),
                 Throws.TypeOf<SymphonyNotInitializedException>());
 
-            PauseManager.Initialize();
-            Assert.That(PauseManager.IsPaused<IGameplayCategory>(), Is.False);
+            Fermata.Initialize();
+            Assert.That(Fermata.IsPaused<IGameplayCategory>(), Is.False);
         }
     }
 }

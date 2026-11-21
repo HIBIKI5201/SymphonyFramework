@@ -5,7 +5,7 @@ using System.Linq;
 
 using SymphonyFramework.Core;
 using SymphonyFramework.Editor.Debugger.Logger;
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 using SymphonyFramework.SaveData;
 using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
@@ -173,7 +173,7 @@ namespace SymphonyFramework.Editor.Debugger
         }
 
         /// <summary>
-        ///     Pause Managerの初期化状態、ポーズ状態、IPausable購読件数をJSONで取得する。
+        ///     Fermataの初期化状態、ポーズ状態、IPausable購読件数をJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
         public static string GetPauseJson()
@@ -183,7 +183,7 @@ namespace SymphonyFramework.Editor.Debugger
             try
             {
                 // Edit ModeではRuntime状態が存在しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && PauseManager.IsInitialized;
+                initialized = EditorApplication.isPlaying && Fermata.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、Runtime APIへ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -195,7 +195,7 @@ namespace SymphonyFramework.Editor.Debugger
                     });
                 }
 
-                PauseInfo pauseInfo = PauseManager.GetPauseInfo();
+                PauseInfo pauseInfo = Fermata.GetPauseInfo();
 
                 // 初期化済みの場合だけ、現在のポーズ状態と購読件数を公開する。
                 return Serialize(new

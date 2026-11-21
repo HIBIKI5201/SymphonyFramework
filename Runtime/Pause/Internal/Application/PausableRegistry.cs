@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFramework.System
+namespace SymphonyFramework.Pause
 {
     /// <summary>
     ///     ポーズ対象と、その対象が属するカテゴリーおよび停止要因の数を保持する。
@@ -29,7 +29,7 @@ namespace SymphonyFramework.System
         /// <exception cref="ArgumentException"> categoriesが空の場合。 </exception>
         /// <exception cref="ArgumentOutOfRangeException"> pausedCategoryCountが範囲外の場合。 </exception>
         public bool TryRegister(
-            PauseManager.IPausable pausable,
+            IPausable pausable,
             IReadOnlyList<Type> categories,
             int pausedCategoryCount)
         {
@@ -65,7 +65,7 @@ namespace SymphonyFramework.System
         /// <param name="pausable"> ポーズ通知を解除する対象。 </param>
         /// <returns> 解除した場合はtrue。未登録の場合はfalse。 </returns>
         /// <exception cref="ArgumentNullException"> pausableがnullの場合。 </exception>
-        public bool TryUnregister(PauseManager.IPausable pausable)
+        public bool TryUnregister(IPausable pausable)
         {
             // nullは登録済みの対象になり得ないため、呼び出し元の解除誤りとして拒否する。
             if (pausable == null) { throw new ArgumentNullException(nameof(pausable)); }
@@ -83,12 +83,12 @@ namespace SymphonyFramework.System
         ///     falseなら再開へ移った対象。状態が変わらない対象は含まない。
         /// </returns>
         /// <exception cref="ArgumentNullException"> categoryがnullの場合。 </exception>
-        public IReadOnlyList<PauseManager.IPausable> ApplyCategoryState(Type category, bool isPaused)
+        public IReadOnlyList<IPausable> ApplyCategoryState(Type category, bool isPaused)
         {
             if (category == null) { throw new ArgumentNullException(nameof(category)); }
 
-            List<PauseManager.IPausable> changed = new();
-            foreach (KeyValuePair<PauseManager.IPausable, Registration> entry in _registrations)
+            List<IPausable> changed = new();
+            foreach (KeyValuePair<IPausable, Registration> entry in _registrations)
             {
                 if (!entry.Value.BelongsTo(category)) { continue; }
 
@@ -105,7 +105,7 @@ namespace SymphonyFramework.System
         /// <param name="pausable"> 対象。 </param>
         /// <returns> 属するカテゴリー。未登録の場合は空。 </returns>
         /// <exception cref="ArgumentNullException"> pausableがnullの場合。 </exception>
-        public IReadOnlyList<Type> GetCategories(PauseManager.IPausable pausable)
+        public IReadOnlyList<Type> GetCategories(IPausable pausable)
         {
             if (pausable == null) { throw new ArgumentNullException(nameof(pausable)); }
 
@@ -125,7 +125,7 @@ namespace SymphonyFramework.System
         public IReadOnlyCollection<Type> GetAllCategories()
         {
             HashSet<Type> categories = new();
-            foreach (KeyValuePair<PauseManager.IPausable, Registration> entry in _registrations)
+            foreach (KeyValuePair<IPausable, Registration> entry in _registrations)
             {
                 foreach (Type category in entry.Value.Categories)
                 {
@@ -147,7 +147,7 @@ namespace SymphonyFramework.System
             if (category == null) { throw new ArgumentNullException(nameof(category)); }
 
             int count = 0;
-            foreach (KeyValuePair<PauseManager.IPausable, Registration> entry in _registrations)
+            foreach (KeyValuePair<IPausable, Registration> entry in _registrations)
             {
                 if (entry.Value.BelongsTo(category)) { count++; }
             }
@@ -167,7 +167,7 @@ namespace SymphonyFramework.System
 
         #region 内部処理
 
-        private readonly Dictionary<PauseManager.IPausable, Registration> _registrations = new();
+        private readonly Dictionary<IPausable, Registration> _registrations = new();
 
         /// <summary>
         ///     1つの対象について、属するカテゴリーと現在の停止要因の数を保持する。

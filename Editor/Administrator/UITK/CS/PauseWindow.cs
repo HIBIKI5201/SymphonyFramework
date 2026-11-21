@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 using SymphonyFramework.Utility;
 
 using UnityEditor;
@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 namespace SymphonyFramework.Editor
 {
     /// <summary>
-    ///     PauseManagerの状態表示と操作を提供する。
+    ///     Fermataの状態表示と操作を提供する。
     /// </summary>
     [UxmlElement]
     public sealed partial class PauseWindow : SymphonyVisualElement, IDisposable
@@ -90,7 +90,7 @@ namespace SymphonyFramework.Editor
         }
 
         /// <summary>
-        ///     PauseManagerへの操作ボタンと状態表示要素を構成する。
+        ///     Fermataへの操作ボタンと状態表示要素を構成する。
         /// </summary>
         /// <param name="container"> UXMLから生成されたルート要素。 </param>
         /// <returns> 同期的に完了する初期化処理。 </returns>
@@ -100,7 +100,7 @@ namespace SymphonyFramework.Editor
             if (_isDisposed) { return SymphonyAwaitable.Completed(); }
 
             // 状態表示と操作に使うVisualElementを、生成済みのUXMLから取得する。
-            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.PauseManager);
+            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.Fermata);
 
             _pauseVisual = container.Q<VisualElement>("pause");
             _pauseText = container.Q<Label>("pause-text");
@@ -122,7 +122,7 @@ namespace SymphonyFramework.Editor
         }
 
         /// <summary>
-        ///     Pause Manager初期化後のEditor callbackでViewModelへ接続する。
+        ///     Fermata初期化後のEditor callbackでViewModelへ接続する。
         /// </summary>
         private void DelayedBindViewModel()
         {
@@ -142,13 +142,13 @@ namespace SymphonyFramework.Editor
             // Window破棄後またはEdit ModeではViewModelへ接続せず、未接続表示を維持する。
             if (_isDisposed
                 || !EditorApplication.isPlaying
-                || !PauseManager.IsInitialized)
+                || !Fermata.IsInitialized)
             {
                 ApplyState(default, false);
                 return;
             }
 
-            PauseViewModel viewModel = PauseManager.CurrentViewModel;
+            PauseViewModel viewModel = Fermata.CurrentViewModel;
             // CompositionがまだViewModelを公開していない場合は、操作不能な未接続表示にする。
             if (viewModel == null)
             {
@@ -174,7 +174,7 @@ namespace SymphonyFramework.Editor
         ///     最新の表示値を管理パネルへ反映する。
         /// </summary>
         /// <param name="pauseDto"> ViewModelが公開した表示値。 </param>
-        /// <param name="isConnected"> Pause Managerへ接続できているかどうか。 </param>
+        /// <param name="isConnected"> Fermataへ接続できているかどうか。 </param>
         private void ApplyState(PauseDto pauseDto, bool isConnected)
         {
             // Window破棄後またはUXML構築前に遅延通知が届いた場合は表示へ触れない。
@@ -192,7 +192,7 @@ namespace SymphonyFramework.Editor
 
             ApplyCategories(pauseDto, isConnected);
 
-            // Play Mode外ではPauseManagerが未初期化であり、操作すると例外になる。
+            // Play Mode外ではFermataが未初期化であり、操作すると例外になる。
             _pauseButton.SetEnabled(isConnected);
             _resumeButton.SetEnabled(isConnected);
         }
@@ -231,7 +231,7 @@ namespace SymphonyFramework.Editor
         ///     カテゴリー一覧の表示を最新の値へ入れ替える。
         /// </summary>
         /// <param name="pauseDto"> ViewModelが公開した表示値。 </param>
-        /// <param name="isConnected"> Pause Managerへ接続できているかどうか。 </param>
+        /// <param name="isConnected"> Fermataへ接続できているかどうか。 </param>
         /// <remarks>
         ///     未接続では空にする。Edit Modeで前回のPlay Modeの内容を残すと、
         ///     今の状態だと誤解される。
@@ -253,10 +253,10 @@ namespace SymphonyFramework.Editor
         /// <param name="isPaused"> 設定するポーズ状態。 </param>
         private static void SetPause(bool isPaused)
         {
-            // Edit ModeまたはComposition初期化前は、PauseManagerへ触れると例外になるため操作しない。
-            if (!EditorApplication.isPlaying || !PauseManager.IsInitialized) { return; }
+            // Edit ModeまたはComposition初期化前は、Fermataへ触れると例外になるため操作しない。
+            if (!EditorApplication.isPlaying || !Fermata.IsInitialized) { return; }
 
-            PauseManager.SetPauseAll(isPaused);
+            Fermata.SetPauseAll(isPaused);
         }
 
         #endregion

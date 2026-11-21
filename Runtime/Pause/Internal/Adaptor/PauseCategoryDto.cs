@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFramework.System
+namespace SymphonyFramework.Pause
 {
     /// <summary>
     ///     カテゴリー1件の表示用更新値を表す。

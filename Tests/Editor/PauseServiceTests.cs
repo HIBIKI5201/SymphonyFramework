@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -18,13 +18,13 @@ namespace SymphonyFramework.Tests
     public sealed class PauseServiceTests
     {
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IGameplayCategory : PauseManager.IPausable { }
+        private interface IGameplayCategory : IPausable { }
 
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IUiCategory : PauseManager.IPausable { }
+        private interface IUiCategory : IPausable { }
 
         /// <summary> カテゴリーを実装しない検証用のポーズ対象。 </summary>
-        private sealed class TestPausable : PauseManager.IPausable
+        private sealed class TestPausable : IPausable
         {
             public int PauseCount { get; private set; }
             public int ResumeCount { get; private set; }

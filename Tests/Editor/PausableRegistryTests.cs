@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 namespace SymphonyFramework.Tests
 {
@@ -14,13 +14,13 @@ namespace SymphonyFramework.Tests
     public sealed class PausableRegistryTests
     {
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IGameplayCategory : PauseManager.IPausable { }
+        private interface IGameplayCategory : IPausable { }
 
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IUiCategory : PauseManager.IPausable { }
+        private interface IUiCategory : IPausable { }
 
         /// <summary> 検証用のポーズ対象。 </summary>
-        private sealed class TestPausable : PauseManager.IPausable
+        private sealed class TestPausable : IPausable
         {
             public int PauseCount { get; private set; }
             public int ResumeCount { get; private set; }
@@ -140,7 +140,7 @@ namespace SymphonyFramework.Tests
             TestPausable pausable = new();
             registry.TryRegister(pausable, GameplayAndUi, 0);
 
-            IReadOnlyList<PauseManager.IPausable> affected =
+            IReadOnlyList<IPausable> affected =
                 registry.ApplyCategoryState(typeof(IGameplayCategory), true);
 
             Assert.That(affected, Is.EqualTo(new[] { pausable }));
@@ -157,7 +157,7 @@ namespace SymphonyFramework.Tests
             registry.TryRegister(pausable, GameplayAndUi, 0);
             registry.ApplyCategoryState(typeof(IGameplayCategory), true);
 
-            IReadOnlyList<PauseManager.IPausable> affected =
+            IReadOnlyList<IPausable> affected =
                 registry.ApplyCategoryState(typeof(IUiCategory), true);
 
             Assert.That(affected, Is.Empty);
@@ -176,9 +176,9 @@ namespace SymphonyFramework.Tests
             registry.ApplyCategoryState(typeof(IGameplayCategory), true);
             registry.ApplyCategoryState(typeof(IUiCategory), true);
 
-            IReadOnlyList<PauseManager.IPausable> afterFirstResume =
+            IReadOnlyList<IPausable> afterFirstResume =
                 registry.ApplyCategoryState(typeof(IGameplayCategory), false);
-            IReadOnlyList<PauseManager.IPausable> afterSecondResume =
+            IReadOnlyList<IPausable> afterSecondResume =
                 registry.ApplyCategoryState(typeof(IUiCategory), false);
 
             Assert.That(afterFirstResume, Is.Empty, "まだ停止要因が残っている間は再開しない。");
@@ -198,7 +198,7 @@ namespace SymphonyFramework.Tests
             TestPausable pausable = new();
             registry.TryRegister(pausable, Gameplay, 1);
 
-            IReadOnlyList<PauseManager.IPausable> affected =
+            IReadOnlyList<IPausable> affected =
                 registry.ApplyCategoryState(typeof(IGameplayCategory), false);
 
             Assert.That(affected, Is.EqualTo(new[] { pausable }));
