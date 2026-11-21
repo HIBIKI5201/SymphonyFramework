@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Scenes
 {
     /// <summary>
     ///     追跡中Suiteの状態を表す不変なスナップショット。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.SceneBlock.SceneBlockInfo）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SceneBlock",
+        sourceAssembly: "SymphonyFrameWork",
+        sourceClassName: "SceneBlockInfo")]
     public readonly struct SuiteInfo : IEquatable<SuiteInfo>
     {
         #region 外部向けAPI

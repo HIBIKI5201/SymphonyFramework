@@ -14,12 +14,18 @@ using UnityEditor;
 using UnityEngine;
 
 using Newtonsoft.Json;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor.Debugger
 {
     /// <summary>
     ///     MCPや自動化スクリプトからSymphonyのランタイム状態をJSONで読み取るためのツール群。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor.Debugger）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor.Debugger",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class SymphonyMcpTools
     {
         #region 外部向けAPI

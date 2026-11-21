@@ -4,6 +4,7 @@ using System.Text;
 using SymphonyFramework.Scenes;
 
 using UnityEditor;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -15,6 +16,12 @@ namespace SymphonyFramework.Editor
     ///     判定はRuntimeと同じ <c>SuiteEntryReader</c> を使い、Editorへ規則を複製しない。
     /// </remarks>
     [CustomEditor(typeof(SuiteAsset))]
+    // 6.x の名前（SymphonyFrameWork.Editor.SceneBlockAssetDrawer）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor",
+        sourceClassName: "SceneBlockAssetDrawer")]
     public sealed class SuiteAssetDrawer : UnityEditor.Editor
     {
         #region 外部向けAPI

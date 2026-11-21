@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using SymphonyFramework.Config;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -9,6 +10,11 @@ namespace SymphonyFramework.Editor
     ///     AudioConfigとオーディオグループenumの再生成操作を描画する。
     /// </summary>
     [CustomEditor(typeof(AudioConfig))]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AudioConfigDrawer : UnityEditor.Editor
     {
         #region 外部向けAPI

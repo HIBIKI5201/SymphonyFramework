@@ -22,6 +22,15 @@ namespace SymphonyFramework.Pause
         /// </remarks>
         internal static Type DefaultCategory { get; } = typeof(IPausable);
 
+        /// <summary> 6.x の <c>PauseManager.IPausable</c>。既定カテゴリーと同じ意味として扱う。 </summary>
+        /// <remarks>
+        ///     旧型は新しい <see cref="IPausable" /> を継承するため、何もしないとカテゴリーの1つに数えられ、
+        ///     6.x の書き方のままの対象が既定カテゴリーから外れる。7.0.0 の移行期間だけ残す。8.0.0 で転送クラスと一緒に削除する。
+        /// </remarks>
+#pragma warning disable CS0618 // 移行期間の旧型を判定するためだけに参照する。
+        internal static Type LegacyDefaultCategory { get; } = typeof(SymphonyFrameWork.System.PauseManager.IPausable);
+#pragma warning restore CS0618
+
         /// <summary>
         ///     対象の型が属するカテゴリーを列挙する。
         /// </summary>
@@ -66,6 +75,7 @@ namespace SymphonyFramework.Pause
 
             // IPausable自身は「カテゴリーを明示していない」ことを表すため、カテゴリーには数えない。
             if (type == DefaultCategory) { return false; }
+            if (type == LegacyDefaultCategory) { return false; }
 
             return DefaultCategory.IsAssignableFrom(type);
         }

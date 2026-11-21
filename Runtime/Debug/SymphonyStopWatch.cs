@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using SymphonyFramework.Debugger.Logger;
+using UnityEngine.Scripting.APIUpdating;
 
 
 namespace SymphonyFramework.Debugger
@@ -8,6 +9,11 @@ namespace SymphonyFramework.Debugger
     /// <summary>
     ///     UnityEditorでID単位の処理時間を計測する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Debugger）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Debugger",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyStopWatch
     {
         #region 外部向けAPI

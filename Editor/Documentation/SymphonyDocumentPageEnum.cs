@@ -1,9 +1,16 @@
-﻿namespace SymphonyFramework.Editor
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     ブラウザで開けるFrameworkのドキュメントページ。
     /// </summary>
     /// <remarks> 各値は<c>Documentation~/</c>配下の文書と1対1で対応する。 </remarks>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public enum SymphonyDocumentPageEnum
     {
         #region 外部向けAPI

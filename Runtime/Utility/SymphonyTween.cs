@@ -3,12 +3,18 @@ using System.Threading;
 using SymphonyFramework.Debugger.Logger;
 using SymphonyFramework.Pause;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Utility
 {
     /// <summary>
     ///     値をフレーム単位で補間するTweenを提供する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Utility）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Utility",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyTween
     {
         #region 外部向けAPI

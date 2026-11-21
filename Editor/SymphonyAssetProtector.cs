@@ -5,6 +5,7 @@ using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -15,6 +16,11 @@ namespace SymphonyFramework.Editor
     ///     postprocess callbackでは変更を記録してSymphonyEditorOrchestratorへ通知し、
     ///     操作状態のリセットはOrchestratorがcoalesceして処理する。
     /// </remarks>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class SymphonyAssetProtector : AssetPostprocessor
     {
         #region 外部向けAPI

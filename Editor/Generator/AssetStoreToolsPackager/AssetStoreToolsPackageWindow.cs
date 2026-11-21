@@ -11,12 +11,18 @@ using SymphonyFramework.Editor.SettingProvider;
 using UnityEditor;
 using UnityEngine;
 using static SymphonyFramework.Editor.AssetStoreToolsPackager;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Asset Store Toolsの出力対象とパッケージ形式を選択するEditorWindow。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackageWindow : EditorWindow
     {
         #region 外部向けAPI

@@ -5,6 +5,7 @@ using System.Linq;
 using SymphonyFramework.Config;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -12,6 +13,11 @@ namespace SymphonyFramework.Editor
     ///     SceneLoadConfigのシーン一覧をBuild Settingsから選択可能にする。
     /// </summary>
     [CustomEditor(typeof(SceneLoadConfig))]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class SceneLoadConfigDrawer: UnityEditor.Editor
     {
         #region 外部向けAPI

@@ -7,6 +7,7 @@ using SymphonyFramework.Core;
 using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
@@ -19,6 +20,11 @@ namespace SymphonyFramework.Editor
     ///     <c>SymphonyFramework.Enum</c> アセンブリに含まれる。そのアセンブリが
     ///     <c>SymphonyFramework</c> を参照するため、<c>IPausable</c> を継承できる。
     /// </remarks>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class PauseCategoryGenerator
     {
         #region 外部向けAPI

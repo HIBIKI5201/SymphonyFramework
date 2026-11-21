@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using SymphonyFramework.Attribute;
 
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Scenes
 {
@@ -11,6 +12,12 @@ namespace SymphonyFramework.Scenes
     ///     Suiteが読み込むシーン1件と、その先行依存を表す。
     /// </summary>
     [Serializable]
+    // 6.x の名前（SymphonyFrameWork.System.SceneBlock.SceneBlockEntry）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SceneBlock",
+        sourceAssembly: "SymphonyFrameWork",
+        sourceClassName: "SceneBlockEntry")]
     public sealed class SuiteEntry
     {
         #region 外部向けAPI

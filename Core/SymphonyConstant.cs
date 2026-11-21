@@ -1,8 +1,15 @@
-﻿namespace SymphonyFramework.Core
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     ランタイム用の定数値を持つ。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Core）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Core",
+        sourceAssembly: "SymphonyFrameWork.Core")]
     public static class SymphonyConstant
     {
         #region 外部向けAPI
@@ -20,7 +27,7 @@
         ///     更新は <c>scripts/release_round.py bump</c> が行い、
         ///     <c>preflight</c> が <c>package.json</c> との一致を検査する。手で書き換えないこと。
         /// </remarks>
-        public const string VERSION = "6.20.0";
+        public const string VERSION = "7.0.0";
 
 #if UNITY_EDITOR
         /// <summary>

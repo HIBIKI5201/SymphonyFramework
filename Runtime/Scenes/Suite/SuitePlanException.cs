@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Scenes
 {
@@ -10,6 +11,12 @@ namespace SymphonyFramework.Scenes
     /// <remarks>
     ///     アセットの記述誤りを表す。**検出した異常をすべて <see cref="Descriptions" /> へ載せ、1件目で打ち切らない。**
     /// </remarks>
+    // 6.x の名前（SymphonyFrameWork.System.SceneBlock.SceneBlockPlanException）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SceneBlock",
+        sourceAssembly: "SymphonyFrameWork",
+        sourceClassName: "SceneBlockPlanException")]
     public sealed class SuitePlanException : Exception
     {
         #region 外部向けAPI

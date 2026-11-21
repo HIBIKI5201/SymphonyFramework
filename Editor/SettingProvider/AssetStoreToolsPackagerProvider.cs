@@ -5,12 +5,18 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor.SettingProvider
 {
     /// <summary>
     ///     Asset Store Tools PackagerのProject Settings画面を提供する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor.SettingProvider）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor.SettingProvider",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackagerProvider
     {
         #region 外部向けAPI

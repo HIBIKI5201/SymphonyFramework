@@ -6,11 +6,17 @@ using SymphonyFramework.Utility;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SymphonyFramework.Editor
 {
     /// <summary> Debug HUDの状態表示とShow / Hide操作を提供する。 </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed partial class DebugHUDWindow : SymphonyVisualElement, IDisposable
     {
         #region 外部向けAPI
