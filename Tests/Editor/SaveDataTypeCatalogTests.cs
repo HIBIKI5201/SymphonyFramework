@@ -3,7 +3,7 @@
 using NUnit.Framework;
 
 using SymphonyFramework.Editor;
-using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.SaveData;
 
 namespace SymphonyFramework.Tests
 {

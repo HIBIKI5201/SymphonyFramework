@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.SaveData;
 
 namespace SymphonyFramework.Tests
 {

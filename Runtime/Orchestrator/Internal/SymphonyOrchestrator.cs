@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using SymphonyFramework.Audio;
 using SymphonyFramework.Config;
 using SymphonyFramework.Core;
 using SymphonyFramework.Debugger.HUD;
 using SymphonyFramework.Debugger.Logger;
 using SymphonyFramework.System;
-using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.SaveData;
 using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
 
@@ -59,7 +60,7 @@ namespace SymphonyFramework.Orchestrator
 
                 // Save → Pause → Service → Scene → Audio → HUDの起動契約を保ち、途中失敗時も成功済み処理を逆順で戻せるようにする。
                 SaveDataInitializer.Initialize(ResolveSaveDataLoader);
-                RecordInitializedSubsystem(SaveStore.ResetRuntimeState);
+                RecordInitializedSubsystem(Manuscript.ResetRuntimeState);
 
                 PauseManager.Initialize();
                 RecordInitializedSubsystem(PauseManager.ResetRuntimeState);
@@ -81,10 +82,10 @@ namespace SymphonyFramework.Orchestrator
                 // Suiteが保持中のシーンをAttaccaの単体アンロードから守る。
                 Attacca.SetSuiteHoldQuery(Suite.IsSceneHeld);
 
-                AudioManager.Initialize(
+                Sonority.Initialize(
                     SymphonyConfigProvider.GetConfig<AudioConfig>(),
                     systemObjectFactory);
-                RecordInitializedSubsystem(AudioManager.ResetRuntimeState);
+                RecordInitializedSubsystem(Sonority.ResetRuntimeState);
 
                 DebugHUDConfig debugHUDConfig =
                     SymphonyConfigProvider.GetConfig<DebugHUDConfig>();

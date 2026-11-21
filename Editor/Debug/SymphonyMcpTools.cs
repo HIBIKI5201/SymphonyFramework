@@ -6,7 +6,7 @@ using System.Linq;
 using SymphonyFramework.Core;
 using SymphonyFramework.Editor.Debugger.Logger;
 using SymphonyFramework.System;
-using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.SaveData;
 using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
 
@@ -128,17 +128,17 @@ namespace SymphonyFramework.Editor.Debugger
         }
 
         /// <summary>
-        ///     Save Data Registryの初期化状態と機微な内容を除いた登録情報をJSONで取得する。
+        ///     Manuscriptの初期化状態と機微な内容を除いた登録情報をJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
-        public static string GetSaveDataJson()
+        public static string GetManuscriptJson()
         {
             bool initialized = false;
 
             try
             {
                 // Edit ModeではRuntime状態を検査しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && SaveStore.IsInitialized;
+                initialized = EditorApplication.isPlaying && Manuscript.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、セーブ情報へ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -150,7 +150,7 @@ namespace SymphonyFramework.Editor.Debugger
                 }
 
                 // セーブ内容そのものを除外し、型名と管理状態だけを匿名型へ射影する。
-                var entries = SaveStore.GetEntries()
+                var entries = Manuscript.GetEntries()
                     .Select(entry => new
                     {
                         typeName = GetTypeName(entry.DataType),
