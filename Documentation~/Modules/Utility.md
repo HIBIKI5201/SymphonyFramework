@@ -7,7 +7,7 @@
 Unity標準のAPIだけでは書き方が長くなる処理を、短く安全に書けるようにします。
 
 - **すること**: `Awaitable`の合成・待機・`Task`との橋渡し、時間指定の値の補間、リッチテキストの色タグ操作、Componentの取得と追加、UI ToolkitのVisualElementの基底class
-- **しないこと**: `Awaitable`の`WhenAny`（未完了側と例外を安全に片付ける一般的な決まりを定められないため）、ポーズへの追従（[Pause Manager](./PauseManager.md)の待機APIを使う）
+- **しないこと**: `Awaitable`の`WhenAny`（未完了側と例外を安全に片付ける一般的な決まりを定められないため）、ポーズへの追従（[Fermata](./Fermata.md)の待機APIを使う）
 
 ## 入口
 
@@ -36,7 +36,7 @@ Unity標準のAPIだけでは書き方が長くなる処理を、短く安全に
 
 ## 関連
 
-- [Pause Manager](./PauseManager.md) — ポーズ対応の待機API
+- [Fermata](./Fermata.md) — ポーズ対応の待機API
 - [Manuscript](./Manuscript.md) — 独自ローダーが返す`Awaitable`
 - [Deprecations.md](../Deprecations.md)
 - [CHANGELOG.md](../../CHANGELOG.md)

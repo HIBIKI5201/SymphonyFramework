@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 
 using SymphonyFramework.Exceptions;
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 namespace SymphonyFramework.Tests
 {
@@ -15,7 +15,7 @@ namespace SymphonyFramework.Tests
     public sealed class IPausableTests
     {
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IGameplayCategory : PauseManager.IPausable { }
+        private interface IGameplayCategory : IPausable { }
 
         /// <summary> 通知の回数を数える検証用のポーズ対象。 </summary>
         private sealed class CountingPausable : IGameplayCategory
@@ -31,53 +31,53 @@ namespace SymphonyFramework.Tests
         [SetUp]
         public void SetUp()
         {
-            PauseManager.ResetRuntimeState();
+            Fermata.ResetRuntimeState();
         }
 
         /// <summary> 次のテストへstatic状態を残さない。 </summary>
         [TearDown]
         public void TearDown()
         {
-            PauseManager.ResetRuntimeState();
+            Fermata.ResetRuntimeState();
         }
 
         /// <summary> 未初期化での登録は初期化前アクセスとして拒否する。 </summary>
         [Test]
-        public void RegisterPauseManager_NotInitialized_Throws()
+        public void Register_NotInitialized_Throws()
         {
             Assert.That(
-                () => PauseManager.IPausable.RegisterPauseManager(new CountingPausable()),
+                () => Fermata.Register(new CountingPausable()),
                 Throws.TypeOf<SymphonyNotInitializedException>());
         }
 
         /// <summary> 登録した対象へポーズと解除が通知される。 </summary>
         [Test]
-        public void RegisterPauseManager_Registered_ReceivesPauseAndResume()
+        public void Register_Registered_ReceivesPauseAndResume()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
             CountingPausable pausable = new();
 
-            PauseManager.IPausable.RegisterPauseManager(pausable);
+            Fermata.Register(pausable);
 
-            PauseManager.SetPause<IGameplayCategory>(true);
+            Fermata.SetPause<IGameplayCategory>(true);
             Assert.That(pausable.PauseCount, Is.EqualTo(1));
             Assert.That(pausable.ResumeCount, Is.EqualTo(0));
 
-            PauseManager.SetPause<IGameplayCategory>(false);
+            Fermata.SetPause<IGameplayCategory>(false);
             Assert.That(pausable.PauseCount, Is.EqualTo(1));
             Assert.That(pausable.ResumeCount, Is.EqualTo(1));
         }
 
         /// <summary> 全体ポーズは、カテゴリーを問わず登録した対象へ通知される。 </summary>
         [Test]
-        public void RegisterPauseManager_SetPauseAll_NotifiesEveryTarget()
+        public void Register_SetPauseAll_NotifiesEveryTarget()
         {
-            PauseManager.Initialize();
+            Fermata.Initialize();
             CountingPausable pausable = new();
 
-            PauseManager.IPausable.RegisterPauseManager(pausable);
+            Fermata.Register(pausable);
 
-            PauseManager.SetPauseAll(true);
+            Fermata.SetPauseAll(true);
 
             Assert.That(pausable.PauseCount, Is.EqualTo(1));
         }

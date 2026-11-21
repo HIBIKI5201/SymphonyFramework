@@ -109,7 +109,7 @@ namespace SymphonyFramework.Editor
                 [SymphonyDocumentPageEnum.Suite] = "Modules/Suite",
                 [SymphonyDocumentPageEnum.Manuscript] = "Modules/Manuscript",
                 [SymphonyDocumentPageEnum.Sonority] = "Modules/Sonority",
-                [SymphonyDocumentPageEnum.PauseManager] = "Modules/PauseManager",
+                [SymphonyDocumentPageEnum.Fermata] = "Modules/Fermata",
                 [SymphonyDocumentPageEnum.Debug] = "Modules/Debug",
                 [SymphonyDocumentPageEnum.Utility] = "Modules/Utility",
                 [SymphonyDocumentPageEnum.InspectorAttributes] = "Modules/InspectorAttributes",

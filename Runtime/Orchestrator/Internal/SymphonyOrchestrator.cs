@@ -8,7 +8,7 @@ using SymphonyFramework.Config;
 using SymphonyFramework.Core;
 using SymphonyFramework.Debugger.HUD;
 using SymphonyFramework.Debugger.Logger;
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 using SymphonyFramework.SaveData;
 using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
@@ -62,8 +62,8 @@ namespace SymphonyFramework.Orchestrator
                 SaveDataInitializer.Initialize(ResolveSaveDataLoader);
                 RecordInitializedSubsystem(Manuscript.ResetRuntimeState);
 
-                PauseManager.Initialize();
-                RecordInitializedSubsystem(PauseManager.ResetRuntimeState);
+                Fermata.Initialize();
+                RecordInitializedSubsystem(Fermata.ResetRuntimeState);
 
                 ServiceHostComponent serviceHost =
                     systemObjectFactory.CreateComponent<ServiceHostComponent>(

@@ -4,7 +4,7 @@ using System.Linq;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 namespace SymphonyFramework.Tests
 {
@@ -15,13 +15,13 @@ namespace SymphonyFramework.Tests
     public sealed class PauseViewModelTests
     {
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IGameplayCategory : PauseManager.IPausable { }
+        private interface IGameplayCategory : IPausable { }
 
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IUiCategory : PauseManager.IPausable { }
+        private interface IUiCategory : IPausable { }
 
         /// <summary> 検証用のポーズ対象。 </summary>
-        private sealed class TestPausable : PauseManager.IPausable
+        private sealed class TestPausable : IPausable
         {
             public void Pause() { }
             public void Resume() { }

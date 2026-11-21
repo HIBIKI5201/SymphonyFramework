@@ -100,7 +100,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>非同期処理、Tween、文字列、Component、VisualElementを補助するクラス群です。特定のサブシステムに依存せず、単体で使えます。</p>
 <h2 id="目的と範囲">目的と範囲</h2>
 <p>Unity標準のAPIだけでは書き方が長くなる処理を、短く安全に書けるようにします。</p>
-<ul><li><strong>すること</strong>: <code>Awaitable</code>の合成・待機・<code>Task</code>との橋渡し、時間指定の値の補間、リッチテキストの色タグ操作、Componentの取得と追加、UI ToolkitのVisualElementの基底class</li><li><strong>しないこと</strong>: <code>Awaitable</code>の<code>WhenAny</code>（未完了側と例外を安全に片付ける一般的な決まりを定められないため）、ポーズへの追従（<a href="PauseManager.html">Pause Manager</a>の待機APIを使う）</li></ul>
+<ul><li><strong>すること</strong>: <code>Awaitable</code>の合成・待機・<code>Task</code>との橋渡し、時間指定の値の補間、リッチテキストの色タグ操作、Componentの取得と追加、UI ToolkitのVisualElementの基底class</li><li><strong>しないこと</strong>: <code>Awaitable</code>の<code>WhenAny</code>（未完了側と例外を安全に片付ける一般的な決まりを定められないため）、ポーズへの追従（<a href="Fermata.html">Fermata</a>の待機APIを使う）</li></ul>
 <h2 id="入口">入口</h2>
 <div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFramework.Utility</code>（<code>SymphonyAwaitable</code> / <code>SymphonyTween</code> / <code>SymphonyVisualElement</code>）、<code>SymphonyFramework</code>（<code>SymphonyStringUtil</code> / <code>SymphonyComponentUtil</code>）</td></tr><tr><td>主な公開型</td><td><code>SymphonyAwaitable</code> / <code>SymphonyTween</code> / <code>SymphonyStringUtil</code> / <code>SymphonyComponentUtil</code> / <code>SymphonyVisualElement</code></td></tr><tr><td>メニューパス</td><td>なし</td></tr><tr><td>設定の保存先</td><td>なし</td></tr></tbody></table></div>
 <h2 id="機能一覧">機能一覧</h2>
@@ -108,7 +108,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h2 id="守ること">守ること</h2>
 <ul><li><strong><code>Awaitable</code>は1回しか<code>await</code>できず、保存も共有もできない。</strong> フィールドへ持たず、その場で待つ。複数の待機は<code>SymphonyAwaitable.WhenAll</code>、<code>Task</code>と混ぜる場合は<code>SymphonyAwaitable.AsTask</code>を使う。</li><li>同期で終わる<code>Awaitable</code>を返す場合は<code>SymphonyAwaitable.Completed()</code>と<code>SymphonyAwaitable.FromResult(value)</code>を返し、<code>null</code>を返さない。</li><li><code>SymphonyComponentUtil.GetComponentInChildrenExcludeSelf</code>は、既定では非アクティブな子を探さない。含める場合だけ<code>includeInactive: true</code>を指定する。</li></ul>
 <h2 id="関連">関連</h2>
-<ul><li><a href="PauseManager.html">Pause Manager</a> — ポーズ対応の待機API</li><li><a href="Manuscript.html">Manuscript</a> — 独自ローダーが返す<code>Awaitable</code></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
+<ul><li><a href="Fermata.html">Fermata</a> — ポーズ対応の待機API</li><li><a href="Manuscript.html">Manuscript</a> — 独自ローダーが返す<code>Awaitable</code></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFramework/Documentation~/Modules/Utility.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>
 </html>

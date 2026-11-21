@@ -105,15 +105,20 @@ namespace SymphonyFramework.Editor
                 hasAssetChanges = true;
             }
 
-            // 生成enumのasmdefをFramework本体から参照できる状態へ揃える。
+            // 生成物のasmdefからFramework本体を参照する向きへ揃える。
+            // 6.19.0以前はFramework本体が生成物を参照していたため、その参照を外さないと循環する。
             string enumAsmdefPath = EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum.asmdef";
             string mainAsmdefPath = EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework.asmdef";
-            string previousMainAsmdef = File.Exists(mainAsmdefPath)
-                ? File.ReadAllText(mainAsmdefPath)
-                : null;
-            AssemblyGenerator.AddAsssemblyReference(mainAsmdefPath, enumAsmdefPath);
-            hasAssetChanges |= File.Exists(mainAsmdefPath) &&
-                               previousMainAsmdef != File.ReadAllText(mainAsmdefPath);
+            hasAssetChanges |= AssemblyGenerator.RemoveAssemblyReference(mainAsmdefPath, enumAsmdefPath);
+            if (File.Exists(enumAsmdefPath))
+            {
+                string previousEnumAsmdef = File.ReadAllText(enumAsmdefPath);
+                AssemblyGenerator.AddAsssemblyReference(enumAsmdefPath, mainAsmdefPath);
+                hasAssetChanges |= previousEnumAsmdef != File.ReadAllText(enumAsmdefPath);
+            }
+
+            // 6.19.0以前のポーズカテゴリー専用asmdefを外し、生成物を自動生成enumのアセンブリへまとめる。
+            hasAssetChanges |= PauseCategoryGenerator.MigrateLegacyAssembly();
 
             return hasAssetChanges;
         }

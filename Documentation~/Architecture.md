@@ -46,7 +46,7 @@ SymphonyFramework/
 | [Suite](./Modules/Suite.md) | `Suite` | `SuiteAsset`（アセットとして作る） |
 | [Manuscript](./Modules/Manuscript.md) | `Manuscript` | `SaveDataContent`、`SaveDataLoaderStrategy` |
 | [Sonority](./Modules/Sonority.md) | `Sonority` | なし |
-| [Pause Manager](./Modules/PauseManager.md) | `PauseManager` | `PauseManager.IPausable`とその派生カテゴリー |
+| [Fermata](./Modules/Fermata.md) | `Fermata` | `IPausable`とその派生カテゴリー |
 
 照会APIが返す`ServiceRegistrationInfo`、`SceneLoadInfo`、`SuiteInfo`、`SaveDataEntryInfo`、`PauseInfo`は、取得した時点のスナップショットです。後から状態が変わっても値は変わりません。
 

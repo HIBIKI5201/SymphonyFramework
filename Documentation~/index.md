@@ -13,7 +13,7 @@ Symphony Frameworkの文書の入口です。**モジュールごとの文書は
 | [Suite](./Modules/Suite.md) | 複数シーンをブロック単位で依存順にロードする |
 | [Manuscript](./Modules/Manuscript.md) | セーブデータの登録、保存、読み込み |
 | [Sonority](./Modules/Sonority.md) | AudioSourceの取得とグループ単位の音量制御 |
-| [Pause Manager](./Modules/PauseManager.md) | カテゴリー単位のポーズと、ポーズに追従する待機処理 |
+| [Fermata](./Modules/Fermata.md) | カテゴリー単位のポーズと、ポーズに追従する待機処理 |
 | [Debug](./Modules/Debug.md) | ログ出力、画面上のHUD、処理時間の計測 |
 | [Utility](./Modules/Utility.md) | Component取得、Tween、その他の補助 |
 | [Inspector属性](./Modules/InspectorAttributes.md) | Inspectorの表示を変える属性 |

@@ -4,7 +4,7 @@ using System.Threading;
 
 using SymphonyFramework.Core;
 using SymphonyFramework.Exceptions;
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 using UnityEngine;
 using UnityEngine.InputSystem;

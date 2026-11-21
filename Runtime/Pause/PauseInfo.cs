@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SymphonyFramework.System
+namespace SymphonyFramework.Pause
 {
     /// <summary>
     ///     ポーズ機構の管理状態を取得時点の不変値として表す。
@@ -12,7 +12,7 @@ namespace SymphonyFramework.System
         /// <summary>
         ///     ポーズ状態と購読件数から情報を生成する。
         /// </summary>
-        /// <remarks> <see cref="PauseQuery"/>が生成し、利用側は<see cref="PauseManager.GetPauseInfo"/>で取得する。 </remarks>
+        /// <remarks> <see cref="PauseQuery"/>が生成し、利用側は<see cref="Fermata.GetPauseInfo"/>で取得する。 </remarks>
         /// <param name="isPaused"> 現在ポーズ中かどうか。 </param>
         /// <param name="pausableSubscriberCount"> ポーズ通知を購読している対象の件数。 </param>
         /// <param name="category"> 対象のカテゴリー。全体を表す場合はnull。 </param>
@@ -29,7 +29,7 @@ namespace SymphonyFramework.System
         /// </remarks>
         public bool IsPaused { get; }
 
-        /// <summary> <see cref="PauseManager.IPausable"/>としてポーズ通知を購読している対象の件数。 </summary>
+        /// <summary> <see cref="IPausable"/>としてポーズ通知を購読している対象の件数。 </summary>
         /// <remarks>
         ///     解除し忘れが積み上がっていないかの確認に使う。
         ///     <see cref="Category"/>を指定した場合はそのカテゴリーに属する対象の件数になる。
@@ -38,7 +38,7 @@ namespace SymphonyFramework.System
 
         /// <summary> この情報が表すカテゴリー。全体を表す場合はnull。 </summary>
         /// <remarks>
-        ///     <see cref="PauseManager.GetPauseInfo{TCategory}"/>で取得した場合に、
+        ///     <see cref="Fermata.GetPauseInfo{TCategory}"/>で取得した場合に、
         ///     どのカテゴリーの情報かを見分けるために持つ。
         /// </remarks>
         public Type Category { get; }

@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SymphonyFramework.Core;
 using SymphonyFramework.Debugger.Logger;
-using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -9,7 +8,7 @@ using UnityEngine;
 namespace SymphonyFramework.Editor
 {
     /// <summary>
-    ///     PackagerConfig.jsonの読み書きと、旧ignore.txtからの移行を担う。
+    ///     PackagerConfig.jsonの読み書きを担う。
     /// </summary>
     internal static class AssetStoreToolsPackagerConfigStore
     {
@@ -31,7 +30,7 @@ namespace SymphonyFramework.Editor
         /// <summary>
         ///     設定を読み込む。
         /// </summary>
-        /// <remarks> ファイルが存在しない場合は生成し、ignore.txtがあれば内容を移行する。 </remarks>
+        /// <remarks> ファイルが存在しない場合は既定値で生成する。 </remarks>
         /// <returns> 正規化済みの設定。読み込みに失敗した場合はnull。 </returns>
         internal static AssetStoreToolsPackagerConfig Load()
         {
@@ -43,7 +42,7 @@ namespace SymphonyFramework.Editor
                 return null;
             }
 
-            // 初回利用時は既定値を生成し、旧設定があれば同じ処理内で移行する。
+            // 初回利用時は既定値で生成する。
             if (!File.Exists(configPath)) { return CreateConfigFile(configPath); }
 
             try
@@ -115,14 +114,9 @@ namespace SymphonyFramework.Editor
 
         private const string LOG_PREFIX = "[" + nameof(AssetStoreToolsPackagerConfigStore) + "]";
 
-        /// <summary> 移行元となる旧設定ファイルの名前。 </summary>
-        /// <remarks> 次のメジャー更新で移行処理ごと削除する。 </remarks>
-        private const string IGNORE_FILE_NAME = "ignore.txt";
-
         /// <summary>
         ///     設定ファイルを新規生成する。
         /// </summary>
-        /// <remarks> ignore.txtが存在すれば除外フォルダ名を引き継ぐ。 </remarks>
         /// <param name="configPath"> 生成する設定ファイルのパス。 </param>
         /// <returns> 生成した正規化済みの設定。生成に失敗した場合はnull。 </returns>
         private static AssetStoreToolsPackagerConfig CreateConfigFile(string configPath)
@@ -130,63 +124,15 @@ namespace SymphonyFramework.Editor
             // 対象フォルダが無い場合は、設定を別の場所へ生成しない。
             if (!TryEnsureDirectory(configPath)) { return null; }
 
-            // 新形式の既定値を基点にして、旧形式から移せる項目だけを上書きする。
             AssetStoreToolsPackagerConfig config = AssetStoreToolsPackagerConfig.CreateDefault();
-
-            string ignorePath = CombinePath(
-                AssetStoreToolsPackagerData.AssetStoreToolsPath,
-                IGNORE_FILE_NAME);
-            bool isMigrated = false;
-
-            // 旧設定が残っている初回生成時だけ、除外フォルダ名を新形式へ引き継ぐ。
-            if (File.Exists(ignorePath))
-            {
-                try
-                {
-                    config.IgnoredDirectories = ReadIgnoreFile(ignorePath);
-                    isMigrated = true;
-                }
-                catch (IOException e)
-                {
-                    SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nignore.txtの読み込みに失敗しました: {ignorePath}\n{e.Message}", LogKindEnum.Error);
-                    return null;
-                }
-            }
 
             // 生成できなかった設定を返さない。返すと、除外設定が保存されていないまま
             // パッケージ出力へ進み、次回の読み込みでも同じ状態が繰り返される。
             if (!Save(config)) { return null; }
 
-            // 移行の有無に応じて、旧ファイルの後処理が必要かを利用者へ伝える。
-            if (isMigrated)
-            {
-                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\nignore.txtの内容を移行しました: {configPath}"
-                          + $"\n以降ignore.txtは読み込まれません。不要であれば削除してください: {ignorePath}");
-            }
-            else
-            {
-                SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定ファイルを生成しました: {configPath}");
-            }
+            SymphonyDebugLogger.LogDirect($"{LOG_PREFIX}\n設定ファイルを生成しました: {configPath}");
 
             return config.Normalize();
-        }
-
-        /// <summary>
-        ///     ignore.txtから除外フォルダ名を読み出す。
-        /// </summary>
-        private static List<string> ReadIgnoreFile(string ignorePath)
-        {
-            List<string> names = new();
-
-            // 旧形式のコメントと空行は設定値ではないため移行しない。
-            foreach (string line in File.ReadAllLines(ignorePath))
-            {
-                string trimmed = line.Trim();
-                // 空行と#から始まる説明行は、除外フォルダ名ではないため移行しない。
-                if (!string.IsNullOrEmpty(trimmed) && !trimmed.StartsWith("#")) { names.Add(trimmed); }
-            }
-
-            return names;
         }
 
         /// <summary>

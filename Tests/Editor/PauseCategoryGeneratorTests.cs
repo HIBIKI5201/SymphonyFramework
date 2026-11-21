@@ -1,9 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 using NUnit.Framework;
 
+using SymphonyFramework.Core;
 using SymphonyFramework.Editor;
+
+using UnityEditor;
 
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -115,7 +119,7 @@ namespace SymphonyFramework.Tests
         }
 
         /// <summary>
-        ///     生成するソースはPauseManager.IPausableを継承したinterfaceである。
+        ///     生成するソースはIPausableを継承したinterfaceである。
         /// </summary>
         [Test]
         public void BuildSource_DeclaresInterfaceInheritingIPausable()
@@ -124,8 +128,8 @@ namespace SymphonyFramework.Tests
 
             Assert.That(
                 source,
-                Does.Contain("public interface IGameplayPausable : PauseManager.IPausable"));
-            Assert.That(source, Does.Contain("using SymphonyFramework.System;"));
+                Does.Contain("public interface IGameplayPausable : IPausable"));
+            Assert.That(source, Does.Contain("using SymphonyFramework.Pause;"));
         }
 
         /// <summary>
@@ -154,22 +158,71 @@ namespace SymphonyFramework.Tests
         }
 
         /// <summary>
-        ///     生成先は自動生成enumとは別のディレクトリである。
+        ///     生成先は自動生成enumのフォルダの下にあり、専用のAssembly Definitionを持たない。
         /// </summary>
         /// <remarks>
-        ///     **同じアセンブリへは置けない。** カテゴリーはPauseManager.IPausableを継承するため
-        ///     SymphonyFrameworkの参照が要るが、SymphonyFramework側がSymphonyFramework.Enumを
-        ///     参照しているため循環する。
+        ///     **自動生成enumのアセンブリに含まれる。** そのアセンブリがSymphonyFrameworkを参照するため、
+        ///     カテゴリーはIPausableを継承できる。SymphonyFramework側は生成物を参照しない。
         /// </remarks>
         [Test]
-        public void GeneratePath_IsSeparatedFromEnumAssembly()
+        public void GeneratePath_IsInsideEnumFolder()
         {
             Assert.That(
                 PauseCategoryGenerator.GeneratePath,
-                Does.EndWith("/PauseCategory"));
+                Is.EqualTo(EditorSymphonyConstant.ENUM_PATH + "/PauseCategory"));
+        }
+
+        /// <summary> 6.19.0以前の専用asmdefの名前を、6.15の旧表記も含めて移行対象にする。 </summary>
+        [Test]
+        public void LegacyAssemblyNames_IncludeBothCasings()
+        {
             Assert.That(
-                PauseCategoryGenerator.ASSEMBLY_NAME,
-                Is.EqualTo("SymphonyFramework.PauseCategory"));
+                PauseCategoryGenerator.LegacyAssemblyNames,
+                Is.EquivalentTo(new[] { "SymphonyFramework.PauseCategory", "SymphonyFrameWork.PauseCategory" }));
+        }
+
+        /// <summary> 旧生成物のusingと継承先を、新しい名前空間とIPausableへ書き換える。 </summary>
+        [TestCase("using SymphonyFramework.System;")]
+        [TestCase("using SymphonyFrameWork.System;")]
+        public void RewriteLegacySource_OldSource_UsesFermataNames(string legacyUsing)
+        {
+            string legacy = legacyUsing + "\n\n"
+                            + "///     このinterfaceを実装した対象は、PauseManager.SetPause&lt;IUiPausable&gt;(true)\n"
+                            + "public interface IUiPausable : PauseManager.IPausable\n{\n}\n";
+
+            string migrated = PauseCategoryGenerator.RewriteLegacySource(legacy);
+
+            Assert.That(migrated, Does.StartWith("using SymphonyFramework.Pause;"));
+            Assert.That(migrated, Does.Contain("public interface IUiPausable : IPausable"));
+            Assert.That(migrated, Does.Contain("Fermata.SetPause&lt;IUiPausable&gt;"));
+            Assert.That(migrated, Does.Not.Contain("PauseManager"));
+        }
+
+        /// <summary> 新しい生成物は書き換えない。 </summary>
+        [Test]
+        public void RewriteLegacySource_CurrentSource_IsUnchanged()
+        {
+            string source = PauseCategoryGenerator.BuildSource("IUiPausable");
+
+            Assert.That(PauseCategoryGenerator.RewriteLegacySource(source), Is.EqualTo(source));
+        }
+
+        /// <summary> Framework本体のasmdefは自動生成enumのアセンブリを参照しない。 </summary>
+        /// <remarks>
+        ///     **参照は生成物からFrameworkへの片方向である。** 逆向きを残すと、ポーズカテゴリーが
+        ///     IPausableを継承するためにFrameworkを参照したときに循環する。
+        /// </remarks>
+        [Test]
+        public void FrameworkAsmdef_DoesNotReferenceGeneratedAssembly()
+        {
+            string json = File.ReadAllText(EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework.asmdef");
+            AssemblyDefinitionData asmdef = JsonUtility.FromJson<AssemblyDefinitionData>(json);
+
+            foreach (string reference in asmdef.references)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(reference.Replace("GUID:", string.Empty));
+                Assert.That(path, Does.Not.EndWith(".Enum.asmdef"), $"'{reference}' は自動生成enumのasmdefです。");
+            }
         }
     }
 }

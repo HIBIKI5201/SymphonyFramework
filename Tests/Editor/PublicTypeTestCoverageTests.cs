@@ -70,7 +70,6 @@ namespace SymphonyFramework.Tests
             "LoadTypeEnum",
             "LogKindEnum",
             "PackageDirectoryInfo",
-            "PackageModeEnum",
             "PartituraWindow",
             "PauseWindow",
             "PlayerPrefsSaveDataLoaderStrategy",

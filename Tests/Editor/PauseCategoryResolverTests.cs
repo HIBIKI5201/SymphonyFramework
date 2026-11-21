@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 namespace SymphonyFramework.Tests
 {
@@ -14,16 +14,16 @@ namespace SymphonyFramework.Tests
     public sealed class PauseCategoryResolverTests
     {
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IGameplayCategory : PauseManager.IPausable { }
+        private interface IGameplayCategory : IPausable { }
 
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IUiCategory : PauseManager.IPausable { }
+        private interface IUiCategory : IPausable { }
 
         /// <summary> 検証用の派生カテゴリー。 </summary>
         private interface IHudCategory : IUiCategory { }
 
         /// <summary> カテゴリーを実装しない検証用の対象。 </summary>
-        private sealed class UncategorizedPausable : PauseManager.IPausable
+        private sealed class UncategorizedPausable : IPausable
         {
             public void Pause() { }
             public void Resume() { }
@@ -110,7 +110,7 @@ namespace SymphonyFramework.Tests
         {
             IReadOnlyList<Type> categories = PauseCategoryResolver.Resolve(typeof(GameplayPausable));
 
-            Assert.That(categories, Has.No.Member(typeof(PauseManager.IPausable)));
+            Assert.That(categories, Has.No.Member(typeof(IPausable)));
         }
 
         /// <summary> nullの解決は拒否される。 </summary>
@@ -134,7 +134,7 @@ namespace SymphonyFramework.Tests
         [Test]
         public void IsCategory_NotACategory_IsFalse()
         {
-            Assert.That(PauseCategoryResolver.IsCategory(typeof(PauseManager.IPausable)), Is.False);
+            Assert.That(PauseCategoryResolver.IsCategory(typeof(IPausable)), Is.False);
             Assert.That(PauseCategoryResolver.IsCategory(typeof(IDisposable)), Is.False);
             Assert.That(PauseCategoryResolver.IsCategory(typeof(GameplayPausable)), Is.False);
             Assert.That(PauseCategoryResolver.IsCategory(null), Is.False);
@@ -151,7 +151,7 @@ namespace SymphonyFramework.Tests
         public void IsOperableCategory_IncludesDefaultCategory()
         {
             Assert.That(
-                PauseCategoryResolver.IsOperableCategory(typeof(PauseManager.IPausable)),
+                PauseCategoryResolver.IsOperableCategory(typeof(IPausable)),
                 Is.True);
             Assert.That(PauseCategoryResolver.IsOperableCategory(typeof(IGameplayCategory)), Is.True);
         }
@@ -174,7 +174,7 @@ namespace SymphonyFramework.Tests
                     typeof(IGameplayCategory), "TCategory"));
             Assert.DoesNotThrow(
                 () => PauseCategoryResolver.ValidateOperableCategory(
-                    typeof(PauseManager.IPausable), "TCategory"));
+                    typeof(IPausable), "TCategory"));
         }
 
         /// <summary>
@@ -205,7 +205,7 @@ namespace SymphonyFramework.Tests
         {
             Assert.That(
                 PauseCategoryResolver.DefaultCategory,
-                Is.EqualTo(typeof(PauseManager.IPausable)));
+                Is.EqualTo(typeof(IPausable)));
         }
     }
 }

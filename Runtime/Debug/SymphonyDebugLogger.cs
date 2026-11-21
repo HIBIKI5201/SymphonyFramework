@@ -200,72 +200,6 @@ namespace SymphonyFramework.Debugger.Logger
             return isNull;
         }
 
-        // 互換性維持のために残す旧API。
-
-        /// <summary>
-        ///     Editorでのみデバッグログを出力する。
-        /// </summary>
-        /// <param name="text"> Editorでのみ出力する文字列。 </param>
-        /// <param name="kind"> 出力するログの重要度。 </param>
-        [Obsolete("この機能は旧型式です。" + nameof(LogDirect) + "を使用してください)")]
-        [Conditional("UNITY_EDITOR")]
-        public static void DirectLog(string text, LogKindEnum kind = LogKindEnum.Normal)
-        {
-#if UNITY_EDITOR
-            // 旧APIの出力条件を維持しつつ、重要度の処理は現行APIへ集約する。
-            LogDirect(text, kind);
-#endif
-        }
-
-        /// <summary>
-        ///     Editorでのみ蓄積済みメッセージをログへ出力する。
-        /// </summary>
-        [Obsolete("この機能は旧型式です。" + nameof(LogText) + "を使用してください)")]
-        [Conditional("UNITY_EDITOR")]
-        [HideInCallstack]
-        public static void TextLog(LogKindEnum kind = LogKindEnum.Normal, bool clearText = true)
-        {
-#if UNITY_EDITOR
-            // 旧APIの出力条件を維持しつつ、蓄積ログの処理は現行APIへ集約する。
-            LogText(kind, clearText: clearText);
-#endif
-        }
-
-        /// <summary>
-        ///     EditorでのみComponentのnullを確認して警告を出力する。
-        /// </summary>
-        /// <typeparam name="T"> 確認するComponentの型。 </typeparam>
-        /// <param name="component"> nullを確認するComponent。 </param>
-        [Obsolete("この機能は旧型式です。" + nameof(LogAndCheckComponentNull) + "を使用してください。")]
-        [Conditional("UNITY_EDITOR")]
-        public static void CheckComponentNull<T>(this T component) where T : Component
-        {
-#if UNITY_EDITOR
-            // 旧APIの既存動作を維持するため、Editor限定のUnity標準警告を直接使用する。
-            // 破棄済みと真のnullではnameを読めないため、参照せずに種別だけを伝える。
-            if (component == null)
-            {
-                Debug.LogWarning($"The component {typeof(T).Name} is null. ({DescribeNullKind(component)})");
-            }
-#endif
-        }
-
-        /// <summary>
-        ///     Componentが有効か確認し、nullの場合は警告を出力する。
-        /// </summary>
-        [Obsolete("この機能は安全性が保障されていません。" + nameof(LogAndCheckComponentNull) + "を使用してください")]
-        public static bool IsComponentNotNull<T>(this T component) where T : Component
-        {
-            // 旧APIはPlayerでも診断する契約のため、Unity標準の警告を直接使用する。
-            if (component == null)
-            {
-                Debug.LogWarning($"The component of type {typeof(T).Name} is null.");
-                return false;
-            }
-
-            return true;
-        }
-
         #endregion
 
         #region 内部処理
@@ -307,18 +241,6 @@ namespace SymphonyFramework.Debugger.Logger
 
             return @object is null;
         }
-
-        /// <summary>
-        ///     nullと判定された参照が、未代入と破棄済みのどちらであるかを表す語を返す。
-        /// </summary>
-        /// <remarks>
-        ///     破棄済みでも真のnullでも <c>name</c> の取得は失敗する。参照せずに種別だけを伝え、
-        ///     警告を出すためのAPIが例外で落ちないようにする。
-        /// </remarks>
-        /// <param name="object"> nullと判定済みの対象。 </param>
-        /// <returns> 未代入なら <c>unassigned</c>、破棄済みなら <c>destroyed</c>。 </returns>
-        private static string DescribeNullKind(object @object)
-            => @object is null ? "unassigned" : "destroyed";
 
         /// <summary>
         ///     エラーログの先頭へ付けるFrameworkのバージョン表記。

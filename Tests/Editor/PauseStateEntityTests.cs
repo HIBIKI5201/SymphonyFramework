@@ -2,7 +2,7 @@
 
 using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Pause;
 
 namespace SymphonyFramework.Tests
 {
@@ -13,10 +13,10 @@ namespace SymphonyFramework.Tests
     public sealed class PauseStateEntityTests
     {
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IGameplayCategory : PauseManager.IPausable { }
+        private interface IGameplayCategory : IPausable { }
 
         /// <summary> 検証用のカテゴリー。 </summary>
-        private interface IUiCategory : PauseManager.IPausable { }
+        private interface IUiCategory : IPausable { }
 
         /// <summary> 生成直後はどのカテゴリーもポーズしていない。 </summary>
         [Test]

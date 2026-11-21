@@ -14,15 +14,10 @@ namespace SymphonyFramework.Editor
     ///     ポーズカテゴリーのinterfaceを利用側プロジェクトへ自動生成する。
     /// </summary>
     /// <remarks>
-    ///     <para>
-    ///         生成物は <c>Assets/Scripts/SymphonyFramework/PauseCategory/</c> 配下へ書き出し、
-    ///         専用のAssembly Definitionから <c>SymphonyFramework</c> を参照する。
-    ///     </para>
-    ///     <para>
-    ///         **自動生成enumと同じ場所へは置けない。** カテゴリーは
-    ///         <c>PauseManager.IPausable</c> を継承するため <c>SymphonyFramework</c> の参照が要るが、
-    ///         <c>SymphonyFramework</c> 側が <c>SymphonyFramework.Enum</c> を参照しているため循環する。
-    ///     </para>
+    ///     生成物は <c>Assets/Scripts/SymphonyFramework/PauseCategory/</c> 配下へ書き出す。
+    ///     **専用のAssembly Definitionは作らない。** 自動生成enumのフォルダの下にあるため、
+    ///     <c>SymphonyFramework.Enum</c> アセンブリに含まれる。そのアセンブリが
+    ///     <c>SymphonyFramework</c> を参照するため、<c>IPausable</c> を継承できる。
     /// </remarks>
     public static class PauseCategoryGenerator
     {
@@ -31,8 +26,12 @@ namespace SymphonyFramework.Editor
         /// <summary> 生成先ディレクトリのパス。 </summary>
         public static string GeneratePath => EditorSymphonyConstant.ENUM_PATH + "/PauseCategory";
 
-        /// <summary> 生成物を収めるAssembly Definitionの名前。 </summary>
-        public const string ASSEMBLY_NAME = "SymphonyFramework.PauseCategory";
+        /// <summary> 6.19.0以前に生成していた専用Assembly Definitionの名前。新しい順。 </summary>
+        internal static readonly string[] LegacyAssemblyNames =
+        {
+            "SymphonyFramework.PauseCategory",
+            "SymphonyFrameWork.PauseCategory",
+        };
 
         /// <summary>
         ///     Project Settingsに設定されたカテゴリーのinterfaceを生成する。
@@ -47,7 +46,7 @@ namespace SymphonyFramework.Editor
             IReadOnlyList<string> interfaceNames =
                 ResolveInterfaceNames(PauseCategoryConfig.instance.CategoryNames);
 
-            CreateAssembly();
+            EnsureOutputLocation();
 
             foreach (string interfaceName in interfaceNames)
             {
@@ -65,9 +64,61 @@ namespace SymphonyFramework.Editor
             AssetDatabase.Refresh();
         }
 
+        /// <summary>
+        ///     6.19.0以前の専用Assembly Definitionを取り除き、生成物を自動生成enumのアセンブリへまとめる。
+        /// </summary>
+        /// <returns> 生成物を書き換えた場合はtrue。 </returns>
+        /// <remarks>
+        ///     **asmdefを消すだけでは足りない。** 旧生成物は <c>PauseManager.IPausable</c> を継承しているため、
+        ///     フォルダ内の全ての生成物を新しい名前へ書き換えてからasmdefを消す。
+        ///     設定から消えたカテゴリーのファイルも残っているため、設定から作り直すのではなく書き換える。
+        /// </remarks>
+        internal static bool MigrateLegacyAssembly()
+        {
+            if (!Directory.Exists(GeneratePath)) { return false; }
+
+            List<string> legacyAsmdefPaths = new();
+            foreach (string assemblyName in LegacyAssemblyNames)
+            {
+                string path = $"{GeneratePath}/{assemblyName}.asmdef";
+                if (File.Exists(path)) { legacyAsmdefPaths.Add(path); }
+            }
+
+            if (legacyAsmdefPaths.Count == 0) { return false; }
+
+            foreach (string path in Directory.GetFiles(GeneratePath, "*.cs"))
+            {
+                string source = File.ReadAllText(path);
+                string migrated = RewriteLegacySource(source);
+                if (source != migrated) { File.WriteAllText(path, migrated); }
+            }
+
+            foreach (string path in legacyAsmdefPaths) { AssetDatabase.DeleteAsset(path); }
+
+            SymphonyDebugLogger.LogDirect(
+                "ポーズカテゴリー専用のAssembly Definitionを削除し、SymphonyFramework.Enumへまとめました。"
+                + " 自前のAssembly Definitionから参照していた場合は、SymphonyFramework.Enumの参照へ置き換えてください。",
+                LogKindEnum.Warning);
+            return true;
+        }
+
         #endregion
 
         #region 内部処理
+
+        /// <summary>
+        ///     旧生成物のソースを新しい名前へ書き換える。
+        /// </summary>
+        /// <param name="source"> 旧生成物のソース。 </param>
+        /// <returns> 書き換えたソース。対象が無ければそのまま返す。 </returns>
+        internal static string RewriteLegacySource(string source)
+        {
+            return source
+                .Replace("using SymphonyFrameWork.System;", "using SymphonyFramework.Pause;")
+                .Replace("using SymphonyFramework.System;", "using SymphonyFramework.Pause;")
+                .Replace("PauseManager.SetPause&lt;", "Fermata.SetPause&lt;")
+                .Replace(": PauseManager.IPausable", ": IPausable");
+        }
 
         /// <summary> C#の識別子として使える名前か。 </summary>
         private static readonly Regex IdentifierRegex = new(@"^[A-Za-z_][A-Za-z0-9_]*$");
@@ -144,28 +195,24 @@ namespace SymphonyFramework.Editor
         /// </remarks>
         internal static string BuildSource(string interfaceName)
         {
-            return "using SymphonyFramework.System;\n"
+            return "using SymphonyFramework.Pause;\n"
                    + "\n"
                    + "/// <summary>\n"
                    + "///     Symphony Frameworkが自動生成したポーズカテゴリー。\n"
                    + "/// </summary>\n"
                    + "/// <remarks>\n"
-                   + $"///     このinterfaceを実装した対象は、PauseManager.SetPause&lt;{interfaceName}&gt;(true)\n"
+                   + $"///     このinterfaceを実装した対象は、Fermata.SetPause&lt;{interfaceName}&gt;(true)\n"
                    + "///     で停止する。Project Settingsのカテゴリー設定から生成される。\n"
                    + "/// </remarks>\n"
-                   + $"public interface {interfaceName} : PauseManager.IPausable\n"
+                   + $"public interface {interfaceName} : IPausable\n"
                    + "{\n"
                    + "}\n";
         }
 
         /// <summary>
-        ///     生成先のディレクトリとAssembly Definitionを用意する。
+        ///     生成先のディレクトリと、生成物を収める自動生成enumのAssembly Definitionを用意する。
         /// </summary>
-        /// <remarks>
-        ///     **参照の向きは生成物からフレームワークへの片方向である。**
-        ///     フレームワーク側はこのアセンブリを参照しない。
-        /// </remarks>
-        private static void CreateAssembly()
+        private static void EnsureOutputLocation()
         {
             if (!Directory.Exists(GeneratePath))
             {
@@ -173,13 +220,10 @@ namespace SymphonyFramework.Editor
                 AssetDatabase.ImportAsset(GeneratePath, ImportAssetOptions.ForceUpdate);
             }
 
-            string selfPath = $"{GeneratePath}/{ASSEMBLY_NAME}";
-            AssemblyGenerator.GenerateAssembly(selfPath, new AssemblyDefinitionData(ASSEMBLY_NAME));
-
-            // 生成物がPauseManager.IPausableを継承できるよう、フレームワークへの参照を入れる。
-            AssemblyGenerator.AddAsssemblyReference(
-                $"{selfPath}.asmdef",
-                $"{EditorSymphonyConstant.FRAMEWORK_PATH}/SymphonyFramework.asmdef");
+            // 生成物がIPausableを継承できるよう、自動生成enumのアセンブリからFrameworkを参照させる。
+            AssemblyGenerator.CreateEnumAssembly(
+                EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum",
+                EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework");
         }
 
         /// <summary>

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SymphonyFramework.System
+namespace SymphonyFramework.Pause
 {
     /// <summary>
     ///     ポーズ対象が属するカテゴリーを、実装しているinterfaceから解決する。
     /// </summary>
     /// <remarks>
-    ///     カテゴリーは <see cref="PauseManager.IPausable" /> を継承した空のinterfaceで表す。
+    ///     カテゴリーは <see cref="IPausable" /> を継承した空のinterfaceで表す。
     ///     Unity APIへ触れないため、EditModeテストから直接検証できる。
     /// </remarks>
     internal static class PauseCategoryResolver
@@ -20,7 +20,7 @@ namespace SymphonyFramework.System
         ///     どのカテゴリーを止めても動き続ける対象が黙って生まれると、
         ///     ポーズしても止まらない原因を追えない。
         /// </remarks>
-        internal static Type DefaultCategory { get; } = typeof(PauseManager.IPausable);
+        internal static Type DefaultCategory { get; } = typeof(IPausable);
 
         /// <summary>
         ///     対象の型が属するカテゴリーを列挙する。
@@ -56,7 +56,7 @@ namespace SymphonyFramework.System
         /// <param name="type"> 判定する型。 </param>
         /// <returns> カテゴリーとして使える場合はtrue。 </returns>
         /// <remarks>
-        ///     <see cref="PauseManager.IPausable" /> 自身はカテゴリーではなく、
+        ///     <see cref="IPausable" /> 自身はカテゴリーではなく、
         ///     カテゴリー未指定の対象を表す <see cref="DefaultCategory" /> として扱う。
         /// </remarks>
         internal static bool IsCategory(Type type)

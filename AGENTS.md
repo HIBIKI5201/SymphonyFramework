@@ -15,7 +15,7 @@
 | Suiteを使う | [Suite.md](./Documentation~/Modules/Suite.md) |
 | Manuscriptを使う | [Manuscript.md](./Documentation~/Modules/Manuscript.md) |
 | Sonorityを使う | [Sonority.md](./Documentation~/Modules/Sonority.md) |
-| Pause Managerを使う | [PauseManager.md](./Documentation~/Modules/PauseManager.md) |
+| Fermataを使う | [Fermata.md](./Documentation~/Modules/Fermata.md) |
 | HUD、ログ、処理時間計測を使う | [Debug.md](./Documentation~/Modules/Debug.md) |
 | Awaitable、Tween、文字列、Componentの補助を使う | [Utility.md](./Documentation~/Modules/Utility.md) |
 | Inspector属性を使う | [InspectorAttributes.md](./Documentation~/Modules/InspectorAttributes.md) |

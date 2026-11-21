@@ -7,35 +7,32 @@ using NUnit.Framework;
 namespace SymphonyFramework.Tests
 {
     /// <summary>
-    ///     サブシステムの置き場が <c>Runtime/Service/</c> である契約を検証する。
+    ///     各サブシステムが機能名のフォルダ（<c>Runtime/Services/</c>、<c>Runtime/Pause/</c> など）にある契約を検証する。
     /// </summary>
     /// <remarks>
     ///     フォルダ名の変更は、移動漏れや旧名の再作成に気づきにくい。
-    ///     <c>Runtime/System/</c> が復活していないことも併せて見る。
+    ///     旧置き場の <c>Runtime/Service/</c> と <c>Runtime/System/</c> が復活していないことも併せて見る。
     /// </remarks>
     public sealed class RuntimeFolderLayoutTests
     {
-        /// <summary> <c>Runtime/Service/</c> の直下にある想定のサブシステム。 </summary>
-        private static readonly string[] SubsystemDirectories =
-        {
-            "Pause",
-        };
-
-        /// <summary> サブシステムはすべて Runtime/Service/ の下にある。 </summary>
+        /// <summary> 旧置き場の Runtime/Service/ は残っていない。 </summary>
         [Test]
-        public void RuntimeService_Subsystems_AllExist()
+        public void RuntimeService_OldFolder_DoesNotExist()
         {
-            string root = Path.Combine(EditorSymphonyConstant.FRAMEWORK_PATH, "Runtime", "Service");
+            Assert.That(
+                Directory.Exists(Path.Combine(EditorSymphonyConstant.FRAMEWORK_PATH, "Runtime", "Service")),
+                Is.False,
+                "Runtime/Service/ の各サブシステムは機能名のフォルダへ移しました（7.0.0、#225）。");
+        }
 
-            Assert.That(Directory.Exists(root), Is.True, $"'{root}' が見つかりません。");
+        /// <summary> Fermata と IPausable は Runtime/Pause/ にある。 </summary>
+        [Test]
+        public void Fermata_LivesInRuntimePause()
+        {
+            string pause = Path.Combine(EditorSymphonyConstant.FRAMEWORK_PATH, "Runtime", "Pause");
 
-            foreach (string subsystem in SubsystemDirectories)
-            {
-                Assert.That(
-                    Directory.Exists(Path.Combine(root, subsystem)),
-                    Is.True,
-                    $"'{subsystem}' が Runtime/Service/ の下にありません。");
-            }
+            Assert.That(File.Exists(Path.Combine(pause, "Fermata.cs")), Is.True, "Fermata.cs が Runtime/Pause/ にありません。");
+            Assert.That(File.Exists(Path.Combine(pause, "IPausable.cs")), Is.True, "IPausable.cs が Runtime/Pause/ にありません。");
         }
 
         /// <summary> Partitura は Runtime/Services/ にあり、旧置き場には残っていない。 </summary>
@@ -109,7 +106,7 @@ namespace SymphonyFramework.Tests
             Assert.That(
                 Directory.Exists(Path.Combine(EditorSymphonyConstant.FRAMEWORK_PATH, "Runtime", "System")),
                 Is.False,
-                "Runtime/System/ は Runtime/Service/ へ移しました（Issue #106）。");
+                "Runtime/System/ は使いません（Issue #106、7.0.0 #225）。");
         }
     }
 }

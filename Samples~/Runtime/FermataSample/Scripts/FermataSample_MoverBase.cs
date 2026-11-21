@@ -1,8 +1,8 @@
-﻿using SymphonyFramework.System;
+﻿using SymphonyFramework.Pause;
 
 using UnityEngine;
 
-namespace SymphonyFramework.Samples.PauseManagerSample
+namespace SymphonyFramework.Samples.FermataSample
 {
     /// <summary>
     ///     Pause中は停止する往復移動オブジェクトの共通部分。
@@ -11,7 +11,7 @@ namespace SymphonyFramework.Samples.PauseManagerSample
     ///     **属するカテゴリーだけが派生クラスごとに違う。** 移動と購読の手順は同じであり、
     ///     カテゴリーを分けることで「片方だけ止める」が成立することを示す。
     /// </remarks>
-    public abstract class PauseManagerSample_MoverBase : MonoBehaviour, PauseManager.IPausable
+    public abstract class FermataSample_MoverBase : MonoBehaviour, IPausable
     {
         [SerializeField, Tooltip("往復移動の中心からの最大距離。")]
         private float _range = 3f;
@@ -39,16 +39,16 @@ namespace SymphonyFramework.Samples.PauseManagerSample
             }
         }
 
-        /// <summary> PauseManagerへポーズ通知の購読を登録する。 </summary>
+        /// <summary> Fermataへポーズ通知の購読を登録する。 </summary>
         private void OnEnable()
         {
-            PauseManager.IPausable.RegisterPauseManager(this);
+            Fermata.Register(this);
         }
 
-        /// <summary> PauseManagerへの購読を解除する。 </summary>
+        /// <summary> Fermataへの購読を解除する。 </summary>
         private void OnDisable()
         {
-            PauseManager.IPausable.UnregisterPauseManager(this);
+            Fermata.Unregister(this);
         }
 
         /// <summary> Pause中でなければ往復移動を進める。 </summary>

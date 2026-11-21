@@ -1,13 +1,13 @@
-﻿using SymphonyFramework.System;
+﻿using SymphonyFramework.Pause;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace SymphonyFramework.Samples.PauseManagerSample
+namespace SymphonyFramework.Samples.FermataSample
 {
     /// <summary> カテゴリーごとのポーズ切り替え、通知、Pausable待機処理を実演する。 </summary>
-    public sealed class PauseManagerSample_Controller : MonoBehaviour
+    public sealed class FermataSample_Controller : MonoBehaviour
     {
         private readonly Queue<string> _commentaryLogs = new();
         private Vector2 _scrollPosition;
@@ -22,25 +22,25 @@ namespace SymphonyFramework.Samples.PauseManagerSample
         /// </remarks>
         private void OnEnable()
         {
-            PauseManager.AddPauseChangedHandler<IPauseManagerSample_GameplayPausable>(
+            Fermata.AddPauseChangedHandler<IFermataSample_GameplayPausable>(
                 OnGameplayPauseChanged);
-            PauseManager.AddPauseChangedHandler<IPauseManagerSample_UiPausable>(
+            Fermata.AddPauseChangedHandler<IFermataSample_UiPausable>(
                 OnUiPauseChanged);
         }
 
         /// <summary> 購読を解除する。 </summary>
         private void OnDisable()
         {
-            PauseManager.RemovePauseChangedHandler<IPauseManagerSample_GameplayPausable>(
+            Fermata.RemovePauseChangedHandler<IFermataSample_GameplayPausable>(
                 OnGameplayPauseChanged);
-            PauseManager.RemovePauseChangedHandler<IPauseManagerSample_UiPausable>(
+            Fermata.RemovePauseChangedHandler<IFermataSample_UiPausable>(
                 OnUiPauseChanged);
         }
 
         /// <summary> サンプルを初期状態に戻し、UI側のCubeを生成してループを開始する。 </summary>
         private void Start()
         {
-            PauseManager.SetPauseAll(false);
+            Fermata.SetPauseAll(false);
             SpawnUiMover();
             AddCommentary("サンプルを開始しました。2つのCubeは別々のカテゴリーに属します。");
             CountFrames();
@@ -50,23 +50,23 @@ namespace SymphonyFramework.Samples.PauseManagerSample
         [ContextMenu("Toggle Gameplay Pause")]
         public void ToggleGameplayPause()
         {
-            PauseManager.SetPause<IPauseManagerSample_GameplayPausable>(
-                !PauseManager.IsPaused<IPauseManagerSample_GameplayPausable>());
+            Fermata.SetPause<IFermataSample_GameplayPausable>(
+                !Fermata.IsPaused<IFermataSample_GameplayPausable>());
         }
 
         /// <summary> UI演出カテゴリーのポーズをトグルする。 </summary>
         [ContextMenu("Toggle UI Pause")]
         public void ToggleUiPause()
         {
-            PauseManager.SetPause<IPauseManagerSample_UiPausable>(
-                !PauseManager.IsPaused<IPauseManagerSample_UiPausable>());
+            Fermata.SetPause<IFermataSample_UiPausable>(
+                !Fermata.IsPaused<IFermataSample_UiPausable>());
         }
 
         /// <summary> 全カテゴリーのポーズをトグルする。 </summary>
         [ContextMenu("Toggle All Pause")]
         public void ToggleAllPause()
         {
-            PauseManager.SetPauseAll(!PauseManager.IsPausedAny());
+            Fermata.SetPauseAll(!Fermata.IsPausedAny());
         }
 
         /// <summary> ゲームプレイのポーズを除外した5秒カウントダウンを開始する。 </summary>
@@ -89,7 +89,7 @@ namespace SymphonyFramework.Samples.PauseManagerSample
                     float step = Mathf.Min(0.1f, _countdownRemaining);
 
                     // 待機もカテゴリーを指定する。UIだけ止めてもカウントダウンは進む。
-                    await PauseManager.PausableWaitForSecondAsync<IPauseManagerSample_GameplayPausable>(
+                    await Fermata.WaitForSecondsAsync<IFermataSample_GameplayPausable>(
                         step, destroyCancellationToken);
                     _countdownRemaining -= step;
                 }
@@ -114,12 +114,12 @@ namespace SymphonyFramework.Samples.PauseManagerSample
         /// </remarks>
         private static void SpawnUiMover()
         {
-            GameObject uiMoverObject = new(nameof(PauseManagerSample_UiMover));
+            GameObject uiMoverObject = new(nameof(FermataSample_UiMover));
             uiMoverObject.SetActive(false);
             uiMoverObject.transform.position = new Vector3(0f, 2f, 0f);
 
-            PauseManagerSample_UiMover uiMover =
-                uiMoverObject.AddComponent<PauseManagerSample_UiMover>();
+            FermataSample_UiMover uiMover =
+                uiMoverObject.AddComponent<FermataSample_UiMover>();
             uiMover.SetColor(Color.cyan);
 
             uiMoverObject.SetActive(true);
@@ -154,7 +154,7 @@ namespace SymphonyFramework.Samples.PauseManagerSample
                 outerRect.width - 24f,
                 outerRect.height - 40f);
 
-            GUI.Box(outerRect, "Pause Manager Sample");
+            GUI.Box(outerRect, "Fermata Sample");
 
             GUILayout.BeginArea(innerRect);
             GUILayout.Label("実況解説");
@@ -163,12 +163,12 @@ namespace SymphonyFramework.Samples.PauseManagerSample
             GUILayout.Label("3. Unpaused FramesとカウントダウンはGameplayのポーズにだけ追従します。");
             GUILayout.Space(8f);
 
-            bool isGameplayPaused = PauseManager.IsPaused<IPauseManagerSample_GameplayPausable>();
-            bool isUiPaused = PauseManager.IsPaused<IPauseManagerSample_UiPausable>();
+            bool isGameplayPaused = Fermata.IsPaused<IFermataSample_GameplayPausable>();
+            bool isUiPaused = Fermata.IsPaused<IFermataSample_UiPausable>();
 
             GUILayout.Label($"Gameplay         : {(isGameplayPaused ? "Paused" : "Running")}");
             GUILayout.Label($"UI               : {(isUiPaused ? "Paused" : "Running")}");
-            GUILayout.Label($"Any Paused       : {PauseManager.IsPausedAny()}");
+            GUILayout.Label($"Any Paused       : {Fermata.IsPausedAny()}");
             GUILayout.Label($"Unpaused Frames  : {_unpausedFrameCount}");
             GUILayout.Label($"Countdown Remain : {_countdownRemaining:F1}s ({(_isCountdownRunning ? "running" : "idle")})");
             GUILayout.Space(8f);
@@ -183,7 +183,7 @@ namespace SymphonyFramework.Samples.PauseManagerSample
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(PauseManager.IsPausedAny() ? "Resume All" : "Pause All"))
+            if (GUILayout.Button(Fermata.IsPausedAny() ? "Resume All" : "Pause All"))
             {
                 ToggleAllPause();
             }
@@ -207,7 +207,7 @@ namespace SymphonyFramework.Samples.PauseManagerSample
             {
                 while (true)
                 {
-                    await PauseManager.PausableNextFrameAsync<IPauseManagerSample_GameplayPausable>(
+                    await Fermata.NextFrameAsync<IFermataSample_GameplayPausable>(
                         destroyCancellationToken);
                     _unpausedFrameCount++;
                 }

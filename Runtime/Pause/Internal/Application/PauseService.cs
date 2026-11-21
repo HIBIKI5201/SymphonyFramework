@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using SymphonyFramework.Debugger.Logger;
 
-namespace SymphonyFramework.System
+namespace SymphonyFramework.Pause
 {
     /// <summary>
     ///     カテゴリーごとのポーズ状態を変更し、登録された対象へ通知する。
@@ -147,7 +147,7 @@ namespace SymphonyFramework.System
         ///     **登録した時点では <c>Pause()</c> を呼ばない。** 停止要因の数だけを現在の状態から
         ///     引き継ぎ、後で解除されたときに <c>Resume()</c> が届く形にする。従来と同じ挙動である。
         /// </remarks>
-        public void Register(PauseManager.IPausable pausable)
+        public void Register(IPausable pausable)
         {
             // 通知先を持たない購読は登録できないため、呼び出し元の誤りとして拒否する。
             if (pausable == null) { throw new ArgumentNullException(nameof(pausable)); }
@@ -171,7 +171,7 @@ namespace SymphonyFramework.System
         /// </summary>
         /// <param name="pausable"> ポーズ通知を解除する対象。 </param>
         /// <exception cref="ArgumentNullException"> pausableがnullの場合。 </exception>
-        public void Unregister(PauseManager.IPausable pausable)
+        public void Unregister(IPausable pausable)
         {
             // 通知先を特定できない解除要求は、呼び出し元の誤りとして拒否する。
             if (pausable == null) { throw new ArgumentNullException(nameof(pausable)); }
@@ -218,7 +218,7 @@ namespace SymphonyFramework.System
             bool wasPausedAny = _state.IsPausedAny;
 
             List<Type> changedCategories = new();
-            List<PauseManager.IPausable> affected = new();
+            List<IPausable> affected = new();
             foreach (Type category in categories)
             {
                 // 同じ状態の再設定ではゲームロジックと表示へ重複通知しない。
@@ -233,7 +233,7 @@ namespace SymphonyFramework.System
             // 表示状態を先に同期し、確定したポーズ状態をゲームロジックへ通知する。従来と同じ順序である。
             RaiseStateChanged();
 
-            foreach (PauseManager.IPausable pausable in affected)
+            foreach (IPausable pausable in affected)
             {
                 // 新しい状態に応じて、対象の停止と再開のどちらか一方だけを通知する。
                 if (isPaused) { pausable.Pause(); }
@@ -249,7 +249,7 @@ namespace SymphonyFramework.System
                 }
             }
 
-            // 公開APIの OnPauseChanged は「ポーズ中か否か」の変化を表す。
+            // カテゴリーを指定しない AddPauseChangedHandler は「いずれかがポーズ中か」の変化を表す。
             // カテゴリー単位の変化で毎回発行すると、従来の購読者へ同じ値が連続して届く。
             bool isPausedAny = _state.IsPausedAny;
             if (wasPausedAny != isPausedAny) { OnPauseChanged?.Invoke(isPausedAny); }

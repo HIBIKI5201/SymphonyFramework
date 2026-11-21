@@ -70,7 +70,7 @@ namespace SymphonyFramework.Editor.SettingProvider
             EditorGUILayout.HelpBox(
                 "カテゴリーごとにポーズ状態を分けられます。"
                 + $" 設定した名前から、{PauseCategoryGenerator.GeneratePath} へ"
-                + " PauseManager.IPausable を継承した空のinterfaceを生成します。",
+                + " IPausable を継承した空のinterfaceを生成します。",
                 MessageType.Info);
 
             EditorGUILayout.Space();
