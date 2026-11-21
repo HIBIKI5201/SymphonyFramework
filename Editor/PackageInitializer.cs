@@ -3,7 +3,7 @@
 using SymphonyFramework.Config;
 using SymphonyFramework.Core;
 using SymphonyFramework.Debugger.Logger;
-using SymphonyFramework.System.SaveSystem;
+using SymphonyFramework.SaveData;
 using SymphonyFramework.Services;
 using SymphonyFramework.Utility;
 
@@ -39,7 +39,7 @@ namespace SymphonyFramework.Editor
             ApplyPartituraLogOptions();
             SymphonyVisualElement.EditorAssetLoader =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>;
-            SaveStore.ConfigureLoaderResolver(ResolveSaveDataLoader);
+            Manuscript.ConfigureLoaderResolver(ResolveSaveDataLoader);
 
             // Config生成後にenumとAssembly Definitionを整え、必要なRefreshを同じ要求へ集約する。
             hasAssetChanges |= EnumInitialize();

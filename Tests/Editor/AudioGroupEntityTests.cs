@@ -2,7 +2,7 @@
 
 using NUnit.Framework;
 
-using SymphonyFramework.System;
+using SymphonyFramework.Audio;
 
 namespace SymphonyFramework.Tests
 {

@@ -20,11 +20,11 @@
         /// <summary> Suiteモジュール。 </summary>
         Suite,
 
-        /// <summary> Save Data Systemモジュール。 </summary>
-        SaveDataSystem,
+        /// <summary> Manuscriptモジュール。 </summary>
+        Manuscript,
 
-        /// <summary> Audio Managerモジュール。 </summary>
-        AudioManager,
+        /// <summary> Sonorityモジュール。 </summary>
+        Sonority,
 
         /// <summary> Pause Managerモジュール。 </summary>
         PauseManager,

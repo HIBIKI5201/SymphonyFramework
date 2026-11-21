@@ -29,11 +29,11 @@ namespace SymphonyFramework.Tests
             Assert.That(result["activeSceneName"].Type, Is.EqualTo(JTokenType.Null));
         }
 
-        /// <summary> Save Data Registryが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Manuscriptが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
-        public void GetSaveDataJson_WhenUninitialized_ReturnsValidJson()
+        public void GetManuscriptJson_WhenUninitialized_ReturnsValidJson()
         {
-            AssertUninitializedJson(SymphonyMcpTools.GetSaveDataJson);
+            AssertUninitializedJson(SymphonyMcpTools.GetManuscriptJson);
         }
 
         /// <summary> Pause Managerが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>

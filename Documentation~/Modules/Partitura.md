@@ -85,14 +85,14 @@ GameSession awaited = await Partitura.GetAsync<GameSession>(
 ```csharp
 public sealed class BattleService
 {
-    private readonly SaveStore _saveStore;
+    private readonly SaveService _saveService;
     private readonly AudioPlayer _audioPlayer;
 
     // publicなコンストラクタのうち、引数が最も多いものが使われる。
     // 既定値を持つ引数は、登録が無ければ既定値になる。
-    public BattleService(SaveStore saveStore, AudioPlayer audioPlayer, int retryCount = 3)
+    public BattleService(SaveService saveService, AudioPlayer audioPlayer, int retryCount = 3)
     {
-        _saveStore = saveStore;
+        _saveService = saveService;
         _audioPlayer = audioPlayer;
     }
 }

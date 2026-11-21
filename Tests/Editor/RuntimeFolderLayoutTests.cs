@@ -18,7 +18,7 @@ namespace SymphonyFramework.Tests
         /// <summary> <c>Runtime/Service/</c> の直下にある想定のサブシステム。 </summary>
         private static readonly string[] SubsystemDirectories =
         {
-            "Audio", "Pause", "SaveSystem",
+            "Pause",
         };
 
         /// <summary> サブシステムはすべて Runtime/Service/ の下にある。 </summary>
@@ -76,6 +76,30 @@ namespace SymphonyFramework.Tests
                 Directory.Exists(Path.Combine(runtime, "Service", "SceneBlock")),
                 Is.False,
                 "Runtime/Service/SceneBlock/ は Runtime/Scenes/Suite/ へ移しました（7.0.0、#232）。");
+        }
+
+        /// <summary> Manuscript と Sonority は Runtime/SaveData/ と Runtime/Audio/ にあり、旧置き場には残っていない。 </summary>
+        [Test]
+        public void ManuscriptAndSonority_LiveInOwnRuntimeFolders()
+        {
+            string runtime = Path.Combine(EditorSymphonyConstant.FRAMEWORK_PATH, "Runtime");
+
+            Assert.That(
+                File.Exists(Path.Combine(runtime, "SaveData", "Manuscript.cs")),
+                Is.True,
+                "Manuscript.cs が Runtime/SaveData/ にありません。");
+            Assert.That(
+                File.Exists(Path.Combine(runtime, "Audio", "Sonority.cs")),
+                Is.True,
+                "Sonority.cs が Runtime/Audio/ にありません。");
+            Assert.That(
+                Directory.Exists(Path.Combine(runtime, "Service", "SaveSystem")),
+                Is.False,
+                "Runtime/Service/SaveSystem/ は Runtime/SaveData/ へ移しました（7.0.0、#225）。");
+            Assert.That(
+                Directory.Exists(Path.Combine(runtime, "Service", "Audio")),
+                Is.False,
+                "Runtime/Service/Audio/ は Runtime/Audio/ へ移しました（7.0.0、#225）。");
         }
 
         /// <summary> 旧名の Runtime/System/ は残っていない。 </summary>

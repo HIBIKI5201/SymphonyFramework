@@ -16,7 +16,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [Symphony Administrator](#symphony-administrator) | `Window > SymphonyFramework > Symphony Administrator` |
 | [ドキュメント表示](#ドキュメント表示) | `Window > SymphonyFramework > Documentation`、各Project Settings画面の `ドキュメントを開く` |
 | [Framework設定](#framework設定) | `Project Settings > SymphonyFramework` |
-| [Save System設定](./Modules/SaveDataSystem.md#editor機能) | `Project Settings > SymphonyFramework > Save System` |
+| [Manuscript設定](./Modules/Manuscript.md#editor機能) | `Project Settings > SymphonyFramework > Manuscript` |
 | [Asset Store Tools Packager設定](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager設定) | `Project Settings > SymphonyFramework > Asset Store Tools Packager` |
 | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager) | `Tools > SymphonyFramework > ExportAssetStoreToolsFolder`。出力完了ログのリンクから出力先を開ける |
 | [出力手順のパイプライン](./Modules/AssetStoreToolsPackager.md#出力手順のパイプライン) | `Assets > Create > SymphonyFramework > Asset Store Tools Package Pipeline` |
@@ -102,7 +102,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | `Window > SymphonyFramework > Documentation` | 索引（`Documentation~/Html/index.html`） |
 | Symphony Administrator の各パネル右上の `ドキュメント` | そのパネルに対応するモジュール文書 |
 | `Project Settings > SymphonyFramework` の `ドキュメントを開く` | この文書（Editor機能） |
-| `Project Settings > SymphonyFramework > Save System` の `ドキュメントを開く` | [Save Data System](./Modules/SaveDataSystem.md) |
+| `Project Settings > SymphonyFramework > Manuscript` の `ドキュメントを開く` | [Manuscript](./Modules/Manuscript.md) |
 | `Project Settings > SymphonyFramework > Asset Store Tools Packager` の `ドキュメントを開く` | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md) |
 | `Project Settings > SymphonyFramework > Build Validation` の `ドキュメントを開く` | [Build Validation](./Modules/BuildValidation.md) |
 

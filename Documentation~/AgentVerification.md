@@ -22,8 +22,8 @@
 ```csharp
 Debug.Log(typeof(Partitura).FullName);
 Debug.Log(typeof(Attacca).FullName);
-Debug.Log(typeof(AudioManager).FullName);
-Debug.Log(typeof(SaveStore).FullName);
+Debug.Log(typeof(Sonority).FullName);
+Debug.Log(typeof(Manuscript).FullName);
 ```
 
 型を解決できない場合は、まずasmdef参照と`using`を確認してください。各namespaceは[AgentUsage.md](./AgentUsage.md#apiの参照先)にあります。
@@ -50,8 +50,8 @@ Package Managerから該当する[`Samples~/Runtime`](../Samples~/Runtime)をイ
 
 - Partitura: 登録、取得、解除が成立し、シーンを跨いだ不要な参照が残らない。
 - Attacca: 対象シーンをBuild Settingsへ追加し、ロード、Active Scene切り替え、アンロードが成功する。
-- Save Data System: 保存、再ロード、削除が成功し、検証後にデータを削除する。
-- Audio Manager: AudioMixerとグループを設定し、再生と音量変更を確認する。
+- Manuscript: 保存、再ロード、削除が成功し、検証後にデータを削除する。
+- Sonority: AudioMixerとグループを設定し、再生と音量変更を確認する。
 - Pause Manager: ポーズ中に対応待機が進まず、解除後に再開する。
 
 利用プロジェクトでDomain Reloadを無効にしている場合は、Play Modeの開始・終了を2回繰り返し、static状態にゴースト参照が残らないことも確認します。
@@ -65,7 +65,7 @@ using SymphonyFramework.Editor.Debugger;
 
 string serviceLocatorJson = SymphonyMcpTools.GetPartituraJson();
 string attaccaJson = SymphonyMcpTools.GetAttaccaJson();
-string saveDataJson = SymphonyMcpTools.GetSaveDataJson();
+string manuscriptJson = SymphonyMcpTools.GetManuscriptJson();
 string pauseJson = SymphonyMcpTools.GetPauseJson();
 string logJson = SymphonyMcpTools.GetLogFileJson();
 ```

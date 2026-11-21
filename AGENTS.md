@@ -10,10 +10,11 @@
 | --- | --- |
 | 機能、インストール、初期設定を知る | [README.md](./README.md)の「主な機能」「インストール」「初期設定」 |
 | namespaceや入口の型から、読むべきモジュール文書を引く | [AgentUsage.md](./Documentation~/AgentUsage.md) |
-| Partitura（Partitura）を使う | [Partitura.md](./Documentation~/Modules/Partitura.md) |
-| Scene Loaderを使う | [SceneLoader.md](./Documentation~/Modules/SceneLoader.md) |
-| Save Data Systemを使う | [SaveDataSystem.md](./Documentation~/Modules/SaveDataSystem.md) |
-| Audio Managerを使う | [AudioManager.md](./Documentation~/Modules/AudioManager.md) |
+| Partituraを使う | [Partitura.md](./Documentation~/Modules/Partitura.md) |
+| Attaccaを使う | [Attacca.md](./Documentation~/Modules/Attacca.md) |
+| Suiteを使う | [Suite.md](./Documentation~/Modules/Suite.md) |
+| Manuscriptを使う | [Manuscript.md](./Documentation~/Modules/Manuscript.md) |
+| Sonorityを使う | [Sonority.md](./Documentation~/Modules/Sonority.md) |
 | Pause Managerを使う | [PauseManager.md](./Documentation~/Modules/PauseManager.md) |
 | HUD、ログ、処理時間計測を使う | [Debug.md](./Documentation~/Modules/Debug.md) |
 | Awaitable、Tween、文字列、Componentの補助を使う | [Utility.md](./Documentation~/Modules/Utility.md) |

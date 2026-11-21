@@ -108,7 +108,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h2 id="守ること">守ること</h2>
 <ul><li><strong><code>Awaitable</code>は1回しか<code>await</code>できず、保存も共有もできない。</strong> フィールドへ持たず、その場で待つ。複数の待機は<code>SymphonyAwaitable.WhenAll</code>、<code>Task</code>と混ぜる場合は<code>SymphonyAwaitable.AsTask</code>を使う。</li><li>同期で終わる<code>Awaitable</code>を返す場合は<code>SymphonyAwaitable.Completed()</code>と<code>SymphonyAwaitable.FromResult(value)</code>を返し、<code>null</code>を返さない。</li><li><code>SymphonyComponentUtil.GetComponentInChildrenExcludeSelf</code>は、既定では非アクティブな子を探さない。含める場合だけ<code>includeInactive: true</code>を指定する。</li></ul>
 <h2 id="関連">関連</h2>
-<ul><li><a href="PauseManager.html">Pause Manager</a> — ポーズ対応の待機API</li><li><a href="SaveDataSystem.html">Save Data System</a> — 独自ローダーが返す<code>Awaitable</code></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
+<ul><li><a href="PauseManager.html">Pause Manager</a> — ポーズ対応の待機API</li><li><a href="Manuscript.html">Manuscript</a> — 独自ローダーが返す<code>Awaitable</code></li><li><a href="../Deprecations.html">Deprecations.md</a></li><li><a href="../CHANGELOG.html">CHANGELOG.md</a></li></ul>
 <p class="source-note">この文書は <code>Assets/SymphonyFramework/Documentation~/Modules/Utility.md</code> から生成しています。編集は正本のMarkdownへ行ってください。</p>
 </body>
 </html>
