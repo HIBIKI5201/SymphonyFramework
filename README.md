@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.19.0**
+- 現在のバージョン: **6.20.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -17,7 +17,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 | シーンを跨いでサービスやComponentを共有したい | [Partitura](./Documentation~/Modules/Partitura.md) |
 | データ型ごとに保存・読み込み・削除したい | [Manuscript](./Documentation~/Modules/Manuscript.md) |
 | AudioMixerGroupごとの再生元と音量をまとめたい | [Sonority](./Documentation~/Modules/Sonority.md) |
-| ゲーム全体を止め、待機やTweenもポーズへ追従させたい | [Pause Manager](./Documentation~/Modules/PauseManager.md) |
+| ゲーム全体を止め、待機やTweenもポーズへ追従させたい | [Fermata](./Documentation~/Modules/Fermata.md) |
 | 実行中の状態、FPS、ログ、処理時間を確認したい | [Debug](./Documentation~/Modules/Debug.md) |
 | Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい | [Editor機能](./Documentation~/EditorTools.md) |
 
@@ -114,7 +114,7 @@ asmdefを使うゲーム側コードは`SymphonyFramework`を参照してくだ�
 | [Suite](./Documentation~/Modules/Suite.md) | 複数シーンの依存定義、依存順ロード、単体ロードとの共存 |
 | [Manuscript](./Documentation~/Modules/Manuscript.md) | 保存、ローダー、Manuscript設定、Manuscript パネル |
 | [Sonority](./Documentation~/Modules/Sonority.md) | AudioSource取得、音量制御、AudioConfig |
-| [Pause Manager](./Documentation~/Modules/PauseManager.md) | ポーズ、通知、ポーズ対応待機、Pause パネル |
+| [Fermata](./Documentation~/Modules/Fermata.md) | ポーズ、通知、ポーズ対応待機、Pause パネル |
 | [Debug](./Documentation~/Modules/Debug.md) | `SymphonyDebugHUD`、`SymphonyDebugLogger`、`SymphonyStopWatch`、ログのファイル出力 |
 | [Utility](./Documentation~/Modules/Utility.md) | `SymphonyAwaitable`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`、`SymphonyVisualElement` |
 | [Inspector属性](./Documentation~/Modules/InspectorAttributes.md) | `[ReadOnly]`、`[DisplayText]`、`[TagSelector]`、`[SceneNameSelector]`、`[SubclassSelector]` |
@@ -144,7 +144,7 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
 - `ManuscriptSample`: 複数データ型の編集、保存、再ロード、削除
 - `AttaccaSample`: 追加ロード、Active Scene切り替え、アンロード
 - `SuiteSample`: 依存順ロード、ブロック切り替え時の共有シーンの保持、単体ロードとの共存
-- `PauseManagerSample`: Pause切り替え、`IPausable`、ポーズ対応待機
+- `FermataSample`: カテゴリーごとのポーズ切り替え、`IPausable`、ポーズ対応待機
 - `SonoritySample`: AudioSource取得と音量制御
 - `DebuggerSample`: Logger、HUD、StopWatch
 
@@ -161,7 +161,7 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
   - [Suite](./Documentation~/Modules/Suite.md)
   - [Manuscript](./Documentation~/Modules/Manuscript.md)
   - [Sonority](./Documentation~/Modules/Sonority.md)
-  - [Pause Manager](./Documentation~/Modules/PauseManager.md)
+  - [Fermata](./Documentation~/Modules/Fermata.md)
   - [Debug](./Documentation~/Modules/Debug.md)
   - [Utility](./Documentation~/Modules/Utility.md)
   - [Inspector属性](./Documentation~/Modules/InspectorAttributes.md)

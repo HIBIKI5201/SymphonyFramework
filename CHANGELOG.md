@@ -1,5 +1,40 @@
 ﻿# Changelog
 
+## [6.20.0] - 2026-11-21
+`PauseManager` を `Fermata` へ改名し、非推奨APIをすべて片付けました。ポーズカテゴリーの生成物は自動生成enumのアセンブリへまとめました。7.0.0 へ向けた命名の全面整理（#227）の5つ目です（#225）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`PauseManager` を `Fermata`（名前空間 `SymphonyFramework.Pause`）へ改名しました。** これで `SymphonyFramework.System` 名前空間は無くなりました。名前の対応は次のとおりです。
+
+| 6.19.0 | 6.20.0 |
+| --- | --- |
+| `using SymphonyFramework.System;`（Pause） | `using SymphonyFramework.Pause;` |
+| `PauseManager.IPausable`（入れ子） | `IPausable`（トップレベル） |
+| `PauseManager.IPausable.RegisterPauseManager(x)` / `UnregisterPauseManager(x)` | `Fermata.Register(x)` / `Fermata.Unregister(x)` |
+| `PauseManager.PausableNextFrameAsync` | `Fermata.NextFrameAsync` |
+| `PauseManager.PausableWaitForSecond` / `PausableWaitForSecondAsync` | `Fermata.WaitForSeconds` / `WaitForSecondsAsync` |
+| `PauseManager.PausableWaitUntil` | `Fermata.WaitUntilAsync` |
+| `PauseManager.PausableDestroy` / `PausableInvoke` | `Fermata.DestroyAsync` / `InvokeAsync` |
+| 待機・遅延の秒数の引数名 `time` / `t` | `seconds` |
+| `PauseManager.Pause`（プロパティ） | `Fermata.SetPauseAll` / `Fermata.IsPausedAny` |
+| `PauseManager.OnPauseChanged`（イベント） | `Fermata.AddPauseChangedHandler(Action<bool>)` / `RemovePauseChangedHandler(Action<bool>)` |
+| `SymphonyDocumentPageEnum.PauseManager` | `SymphonyDocumentPageEnum.Fermata` |
+
+- **カテゴリーを指定しない待機・遅延・購読は、非推奨をやめて正式なAPIにしました。** すべてのカテゴリーが対象で、どれか1つでもポーズ中なら止まります（動作は 6.12.0 以降の非推奨版と同じ）。
+- **ポーズカテゴリーの生成物は、専用の `SymphonyFramework.PauseCategory` アセンブリをやめ、`SymphonyFramework.Enum` アセンブリに入れます。** 生成先のフォルダは自動生成enumのフォルダの下で、変わりません。参照の向きも逆にしました: `SymphonyFramework.Enum` が `SymphonyFramework` を参照し、`SymphonyFramework` は `SymphonyFramework.Enum` を参照しません。Editor の起動時に、既存の生成物を新しい名前へ書き換え、専用 asmdef を削除し、参照を付け替えます。**自前の asmdef から `SymphonyFramework.PauseCategory` を参照していた場合は、`SymphonyFramework.Enum` の参照へ置き換えてください。**
+- **非推奨にしていた次のAPIを削除しました**（一覧は [Deprecations.md](./Documentation~/Deprecations.md#削除済み)）。
+  - `SymphonyDebugLogger.DirectLog` / `TextLog` / `CheckComponentNull` / `IsComponentNotNull` → `LogDirect` / `LogText` / `LogAndCheckComponentNull`
+  - `SymphonyTween.TweeningLerp` / `TweeningCurve` → `Tweening`
+  - `EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE` と `ignore.txt` からの移行処理 → `PackagerConfig.json`
+  - `AssetStoreToolsPackager.PackageModeEnum` と `Export(string[], PackageModeEnum, bool, bool)` → `Export(string[], AssetStoreToolsPackagePipeline)`。統合パッケージ出力は `AssetStoreToolsCombinePackageStrategy` で引き続き使えます
+  - `AssetStoreToolsPackageContext` → `AssetStoreToolsPackageExportContext`
+
+### Change
+
+- `PauseInfo` は名前を変えず、名前空間だけ移しました。
+- Symphony Administrator のパネル名を `Fermata` に、モジュール文書を `Fermata.md` に、サンプルを `Fermata Sample` にしました。
+
 ## [6.19.0] - 2026-11-21
 `SaveStore` を `Manuscript`、`AudioManager` を `Sonority` へ改名しました。7.0.0 へ向けた命名の全面整理（#227）の4つ目です（#225）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
 

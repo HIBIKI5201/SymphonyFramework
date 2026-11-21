@@ -16,7 +16,7 @@ APIの説明、コード例、実装時に誤りやすい判断は各モジュ�
 | Suite | `SymphonyFramework.Scenes` | `Suite`, `SuiteAsset` | [Suite](./Modules/Suite.md) |
 | Manuscript | `SymphonyFramework.SaveData` | `Manuscript`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Manuscript](./Modules/Manuscript.md) |
 | Sonority | `SymphonyFramework.Audio` | `Sonority` | [Sonority](./Modules/Sonority.md) |
-| Pause Manager | `SymphonyFramework.System` | `PauseManager` | [Pause Manager](./Modules/PauseManager.md) |
+| Fermata | `SymphonyFramework.Pause` | `Fermata` | [Fermata](./Modules/Fermata.md) |
 
 ## 非推奨APIと移行
 

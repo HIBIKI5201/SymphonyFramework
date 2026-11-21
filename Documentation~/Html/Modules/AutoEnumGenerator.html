@@ -100,7 +100,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <p>Build Settingsのシーン一覧、タグ、レイヤー、Audio Groupからenumを自動生成します。</p>
 <h2 id="目的と範囲">目的と範囲</h2>
 <p>シーン名・タグ名・レイヤー・Audio Groupを文字列で書かずに済むようにし、綴りの誤りをコンパイル時に見つけられるようにします。</p>
-<ul><li><strong>すること</strong>: 変更を検知したenumの再生成、C#の識別子にできない名前の解決、生成先アセンブリの用意と参照の注入</li><li><strong>しないこと</strong>: 生成したenumの手での編集の保持（再生成で上書きする）、ポーズカテゴリーの生成（<a href="PauseManager.html">Pause Manager</a>）</li></ul>
+<ul><li><strong>すること</strong>: 変更を検知したenumの再生成、C#の識別子にできない名前の解決、生成先アセンブリの用意と参照の注入</li><li><strong>しないこと</strong>: 生成したenumの手での編集の保持（再生成で上書きする）、ポーズカテゴリーの生成（<a href="Fermata.html">Fermata</a>）</li></ul>
 <h2 id="入口">入口</h2>
 <div class="table-scroll"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>namespace</td><td><code>SymphonyFramework.Editor</code></td></tr><tr><td>主な公開型</td><td><code>AutoEnumGenerator</code> / <code>EnumGenerator</code> / <code>AutoEnumGeneratorConfig</code></td></tr><tr><td>メニューパス</td><td>自動実行。手動生成は <code>Window &gt; SymphonyFramework &gt; Symphony Administrator</code> の <code>Auto Enum Generator</code> パネル</td></tr><tr><td>設定の保存先</td><td><code>ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset</code></td></tr></tbody></table></div>
 <h2 id="仕組みの要点">仕組みの要点</h2>

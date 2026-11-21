@@ -28,7 +28,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [ログのファイル出力](./Modules/Debug.md#editor機能) | 自動実行 |
 | [SymphonyMcpTools](./Modules/Debug.md#機能一覧) | メニューなし。外部ツールから呼ぶ |
 | [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFramework` |
-| [ポーズカテゴリーの生成](./Modules/PauseManager.md#ポーズカテゴリーの生成) | `Project Settings > SymphonyFramework > Pause Category`。設定した名前から `PauseManager.IPausable` を継承した空のinterfaceを生成する |
+| [ポーズカテゴリーの生成](./Modules/Fermata.md#ポーズカテゴリーの生成) | `Project Settings > SymphonyFramework > Pause Category`。設定した名前から `IPausable` を継承した空のinterfaceを生成する |
 | [Build Validation](./Modules/BuildValidation.md) | `Project Settings > SymphonyFramework > Build Validation`、`Tools > SymphonyFramework > Build Validation > Validate UXML Dependencies` / `Validate Fonts` |
 | [Suiteの依存検証](./Modules/Suite.md#editor機能) | `SuiteAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |

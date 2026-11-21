@@ -74,7 +74,6 @@ if (_renderer.LogAndCheckComponentNull()) { return; }
 
 - ログにパスワード、トークン、個人情報、セーブデータの機密値を出さない。`SymphonyMcpTools`から外部の自動化へ同じ内容が渡る。
 - `Library/SymphonyFramework/Cache/`は生成物である。`Library`とともに版管理の対象外にする。
-- 旧APIの`CheckComponentNull`と`IsComponentNotNull`は非推奨である。移行先は[Deprecations.md](../Deprecations.md)にある。
 
 ## Editor機能
 

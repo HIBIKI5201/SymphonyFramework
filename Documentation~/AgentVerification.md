@@ -52,7 +52,7 @@ Package Managerから該当する[`Samples~/Runtime`](../Samples~/Runtime)をイ
 - Attacca: 対象シーンをBuild Settingsへ追加し、ロード、Active Scene切り替え、アンロードが成功する。
 - Manuscript: 保存、再ロード、削除が成功し、検証後にデータを削除する。
 - Sonority: AudioMixerとグループを設定し、再生と音量変更を確認する。
-- Pause Manager: ポーズ中に対応待機が進まず、解除後に再開する。
+- Fermata: ポーズ中に対応待機が進まず、解除後に再開する。
 
 利用プロジェクトでDomain Reloadを無効にしている場合は、Play Modeの開始・終了を2回繰り返し、static状態にゴースト参照が残らないことも確認します。
 
