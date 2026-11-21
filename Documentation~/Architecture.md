@@ -42,13 +42,13 @@ SymphonyFramework/
 | モジュール | 入口（Facade） | 利用側が実装・継承する型 |
 | --- | --- | --- |
 | [Partitura](./Modules/Partitura.md) | `Partitura` | `IInjectable<T...>` |
-| [Scene Loader](./Modules/SceneLoader.md) | `SceneLoader` | `IInitializeAsync` |
-| [Scene Block](./Modules/SceneBlock.md) | `SceneBlockLoader` | `SceneBlockAsset`（アセットとして作る） |
+| [Attacca](./Modules/Attacca.md) | `Attacca` | `IInitializeAsync` |
+| [Suite](./Modules/Suite.md) | `Suite` | `SuiteAsset`（アセットとして作る） |
 | [Save Data System](./Modules/SaveDataSystem.md) | `SaveStore` | `SaveDataContent`、`SaveDataLoaderStrategy` |
 | [Audio Manager](./Modules/AudioManager.md) | `AudioManager` | なし |
 | [Pause Manager](./Modules/PauseManager.md) | `PauseManager` | `PauseManager.IPausable`とその派生カテゴリー |
 
-照会APIが返す`ServiceRegistrationInfo`、`SceneLoadInfo`、`SceneBlockInfo`、`SaveDataEntryInfo`、`PauseInfo`は、取得した時点のスナップショットです。後から状態が変わっても値は変わりません。
+照会APIが返す`ServiceRegistrationInfo`、`SceneLoadInfo`、`SuiteInfo`、`SaveDataEntryInfo`、`PauseInfo`は、取得した時点のスナップショットです。後から状態が変わっても値は変わりません。
 
 `SceneLoadConfig`、`AudioConfig`、`SaveDataConfig`は`internal`です。InspectorかProject Settingsから設定し、型として参照しないでください。
 
@@ -65,11 +65,11 @@ Domain Reloadを無効にしていても、状態は次のPlay Modeへ持ち越�
 
 ## シーンロード時の連携
 
-`SceneLoader`（と`SceneBlockLoader`）でロードしたシーンは、次の順で準備されます。
+`Attacca`（と`Suite`）でロードしたシーンは、次の順で準備されます。
 
 1. シーンを非同期でロードする。
 2. ルートGameObjectのうち`IInjectable<T...>`を実装したものへ、`Partitura`から依存を注入する。
 3. `IInitializeAsync`を実装したものの`InitializeAsync`を待つ。
 4. 優先度を評価してActive Sceneを決め、ロードを完了する。
 
-2か3で失敗すると`SceneInitializationException`になります。この連携が必要なシーンでは`SceneManager.LoadScene`を直接使わず、`SceneLoader`を入口にしてください。
+2か3で失敗すると`SceneInitializationException`になります。この連携が必要なシーンでは`SceneManager.LoadScene`を直接使わず、`Attacca`か`Suite`を入口にしてください。

@@ -21,7 +21,7 @@
 
 ```csharp
 Debug.Log(typeof(Partitura).FullName);
-Debug.Log(typeof(SceneLoader).FullName);
+Debug.Log(typeof(Attacca).FullName);
 Debug.Log(typeof(AudioManager).FullName);
 Debug.Log(typeof(SaveStore).FullName);
 ```
@@ -49,7 +49,7 @@ Assets/Scripts/SymphonyFramework/AudioGroupTypeEnum.cs
 Package Managerから該当する[`Samples~/Runtime`](../Samples~/Runtime)をインポートし、サンプルシーンをPlayするのが最短です。
 
 - Partitura: 登録、取得、解除が成立し、シーンを跨いだ不要な参照が残らない。
-- Scene Loader: 対象シーンをBuild Settingsへ追加し、ロード、Active Scene切り替え、アンロードが成功する。
+- Attacca: 対象シーンをBuild Settingsへ追加し、ロード、Active Scene切り替え、アンロードが成功する。
 - Save Data System: 保存、再ロード、削除が成功し、検証後にデータを削除する。
 - Audio Manager: AudioMixerとグループを設定し、再生と音量変更を確認する。
 - Pause Manager: ポーズ中に対応待機が進まず、解除後に再開する。
@@ -64,7 +64,7 @@ uLoopMCPの`execute-dynamic-code`などEditorコードを実行できる環境�
 using SymphonyFramework.Editor.Debugger;
 
 string serviceLocatorJson = SymphonyMcpTools.GetPartituraJson();
-string sceneLoaderJson = SymphonyMcpTools.GetSceneLoaderJson();
+string attaccaJson = SymphonyMcpTools.GetAttaccaJson();
 string saveDataJson = SymphonyMcpTools.GetSaveDataJson();
 string pauseJson = SymphonyMcpTools.GetPauseJson();
 string logJson = SymphonyMcpTools.GetLogFileJson();
@@ -80,7 +80,7 @@ string logJson = SymphonyMcpTools.GetLogFileJson();
 ## 5. ビルド
 
 - フレームワーク管理用のBootstrapシーンは不要。
-- `SceneLoader`で遷移するシーンはBuild Settingsへ含める。
+- `Attacca`・`Suite`で遷移するシーンはBuild Settingsへ含める。
 - `Scene 'X' couldn't be loaded`が出た場合は、最初にScene Listへの登録を確認する。
 - Runtime asmdefから`SymphonyFramework.Editor`を参照していないことを確認する。
 

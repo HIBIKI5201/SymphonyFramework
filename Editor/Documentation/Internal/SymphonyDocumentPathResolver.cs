@@ -105,8 +105,8 @@ namespace SymphonyFramework.Editor
             {
                 [SymphonyDocumentPageEnum.Index] = "index",
                 [SymphonyDocumentPageEnum.Partitura] = "Modules/Partitura",
-                [SymphonyDocumentPageEnum.SceneLoader] = "Modules/SceneLoader",
-                [SymphonyDocumentPageEnum.SceneBlock] = "Modules/SceneBlock",
+                [SymphonyDocumentPageEnum.Attacca] = "Modules/Attacca",
+                [SymphonyDocumentPageEnum.Suite] = "Modules/Suite",
                 [SymphonyDocumentPageEnum.SaveDataSystem] = "Modules/SaveDataSystem",
                 [SymphonyDocumentPageEnum.AudioManager] = "Modules/AudioManager",
                 [SymphonyDocumentPageEnum.PauseManager] = "Modules/PauseManager",

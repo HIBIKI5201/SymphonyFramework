@@ -14,11 +14,11 @@
         /// <summary> Partituraモジュール。 </summary>
         Partitura,
 
-        /// <summary> Scene Loaderモジュール。 </summary>
-        SceneLoader,
+        /// <summary> Attaccaモジュール。 </summary>
+        Attacca,
 
-        /// <summary> Scene Blockモジュール。 </summary>
-        SceneBlock,
+        /// <summary> Suiteモジュール。 </summary>
+        Suite,
 
         /// <summary> Save Data Systemモジュール。 </summary>
         SaveDataSystem,

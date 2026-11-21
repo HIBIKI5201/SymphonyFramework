@@ -6,7 +6,7 @@ namespace SymphonyFramework.Services
     ///     依存性注入を受け取れるコンポーネントを表す。
     /// </summary>
     /// <remarks>
-    ///     SceneLoaderは、シーンロード時に実装済みのルートオブジェクトへ自動的に注入する。
+    ///     Attaccaは、シーンロード時に実装済みのルートオブジェクトへ自動的に注入する。
     /// </remarks>
     public interface IInjectable
     {

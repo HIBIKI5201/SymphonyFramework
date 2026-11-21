@@ -143,7 +143,7 @@ namespace SymphonyFramework.Editor
         ///     </para>
         ///     <para>
         ///         予約語は除外せず <c>@</c> を前置してエスケープする。除外すると、その名前のシーンが
-        ///         <c>SceneListEnum</c> から消えて <c>SceneLoader</c> から参照できなくなり、
+        ///         <c>SceneListEnum</c> から消えて <c>Attacca</c> から参照できなくなり、
         ///         利用者の意図を壊すためである。
         ///     </para>
         /// </remarks>

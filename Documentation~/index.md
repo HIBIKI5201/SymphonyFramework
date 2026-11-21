@@ -9,8 +9,8 @@ Symphony Frameworkの文書の入口です。**モジュールごとの文書は
 | モジュール | 内容 |
 | --- | --- |
 | [Partitura](./Modules/Partitura.md) | サービスの登録と取得。非同期での待機 |
-| [Scene Loader](./Modules/SceneLoader.md) | シーンの追加ロードとActive Sceneの切り替え |
-| [Scene Block](./Modules/SceneBlock.md) | 複数シーンをブロック単位で依存順にロードする |
+| [Attacca](./Modules/Attacca.md) | シーンの追加ロードとActive Sceneの切り替え |
+| [Suite](./Modules/Suite.md) | 複数シーンをブロック単位で依存順にロードする |
 | [Save Data System](./Modules/SaveDataSystem.md) | セーブデータの登録、保存、読み込み |
 | [Audio Manager](./Modules/AudioManager.md) | AudioSourceの取得とグループ単位の音量制御 |
 | [Pause Manager](./Modules/PauseManager.md) | カテゴリー単位のポーズと、ポーズに追従する待機処理 |

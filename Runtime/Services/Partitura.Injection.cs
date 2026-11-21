@@ -6,7 +6,7 @@ using System.Runtime.ExceptionServices;
 namespace SymphonyFramework.Services
 {
     // IInjectableへ登録済みサービスを注入する部分。
-    // SceneLoaderはシーンロード時にここを介して自動注入する。
+    // Attaccaはシーンロード時にここを介して自動注入する。
     public static partial class Partitura
     {
         #region 外部向けAPI

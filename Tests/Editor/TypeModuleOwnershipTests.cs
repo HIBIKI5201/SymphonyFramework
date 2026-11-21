@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using SymphonyFramework.Core;
-using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
 
 using NUnit.Framework;
@@ -26,7 +26,7 @@ namespace SymphonyFramework.Tests
             (typeof(PartituraReference<object>), "SymphonyFramework.Services"),
             (typeof(IInjectable), "SymphonyFramework.Services"),
             (typeof(IInjectable<object>), "SymphonyFramework.Services"),
-            (typeof(IInitializeAsync), "SymphonyFramework.System.SceneLoad"),
+            (typeof(IInitializeAsync), "SymphonyFramework.Scenes"),
         };
 
         /// <summary> 型と、その型が置かれるべきパッケージ内の相対パス。 </summary>
@@ -35,7 +35,7 @@ namespace SymphonyFramework.Tests
             ("ServiceComponent.cs", "Runtime/Services"),
             ("PartituraReference.cs", "Runtime/Services"),
             ("IInjectable.cs", "Runtime/Services"),
-            ("IInitializeAsync.cs", "Runtime/Service/SceneLoader"),
+            ("IInitializeAsync.cs", "Runtime/Scenes/Attacca"),
         };
 
         /// <summary> モジュールに属する型が、そのモジュールの名前空間にある。 </summary>

@@ -1,5 +1,39 @@
 ﻿# Changelog
 
+## [6.18.0] - 2026-11-18
+Scene Loader を `Attacca`、Scene Block を `Suite` へ改名し、シーン操作の入口を整理しました。7.0.0 へ向けた命名の全面整理（#227）の3つ目です（#232）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`SceneLoader` を `Attacca`、`SceneBlockLoader` を `Suite` へ改名し、どちらも名前空間 `SymphonyFramework.Scenes` へ移しました。** 名前の対応は次のとおりです。
+
+| 6.17.0 | 6.18.0 |
+| --- | --- |
+| `using SymphonyFramework.System.SceneLoad;` / `using SymphonyFramework.System.SceneBlock;` | `using SymphonyFramework.Scenes;` |
+| `SceneLoader.LoadSceneAsync` / `LoadScenesAsync` | `Attacca.LoadAsync`（単体・配列の overload） |
+| `SceneLoader.UnloadSceneAsync` / `UnloadScenesAsync` | `Attacca.UnloadAsync`（単体・配列の overload） |
+| 進捗の `Action<float> loadingAction` | `IProgress<float> progress`（すべての overload） |
+| `SceneLoader.IsExist` / `GetExistScene` | `Attacca.IsLoaded` / `TryGetScene` |
+| `SceneLoader.RegisterAfterSceneLoad` / `WaitForLoadSceneAsync` | `Attacca.WhenLoaded` / `WaitForLoadAsync` |
+| `SceneBlockLoader.TryGetBlockInfo` / `GetBlockInfos` | `Suite.TryGetInfo` / `GetInfos` |
+| `SceneBlockAsset` / `SceneBlockEntry` / `SceneBlockInfo` / `SceneBlockLoadStateEnum` / `SceneBlockPlanException` | `SuiteAsset` / `SuiteEntry` / `SuiteInfo` / `SuiteLoadStateEnum` / `SuitePlanException` |
+| `SceneBlockAsset.BlockName` / `SceneBlockInfo.BlockName` | `SuiteAsset.SuiteName` / `SuiteInfo.SuiteName` |
+| `SymphonyMcpTools.GetSceneLoaderJson` | `SymphonyMcpTools.GetAttaccaJson` |
+| `SymphonyDocumentPageEnum.SceneLoader` / `.SceneBlock` | `SymphonyDocumentPageEnum.Attacca` / `.Suite` |
+
+- **`Attacca.UnloadAsync` は、Suite が保持しているシーンをアンロードしなくなりました。** 警告をログへ出し、何もせず `false` を返します。複数指定に1つでも含まれる場合は、どのシーンもアンロードしません。Suite のシーンは `Suite.UnloadAsync` で片付けてください。6.17.0 までは単体アンロードで Suite の保持を無視して落とせたため、Suite の状態と実際のシーンがずれていました。
+
+### Add
+
+- **`SceneLoadConfig` に「初期化時にロードするSuite」を加えました。** Play 開始時の初期シーン処理が有効なとき、初期シーンの後で設定順にロードし、そのシーンは起動時のシーン整理でアンロードしません。初期シーンか Suite のどちらかのロードに失敗した場合は、シーン整理を行いません。
+
+### Change
+
+- `SuiteAsset` は 6.17.0 までに保存した `Block Name` の値をそのまま読み込みます（`[FormerlySerializedAs]`）。スクリプトの `.meta` を保っているため、既存の `SceneBlockAsset` アセットも `SuiteAsset` として開けます。
+- アセットの作成メニューを `Assets > Create > Symphony Framework > Suite` にしました。
+- Symphony Administrator のパネル名、モジュール文書（`Documentation~/Modules/Attacca.md`、`Suite.md`）、サンプル（`Attacca Sample`、`Suite Sample`）を新しい名前にしました。
+- `IInitializeAsync` は引き続き `Task` を返します。
+
 ## [6.17.0] - 2026-11-18
 Service Locator を `Partitura` へ改名し、取得・解除の入口を整理しました。7.0.0 へ向けた命名の全面整理（#227）の2つ目です（#225、#233）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
 

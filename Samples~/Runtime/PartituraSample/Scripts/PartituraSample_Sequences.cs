@@ -1,4 +1,4 @@
-﻿using SymphonyFramework.System.SceneLoad;
+﻿using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,8 +33,8 @@ namespace SymphonyFramework.Samples.PartituraSample
             await Awaitable.WaitForSecondsAsync(3f, destroyCancellationToken);
 
             Debug.Log("Reloading the current scene...");
-            await SceneLoader.UnloadSceneAsync(currentSceneName);
-            await SceneLoader.LoadSceneAsync(currentSceneName, mode: LoadSceneMode.Single, priority: 1);
+            await Attacca.UnloadAsync(currentSceneName);
+            await Attacca.LoadAsync(currentSceneName, mode: LoadSceneMode.Single, priority: 1);
             Debug.Log("Reloading done.");
 
             camera = Partitura.Get<Camera>();

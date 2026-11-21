@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 using SymphonyFramework.Config;
 using SymphonyFramework.Core;
@@ -8,8 +9,7 @@ using SymphonyFramework.Debugger.HUD;
 using SymphonyFramework.Debugger.Logger;
 using SymphonyFramework.System;
 using SymphonyFramework.System.SaveSystem;
-using SymphonyFramework.System.SceneBlock;
-using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
 
 using UnityEngine;
@@ -71,12 +71,15 @@ namespace SymphonyFramework.Orchestrator
                 RecordInitializedSubsystem(Partitura.ResetRuntimeState);
                 RecordFrameworkTick(Partitura.FlushPendingRegistrations);
 
-                SceneLoader.Initialize();
-                RecordInitializedSubsystem(SceneLoader.ResetRuntimeState);
+                Attacca.Initialize();
+                RecordInitializedSubsystem(Attacca.ResetRuntimeState);
 
-                // Scene BlockはScene Loadの操作を土台にするため、必ずその後段で初期化する。
-                SceneBlockLoader.Initialize(SceneLoader.CurrentService);
-                RecordInitializedSubsystem(SceneBlockLoader.ResetRuntimeState);
+                // SuiteはScene Loadの操作を土台にするため、必ずその後段で初期化する。
+                Suite.Initialize(Attacca.CurrentService);
+                RecordInitializedSubsystem(Suite.ResetRuntimeState);
+
+                // Suiteが保持中のシーンをAttaccaの単体アンロードから守る。
+                Attacca.SetSuiteHoldQuery(Suite.IsSceneHeld);
 
                 AudioManager.Initialize(
                     SymphonyConfigProvider.GetConfig<AudioConfig>(),
@@ -121,8 +124,18 @@ namespace SymphonyFramework.Orchestrator
             SceneLoadConfig config =
                 SymphonyConfigProvider.GetConfig<SceneLoadConfig>();
 
-            // Runtime初期化コールバックは同期入口のため、以後の非同期処理をSceneLoaderへ引き渡す。
-            _ = SceneLoader.AfterSceneLoad(config);
+            // 起動時のSuiteは初期シーンの後でロードし、そのシーンは起動時の整理で残す。
+            SuiteAsset[] initializeSuites = config?.InitializeSuiteList;
+            IReadOnlyCollection<string> suiteSceneNames = null;
+            Func<Task<bool>> loadSuitesAsync = null;
+            if (initializeSuites != null && 0 < initializeSuites.Length)
+            {
+                suiteSceneNames = Suite.CollectSceneNames(initializeSuites);
+                loadSuitesAsync = () => Suite.LoadInitialAsync(initializeSuites);
+            }
+
+            // Runtime初期化コールバックは同期入口のため、以後の非同期処理をAttaccaへ引き渡す。
+            _ = Attacca.AfterSceneLoad(config, suiteSceneNames, loadSuitesAsync);
         }
 
         #endregion

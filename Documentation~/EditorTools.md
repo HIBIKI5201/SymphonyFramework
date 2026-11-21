@@ -30,7 +30,7 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFramework` |
 | [ポーズカテゴリーの生成](./Modules/PauseManager.md#ポーズカテゴリーの生成) | `Project Settings > SymphonyFramework > Pause Category`。設定した名前から `PauseManager.IPausable` を継承した空のinterfaceを生成する |
 | [Build Validation](./Modules/BuildValidation.md) | `Project Settings > SymphonyFramework > Build Validation`、`Tools > SymphonyFramework > Build Validation > Validate UXML Dependencies` / `Validate Fonts` |
-| [Scene Blockの依存検証](./Modules/SceneBlock.md#editor機能) | `SceneBlockAsset` のInspector。依存グラフの検証結果と実行層を表示する |
+| [Suiteの依存検証](./Modules/Suite.md#editor機能) | `SuiteAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |
 | [設定アセットの自動生成](#設定アセットの自動生成) | 自動実行 |
 | [Editorの初期化](#editorの初期化) | 自動実行 |
@@ -74,8 +74,8 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 | パネル | 内容 |
 | --- | --- |
 | Partitura | 登録済みインスタンスの一覧と登録状態 |
-| Scene Load | ロード済みシーンと進行中のロード |
-| Scene Block | 追跡中のScene Blockの状態、進捗、保持しているシーン |
+| Attacca | ロード済みシーンと進行中のロード |
+| Suite | 追跡中のSuiteの状態、進捗、保持しているシーン |
 | Save Data | 全対応型の一覧、Registry／Window専用インスタンスの接続状態、非接続編集とPlay Modeへの持ち越し |
 | Pause | ポーズ状態の確認と切り替え |
 | Debug HUD | 初期化・利用可否・表示状態・追加テキスト登録数の確認とShow / Hide |
@@ -109,7 +109,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 **コードから開く**: `SymphonyFramework.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)`。Editor専用の公開APIです。
 
 ```csharp
-SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
+SymphonyDocumentation.Open(SymphonyDocumentPageEnum.Attacca);
 ```
 
 **注意点**:

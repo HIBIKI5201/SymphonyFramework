@@ -5,14 +5,15 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.17.0**
+- 現在のバージョン: **6.18.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
 
 | やりたいこと | 使う機能 |
 | --- | --- |
-| シーンを非同期で読み込み、進捗やActive Sceneを管理したい | [Scene Loader](./Documentation~/Modules/SceneLoader.md) |
+| シーンを非同期で読み込み、進捗やActive Sceneを管理したい | [Attacca](./Documentation~/Modules/Attacca.md) |
+| 複数のシーンを依存順にまとめて読み込みたい | [Suite](./Documentation~/Modules/Suite.md) |
 | シーンを跨いでサービスやComponentを共有したい | [Partitura](./Documentation~/Modules/Partitura.md) |
 | データ型ごとに保存・読み込み・削除したい | [Save Data System](./Documentation~/Modules/SaveDataSystem.md) |
 | AudioMixerGroupごとの再生元と音量をまとめたい | [Audio Manager](./Documentation~/Modules/AudioManager.md) |
@@ -29,7 +30,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 3. Package Managerの`Samples`から、試したい機能のサンプルをインポートします。
 4. サンプルシーンを開いてPlayします。
 
-Scene Loader Sampleは対象シーンをBuild Settingsへ追加、Audio Manager SampleはAudioMixerの設定が必要です。各サンプルの説明は[サンプル](#サンプル)にあります。
+Attacca SampleとSuite Sampleは対象シーンをBuild Settingsへ追加、Audio Manager SampleはAudioMixerの設定が必要です。各サンプルの説明は[サンプル](#サンプル)にあります。
 
 ## インストール
 
@@ -109,8 +110,8 @@ asmdefを使うゲーム側コードは`SymphonyFramework`を参照してくだ�
 | モジュール | 内容 |
 | --- | --- |
 | [Partitura](./Documentation~/Modules/Partitura.md) | 登録、取得、注入、Partitura パネル、ログ設定 |
-| [Scene Loader](./Documentation~/Modules/SceneLoader.md) | 非同期ロード、進捗、初期化、Scene Load パネル |
-| [Scene Block](./Documentation~/Modules/SceneBlock.md) | 複数シーンの依存定義、依存順ロード、単体ロードとの共存 |
+| [Attacca](./Documentation~/Modules/Attacca.md) | 非同期ロード、進捗、初期化、Attacca パネル |
+| [Suite](./Documentation~/Modules/Suite.md) | 複数シーンの依存定義、依存順ロード、単体ロードとの共存 |
 | [Save Data System](./Documentation~/Modules/SaveDataSystem.md) | 保存、ローダー、Save System設定、Save Data パネル |
 | [Audio Manager](./Documentation~/Modules/AudioManager.md) | AudioSource取得、音量制御、AudioConfig |
 | [Pause Manager](./Documentation~/Modules/PauseManager.md) | ポーズ、通知、ポーズ対応待機、Pause パネル |
@@ -127,7 +128,7 @@ asmdefを使うゲーム側コードは`SymphonyFramework`を参照してくだ�
 | 機能 | 内容 |
 | --- | --- |
 | [Main Toolbar](./Documentation~/EditorTools.md#メインツールバー拡張) | 音符アイコン付き`Symphony Framework > Scene Init`から次回再生時の初期シーン処理を切り替える（Unity 6000.3以降） |
-| [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Partitura、Scene Loader、Save Data、Pauseの状態確認 |
+| [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Partitura、Attacca、Suite、Save Data、Pauseの状態確認 |
 | [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md) | Scene、Tag、Layer、Audio Groupのenum生成 |
 | [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md) | Asset Store Toolsの出力、差分インポート、出力パイプライン |
 | [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md) | FolderGenerator、AssemblyGenerator、SymphonyPackageLoader |
@@ -141,7 +142,8 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
 
 - `PartituraSample`: 登録、同期取得、非同期取得、Singleton
 - `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除
-- `SceneLoaderSample`: 追加ロード、Active Scene切り替え、アンロード
+- `AttaccaSample`: 追加ロード、Active Scene切り替え、アンロード
+- `SuiteSample`: 依存順ロード、ブロック切り替え時の共有シーンの保持、単体ロードとの共存
 - `PauseManagerSample`: Pause切り替え、`IPausable`、ポーズ対応待機
 - `AudioManagerSample`: AudioSource取得と音量制御
 - `DebuggerSample`: Logger、HUD、StopWatch
@@ -155,8 +157,8 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
 - [非推奨APIと削除予定](./Documentation~/Deprecations.md)
 - Modules/
   - [Partitura](./Documentation~/Modules/Partitura.md)
-  - [Scene Loader](./Documentation~/Modules/SceneLoader.md)
-  - [Scene Block](./Documentation~/Modules/SceneBlock.md)
+  - [Attacca](./Documentation~/Modules/Attacca.md)
+  - [Suite](./Documentation~/Modules/Suite.md)
   - [Save Data System](./Documentation~/Modules/SaveDataSystem.md)
   - [Audio Manager](./Documentation~/Modules/AudioManager.md)
   - [Pause Manager](./Documentation~/Modules/PauseManager.md)

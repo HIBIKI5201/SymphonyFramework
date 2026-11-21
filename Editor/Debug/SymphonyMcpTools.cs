@@ -7,7 +7,7 @@ using SymphonyFramework.Core;
 using SymphonyFramework.Editor.Debugger.Logger;
 using SymphonyFramework.System;
 using SymphonyFramework.System.SaveSystem;
-using SymphonyFramework.System.SceneLoad;
+using SymphonyFramework.Scenes;
 using SymphonyFramework.Services;
 
 using UnityEditor;
@@ -74,17 +74,17 @@ namespace SymphonyFramework.Editor.Debugger
         }
 
         /// <summary>
-        ///     Scene Loaderの初期化状態、追跡中シーン、アクティブシーンをJSONで取得する。
+        ///     Attaccaの初期化状態、追跡中シーン、アクティブシーンをJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
-        public static string GetSceneLoaderJson()
+        public static string GetAttaccaJson()
         {
             bool initialized = false;
 
             try
             {
                 // Edit ModeではRuntime状態が存在しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && SceneLoader.IsInitialized;
+                initialized = EditorApplication.isPlaying && Attacca.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、Runtime APIへ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -96,7 +96,7 @@ namespace SymphonyFramework.Editor.Debugger
                     });
                 }
 
-                IReadOnlyList<SceneLoadInfo> sceneInfos = SceneLoader.GetSceneInfos();
+                IReadOnlyList<SceneLoadInfo> sceneInfos = Attacca.GetSceneInfos();
                 // 追跡中シーンの公開スナップショットをJSON用の値へ射影する。
                 var scenes = sceneInfos
                     .Select(sceneInfo => new
