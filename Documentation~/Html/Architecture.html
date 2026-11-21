@@ -106,10 +106,16 @@ th { background: var(--code-bg); white-space: nowrap; }
 ├─ Core/                    Runtime／Editor共通の定数と基盤
 ├─ Runtime/                 Playerビルドへ含まれる機能
 │  ├─ Attribute/           Inspector属性
-│  ├─ Component/           GameObjectへ追加するComponent
+│  ├─ Audio/               Sonority（AudioSourceと音量）
+│  ├─ Configs/             設定アセット
 │  ├─ Debug/               HUD、Logger、StopWatch
-│  ├─ Interface/           注入・初期化などの公開契約
-│  ├─ Service/             Scene、Save、Audio、Pause（7.0.0 で機能別フォルダへ移す途中）
+│  ├─ Exception/           共通の例外
+│  ├─ Interface/           共通の公開契約
+│  ├─ Obsolete/            6.x の名前（SymphonyFrameWork.*）からの転送。8.0.0 で削除
+│  ├─ Orchestrator/        起動と終了の順序
+│  ├─ Pause/               Fermata（ポーズ）
+│  ├─ SaveData/            Manuscript（セーブ）
+│  ├─ Scenes/              Attacca、Suite（シーン）
 │  ├─ Services/            Partitura（Service Locator）
 │  └─ Utility/             Awaitable、Tween、文字列等の補助
 ├─ Editor/                  Editor専用UI、Drawer、Generator

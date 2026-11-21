@@ -25,6 +25,7 @@
 | FolderGenerator、AssemblyGenerator、SymphonyPackageLoaderを使う | [ProjectStructureTools.md](./Documentation~/Modules/ProjectStructureTools.md) |
 | Symphony Administrator、アセット保護、Editorの初期化を調べる | [EditorTools.md](./Documentation~/EditorTools.md) |
 | 利用コードをコンパイル・Play Mode・ビルドで確認する | [AgentVerification.md](./Documentation~/AgentVerification.md) |
+| 6.x（`SymphonyFrameWork.*`）から 7.0.0 へ上げる | [Migration7.md](./Documentation~/Migration7.md) |
 | 非推奨APIと移行方法、削除予定を調べる | [Deprecations.md](./Documentation~/Deprecations.md) |
 | バージョン差分の経緯を調べる | [CHANGELOG.md](./CHANGELOG.md) |
 | フレームワーク本体を開発・変更する | [SymphonyWorkspaceのCONTRIBUTING.md](https://github.com/HIBIKI5201/SymphonyWorkspace/blob/dev/Documentation/CONTRIBUTING.md) |

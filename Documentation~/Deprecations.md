@@ -15,7 +15,25 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 
 ## 削除予定の一覧
 
-現時点で削除予定の項目はありません。6.20.0 で、それまでの項目をすべて削除または改名しました（下の[削除済み](#削除済み)）。
+### 7.0.0（6.x の名前からの転送）
+
+6.x（名前空間 `SymphonyFrameWork.*`）から上げた利用側が、まず警告付きでコンパイルできるように残した転送です。移行方法は [Migration7.md](./Migration7.md) にまとめています。置き場は `Runtime/Obsolete/<旧名前空間>/` です。
+
+| 対象（`SymphonyFrameWork.*`） | 移行先 | 非推奨にした版 | 削除予定 | 備考 |
+| --- | --- | --- | --- | --- |
+| `System.ServiceLocate.ServiceLocator` | `Partitura` | 7.0.0 | 8.0.0 | `GetInstance` は 6.x と同じく未登録で `null`。インスタンスを渡す `DestroyInstance` / `IsExistInstance` は型だけで処理する |
+| `System.ServiceLocate.ServiceInjector` | `Partitura.Inject` / `CreateInstance` | 7.0.0 | 8.0.0 | |
+| `System.ServiceLocate.SymphonyLocateObject<T>` | `PartituraReference<T>` | 7.0.0 | 8.0.0 | `GetInstance` は未登録で `null` |
+| `System.ServiceLocate.IInjectable` / `IInjectable<T0…T3>` | `SymphonyFramework.Services.IInjectable` | 7.0.0 | 8.0.0 | 新しい型を継承する。明示的な実装は対象外 |
+| `System.ServiceLocate.LocateTypeEnum` | `ServiceLifetimeEnum` | 7.0.0 | 8.0.0 | 値の順序は同じ |
+| `System.SceneLoad.SceneLoader` | `Attacca` | 7.0.0 | 8.0.0 | `Action<float>` の進捗は `IProgress<float>` へ包む |
+| `System.SceneBlock.SceneBlockLoader` | `Suite` | 7.0.0 | 8.0.0 | 引数と戻り値は `SuiteAsset` / `SuiteInfo` |
+| `System.SaveSystem.SaveStore` | `Manuscript` | 7.0.0 | 8.0.0 | `GetEntries` は未初期化で例外（6.19.0 の変更） |
+| `System.SaveSystem.SaveDataContent` | `SymphonyFramework.SaveData.SaveDataContent` | 7.0.0 | 8.0.0 | 新しい型を継承する |
+| `System.SaveSystem.SaveDataLoaderStrategy` / `PlayerPrefsSaveDataLoaderStrategy` | `SymphonyFramework.SaveData` の同名の型 | 7.0.0 | 8.0.0 | 旧 `SaveDataContent` を受け取る抽象メソッドへ橋渡しする |
+| `System.AudioManager` | `Sonority` | 7.0.0 | 8.0.0 | `GetAudioSource` は未登録で `null` |
+| `System.PauseManager`（入れ子の `IPausable` を含む） | `Fermata`、`IPausable` | 7.0.0 | 8.0.0 | 旧 `IPausable` は既定カテゴリーとして扱う |
+| 6.x の名前空間ごとの目印（internal） | — | 7.0.0 | 8.0.0 | `using SymphonyFrameWork.X;` を通すためだけの空の型。`[MovedFrom]`（API Updater 用）は 8.0.0 以降も残す |
 
 ---
 
