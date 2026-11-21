@@ -37,6 +37,6 @@ Unity標準のAPIだけでは書き方が長くなる処理を、短く安全に
 ## 関連
 
 - [Pause Manager](./PauseManager.md) — ポーズ対応の待機API
-- [Save Data System](./SaveDataSystem.md) — 独自ローダーが返す`Awaitable`
+- [Manuscript](./Manuscript.md) — 独自ローダーが返す`Awaitable`
 - [Deprecations.md](../Deprecations.md)
 - [CHANGELOG.md](../../CHANGELOG.md)

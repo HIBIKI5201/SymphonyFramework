@@ -44,8 +44,8 @@ SymphonyFramework/
 | [Partitura](./Modules/Partitura.md) | `Partitura` | `IInjectable<T...>` |
 | [Attacca](./Modules/Attacca.md) | `Attacca` | `IInitializeAsync` |
 | [Suite](./Modules/Suite.md) | `Suite` | `SuiteAsset`（アセットとして作る） |
-| [Save Data System](./Modules/SaveDataSystem.md) | `SaveStore` | `SaveDataContent`、`SaveDataLoaderStrategy` |
-| [Audio Manager](./Modules/AudioManager.md) | `AudioManager` | なし |
+| [Manuscript](./Modules/Manuscript.md) | `Manuscript` | `SaveDataContent`、`SaveDataLoaderStrategy` |
+| [Sonority](./Modules/Sonority.md) | `Sonority` | なし |
 | [Pause Manager](./Modules/PauseManager.md) | `PauseManager` | `PauseManager.IPausable`とその派生カテゴリー |
 
 照会APIが返す`ServiceRegistrationInfo`、`SceneLoadInfo`、`SuiteInfo`、`SaveDataEntryInfo`、`PauseInfo`は、取得した時点のスナップショットです。後から状態が変わっても値は変わりません。

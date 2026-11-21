@@ -5,7 +5,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.18.0**
+- 現在のバージョン: **6.19.0**
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
@@ -15,8 +15,8 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 | シーンを非同期で読み込み、進捗やActive Sceneを管理したい | [Attacca](./Documentation~/Modules/Attacca.md) |
 | 複数のシーンを依存順にまとめて読み込みたい | [Suite](./Documentation~/Modules/Suite.md) |
 | シーンを跨いでサービスやComponentを共有したい | [Partitura](./Documentation~/Modules/Partitura.md) |
-| データ型ごとに保存・読み込み・削除したい | [Save Data System](./Documentation~/Modules/SaveDataSystem.md) |
-| AudioMixerGroupごとの再生元と音量をまとめたい | [Audio Manager](./Documentation~/Modules/AudioManager.md) |
+| データ型ごとに保存・読み込み・削除したい | [Manuscript](./Documentation~/Modules/Manuscript.md) |
+| AudioMixerGroupごとの再生元と音量をまとめたい | [Sonority](./Documentation~/Modules/Sonority.md) |
 | ゲーム全体を止め、待機やTweenもポーズへ追従させたい | [Pause Manager](./Documentation~/Modules/PauseManager.md) |
 | 実行中の状態、FPS、ログ、処理時間を確認したい | [Debug](./Documentation~/Modules/Debug.md) |
 | Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい | [Editor機能](./Documentation~/EditorTools.md) |
@@ -30,7 +30,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 3. Package Managerの`Samples`から、試したい機能のサンプルをインポートします。
 4. サンプルシーンを開いてPlayします。
 
-Attacca SampleとSuite Sampleは対象シーンをBuild Settingsへ追加、Audio Manager SampleはAudioMixerの設定が必要です。各サンプルの説明は[サンプル](#サンプル)にあります。
+Attacca SampleとSuite Sampleは対象シーンをBuild Settingsへ追加、Sonority SampleはAudioMixerの設定が必要です。各サンプルの説明は[サンプル](#サンプル)にあります。
 
 ## インストール
 
@@ -99,7 +99,7 @@ Assets/
 
 - `Window > SymphonyFramework > Symphony Administrator`: 各機能の状態確認とenum生成
 - `Project Settings > SymphonyFramework`: Debug HUD Shortcut、アセット保護、Partituraのログ設定
-- `Project Settings > SymphonyFramework > Save System`: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択
+- `Project Settings > SymphonyFramework > Manuscript`: セーブデータローダーの選択と、Manuscriptパネルで管理する型の選択
 - `SceneLoadConfig.asset`: 再生開始時のシーン初期化
 - `AudioConfig.asset`: AudioMixerとグループ設定
 
@@ -112,8 +112,8 @@ asmdefを使うゲーム側コードは`SymphonyFramework`を参照してくだ�
 | [Partitura](./Documentation~/Modules/Partitura.md) | 登録、取得、注入、Partitura パネル、ログ設定 |
 | [Attacca](./Documentation~/Modules/Attacca.md) | 非同期ロード、進捗、初期化、Attacca パネル |
 | [Suite](./Documentation~/Modules/Suite.md) | 複数シーンの依存定義、依存順ロード、単体ロードとの共存 |
-| [Save Data System](./Documentation~/Modules/SaveDataSystem.md) | 保存、ローダー、Save System設定、Save Data パネル |
-| [Audio Manager](./Documentation~/Modules/AudioManager.md) | AudioSource取得、音量制御、AudioConfig |
+| [Manuscript](./Documentation~/Modules/Manuscript.md) | 保存、ローダー、Manuscript設定、Manuscript パネル |
+| [Sonority](./Documentation~/Modules/Sonority.md) | AudioSource取得、音量制御、AudioConfig |
 | [Pause Manager](./Documentation~/Modules/PauseManager.md) | ポーズ、通知、ポーズ対応待機、Pause パネル |
 | [Debug](./Documentation~/Modules/Debug.md) | `SymphonyDebugHUD`、`SymphonyDebugLogger`、`SymphonyStopWatch`、ログのファイル出力 |
 | [Utility](./Documentation~/Modules/Utility.md) | `SymphonyAwaitable`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`、`SymphonyVisualElement` |
@@ -134,18 +134,18 @@ asmdefを使うゲーム側コードは`SymphonyFramework`を参照してくだ�
 | [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md) | FolderGenerator、AssemblyGenerator、SymphonyPackageLoader |
 | [Build Validation](./Documentation~/Modules/BuildValidation.md) | UXML依存とフォント設定の手動・ビルド前検証。既定ではビルド時の検証は無効 |
 
-Runtimeモジュールに紐づくEditor機能（Save System設定、Partituraのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
+Runtimeモジュールに紐づくEditor機能（Manuscript設定、Partituraのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
 
 ## サンプル
 
 Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプルを利用プロジェクトへインポートできます。**インポートするまでプロジェクトには入りません。**
 
 - `PartituraSample`: 登録、同期取得、非同期取得、Singleton
-- `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除
+- `ManuscriptSample`: 複数データ型の編集、保存、再ロード、削除
 - `AttaccaSample`: 追加ロード、Active Scene切り替え、アンロード
 - `SuiteSample`: 依存順ロード、ブロック切り替え時の共有シーンの保持、単体ロードとの共存
 - `PauseManagerSample`: Pause切り替え、`IPausable`、ポーズ対応待機
-- `AudioManagerSample`: AudioSource取得と音量制御
+- `SonoritySample`: AudioSource取得と音量制御
 - `DebuggerSample`: Logger、HUD、StopWatch
 
 ## ドキュメント
@@ -159,8 +159,8 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
   - [Partitura](./Documentation~/Modules/Partitura.md)
   - [Attacca](./Documentation~/Modules/Attacca.md)
   - [Suite](./Documentation~/Modules/Suite.md)
-  - [Save Data System](./Documentation~/Modules/SaveDataSystem.md)
-  - [Audio Manager](./Documentation~/Modules/AudioManager.md)
+  - [Manuscript](./Documentation~/Modules/Manuscript.md)
+  - [Sonority](./Documentation~/Modules/Sonority.md)
   - [Pause Manager](./Documentation~/Modules/PauseManager.md)
   - [Debug](./Documentation~/Modules/Debug.md)
   - [Utility](./Documentation~/Modules/Utility.md)

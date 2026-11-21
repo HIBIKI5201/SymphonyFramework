@@ -1,5 +1,32 @@
 ﻿# Changelog
 
+## [6.19.0] - 2026-11-21
+`SaveStore` を `Manuscript`、`AudioManager` を `Sonority` へ改名しました。7.0.0 へ向けた命名の全面整理（#227）の4つ目です（#225）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`SaveStore` を `Manuscript`（名前空間 `SymphonyFramework.SaveData`）、`AudioManager` を `Sonority`（名前空間 `SymphonyFramework.Audio`）へ改名しました。** 名前の対応は次のとおりです。
+
+| 6.18.0 | 6.19.0 |
+| --- | --- |
+| `using SymphonyFramework.System.SaveSystem;` | `using SymphonyFramework.SaveData;` |
+| `SaveStore`（`Exists` / `Get` / `IsLoaded` / `LoadAsync` / `SaveAsync` / `DeleteAsync` / `GetEntries`） | `Manuscript`（メソッド名は同じ） |
+| `using SymphonyFramework.System;`（Audio） | `using SymphonyFramework.Audio;` |
+| `AudioManager.VolumeSliderChanged(name, value)` | `Sonority.SetVolume(name, value)` |
+| `AudioManager.GetAudioSource(name)`（未登録は `null`） | `Sonority.GetSource(name)`（未登録は例外） / `Sonority.TryGetSource(name, out source)` |
+| `SymphonyMcpTools.GetSaveDataJson` | `SymphonyMcpTools.GetManuscriptJson` |
+| `SymphonyDocumentPageEnum.SaveDataSystem` / `.AudioManager` | `SymphonyDocumentPageEnum.Manuscript` / `.Sonority` |
+
+- **`Sonority.GetSource` は、Config に無いグループ名で `ArgumentException` を投げます。** 6.18.0 までの `GetAudioSource` は `null` を返していました。無いかもしれないグループは `TryGetSource` を使ってください。`TryGetSource` は空の名前にも例外を投げず `false` を返します。
+- **`Manuscript.GetEntries()` は、未初期化のとき他の API と同じく `SymphonyNotInitializedException` を投げます。** 6.18.0 までの `SaveStore.GetEntries()` は空の一覧を返していました。Play 前にも動く表示は例外を受け取り、未初期化として扱ってください（Manuscript Sample はそうしています）。
+
+### Change
+
+- `SaveDataContent` / `SaveDataLoaderStrategy` / `PlayerPrefsSaveDataLoaderStrategy` / `SaveDataEntryInfo` / `SaveDataOperationEnum` / `SaveDataOperationException` は名前を変えず、名前空間だけ移しました。
+- 既存のセーブデータはそのまま読めます。保存キーは利用側のデータ型の名前で、フレームワークの名前空間に依存しません。`SaveDataConfig` に保存したローダーは、6.15 の名前からの `[MovedFrom]` で引き続き解決します。
+- Symphony Administrator のパネル名と Project Settings の項目名を `Manuscript` に、モジュール文書を `Manuscript.md` / `Sonority.md` に、サンプルを `Manuscript Sample` / `Sonority Sample` にしました。サンプルのデータ型の名前が変わったため、6.18.0 までにサンプルで保存した値は読み込まれません。
+- パッケージの `AGENTS.md` に残っていた `SceneLoader.md` へのリンクを `Attacca.md` / `Suite.md` へ直しました。
+
 ## [6.18.0] - 2026-11-18
 Scene Loader を `Attacca`、Scene Block を `Suite` へ改名し、シーン操作の入口を整理しました。7.0.0 へ向けた命名の全面整理（#227）の3つ目です（#232）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
 
@@ -604,7 +631,7 @@ Editorからドキュメントをブラウザで開けるようにしました�
 
 - **`Window > SymphonyFrameWork > Documentation` を追加しました。** 同梱ドキュメントの索引がブラウザで開きます。ドキュメントの在り処を知らないと読めない状態を解消するためです。
 
-- **`Project Settings > SymphonyFrameWork` の各画面へ `ドキュメントを開く` ボタンを追加しました。** 設定画面から、その設定を説明している文書へ直接移動できます。`SymphonyFrameWork` は[Editor機能](./Documentation~/EditorTools.md)、`Save System` は[Save Data System](./Documentation~/Modules/SaveDataSystem.md)、`Asset Store Tools Packager` は[Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)を開きます。
+- **`Project Settings > SymphonyFrameWork` の各画面へ `ドキュメントを開く` ボタンを追加しました。** 設定画面から、その設定を説明している文書へ直接移動できます。`SymphonyFrameWork` は[Editor機能](./Documentation~/EditorTools.md)、`Save System` は[Save Data System](./Documentation~/Modules/Manuscript.md)、`Asset Store Tools Packager` は[Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)を開きます。
 
 - **Editor専用の公開API `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)` を追加しました。** 利用側のEditor拡張からも同じ経路でドキュメントを開けます。
 

@@ -14,8 +14,8 @@ APIの説明、コード例、実装時に誤りやすい判断は各モジュ�
 | Partitura | `SymphonyFramework.Services` | `Partitura` | [Partitura](./Modules/Partitura.md) |
 | Attacca | `SymphonyFramework.Scenes` | `Attacca` | [Attacca](./Modules/Attacca.md) |
 | Suite | `SymphonyFramework.Scenes` | `Suite`, `SuiteAsset` | [Suite](./Modules/Suite.md) |
-| Save Data System | `SymphonyFramework.System.SaveSystem` | `SaveStore`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Save Data System](./Modules/SaveDataSystem.md) |
-| Audio Manager | `SymphonyFramework.System` | `AudioManager` | [Audio Manager](./Modules/AudioManager.md) |
+| Manuscript | `SymphonyFramework.SaveData` | `Manuscript`, `SaveDataContent`, `SaveDataLoaderStrategy` | [Manuscript](./Modules/Manuscript.md) |
+| Sonority | `SymphonyFramework.Audio` | `Sonority` | [Sonority](./Modules/Sonority.md) |
 | Pause Manager | `SymphonyFramework.System` | `PauseManager` | [Pause Manager](./Modules/PauseManager.md) |
 
 ## 非推奨APIと移行

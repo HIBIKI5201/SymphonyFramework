@@ -96,6 +96,6 @@ Debug HUDパネルはEdit Modeでは`-`を表示し、Show / Hideは押せませ
 
 - [Partitura](./Partitura.md)
 - [Attacca](./Attacca.md)
-- [Save Data System](./SaveDataSystem.md)
+- [Manuscript](./Manuscript.md)
 - [Deprecations.md](../Deprecations.md)
 - [CHANGELOG.md](../../CHANGELOG.md)

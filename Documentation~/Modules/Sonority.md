@@ -1,6 +1,6 @@
-# Audio Manager
+# Sonority
 
-AudioMixerのグループごとにAudioSourceを用意し、グループ単位で音量を変えます。
+AudioMixerのグループごとにAudioSourceを用意し、グループ単位で音量を変えます。名前は音楽の「響き」。音全体の鳴り方をまとめて整えるように、出力先ごとの再生元と音量を扱います。
 
 ## 目的と範囲
 
@@ -13,23 +13,23 @@ BGM・SEなどの出力先ごとに、再生用のAudioSourceと音量の操作�
 
 | 項目 | 内容 |
 | --- | --- |
-| namespace | `SymphonyFramework.System` |
-| 主な公開型 | `AudioManager` |
+| namespace | `SymphonyFramework.Audio` |
+| 主な公開型 | `Sonority` |
 | メニューパス | なし |
 | 設定の保存先 | `Assets/Resources/SymphonyFramework/AudioConfig.asset` |
 
 ## 仕組みの要点
 
 1. **グループは`AudioConfig.asset`に書いた名前で引きます。** 名前はAudioMixer内のグループ名と一致させます。
-2. **AudioSourceは、最初に`GetAudioSource`か`VolumeSliderChanged`を呼んだ時点でまとめて作られます。** AudioMixerが未設定ならAudioSourceも、それを持つGameObjectも作られません。
+2. **AudioSourceは、最初に`GetSource`、`TryGetSource`、`SetVolume`のどれかを呼んだ時点でまとめて作られます。** AudioMixerが未設定ならAudioSourceも、それを持つGameObjectも作られません。
 3. **音量はAudioMixerの公開パラメーターへdBで書き込みます。** 利用側は0〜1の比率を渡し、dBへの変換はこのモジュールが行います。
 
 ## 機能一覧
 
 | ID | 機能 | 使うAPI | 結果 |
 | --- | --- | --- | --- |
-| AUD-01 | AudioSourceの取得 | `AudioManager.GetAudioSource(name)` | 指定グループへ出力するAudioSourceを返す。未登録なら`null` |
-| AUD-02 | 音量の変更 | `AudioManager.VolumeSliderChanged(name, value)` | グループの公開パラメーターへ、比率から変換したdBを設定する |
+| AUD-01 | AudioSourceの取得 | `Sonority.GetSource(name)` / `Sonority.TryGetSource(name, out source)` | 指定グループへ出力するAudioSourceを返す。未登録のとき、`GetSource`は`ArgumentException`、`TryGetSource`は`false` |
+| AUD-02 | 音量の変更 | `Sonority.SetVolume(name, value)` | グループの公開パラメーターへ、比率から変換したdBを設定する |
 
 `AudioConfig.asset`の項目は次のとおりです。
 
@@ -43,35 +43,42 @@ BGM・SEなどの出力先ごとに、再生用のAudioSourceと音量の操作�
 ## クイックスタート
 
 ```csharp
-using SymphonyFramework.System;
+using SymphonyFramework.Audio;
 using UnityEngine;
 
-AudioSource bgm = AudioManager.GetAudioSource("BGM");
+AudioSource bgm = Sonority.GetSource("BGM");
 bgm.clip = bgmClip;
 bgm.Play();
 
-AudioManager.VolumeSliderChanged("BGM", 0.5f);
+Sonority.SetVolume("BGM", 0.5f);
+
+// 設定に無いかもしれないグループは TryGetSource で確かめる。
+if (Sonority.TryGetSource("Voice", out AudioSource voice))
+{
+    voice.PlayOneShot(voiceClip);
+}
 ```
 
 ## うまくいかないとき
 
 | 起きること | この機能の動き | 対処 |
 | --- | --- | --- |
-| AudioMixerが未設定 | 警告「オーディオミキサーがアサインされていません」を1回だけ出す。`GetAudioSource`は`null` | `AudioConfig.asset`のAudio Mixerを設定する |
+| AudioMixerが未設定 | 警告「オーディオミキサーがアサインされていません」を1回だけ出す。`GetSource`は`ArgumentException`、`TryGetSource`は`false` | `AudioConfig.asset`のAudio Mixerを設定する |
 | グループ名がAudioMixerに無い | そのグループのAudioSourceを作らない | Audio Group Nameを、AudioMixer内のグループ名と一致させる |
-| 未登録のグループ名を渡した | `GetAudioSource`は`null`、`VolumeSliderChanged`は何もしない | `AudioConfig.asset`へグループを足す |
-| 公開パラメーターが見つからない | `VolumeSliderChanged`が警告「<グループ名>のボリュームがありません」を出し、音量を変えない | AudioMixerで音量を公開し、その名前をExposed Parameter Nameへ書く |
-| 名前が空、または比率が0〜1の外 | `ArgumentException`、`ArgumentOutOfRangeException`を投げる | 呼び出し側の値を直す |
+| 未登録のグループ名を渡した | `GetSource`は`ArgumentException`、`TryGetSource`は`false`、`SetVolume`は何もしない | `AudioConfig.asset`へグループを足す |
+| 公開パラメーターが見つからない | `SetVolume`が警告「<グループ名>のボリュームがありません」を出し、音量を変えない | AudioMixerで音量を公開し、その名前をExposed Parameter Nameへ書く |
+| 名前が空、または比率が0〜1の外 | `ArgumentException`、`ArgumentOutOfRangeException`を投げる（`TryGetSource`の空の名前は`false`） | 呼び出し側の値を直す |
 | 初期化前に呼んだ | `SymphonyNotInitializedException`を投げる | 呼び出しを初期化後へ移す |
 
 ## 守ること
 
-- `VolumeSliderChanged`へ渡す値はdBではなく0〜1の比率にする。
+- `SetVolume`へ渡す値はdBではなく0〜1の比率にする。
+- 設定に必ずあるグループは`GetSource`、無いかもしれないグループ（入力欄の値など）は`TryGetSource`で取る。
 - グループ名の綴りの誤りを防ぐには、[AutoEnumGenerator](./AutoEnumGenerator.md)が生成する`AudioGroupTypeEnum`の`ToString()`を渡す。
 
 ## 確かめ方
 
-- Play Modeで`GetAudioSource`を呼び、戻り値が`null`でないことと、`outputAudioMixerGroup`が目的のグループであることを確かめる。
+- Play Modeで`GetSource`を呼び、例外にならないことと、`outputAudioMixerGroup`が目的のグループであることを確かめる。
 - Console（または`Library/SymphonyFramework/Cache/Log.txt`）に、グループごとの「正常に追加されました」が出ていることを見る。
 
 ## 関連
