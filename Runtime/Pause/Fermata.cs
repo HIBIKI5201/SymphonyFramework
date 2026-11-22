@@ -388,9 +388,6 @@ namespace SymphonyFramework.Pause
         }
 
         #endregion
-        }
-
-        #endregion
 
         #region 内部処理
 
