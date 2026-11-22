@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 using SymphonyFramework.Core;
 using SymphonyFramework.Debugger.Logger;
@@ -171,6 +172,12 @@ namespace SymphonyFramework.Editor
             "Assets/Editor",
         };
 
+        /// <summary> 移動を試す最大回数。 </summary>
+        private const int MOVE_RETRY_COUNT = 8;
+
+        /// <summary> 移動を再試行する間隔の基準（ミリ秒）。回数に比例して延ばす。 </summary>
+        private const int MOVE_RETRY_INTERVAL_MS = 100;
+
         /// <summary> 本文を置き換える生成物の拡張子。 </summary>
         private static readonly string[] GeneratedTextExtensions = { ".asmdef", ".cs" };
 
@@ -252,7 +259,7 @@ namespace SymphonyFramework.Editor
 
             foreach (MigrationStep step in plan.Steps)
             {
-                Directory.Move(step.From, step.To);
+                MoveWithRetry(step.From, step.To);
             }
 
             if (plan.Steps.Count > 0)
@@ -276,23 +283,50 @@ namespace SymphonyFramework.Editor
             {
                 try
                 {
-                    MovePath(step.From, step.To);
+                    MoveWithRetry(step.From, step.To);
 
                     // .metaを一緒に移し、GUIDとそれを参照するアセットのリンクを保つ。
                     string fromMeta = step.From + ".meta";
-                    if (File.Exists(fromMeta)) { File.Move(fromMeta, step.To + ".meta"); }
+                    if (File.Exists(fromMeta)) { MoveWithRetry(fromMeta, step.To + ".meta"); }
                 }
                 catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
                 {
                     throw new InvalidOperationException(
                         $"'{step.From}' を '{step.To}' へ移せませんでした: {exception.Message}"
-                        + " 旧表記のまま残っているフォルダを手で改名してから、Unityを開き直してください。",
+                        + " Unityを開き直すと、一時名のフォルダから続きを移します。"
+                        + "繰り返し失敗する場合は、フォルダを開いているアプリを閉じるか、手で改名してください。",
                         exception);
                 }
             }
 
             SymphonyDebugLogger.LogDirect(
                 $"[{nameof(RootFolderCaseMigration)}] '{plan.Steps[0].From}' を '{plan.Steps[^1].To}' へ移しました。");
+        }
+
+        /// <summary>
+        ///     一時的なアクセス拒否を再試行しながら移す。
+        /// </summary>
+        /// <param name="from"> 移動元。 </param>
+        /// <param name="to"> 移動先。 </param>
+        /// <exception cref="IOException"> 再試行しても移せなかった場合。 </exception>
+        private static void MoveWithRetry(string from, string to)
+        {
+            // Windowsでは、改名直後のフォルダをUnityやファイル監視が一時的に開いており、アクセス拒否になることがある。
+            // 少し待てば移せるため、間隔を延ばしながら数回だけ試す。
+            for (int attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    MovePath(from, to);
+                    return;
+                }
+                catch (Exception exception) when (
+                    attempt < MOVE_RETRY_COUNT
+                    && (exception is IOException or UnauthorizedAccessException))
+                {
+                    Thread.Sleep(MOVE_RETRY_INTERVAL_MS * attempt);
+                }
+            }
         }
 
         /// <summary>

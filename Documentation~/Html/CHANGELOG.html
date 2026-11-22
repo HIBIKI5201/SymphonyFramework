@@ -106,7 +106,7 @@ th { background: var(--code-bg); white-space: nowrap; }
 <h3 id="change">Change</h3>
 <ul><li>旧 <code>PauseManager.IPausable</code> をカテゴリーに指定した場合と、旧 <code>PauseManager.IPausable</code> だけを実装した対象は、6.x と同じく既定カテゴリー（新しい <code>IPausable</code>）として扱います。これにより 6.x のポーズカテゴリーの生成物がコンパイルでき、Editor の起動時の移行（6.20.0）が走ります。</li><li>転送用の旧名は <a href="Deprecations.html">Deprecations.md</a> に載せ、8.0.0 で削除します。</li></ul>
 <h3 id="fix">Fix</h3>
-<ul><li><strong>6.x の表記のフォルダ（<code>Assets/Resources/SymphonyFrameWork</code> など）を移す起動時の処理が、Windows で途中失敗していました。</strong> 一時名 <code>SymphonyFramework__case_migration</code> へ移したあと、現在の表記へ移す2段目が「is not a valid path」で止まり、一時名のフォルダが残っていました。移動をファイルシステムで <code>.meta</code> ごと行い、最後にまとめて取り込み直すようにしました。GUID は変わりません。<strong>一時名のフォルダだけが残っているプロジェクトは、次の起動で現在の表記へ移し直します。</strong></li></ul>
+<ul><li><strong>6.x の表記のフォルダ（<code>Assets/Resources/SymphonyFrameWork</code> など）を移す起動時の処理が、Windows で途中失敗していました。</strong> 一時名 <code>SymphonyFramework__case_migration</code> へ移したあと、現在の表記へ移す2段目が「is not a valid path」で止まり、一時名のフォルダが残っていました。移動をファイルシステムで <code>.meta</code> ごと行い、最後にまとめて取り込み直すようにしました。GUID は変わりません。<strong>一時名のフォルダだけが残っているプロジェクトは、次の起動で現在の表記へ移し直します。</strong> Windows で改名直後のフォルダが一時的にアクセス拒否になる場合に備え、移動は間隔を延ばしながら数回まで再試行します。</li></ul>
 <h2 id="6200---2026-11-21">[6.20.0] - 2026-11-21</h2>
 <p><code>PauseManager</code> を <code>Fermata</code> へ改名し、非推奨APIをすべて片付けました。ポーズカテゴリーの生成物は自動生成enumのアセンブリへまとめました。7.0.0 へ向けた命名の全面整理（#227）の5つ目です（#225）。<strong>旧名からの自動移行（<code>[Obsolete]</code> の転送）は 7.0.0 でまとめて入れます。</strong> この版は単独では配布しません。</p>
 <h3 id="breaking-1">Breaking</h3>
