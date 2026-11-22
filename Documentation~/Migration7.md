@@ -6,7 +6,7 @@
 
 1. 更新の前に、プロジェクトをコミットするかバックアップを取ります。
 2. パッケージを 7.0.0 へ上げて Unity を開きます。**多くの利用側コードは、そのまま警告（CS0618）付きでコンパイルできます。** 6.x の名前の Facade（`ServiceLocator`、`SceneLoader`、`SaveStore`、`AudioManager`、`PauseManager` など）は、新しい Facade へ転送する `[Obsolete]` 型として残しています。
-3. 名前空間だけ移った型（属性、`SymphonyTween`、`SymphonyDebugLogger`、例外など）は、Unity の **API Updater** が書き換えます。確認のダイアログが出たら、バックアップを取ったうえで更新を許可してください。
+3. 名前空間だけ移った型（属性、`SymphonyTween`、`SymphonyDebugLogger`、例外など）と、`SceneBlock*` から `Suite*` へ改名した型は、そのままではコンパイルエラーになります。**メニュー `Tools > SymphonyFramework > Migrate 6.x Names` で、`using` と型名を 7.0.0 の名前へまとめて書き換えてください**（[旧名の書き換えツール](#旧名の書き換えツール)）。Editor の起動時に、対象のスクリプトがあれば Console の警告で知らせます。
 4. 設定アセット、セーブデータ、Suite アセット、ポーズカテゴリーの生成物は、Editor の起動時にそのまま引き継がれるか、自動で移行されます（[自動で移行されるもの](#自動で移行されるもの)）。
 5. 警告を消すには、[名前空間の対応](#名前空間の対応)と[型とメンバーの対応](#型とメンバーの対応)に沿って書き換えます。**転送用の旧名は 8.0.0 で削除します。**
 
@@ -126,19 +126,39 @@
 | `SaveDataConfig` に保存したローダー、パイプラインアセットに保存した手順 | 6.x の名前を指す `[MovedFrom]` で解決する。2.x 以前の旧型名で保存されたものは対象外 |
 | セーブデータ | 保存キーは利用側のデータ型の名前なので、そのまま読める |
 | ポーズカテゴリーの生成物 | Editor の起動時に、生成物の `using` と継承を新しい名前へ書き換え、専用 asmdef を削除し、`SymphonyFramework.Enum` から `SymphonyFramework` への参照を付ける |
-| 名前空間だけ移った型、`SceneBlock*` から `Suite*` へ改名した型、`ServiceLocateComponent` | 6.x の名前を指す `[MovedFrom]` で、API Updater が利用側スクリプトを書き換える |
+| 名前空間だけ移った型、`SceneBlock*` から `Suite*` へ改名した型、`ServiceLocateComponent` を使う利用側スクリプト | メニューから書き換える（[旧名の書き換えツール](#旧名の書き換えツール)）。Unity の API Updater は、パッケージが Assets 内にある構成では書き換えなかった（Unity 6000.3.10f1 で確認）ため、頼らない |
 
 ## 自動では移らないもの
 
-次の書き方は、転送用の旧名でも API Updater でも直りません。コンパイルエラーになった箇所を、上の表に沿って書き換えてください。
+次の書き方は、転送用の旧名でも書き換えツールでも直りません。コンパイルエラーになった箇所を、上の表に沿って書き換えてください。
 
 - **自前の asmdef から、フレームワークや生成物を名前で参照している。** `SymphonyFrameWork*` は `SymphonyFramework*` に、`SymphonyFrameWork.PauseCategory` は `SymphonyFramework.Enum` に書き換えます。
 - **`IInjectable<T>` の `Inject` を明示的に実装している**（`void IInjectable<Foo>.Inject(Foo foo)`）。旧 `IInjectable<T>` は新しい型を継承しているだけなので、宣言元が合いません。`using SymphonyFramework.Services;` へ書き換えてください。暗黙の実装（`public void Inject(Foo foo)`）はそのまま動きます。
 - **旧 `SaveDataLoaderStrategy` / `PlayerPrefsSaveDataLoaderStrategy` を継承したローダーへ、新しい `SaveDataContent` だけを継承したデータを渡す。** 旧ローダーは旧 `SaveDataContent` を受け取る形のまま動くよう橋渡ししているため、新しい型だけのデータでは `InvalidOperationException` になります。ローダーとデータの `using` を同時に書き換えてください。
 - **旧 `SaveStore.Get(Type)` の戻り値を、旧 `SaveDataContent` 型の変数で受けている。** 戻り値は新しい `SaveDataContent` です。
-- **旧 `SceneBlockLoader` の戻り値を `SceneBlockInfo` と明示的に書いている。** 戻り値は `SuiteInfo` です（API Updater が型名を書き換えた後は通ります）。
+- **旧 `SceneBlockLoader` の戻り値を `SceneBlockInfo` と明示的に書いている。** 戻り値は `SuiteInfo` です（書き換えツールが型名を書き換えた後は通ります）。
 - 改名したメンバー（`ServiceRegistrationInfo.LocateType`、`SuiteAsset.BlockName` など）、`SymphonyDocumentPageEnum` と `SymphonyMcpTools` の改名、削除したAPI、`SymphonyConfigLocator`。
 - サンプル。旧サンプルを消して、Package Manager から新しい名前のサンプルを入れ直してください。サンプルで保存した値は、データ型の名前が変わったため読み込まれません。
+
+## 旧名の書き換えツール
+
+メニュー `Tools > SymphonyFramework > Migrate 6.x Names` は、`Assets/` 以下のスクリプト（パッケージ自身を除く）から 6.x の名前を探し、確認のダイアログを出してから書き換えます。**書き換える前に、バージョン管理へコミットしておいてください。** 対応表はパッケージの `[MovedFrom]` から作るため、上の表と食い違いません。
+
+| 書き換えるもの | 書き換え方 |
+| --- | --- |
+| `using SymphonyFrameWork.X;` で取り込んだ旧名前空間の型 | 型名を新しい名前にし（`SceneBlockAsset` → `SuiteAsset`）、新しい名前空間の `using` を足す。属性の短縮名（`[SubclassSelector]`）も対象 |
+| 完全修飾の旧名（`SymphonyFrameWork.X.Type`） | 新しい完全修飾名にする |
+| 旧名前空間から移った拡張メソッド（`LogAndCheckComponentNull` など） | 呼んでいれば、新しい名前空間の `using` を足す |
+| 使わなくなった `using SymphonyFrameWork.X;` | 消す |
+
+次のものは書き換えません。
+
+- **転送用の旧名（`ServiceLocator`、`SaveStore` など）。** 名前もメンバーも変わるため、機械的に置き換えると別の API を呼ぶことになります。警告のまま残り、旧 `using` も残します。下の表に沿って手で書き換えてください。
+  - 転送と同じ名前の型（`SaveDataContent` など）を持つ新しい名前空間は、`using` すると名前が曖昧（CS0104）になります。その名前空間の型は `global::SymphonyFramework.SaveData.SaveDataEntryInfo` のように完全修飾で書きます
+- メンバー名の変更（`SuiteAsset.BlockName` → `SuiteName` など）と、削除した API。
+- コメントと文字列の中の旧名、自前の asmdef の参照、利用側の名前空間（`namespace SymphonyFrameWork.Samples` など）。
+
+結果は Console に、ファイルごとの置き換え件数、足した・消した `using`、残した旧名として出ます。
 
 ## 転送用の旧名（8.0.0 で削除）
 

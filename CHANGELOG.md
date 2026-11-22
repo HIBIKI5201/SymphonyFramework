@@ -14,14 +14,12 @@
 - **利用側が実装・継承する 6.x の型を、新しい型を継承した `[Obsolete]` 型として残しました。** `IInjectable` / `IInjectable<T0…T3>`、`PauseManager.IPausable`（`RegisterPauseManager` 付き）、`SaveDataContent`、`SaveDataLoaderStrategy`、`PlayerPrefsSaveDataLoaderStrategy`、`LocateTypeEnum` です。旧ローダーは、旧 `SaveDataContent` を受け取る `SerializeToJson` / `OverwriteFromJson` の override がそのまま動くよう橋渡しします。
 - **6.x の名前空間を残し、`using SymphonyFrameWork.X;` の行がコンパイルできるようにしました。** 名前空間だけ移った型と、`SceneBlock*` から `Suite*` へ改名した型、`ServiceLocateComponent`、`IInitializeAsync` には 6.x の名前を指す `[MovedFrom]` を付け、Unity の API Updater が利用側スクリプトを書き換えます。
 - 移行ガイド `Documentation~/Migration7.md` を加えました。
+- **6.x の名前を使う利用側スクリプトを書き換えるメニュー `Tools > SymphonyFramework > Migrate 6.x Names` を加えました。** Unity の API Updater は、パッケージが Assets 内にある構成では `[MovedFrom]` を使って利用側を書き換えなかったためです（Unity 6000.3.10f1 で確認）。名前空間だけ移った型と `SceneBlock*` → `Suite*` などの改名を、`using` と型名ごと書き換えます。転送用の旧名（`ServiceLocator` など）は書き換えません。Editor の起動時に、対象のスクリプトがあれば Console の警告で知らせます。
 
 ### Change
 
 - 旧 `PauseManager.IPausable` をカテゴリーに指定した場合と、旧 `PauseManager.IPausable` だけを実装した対象は、6.x と同じく既定カテゴリー（新しい `IPausable`）として扱います。これにより 6.x のポーズカテゴリーの生成物がコンパイルでき、Editor の起動時の移行（6.20.0）が走ります。
 - 転送用の旧名は [Deprecations.md](./Documentation~/Deprecations.md) に載せ、8.0.0 で削除します。
-
-### Fix
-
 - **6.x の表記のフォルダ（`Assets/Resources/SymphonyFrameWork` など）を移す起動時の処理が、Windows で途中失敗していました。** 一時名 `SymphonyFramework__case_migration` へ移したあと、現在の表記へ移す2段目が「is not a valid path」で止まり、一時名のフォルダが残っていました。移動をファイルシステムで `.meta` ごと行い、最後にまとめて取り込み直すようにしました。GUID は変わりません。**一時名のフォルダだけが残っているプロジェクトは、次の起動で現在の表記へ移し直します。** Windows で改名直後のフォルダが一時的にアクセス拒否になる場合に備え、移動は間隔を延ばしながら数回まで再試行します。
 
 ## [6.20.0] - 2026-11-21
