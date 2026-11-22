@@ -59,6 +59,37 @@ namespace SymphonyFramework.Tests
             Assert.That(plan.ConflictCurrentPath, Is.EqualTo("Assets/Resources/SymphonyFramework"));
         }
 
+        /// <summary> 前回の移行が途中で止まり一時名だけが残っている場合は、現在の表記へ移し直す。 </summary>
+        [Test]
+        public void PlanFolderMoves_LeftoverTemporaryFolder_MovesToCurrentName()
+        {
+            RootFolderCaseMigration.MigrationPlan plan = RootFolderCaseMigration.PlanFolderMoves(
+                "Assets/Resources",
+                new[] { "SymphonyFramework__case_migration" });
+
+            Assert.That(plan.HasConflict, Is.False);
+            Assert.That(
+                plan.Steps.Select(step => (step.From, step.To)).ToArray(),
+                Is.EqualTo(new[]
+                {
+                    ("Assets/Resources/SymphonyFramework__case_migration", "Assets/Resources/SymphonyFramework"),
+                }));
+        }
+
+        /// <summary> 一時名と旧表記が両方ある場合は、どちらが正か決められないため衝突として返す。 </summary>
+        [Test]
+        public void PlanFolderMoves_TemporaryAndLegacyFolders_ReturnsConflict()
+        {
+            RootFolderCaseMigration.MigrationPlan plan = RootFolderCaseMigration.PlanFolderMoves(
+                "Assets/Resources",
+                new[] { "SymphonyFrameWork", "SymphonyFramework__case_migration" });
+
+            Assert.That(plan.HasConflict, Is.True);
+            Assert.That(plan.Steps, Is.Empty);
+            Assert.That(plan.ConflictLegacyPath, Is.EqualTo("Assets/Resources/SymphonyFrameWork"));
+            Assert.That(plan.ConflictCurrentPath, Is.EqualTo("Assets/Resources/SymphonyFramework__case_migration"));
+        }
+
         /// <summary> 生成asmdefのファイル名を、一時名を経由して現在の表記へ改名する。 </summary>
         [Test]
         public void PlanFileRenames_GeneratedAsmdef_RenamesToCurrentName()

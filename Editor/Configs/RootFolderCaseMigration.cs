@@ -21,7 +21,13 @@ namespace SymphonyFramework.Editor
     ///     </para>
     ///     <para>
     ///         大文字小文字だけの改名は1回では反映されない環境があるため、一時名を経由する2段階で行う。
-    ///         Assets配下は <see cref="AssetDatabase.MoveAsset" /> を使い、.metaとGUIDを保つ。
+    ///         **Assets配下もファイルシステムで .meta ごと移し、最後に <see cref="AssetDatabase.Refresh()" /> で取り込み直す。**
+    ///         .meta のGUIDが変わらないため、参照は保たれる。
+    ///         <see cref="AssetDatabase.MoveAsset" /> は、Editor起動直後の初期化中に一時名から移すと
+    ///         「is not a valid path」で失敗し、一時名のフォルダが残るため使わない。
+    ///     </para>
+    ///     <para>
+    ///         途中で止まって一時名のフォルダだけが残った場合は、次の起動で現在の表記へ移し直す。
     ///     </para>
     ///     <para>
     ///         移動の計画は <see cref="PlanFolderMoves" /> と <see cref="PlanFileRenames" /> の純粋な関数で組み立て、
@@ -58,8 +64,11 @@ namespace SymphonyFramework.Editor
 
             hasAssetChanges |= RenameGeneratedFiles(EditorSymphonyConstant.ENUM_PATH);
 
-            // UserSettingsはAssetDatabaseの管理外なので、ファイルシステムで同じ2段階の改名をする。
+            // UserSettingsはAssetDatabaseの管理外なので、取り込み直しは要らない。
             MoveFileSystemFolder("UserSettings");
+
+            // 後続の初期化が設定アセットを現在の表記のパスで探すため、ここで取り込み直してから進む。
+            if (hasAssetChanges) { AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport); }
 
             return hasAssetChanges;
         }
@@ -75,11 +84,30 @@ namespace SymphonyFramework.Editor
             if (parent == null) { throw new ArgumentNullException(nameof(parent)); }
             if (childNames == null) { throw new ArgumentNullException(nameof(childNames)); }
 
-            // 旧表記がそのままの綴りで存在する場合だけ移す。現在の表記で返る環境では移行済みとみなす。
-            if (!childNames.Contains(LEGACY_NAME, StringComparer.Ordinal)) { return MigrationPlan.Empty; }
-
             string legacyPath = $"{parent}/{LEGACY_NAME}";
             string currentPath = $"{parent}/{SymphonyConstant.SYMPHONY_FRAMEWORK}";
+            string temporaryName = SymphonyConstant.SYMPHONY_FRAMEWORK + TEMPORARY_SUFFIX;
+            bool hasTemporary = childNames.Contains(temporaryName, StringComparer.Ordinal);
+
+            // 前回の移行が途中で止まり一時名だけが残っている場合は、現在の表記へ移し直す。
+            if (hasTemporary)
+            {
+                string temporaryPath = $"{parent}/{temporaryName}";
+                if (childNames.Contains(LEGACY_NAME, StringComparer.Ordinal))
+                {
+                    return MigrationPlan.Conflict(legacyPath, temporaryPath);
+                }
+
+                if (childNames.Contains(SymphonyConstant.SYMPHONY_FRAMEWORK, StringComparer.Ordinal))
+                {
+                    return MigrationPlan.Conflict(temporaryPath, currentPath);
+                }
+
+                return MigrationPlan.FromSteps(new[] { new MigrationStep(temporaryPath, currentPath) });
+            }
+
+            // 旧表記がそのままの綴りで存在する場合だけ移す。現在の表記で返る環境では移行済みとみなす。
+            if (!childNames.Contains(LEGACY_NAME, StringComparer.Ordinal)) { return MigrationPlan.Empty; }
 
             // 両方が別のフォルダとして返るのは大文字小文字を区別する環境だけで、自動では統合しない。
             if (childNames.Contains(SymphonyConstant.SYMPHONY_FRAMEWORK, StringComparer.Ordinal))
@@ -200,7 +228,6 @@ namespace SymphonyFramework.Editor
                 if (replaced == text) { continue; }
 
                 File.WriteAllText(path, replaced);
-                AssetDatabase.ImportAsset(path);
                 hasAssetChanges = true;
                 SymphonyDebugLogger.LogDirect($"[{nameof(RootFolderCaseMigration)}] '{path}' の旧表記を置き換えました。");
             }
@@ -236,26 +263,52 @@ namespace SymphonyFramework.Editor
         }
 
         /// <summary>
-        ///     AssetDatabaseで移動の手順を順に実行する。
+        ///     Assets配下の移動の手順を、ファイルシステムで .meta ごと順に実行する。
         /// </summary>
         /// <param name="plan"> 実行する手順。 </param>
         /// <exception cref="InvalidOperationException"> 移動に失敗した場合。 </exception>
+        /// <remarks>
+        ///     取り込み直しは <see cref="Run" /> の最後にまとめて行う。
+        /// </remarks>
         private static void ExecuteAssetSteps(MigrationPlan plan)
         {
             foreach (MigrationStep step in plan.Steps)
             {
-                // MoveAssetは.metaを伴って移すため、GUIDとそれを参照するアセットのリンクが保たれる。
-                string error = AssetDatabase.MoveAsset(step.From, step.To);
-                if (!string.IsNullOrEmpty(error))
+                try
+                {
+                    MovePath(step.From, step.To);
+
+                    // .metaを一緒に移し、GUIDとそれを参照するアセットのリンクを保つ。
+                    string fromMeta = step.From + ".meta";
+                    if (File.Exists(fromMeta)) { File.Move(fromMeta, step.To + ".meta"); }
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
                 {
                     throw new InvalidOperationException(
-                        $"'{step.From}' を '{step.To}' へ移せませんでした: {error}"
-                        + " 旧表記のまま残っているフォルダを手で改名してから、Unityを開き直してください。");
+                        $"'{step.From}' を '{step.To}' へ移せませんでした: {exception.Message}"
+                        + " 旧表記のまま残っているフォルダを手で改名してから、Unityを開き直してください。",
+                        exception);
                 }
             }
 
             SymphonyDebugLogger.LogDirect(
                 $"[{nameof(RootFolderCaseMigration)}] '{plan.Steps[0].From}' を '{plan.Steps[^1].To}' へ移しました。");
+        }
+
+        /// <summary>
+        ///     フォルダかファイルかに応じて移す。
+        /// </summary>
+        /// <param name="from"> 移動元。 </param>
+        /// <param name="to"> 移動先。 </param>
+        private static void MovePath(string from, string to)
+        {
+            if (Directory.Exists(from))
+            {
+                Directory.Move(from, to);
+                return;
+            }
+
+            File.Move(from, to);
         }
 
         /// <summary>

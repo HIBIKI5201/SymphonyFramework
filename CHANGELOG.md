@@ -20,6 +20,10 @@
 - 旧 `PauseManager.IPausable` をカテゴリーに指定した場合と、旧 `PauseManager.IPausable` だけを実装した対象は、6.x と同じく既定カテゴリー（新しい `IPausable`）として扱います。これにより 6.x のポーズカテゴリーの生成物がコンパイルでき、Editor の起動時の移行（6.20.0）が走ります。
 - 転送用の旧名は [Deprecations.md](./Documentation~/Deprecations.md) に載せ、8.0.0 で削除します。
 
+### Fix
+
+- **6.x の表記のフォルダ（`Assets/Resources/SymphonyFrameWork` など）を移す起動時の処理が、Windows で途中失敗していました。** 一時名 `SymphonyFramework__case_migration` へ移したあと、現在の表記へ移す2段目が「is not a valid path」で止まり、一時名のフォルダが残っていました。移動をファイルシステムで `.meta` ごと行い、最後にまとめて取り込み直すようにしました。GUID は変わりません。**一時名のフォルダだけが残っているプロジェクトは、次の起動で現在の表記へ移し直します。**
+
 ## [6.20.0] - 2026-11-21
 `PauseManager` を `Fermata` へ改名し、非推奨APIをすべて片付けました。ポーズカテゴリーの生成物は自動生成enumのアセンブリへまとめました。7.0.0 へ向けた命名の全面整理（#227）の5つ目です（#225）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
 
