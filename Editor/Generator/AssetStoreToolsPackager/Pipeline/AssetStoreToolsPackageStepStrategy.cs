@@ -1,6 +1,7 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     パッケージ出力の1手順を表す拡張点。
@@ -22,6 +23,11 @@ namespace SymphonyFrameWork.Editor
     ///     </para>
     /// </remarks>
     [Serializable]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public abstract class AssetStoreToolsPackageStepStrategy
     {
         #region 外部向けAPI

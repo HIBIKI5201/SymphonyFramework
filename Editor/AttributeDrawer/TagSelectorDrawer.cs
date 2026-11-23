@@ -1,16 +1,20 @@
-﻿using SymphonyFrameWork.Attribute;
-using System;
-using System.Linq;
+﻿using SymphonyFramework.Attribute;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     stringフィールドをプロジェクトのタグ選択欄として描画する。
     /// </summary>
     [CustomPropertyDrawer(typeof(TagSelectorAttribute))]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class TagSelectorDrawer : PropertyDrawer
     {
         #region 外部向けAPI
@@ -27,13 +31,34 @@ namespace SymphonyFrameWork.Editor
                 return;
             }
 
-            // 保存済みの値がタグ一覧から外れている場合は、先頭のタグを既定値とする。
-            int index = Array.IndexOf(Tags, property.stringValue);
-            if (index < 0) { index = 0; }
+            // 属性がフィルターを指定している場合だけ候補を絞る。指定ミスは値を変えずに表示で知らせる。
+            if (!SelectorFilterUtility.TryCreateMask(
+                    Tags,
+                    ((TagSelectorAttribute)attribute).FilterMethodName,
+                    property.serializedObject.targetObject,
+                    out bool[] mask,
+                    out string errorMessage))
+            {
+                EditorGUI.LabelField(position, label.text, errorMessage);
+                return;
+            }
 
-            // Popupの選択結果をシリアライズ対象のタグ名へ反映する。
-            int selectedIndex = EditorGUI.Popup(position, label.text, index, Tags);
-            property.stringValue = Tags[selectedIndex];
+            string[] selectableTags = SelectorFilterUtility.ApplyMask(Tags, mask);
+
+            // フィルターが全候補を落とした場合はPopupの範囲外参照を避け、シリアライズ済みの値を残す。
+            if (selectableTags.Length == 0)
+            {
+                EditorGUI.LabelField(position, label.text, "条件に一致するタグがありません。");
+                return;
+            }
+
+            // 保存済みの値が候補から外れている場合も、表示だけを先頭のタグへ補正する。
+            int displayIndex = SelectorFilterUtility.ResolveDisplayIndex(selectableTags, property.stringValue);
+
+            // ユーザーがPopupを操作した場合だけ、選択結果をシリアライズ対象へ反映する。
+            EditorGUI.BeginChangeCheck();
+            int selectedIndex = EditorGUI.Popup(position, label.text, displayIndex, selectableTags);
+            if (EditorGUI.EndChangeCheck()) { property.stringValue = selectableTags[selectedIndex]; }
         }
 
         #endregion

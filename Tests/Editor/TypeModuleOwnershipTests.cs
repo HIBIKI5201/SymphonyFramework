@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Core;
+using SymphonyFramework.Scenes;
+using SymphonyFramework.Services;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     ComponentとInterfaceが、所属するモジュールの名前空間と置き場に居る契約を検証する。
@@ -22,20 +22,20 @@ namespace SymphonyFrameWork.Tests
         /// <summary> 型と、その型が属するべき名前空間。 </summary>
         private static readonly (Type type, string expectedNamespace)[] ModuleOwnedTypes =
         {
-            (typeof(ServiceLocateComponent), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(SymphonyLocateObject<object>), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(IInjectable), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(IInjectable<object>), "SymphonyFrameWork.System.ServiceLocate"),
-            (typeof(IInitializeAsync), "SymphonyFrameWork.System.SceneLoad"),
+            (typeof(ServiceComponent), "SymphonyFramework.Services"),
+            (typeof(PartituraReference<object>), "SymphonyFramework.Services"),
+            (typeof(IInjectable), "SymphonyFramework.Services"),
+            (typeof(IInjectable<object>), "SymphonyFramework.Services"),
+            (typeof(IInitializeAsync), "SymphonyFramework.Scenes"),
         };
 
         /// <summary> 型と、その型が置かれるべきパッケージ内の相対パス。 </summary>
         private static readonly (string fileName, string directory)[] ModuleOwnedFiles =
         {
-            ("ServiceLocateComponent.cs", "Runtime/Service/ServiceLocator"),
-            ("SymphonyLocateObject.cs", "Runtime/Service/ServiceLocator"),
-            ("IInjectable.cs", "Runtime/Service/ServiceLocator"),
-            ("IInitializeAsync.cs", "Runtime/Service/SceneLoader"),
+            ("ServiceComponent.cs", "Runtime/Services"),
+            ("PartituraReference.cs", "Runtime/Services"),
+            ("IInjectable.cs", "Runtime/Services"),
+            ("IInitializeAsync.cs", "Runtime/Scenes/Attacca"),
         };
 
         /// <summary> モジュールに属する型が、そのモジュールの名前空間にある。 </summary>
@@ -68,7 +68,7 @@ namespace SymphonyFrameWork.Tests
         [Test]
         public void SharedTypes_NotOwnedByModule_RemainInCommonLocation()
         {
-            Assert.That(typeof(IGameObject).Namespace, Is.EqualTo("SymphonyFrameWork"));
+            Assert.That(typeof(IGameObject).Namespace, Is.EqualTo("SymphonyFramework"));
 
             Assert.That(
                 File.Exists(Path.Combine(
@@ -94,13 +94,13 @@ namespace SymphonyFrameWork.Tests
 
             foreach (string fullName in new[]
             {
-                "SymphonyFrameWork.Utility.ServiceLocateComponent",
-                "SymphonyFrameWork.Utility.SymphonyLocateObject`1",
-                "SymphonyFrameWork.IInjectable",
-                "SymphonyFrameWork.IInitializeAsync",
+                "SymphonyFramework.Utility.ServiceLocateComponent",
+                "SymphonyFramework.Utility.SymphonyLocateObject`1",
+                "SymphonyFramework.IInjectable",
+                "SymphonyFramework.IInitializeAsync",
             })
             {
-                if (typeof(ServiceLocateComponent).Assembly.GetType(fullName) != null)
+                if (typeof(ServiceComponent).Assembly.GetType(fullName) != null)
                 {
                     remaining.Add(fullName);
                 }

@@ -1,16 +1,16 @@
 ﻿using System.IO;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.System.ServiceLocate;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.SaveData;
+using SymphonyFramework.Services;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Config、生成enum、Editor用依存を初期化する。
@@ -36,10 +36,10 @@ namespace SymphonyFrameWork.Editor
             CoreLogRelay.ExceptionHandler = exception => SymphonyDebugLogger.LogException(exception);
 
             // Editor設定とAssetDatabase依存をRuntime側の差し替え口へ明示的に注入する。
-            ApplyServiceLocateLogOptions();
+            ApplyPartituraLogOptions();
             SymphonyVisualElement.EditorAssetLoader =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>;
-            SaveStore.ConfigureLoaderResolver(ResolveSaveDataLoader);
+            Manuscript.ConfigureLoaderResolver(ResolveSaveDataLoader);
 
             // Config生成後にenumとAssembly Definitionを整え、必要なRefreshを同じ要求へ集約する。
             hasAssetChanges |= EnumInitialize();
@@ -58,20 +58,20 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     UserSettingsの設定値をRuntimeのService Locatorログ設定へ注入する。
+        ///     UserSettingsの設定値をRuntimeのPartituraログ設定へ注入する。
         /// </summary>
-        internal static void ApplyServiceLocateLogOptions()
+        internal static void ApplyPartituraLogOptions()
         {
             // 利用者ごとのEditor設定を読み、Runtime側がUnityEditorへ依存しない形で反映する。
             SymphonyUserSettingConfig config =
-                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+                SymphonyEditorConfigProvider.GetConfig<SymphonyUserSettingConfig>();
 
-            ServiceLocateLogOption.IsSetInstanceLogEnabled =
-                config.IsServiceLocatorSetInstanceLogEnabled;
-            ServiceLocateLogOption.IsGetInstanceLogEnabled =
-                config.IsServiceLocatorGetInstanceLogEnabled;
-            ServiceLocateLogOption.IsDestroyInstanceLogEnabled =
-                config.IsServiceLocatorDestroyInstanceLogEnabled;
+            PartituraLogOption.IsSetInstanceLogEnabled =
+                config.IsPartituraRegisterLogEnabled;
+            PartituraLogOption.IsGetInstanceLogEnabled =
+                config.IsPartituraGetLogEnabled;
+            PartituraLogOption.IsDestroyInstanceLogEnabled =
+                config.IsPartituraUnregisterLogEnabled;
         }
 
         #endregion
@@ -105,15 +105,20 @@ namespace SymphonyFrameWork.Editor
                 hasAssetChanges = true;
             }
 
-            // 生成enumのasmdefをFramework本体から参照できる状態へ揃える。
-            string enumAsmdefPath = EditorSymphonyConstant.ENUM_PATH + "/SymphonyFrameWork.Enum.asmdef";
-            string mainAsmdefPath = EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFrameWork.asmdef";
-            string previousMainAsmdef = File.Exists(mainAsmdefPath)
-                ? File.ReadAllText(mainAsmdefPath)
-                : null;
-            AssemblyGenerator.AddAsssemblyReference(mainAsmdefPath, enumAsmdefPath);
-            hasAssetChanges |= File.Exists(mainAsmdefPath) &&
-                               previousMainAsmdef != File.ReadAllText(mainAsmdefPath);
+            // 生成物のasmdefからFramework本体を参照する向きへ揃える。
+            // 6.19.0以前はFramework本体が生成物を参照していたため、その参照を外さないと循環する。
+            string enumAsmdefPath = EditorSymphonyConstant.ENUM_PATH + "/SymphonyFramework.Enum.asmdef";
+            string mainAsmdefPath = EditorSymphonyConstant.FRAMEWORK_PATH + "/SymphonyFramework.asmdef";
+            hasAssetChanges |= AssemblyGenerator.RemoveAssemblyReference(mainAsmdefPath, enumAsmdefPath);
+            if (File.Exists(enumAsmdefPath))
+            {
+                string previousEnumAsmdef = File.ReadAllText(enumAsmdefPath);
+                AssemblyGenerator.AddAsssemblyReference(enumAsmdefPath, mainAsmdefPath);
+                hasAssetChanges |= previousEnumAsmdef != File.ReadAllText(enumAsmdefPath);
+            }
+
+            // 6.19.0以前のポーズカテゴリー専用asmdefを外し、生成物を自動生成enumのアセンブリへまとめる。
+            hasAssetChanges |= PauseCategoryGenerator.MigrateLegacyAssembly();
 
             return hasAssetChanges;
         }
@@ -126,7 +131,7 @@ namespace SymphonyFrameWork.Editor
         {
             // Configがまだ利用できない場合も、既定のJSONローダーでEditor上の保存処理を成立させる。
             SaveDataConfig config =
-                SymphonyConfigLocator.GetConfig<SaveDataConfig>();
+                SymphonyConfigProvider.GetConfig<SaveDataConfig>();
             return config?.Loader ?? new JsonUtilitySaveDataLoaderStrategy();
         }
 

@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using NUnit.Framework;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     例外ログがConsoleと購読者の両方へ届き、Core層のログも同じ集約先へ載る契約を検証する。

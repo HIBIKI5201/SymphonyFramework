@@ -3,39 +3,45 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor.Debugger.Logger;
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor.Debugger.Logger;
+using SymphonyFramework.Pause;
+using SymphonyFramework.SaveData;
+using SymphonyFramework.Scenes;
+using SymphonyFramework.Services;
 
 using UnityEditor;
 using UnityEngine;
 
 using Newtonsoft.Json;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor.Debugger
+namespace SymphonyFramework.Editor.Debugger
 {
     /// <summary>
     ///     MCPや自動化スクリプトからSymphonyのランタイム状態をJSONで読み取るためのツール群。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Editor.Debugger）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor.Debugger",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public static class SymphonyMcpTools
     {
         #region 外部向けAPI
 
         /// <summary>
-        ///     Service Locatorの初期化状態と登録済みインスタンスをJSONで取得する。
+        ///     Partituraの初期化状態と登録済みインスタンスをJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
-        public static string GetServiceLocatorJson()
+        public static string GetPartituraJson()
         {
             bool initialized = false;
 
             try
             {
                 // Edit ModeではRuntime状態が存在しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && ServiceLocator.IsInitialized;
+                initialized = EditorApplication.isPlaying && Partitura.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、Runtime APIへ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -48,13 +54,13 @@ namespace SymphonyFrameWork.Editor.Debugger
                 }
 
                 IReadOnlyList<ServiceRegistrationInfo> registrationInfos =
-                    ServiceLocator.GetRegistrationInfos();
+                    Partitura.GetRegistrationInfos();
                 // 外部自動化へ公開してよい診断情報だけを匿名型へ射影する。
                 var registrations = registrationInfos
                     .Select(registrationInfo => new
                     {
                         typeName = GetTypeName(registrationInfo.ServiceType),
-                        effectiveLocateType = GetLocateType(registrationInfo).ToString(),
+                        effectiveLifetime = GetEffectiveLifetime(registrationInfo).ToString(),
                         instanceName = GetInstanceName(registrationInfo.Instance)
                     })
                     .ToArray();
@@ -74,17 +80,17 @@ namespace SymphonyFrameWork.Editor.Debugger
         }
 
         /// <summary>
-        ///     Scene Loaderの初期化状態、追跡中シーン、アクティブシーンをJSONで取得する。
+        ///     Attaccaの初期化状態、追跡中シーン、アクティブシーンをJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
-        public static string GetSceneLoaderJson()
+        public static string GetAttaccaJson()
         {
             bool initialized = false;
 
             try
             {
                 // Edit ModeではRuntime状態が存在しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && SceneLoader.IsInitialized;
+                initialized = EditorApplication.isPlaying && Attacca.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、Runtime APIへ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -96,7 +102,7 @@ namespace SymphonyFrameWork.Editor.Debugger
                     });
                 }
 
-                IReadOnlyList<SceneLoadInfo> sceneInfos = SceneLoader.GetSceneInfos();
+                IReadOnlyList<SceneLoadInfo> sceneInfos = Attacca.GetSceneInfos();
                 // 追跡中シーンの公開スナップショットをJSON用の値へ射影する。
                 var scenes = sceneInfos
                     .Select(sceneInfo => new
@@ -128,17 +134,17 @@ namespace SymphonyFrameWork.Editor.Debugger
         }
 
         /// <summary>
-        ///     Save Data Registryの初期化状態と機微な内容を除いた登録情報をJSONで取得する。
+        ///     Manuscriptの初期化状態と機微な内容を除いた登録情報をJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
-        public static string GetSaveDataJson()
+        public static string GetManuscriptJson()
         {
             bool initialized = false;
 
             try
             {
                 // Edit ModeではRuntime状態を検査しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && SaveStore.IsInitialized;
+                initialized = EditorApplication.isPlaying && Manuscript.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、セーブ情報へ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -150,7 +156,7 @@ namespace SymphonyFrameWork.Editor.Debugger
                 }
 
                 // セーブ内容そのものを除外し、型名と管理状態だけを匿名型へ射影する。
-                var entries = SaveStore.GetEntries()
+                var entries = Manuscript.GetEntries()
                     .Select(entry => new
                     {
                         typeName = GetTypeName(entry.DataType),
@@ -173,7 +179,7 @@ namespace SymphonyFrameWork.Editor.Debugger
         }
 
         /// <summary>
-        ///     Pause Managerの初期化状態、ポーズ状態、IPausable購読件数をJSONで取得する。
+        ///     Fermataの初期化状態、ポーズ状態、IPausable購読件数をJSONで取得する。
         /// </summary>
         /// <returns> 必ず有効なJSON文字列。 </returns>
         public static string GetPauseJson()
@@ -183,7 +189,7 @@ namespace SymphonyFrameWork.Editor.Debugger
             try
             {
                 // Edit ModeではRuntime状態が存在しないため、未初期化の固定形式を返す。
-                initialized = EditorApplication.isPlaying && PauseManager.IsInitialized;
+                initialized = EditorApplication.isPlaying && Fermata.IsInitialized;
                 // Edit ModeまたはComposition初期化前は、Runtime APIへ進まず空の状態を返す。
                 if (!initialized)
                 {
@@ -195,7 +201,7 @@ namespace SymphonyFrameWork.Editor.Debugger
                     });
                 }
 
-                PauseInfo pauseInfo = PauseManager.GetPauseInfo();
+                PauseInfo pauseInfo = Fermata.GetPauseInfo();
 
                 // 初期化済みの場合だけ、現在のポーズ状態と購読件数を公開する。
                 return Serialize(new
@@ -263,15 +269,15 @@ namespace SymphonyFrameWork.Editor.Debugger
         ///     登録情報から診断上の実効登録方式を判定する。
         /// </summary>
         /// <param name="registrationInfo"> 登録方式とpayloadを持つ公開スナップショット。 </param>
-        /// <returns> Componentでは記録された登録方式、それ以外はLocator。 </returns>
-        private static LocateTypeEnum GetLocateType(
+        /// <returns> Componentでは記録された登録方式、それ以外はScene。 </returns>
+        private static ServiceLifetimeEnum GetEffectiveLifetime(
             ServiceRegistrationInfo registrationInfo)
         {
             // Componentは階層移動の有無が挙動へ影響するため、記録された登録方式を返す。
-            if (registrationInfo.Instance is Component) { return registrationInfo.LocateType; }
+            if (registrationInfo.Instance is Component) { return registrationInfo.Lifetime; }
 
-            // Component以外はSingleton指定でも階層移動が起きず、Locatorと同じ挙動になる。
-            return LocateTypeEnum.Locator;
+            // Component以外はPersistent指定でも階層移動が起きず、Sceneと同じ挙動になる。
+            return ServiceLifetimeEnum.Scene;
         }
 
         /// <summary>

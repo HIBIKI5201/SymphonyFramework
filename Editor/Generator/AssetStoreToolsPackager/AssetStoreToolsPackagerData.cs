@@ -1,9 +1,10 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-namespace SymphonyFrameWork.Editor
+using UnityEngine.Scripting.APIUpdating;
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Asset Store Tools Packagerのプロジェクト共有パス設定を保持する。
@@ -11,6 +12,11 @@ namespace SymphonyFrameWork.Editor
     [FilePath(EditorSymphonyConstant.PROJCET_SETTING_FILE_PATH
         + nameof(AssetStoreToolsPackagerData) + ".asset",
         FilePathAttribute.Location.ProjectFolder)]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackagerData : ScriptableSingleton<AssetStoreToolsPackagerData>
     {
         #region 外部向けAPI

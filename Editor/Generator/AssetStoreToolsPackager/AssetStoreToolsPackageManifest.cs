@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     1回の出力で作成したパッケージ名とリビジョンを保持する。

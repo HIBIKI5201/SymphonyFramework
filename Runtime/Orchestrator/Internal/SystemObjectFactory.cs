@@ -1,8 +1,8 @@
-﻿using SymphonyFrameWork.Core;
+﻿using SymphonyFramework.Core;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Orchestrator
+namespace SymphonyFramework.Orchestrator
 {
     /// <summary>
     ///     シーン遷移をまたいで保持するシステムオブジェクトを生成する。

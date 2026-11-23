@@ -1,8 +1,8 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.System;
+using SymphonyFramework.Pause;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> PauseInfoが取得時点の管理状態を値として表す契約を検証する。 </summary>
     public sealed class PauseInfoTests
@@ -42,6 +42,43 @@ namespace SymphonyFrameWork.Tests
         public void Equals_DifferentSubscriberCount_AreNotEqual()
         {
             Assert.That(new PauseInfo(true, 2) == new PauseInfo(true, 3), Is.False);
+        }
+
+        /// <summary> カテゴリーを指定した場合はそれを公開する。 </summary>
+        [Test]
+        public void Constructor_WithCategory_ExposesCategory()
+        {
+            PauseInfo info = new(true, 1, typeof(IPausable));
+
+            Assert.That(info.Category, Is.EqualTo(typeof(IPausable)));
+        }
+
+        /// <summary> カテゴリーを省略した場合は全体を表すnullになる。 </summary>
+        [Test]
+        public void Constructor_WithoutCategory_HasNullCategory()
+        {
+            Assert.That(new PauseInfo(true, 1).Category, Is.Null);
+        }
+
+        /// <summary> カテゴリーが違えば等しくない。 </summary>
+        [Test]
+        public void Equals_DifferentCategory_AreNotEqual()
+        {
+            PauseInfo overall = new(true, 2);
+            PauseInfo categorized = new(true, 2, typeof(IPausable));
+
+            Assert.That(overall == categorized, Is.False);
+        }
+
+        /// <summary> 同じカテゴリーなら等しい。 </summary>
+        [Test]
+        public void Equals_SameCategory_AreEqual()
+        {
+            PauseInfo left = new(true, 2, typeof(IPausable));
+            PauseInfo right = new(true, 2, typeof(IPausable));
+
+            Assert.That(left == right, Is.True);
+            Assert.That(left.GetHashCode(), Is.EqualTo(right.GetHashCode()));
         }
 
         /// <summary> 異なる型とは等しくない。 </summary>

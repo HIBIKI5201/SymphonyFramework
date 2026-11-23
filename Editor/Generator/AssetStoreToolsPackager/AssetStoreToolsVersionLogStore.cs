@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Linq;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     バージョンログ、出力時バージョン、出力マニフェストの読み書きを担う。

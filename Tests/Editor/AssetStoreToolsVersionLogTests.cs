@@ -1,10 +1,10 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     バージョンログのリビジョン操作と、変更パスからのディレクトリ名解決を検証する。

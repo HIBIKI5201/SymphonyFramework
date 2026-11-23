@@ -1,9 +1,9 @@
-﻿using SymphonyFrameWork.Attribute;
-using SymphonyFrameWork.System.SaveSystem;
+﻿using SymphonyFramework.Attribute;
+using SymphonyFramework.SaveData;
 using System;
 using UnityEngine;
 
-namespace SymphonyFrameWork
+namespace SymphonyFramework
 {
     /// <summary>
     ///     セーブデータのシリアライズ方式と保存先を選択する。

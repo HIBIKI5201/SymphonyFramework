@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     出力対象を、プロジェクト内で使用中のアセットと強制包含拡張子だけへ絞り込む手順。
@@ -11,6 +12,12 @@ namespace SymphonyFrameWork.Editor
     ///     Plan段階の手順。パイプラインのどこに置いてもExecute段階より先に走る。
     /// </remarks>
     [Serializable]
+    // 型の名前空間とアセンブリ名はAssetStoreToolsPackagePipelineの[SerializeReference]へ焼かれている。
+    // これが無いと、6.x以前に保存したパイプラインアセットで手順が解決できなくなる。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsUsedDependenciesStrategy : AssetStoreToolsStandardStrategy
     {
         #region 外部向けAPI

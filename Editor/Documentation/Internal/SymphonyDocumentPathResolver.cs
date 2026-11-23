@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     ドキュメントページの同梱HTMLパスとGitHub上のURLを解決する。
@@ -73,12 +73,6 @@ namespace SymphonyFrameWork.Editor
         /// <returns> GitHubのURL。未定義の値ならリポジトリのトップ。 </returns>
         internal static string ResolveFallbackUrl(SymphonyDocumentPageEnum page)
         {
-            // 索引はHTML専用で正本のMarkdownが無いため、モジュール文書の一覧を開く。
-            if (page == SymphonyDocumentPageEnum.Index)
-            {
-                return $"{REPOSITORY_URL}/tree/{FALLBACK_BRANCH}/{MARKDOWN_DIRECTORY}/Modules";
-            }
-
             // 未定義のページでも利用者が文書を探せるよう、リポジトリのトップへ戻す。
             if (!TryGetDocumentName(page, out string documentName)) { return REPOSITORY_URL; }
 
@@ -110,11 +104,12 @@ namespace SymphonyFrameWork.Editor
             new Dictionary<SymphonyDocumentPageEnum, string>
             {
                 [SymphonyDocumentPageEnum.Index] = "index",
-                [SymphonyDocumentPageEnum.ServiceLocator] = "Modules/ServiceLocator",
-                [SymphonyDocumentPageEnum.SceneLoader] = "Modules/SceneLoader",
-                [SymphonyDocumentPageEnum.SaveDataSystem] = "Modules/SaveDataSystem",
-                [SymphonyDocumentPageEnum.AudioManager] = "Modules/AudioManager",
-                [SymphonyDocumentPageEnum.PauseManager] = "Modules/PauseManager",
+                [SymphonyDocumentPageEnum.Partitura] = "Modules/Partitura",
+                [SymphonyDocumentPageEnum.Attacca] = "Modules/Attacca",
+                [SymphonyDocumentPageEnum.Suite] = "Modules/Suite",
+                [SymphonyDocumentPageEnum.Manuscript] = "Modules/Manuscript",
+                [SymphonyDocumentPageEnum.Sonority] = "Modules/Sonority",
+                [SymphonyDocumentPageEnum.Fermata] = "Modules/Fermata",
                 [SymphonyDocumentPageEnum.Debug] = "Modules/Debug",
                 [SymphonyDocumentPageEnum.Utility] = "Modules/Utility",
                 [SymphonyDocumentPageEnum.InspectorAttributes] = "Modules/InspectorAttributes",
@@ -122,6 +117,7 @@ namespace SymphonyFrameWork.Editor
                 [SymphonyDocumentPageEnum.AssetStoreToolsPackager] = "Modules/AssetStoreToolsPackager",
                 [SymphonyDocumentPageEnum.ProjectStructureTools] = "Modules/ProjectStructureTools",
                 [SymphonyDocumentPageEnum.EditorTools] = "EditorTools",
+                [SymphonyDocumentPageEnum.BuildValidation] = "Modules/BuildValidation",
             };
 
         #endregion

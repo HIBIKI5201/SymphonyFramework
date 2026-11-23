@@ -2,13 +2,13 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SettingsProviderのcallbackがpackage-wideな初期化を始めず、
@@ -84,8 +84,8 @@ namespace SymphonyFrameWork.Tests
             Assert.That(() => SymphonyEditorOrchestrator.RequestPackageSetup(), Throws.Nothing);
             Assert.That(() => SymphonyEditorOrchestrator.RequestPackageSetup(), Throws.Nothing);
 
-            Assert.That(SymphonyConfigLocator.GetConfig<SaveDataConfig>(), Is.Not.Null);
-            Assert.That(SymphonyConfigLocator.GetConfig<DebugHUDConfig>(), Is.Not.Null);
+            Assert.That(SymphonyConfigProvider.GetConfig<SaveDataConfig>(), Is.Not.Null);
+            Assert.That(SymphonyConfigProvider.GetConfig<DebugHUDConfig>(), Is.Not.Null);
         }
     }
 }

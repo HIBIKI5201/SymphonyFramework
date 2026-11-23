@@ -1,0 +1,27 @@
+{
+    "name": "SymphonyFramework.Tests.Editor",
+    "rootNamespace": "SymphonyFramework.Tests",
+    "references": [
+        "SymphonyFramework",
+        "SymphonyFramework.Core",
+        "SymphonyFramework.Editor",
+        "Unity.InputSystem",
+        "UnityEngine.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

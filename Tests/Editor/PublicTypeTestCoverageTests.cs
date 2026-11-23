@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     公開型のテスト網羅を、増やす方向にしか動かないよう固定する。
@@ -55,7 +55,6 @@ namespace SymphonyFrameWork.Tests
             "AssetStoreToolsStandardStrategy",
             "AssetStoreToolsUsedDependenciesStrategy",
             "AudioConfigDrawer",
-            "AudioManager",
             "AutoEnumGenerator",
             "AutoEnumGeneratorConfig",
             "AutoEnumGeneratorWindow",
@@ -67,14 +66,11 @@ namespace SymphonyFrameWork.Tests
             "IGameObject",
             "IInitializeAsync",
             "IInjectable",
-            "IPausable",
             "InitializeTypeEnum",
             "LoadTypeEnum",
-            "LocateTypeEnum",
             "LogKindEnum",
             "PackageDirectoryInfo",
-            "PackageModeEnum",
-            "PauseManager",
+            "PartituraWindow",
             "PauseWindow",
             "PlayerPrefsSaveDataLoaderStrategy",
             "ReadOnlyAttribute",
@@ -87,38 +83,30 @@ namespace SymphonyFrameWork.Tests
             "SaveDataOperationException",
             "SaveDataSettingProvider",
             "SaveDataWindow",
-            "SaveStore",
+            "Manuscript",
             "SceneInitializationException",
             "SceneLoadConfigDrawer",
             "SceneLoadStateEnum",
-            "SceneLoadWindow",
-            "SceneLoader",
-            "SceneNameSelectorAttribute",
+            "AttaccaWindow",
             "SceneNameSelectorDrawer",
-            "ServiceInjector",
-            "ServiceLocateComponent",
-            "ServiceLocateWindow",
-            "ServiceLocator",
+            "ServiceComponent",
+            "ServiceLifetimeEnum",
             "ServiceNotRegisteredException",
-            "SubclassSelectorAttribute",
             "SubclassSelectorDrawer",
             "SymphonyAdministrator",
             "SymphonyAssetProtector",
-            "SymphonyConfigLocator",
             "SymphonyConfigManager",
             "SymphonyConstant",
             "SymphonyDebugLogger",
             "SymphonyDocumentPageEnum",
             "SymphonyDocumentation",
-            "SymphonyEditorConfigLocator",
-            "SymphonyLocateObject",
+            "SymphonyEditorConfigProvider",
             "SymphonyNotInitializedException",
             "SymphonyPackageLoader",
             "SymphonyStopWatch",
             "SymphonyTween",
             "SymphonyUserSettingConfig",
             "SymphonyVisualElement",
-            "TagSelectorAttribute",
             "TagSelectorDrawer",
             "TagsAndLayersPostProcessor",
             "TagsAndLayersSettingData",
@@ -202,6 +190,9 @@ namespace SymphonyFrameWork.Tests
 
                 foreach (string path in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories))
                 {
+                    // 6.x からの転送クラスは旧名と新名でテストが二重になるため、Version7CompatibilityTests でまとめて検証する。
+                    if (IsObsoleteShim(path)) { continue; }
+
                     foreach (Match match in PublicTypePattern.Matches(File.ReadAllText(path)))
                     {
                         names.Add(match.Groups["name"].Value);
@@ -210,6 +201,17 @@ namespace SymphonyFrameWork.Tests
             }
 
             return names;
+        }
+
+        /// <summary>
+        ///     <c>Obsolete/</c> フォルダの下にある、移行期間だけの転送クラスかを判定する。
+        /// </summary>
+        /// <param name="path"> 判定するファイルのパス。 </param>
+        /// <returns> 転送クラスのファイルならtrue。 </returns>
+        private static bool IsObsoleteShim(string path)
+        {
+            string normalized = path.Replace('\\', '/');
+            return normalized.Contains("/Obsolete/", StringComparison.Ordinal);
         }
 
         /// <summary>

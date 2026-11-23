@@ -1,12 +1,13 @@
 ﻿using System;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Framework配下のアセット移動を保護する。
@@ -15,6 +16,11 @@ namespace SymphonyFrameWork.Editor
     ///     postprocess callbackでは変更を記録してSymphonyEditorOrchestratorへ通知し、
     ///     操作状態のリセットはOrchestratorがcoalesceして処理する。
     /// </remarks>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class SymphonyAssetProtector : AssetPostprocessor
     {
         #region 外部向けAPI
@@ -71,7 +77,7 @@ namespace SymphonyFrameWork.Editor
 
             // 利用者ごとの保護モードを移動判定時に読み、設定変更を即座に反映する。
             SymphonyUserSettingConfig config =
-                SymphonyEditorConfigLocator.GetConfig<SymphonyUserSettingConfig>();
+                SymphonyEditorConfigProvider.GetConfig<SymphonyUserSettingConfig>();
 
             // 保護を強制するか、操作単位で確認するか、Unityへ委譲するかを設定どおりに選ぶ。
             switch (config.AssetProtectionMode)
@@ -83,7 +89,7 @@ namespace SymphonyFrameWork.Editor
                 case AssetProtectionModeEnum.Disabled:
                     // 無効時も意図しない移動を追跡できるよう、移動元と移動先を記録する。
                     SymphonyDebugLogger.LogDirect(
-                        $"[{nameof(SymphonyAssetProtector)}] SymphonyFrameWork配下のアセットを移動します。" +
+                        $"[{nameof(SymphonyAssetProtector)}] SymphonyFramework配下のアセットを移動します。" +
                         $" path: '{sourcePath}', destination: '{destinationPath}'");
                     return AssetMoveResult.DidNotMove;
                 default:
@@ -103,7 +109,7 @@ namespace SymphonyFrameWork.Editor
             {
                 EditorUtility.DisplayDialog(
                     "移動禁止",
-                    $"SymphonyFrameWorkは移動できません。\npath: '{sourcePath}'",
+                    $"SymphonyFrameworkは移動できません。\npath: '{sourcePath}'",
                     "OK");
                 _hasDisplayedEnabledDialog = true;
             }
@@ -124,7 +130,7 @@ namespace SymphonyFrameWork.Editor
             // Unityへ移動を委ねるか拒否するかを、利用者の明示的な選択へ対応付ける。
             bool shouldMove = EditorUtility.DisplayDialog(
                 "移動注意",
-                $"SymphonyFrameWorkを移動しようとしています。\n本当に移動しますか？\npath: '{sourcePath}'",
+                $"SymphonyFrameworkを移動しようとしています。\n本当に移動しますか？\npath: '{sourcePath}'",
                 "移動する",
                 "元に戻す");
             _warningMoveResult = shouldMove

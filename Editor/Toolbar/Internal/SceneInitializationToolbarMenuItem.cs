@@ -1,11 +1,11 @@
 ﻿#if UNITY_6000_3_OR_NEWER
 using System;
 
-using SymphonyFrameWork.Config;
+using SymphonyFramework.Config;
 
 using UnityEditor;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     次回のPlay Mode開始時に初期シーン処理を行うか切り替える。
@@ -79,7 +79,7 @@ namespace SymphonyFrameWork.Editor
         /// </summary>
         internal SceneInitializationToolbarMenuItem()
             : this(
-                SymphonyConfigLocator.GetConfig<SceneLoadConfig>(),
+                SymphonyConfigProvider.GetConfig<SceneLoadConfig>(),
                 AssetDatabase.SaveAssets)
         {
         }

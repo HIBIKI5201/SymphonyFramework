@@ -1,15 +1,16 @@
-﻿using SymphonyFrameWork.Attribute;
+﻿using SymphonyFramework.Attribute;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     Asset Store Tools Packagerが実行する手順の並びを保持するアセット。
     /// </summary>
     /// <remarks>
     ///     <para>
-    ///         Project Settings > SymphonyFrameWork > Asset Store Tools Packager で
+    ///         Project Settings > SymphonyFramework > Asset Store Tools Packager で
     ///         このアセットを配列としてアサインすると、Packagerウィンドウの出力形式の選択肢になる。
     ///         選択肢の表示名はアセット名。
     ///     </para>
@@ -20,7 +21,12 @@ namespace SymphonyFrameWork.Editor
     /// </remarks>
     [CreateAssetMenu(
         fileName = nameof(AssetStoreToolsPackagePipeline),
-        menuName = "SymphonyFrameWork/Asset Store Tools Package Pipeline")]
+        menuName = "SymphonyFramework/Asset Store Tools Package Pipeline")]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class AssetStoreToolsPackagePipeline : ScriptableObject
     {
         #region 外部向けAPI

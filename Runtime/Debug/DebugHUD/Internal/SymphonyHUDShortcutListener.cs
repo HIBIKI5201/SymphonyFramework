@@ -1,11 +1,11 @@
 ﻿using System;
 
-using SymphonyFrameWork.Config;
+using SymphonyFramework.Config;
 
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SymphonyFrameWork.Debugger.HUD
+namespace SymphonyFramework.Debugger.HUD
 {
     /// <summary>
     ///     Debug HUD用Input Actionの購読と解放をUnityライフサイクルへ同期する。

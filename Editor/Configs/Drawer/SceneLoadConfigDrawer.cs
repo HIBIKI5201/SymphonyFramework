@@ -2,16 +2,22 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SymphonyFrameWork.Config;
+using SymphonyFramework.Config;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     SceneLoadConfigのシーン一覧をBuild Settingsから選択可能にする。
     /// </summary>
     [CustomEditor(typeof(SceneLoadConfig))]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed class SceneLoadConfigDrawer: UnityEditor.Editor
     {
         #region 外部向けAPI
@@ -57,6 +63,14 @@ namespace SymphonyFrameWork.Editor
                 initializeSceneList.DeleteArrayElementAtIndex(initializeSceneList.arraySize - 1);
             }
             GUILayout.EndHorizontal();
+
+            // 起動時のSuiteは初期シーンの後でロードする。順序どおりに並べる通常のリストで編集する。
+            SerializedProperty initializeSuiteList = serializedObject.FindProperty("_initializeSuiteList");
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(
+                initializeSuiteList,
+                new GUIContent("初期化時にロードするSuite（複数）", initializeSuiteList.tooltip),
+                true);
 
             // Undoとアセット保存へ反映できるよう、描画中の変更を確定する。
             serializedObject.ApplyModifiedProperties();

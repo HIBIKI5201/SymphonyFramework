@@ -8,26 +8,29 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 
 ## 一覧
 
-メニューの基準パスは `Tools/SymphonyFrameWork/`、ウィンドウは `Window/SymphonyFrameWork/`、Project Settingsは `SymphonyFrameWork` です。
+メニューの基準パスは `Tools/SymphonyFramework/`、ウィンドウは `Window/SymphonyFramework/`、Project Settingsは `SymphonyFramework` です。
 
 | 機能 | 入口 |
 | --- | --- |
 | [メインツールバー拡張](#メインツールバー拡張) | Main Toolbar の音符アイコン付き`Symphony Framework`プルダウン |
-| [Symphony Administrator](#symphony-administrator) | `Window > SymphonyFrameWork > Symphony Administrator` |
-| [ドキュメント表示](#ドキュメント表示) | `Window > SymphonyFrameWork > Documentation`、各Project Settings画面の `ドキュメントを開く` |
-| [Framework設定](#framework設定) | `Project Settings > SymphonyFrameWork` |
-| [Save System設定](./Modules/SaveDataSystem.md#editor機能) | `Project Settings > SymphonyFrameWork > Save System` |
-| [Asset Store Tools Packager設定](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager設定) | `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` |
-| [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager) | `Tools > SymphonyFrameWork > ExportAssetStoreToolsFolder` |
-| [出力手順のパイプライン](./Modules/AssetStoreToolsPackager.md#出力手順のパイプライン) | `Assets > Create > SymphonyFrameWork > Asset Store Tools Package Pipeline` |
+| [Symphony Administrator](#symphony-administrator) | `Window > SymphonyFramework > Symphony Administrator` |
+| [ドキュメント表示](#ドキュメント表示) | `Window > SymphonyFramework > Documentation`、各Project Settings画面の `ドキュメントを開く` |
+| [Framework設定](#framework設定) | `Project Settings > SymphonyFramework` |
+| [Manuscript設定](./Modules/Manuscript.md#editor機能) | `Project Settings > SymphonyFramework > Manuscript` |
+| [Asset Store Tools Packager設定](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager設定) | `Project Settings > SymphonyFramework > Asset Store Tools Packager` |
+| [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md#asset-store-tools-packager) | `Tools > SymphonyFramework > ExportAssetStoreToolsFolder`。出力完了ログのリンクから出力先を開ける |
+| [出力手順のパイプライン](./Modules/AssetStoreToolsPackager.md#出力手順のパイプライン) | `Assets > Create > SymphonyFramework > Asset Store Tools Package Pipeline` |
 | [AutoEnumGenerator](./Modules/AutoEnumGenerator.md) | 自動実行。手動生成はSymphony Administratorから |
-| [FolderGenerator](./Modules/ProjectStructureTools.md#foldergenerator) | `Tools > SymphonyFrameWork > FolderGenerator` |
+| [FolderGenerator](./Modules/ProjectStructureTools.md#foldergenerator) | `Tools > SymphonyFramework > FolderGenerator` |
 | [AssemblyGenerator](./Modules/ProjectStructureTools.md#assemblygenerator) | メニューなし。他のEditor機能から呼ばれる |
-| [SymphonyPackageLoader](./Modules/ProjectStructureTools.md#symphonypackageloader) | `Tools > SymphonyFrameWork > SymphonyPackageLoader` |
-| [SymphonyDebugHUD](./Modules/Debug.md#symphonydebughud) | `Shift + D + P`、`Tools > SymphonyFrameWork > SymphonyDebugHUD > Show` / `Hide` |
-| [ログのファイル出力](./Modules/Debug.md#ログのファイル出力) | 自動実行 |
-| [SymphonyMcpTools](./Modules/Debug.md#symphonymcptools) | メニューなし。外部ツールから呼ぶ |
-| [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFrameWork` |
+| [SymphonyPackageLoader](./Modules/ProjectStructureTools.md#symphonypackageloader) | `Tools > SymphonyFramework > SymphonyPackageLoader` |
+| [SymphonyDebugHUD](./Modules/Debug.md#editor機能) | `Shift + D + P`、`Tools > SymphonyFramework > SymphonyDebugHUD > Show` / `Hide` |
+| [ログのファイル出力](./Modules/Debug.md#editor機能) | 自動実行 |
+| [SymphonyMcpTools](./Modules/Debug.md#機能一覧) | メニューなし。外部ツールから呼ぶ |
+| [アセット保護](#アセット保護) | 自動実行。強さは`Project Settings > SymphonyFramework` |
+| [ポーズカテゴリーの生成](./Modules/Fermata.md#ポーズカテゴリーの生成) | `Project Settings > SymphonyFramework > Pause Category`。設定した名前から `IPausable` を継承した空のinterfaceを生成する |
+| [Build Validation](./Modules/BuildValidation.md) | `Project Settings > SymphonyFramework > Build Validation`、`Tools > SymphonyFramework > Build Validation > Validate UXML Dependencies` / `Validate Fonts` |
+| [Suiteの依存検証](./Modules/Suite.md#editor機能) | `SuiteAsset` のInspector。依存グラフの検証結果と実行層を表示する |
 | [Inspector属性](./Modules/InspectorAttributes.md#editor機能) | 利用側のフィールドへ属性を付ける |
 | [設定アセットの自動生成](#設定アセットの自動生成) | 自動実行 |
 | [Editorの初期化](#editorの初期化) | 自動実行 |
@@ -37,13 +40,14 @@ Editor機能はGUI操作を入口とするため、この文書にコード例�
 | ファイル | 内容 | 版管理 |
 | --- | --- | --- |
 | `ProjectSettings/Packages/symphonyframework/AutoEnumGeneratorConfig.asset` | enum自動生成の有効・無効 | 含める（プロジェクト共有） |
+| `ProjectSettings/Packages/symphonyframework/BuildValidationConfig.asset` | ビルド前検証の有効・無効、UXMLの起点、フォントの検証条件 | 含める（プロジェクト共有） |
 | `ProjectSettings/Packages/symphonyframework/AssetStoreToolsPackagerData.asset` | Packagerの入出力パス | 含める（プロジェクト共有） |
-| `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Service Locatorのログ設定、Save DataのPlay Mode持ち越し | **含めない（開発者ごと）** |
-| `Assets/Resources/SymphonyFrameWork/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` / `DebugHUDConfig` | 含める |
+| `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset` | アセット保護の強さ、Partituraのログ設定、Save DataのPlay Mode持ち越し | **含めない（開発者ごと）** |
+| `Assets/Resources/SymphonyFramework/*.asset` | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` / `DebugHUDConfig` | 含める |
 | `<Asset Store Tools Path>/PackagerConfig.json` | Packagerの除外フォルダと強制包含拡張子 | 含める |
 | `<Asset Store Tools Path>/PackageVersions.json` | ディレクトリごとの現在リビジョン | 含める |
 | `<Asset Store Tools Path>/<ディレクトリ>/ExportedVersion.json` | そのパッケージを出力した時点のリビジョン | 含める |
-| `Library/SymphonyFrameWork/Cache/Log.txt` | `SymphonyDebugLogger`の出力 | **含めない（生成物）** |
+| `Library/SymphonyFramework/Cache/Log.txt` | `SymphonyDebugLogger`の出力 | **含めない（生成物）** |
 
 ---
 
@@ -55,7 +59,7 @@ Unity 6000.3以降の公式Main Toolbar APIを使用し、日常的なEditor操�
 | --- | --- |
 | `Scene Init` | 次回のPlay Mode開始時に初期シーン処理を実行するか切り替える |
 
-`Scene Init`は選択のたびにチェック状態を反転します。`Assets/Resources/SymphonyFrameWork/SceneLoadConfig.asset`の設定を変更するため、プロジェクト共有の差分になります。プルダウンを非表示にした場合は、メインツールバーのコンテキストメニューにある`Symphony Framework`グループから再表示できます。
+`Scene Init`は選択のたびにチェック状態を反転します。`Assets/Resources/SymphonyFramework/SceneLoadConfig.asset`の設定を変更するため、プロジェクト共有の差分になります。プルダウンを非表示にした場合は、メインツールバーのコンテキストメニューにある`Symphony Framework`グループから再表示できます。
 
 ---
 
@@ -63,14 +67,15 @@ Unity 6000.3以降の公式Main Toolbar APIを使用し、日常的なEditor操�
 
 Frameworkの各サブシステムの状態を1つのウィンドウで確認する管理パネルです。UI Toolkitで構成されています。
 
-**入口**: `Window > SymphonyFrameWork > Symphony Administrator`
+**入口**: `Window > SymphonyFramework > Symphony Administrator`
 
 **パネル**:
 
 | パネル | 内容 |
 | --- | --- |
-| Service Locate | 登録済みインスタンスの一覧と登録状態 |
-| Scene Load | ロード済みシーンと進行中のロード |
+| Partitura | 登録済みインスタンスの一覧と登録状態 |
+| Attacca | ロード済みシーンと進行中のロード |
+| Suite | 追跡中のSuiteの状態、進捗、保持しているシーン |
 | Save Data | 全対応型の一覧、Registry／Window専用インスタンスの接続状態、非接続編集とPlay Modeへの持ち越し |
 | Pause | ポーズ状態の確認と切り替え |
 | Debug HUD | 初期化・利用可否・表示状態・追加テキスト登録数の確認とShow / Hide |
@@ -80,7 +85,7 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 
 **注意点**:
 
-- 6つのパネルは `SymphonyFrameWork.Editor` 名前空間の登録済みUXMLカスタム要素として構築されます。
+- 6つのパネルは `SymphonyFramework.Editor` 名前空間の登録済みUXMLカスタム要素として構築されます。
 - Runtimeの状態を表示するパネルは、Play Mode中にRegistryへ接続します。Save DataはEdit ModeでもWindow専用インスタンスを編集・保存できます。
 - 表示はViewModelの変更通知で更新されます。ウィンドウを開いている間のポーリングは行いません。
 
@@ -94,16 +99,17 @@ Frameworkの各サブシステムの状態を1つのウィンドウで確認す�
 
 | 操作 | 開く文書 |
 | --- | --- |
-| `Window > SymphonyFrameWork > Documentation` | 索引（`Documentation~/Html/index.html`） |
+| `Window > SymphonyFramework > Documentation` | 索引（`Documentation~/Html/index.html`） |
 | Symphony Administrator の各パネル右上の `ドキュメント` | そのパネルに対応するモジュール文書 |
-| `Project Settings > SymphonyFrameWork` の `ドキュメントを開く` | この文書（Editor機能） |
-| `Project Settings > SymphonyFrameWork > Save System` の `ドキュメントを開く` | [Save Data System](./Modules/SaveDataSystem.md) |
-| `Project Settings > SymphonyFrameWork > Asset Store Tools Packager` の `ドキュメントを開く` | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md) |
+| `Project Settings > SymphonyFramework` の `ドキュメントを開く` | この文書（Editor機能） |
+| `Project Settings > SymphonyFramework > Manuscript` の `ドキュメントを開く` | [Manuscript](./Modules/Manuscript.md) |
+| `Project Settings > SymphonyFramework > Asset Store Tools Packager` の `ドキュメントを開く` | [Asset Store Tools Packager](./Modules/AssetStoreToolsPackager.md) |
+| `Project Settings > SymphonyFramework > Build Validation` の `ドキュメントを開く` | [Build Validation](./Modules/BuildValidation.md) |
 
-**コードから開く**: `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)`。Editor専用の公開APIです。
+**コードから開く**: `SymphonyFramework.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)`。Editor専用の公開APIです。
 
 ```csharp
-SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
+SymphonyDocumentation.Open(SymphonyDocumentPageEnum.Attacca);
 ```
 
 **注意点**:
@@ -118,22 +124,22 @@ SymphonyDocumentation.Open(SymphonyDocumentPageEnum.SceneLoader);
 
 Framework全体の個人設定とプロジェクト共有設定です。
 
-**入口**: `Project Settings > SymphonyFrameWork`
+**入口**: `Project Settings > SymphonyFramework`
 
 **項目**:
 
 | 項目 | 内容 |
 | --- | --- |
 | Asset Protection Mode | Framework配下のアセット移動に対する保護の強さ。`Enabled` / `Warning` / `Disabled` |
-| Service Locator Logs | 登録、取得、破棄のEditorログを開発者ごとに切り替える |
+| Partitura Logs | 登録、取得、破棄のEditorログを開発者ごとに切り替える |
 | Debug HUD Shortcut | EditorとDevelopment BuildでHUD表示を切り替えるInput Action。既定は`Shift + D + P` |
 
 **保存先**:
 
 | 設定 | ファイル |
 | --- | --- |
-| Asset Protection / Service Locator Logs | `UserSettings/SymphonyFrameWork/SymphonyUserSettingConfig.asset` |
-| Debug HUD Shortcut | `Assets/Resources/SymphonyFrameWork/DebugHUDConfig.asset` |
+| Asset Protection / Partitura Logs | `UserSettings/SymphonyFramework/SymphonyUserSettingConfig.asset` |
+| Debug HUD Shortcut | `Assets/Resources/SymphonyFramework/DebugHUDConfig.asset` |
 
 **注意点**:
 
@@ -146,7 +152,7 @@ Framework全体の個人設定とプロジェクト共有設定です。
 
 `SymphonyAssetProtector`（`AssetPostprocessor`）が、Framework配下のアセット移動を検知して差し戻します。誤ってFramework本体を動かし、利用側プロジェクトのGUID参照を壊すことを防ぎます。
 
-**入口**: 自動実行。強さは `Project Settings > SymphonyFrameWork` の `Asset Protection Mode`
+**入口**: 自動実行。強さは `Project Settings > SymphonyFramework` の `Asset Protection Mode`
 
 | モード | 挙動 |
 | --- | --- |
@@ -157,7 +163,7 @@ Framework全体の個人設定とプロジェクト共有設定です。
 **注意点**:
 
 - 意図してFramework配下のファイルを動かす場合は、`Asset Protection Mode` を `Warning` または `Disabled` にしてから操作してください。
-- 保護の対象はFrameworkルート（`Packages/symphonyframework` または `Assets/SymphonyFrameWork`）とその配下です。
+- 保護の対象はFrameworkルート（`Packages/symphonyframework` または `Assets/SymphonyFramework`）とその配下です。
 
 ---
 
@@ -171,14 +177,15 @@ Framework全体の個人設定とプロジェクト共有設定です。
 
 | 種別 | アセット | 置き場 |
 | --- | --- | --- |
-| Runtime（`ScriptableObject`） | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` | `Assets/Resources/SymphonyFrameWork/` |
+| Runtime（`ScriptableObject`） | `SceneLoadConfig` / `AudioConfig` / `SaveDataConfig` | `Assets/Resources/SymphonyFramework/` |
 | Editor（`ScriptableSingleton`） | `AutoEnumGeneratorConfig` | `ProjectSettings/Packages/symphonyframework/` |
-| Editor（`ScriptableSingleton`） | `SymphonyUserSettingConfig` | `UserSettings/SymphonyFrameWork/` |
+| Editor（`ScriptableSingleton`） | `SymphonyUserSettingConfig` | `UserSettings/SymphonyFramework/` |
 
 **注意点**:
 
 - **Runtime用のConfigは `internal` です。** コードから型として参照できません。InspectorとProject Settingsから設定してください。
 - 生成された設定アセットを複製しないでください。Frameworkは決まった位置の1つだけを読みます。
+- **6.15以前の表記（`SymphonyFrameWork`）で作られたフォルダは、存在確認より前に現在の表記（`SymphonyFramework`）へ移します。** 対象は `Assets/Resources/`、`Assets/Scripts/`、`Assets/Editor/`、`UserSettings/` の直下のフォルダと、自動生成した asmdef・ポーズカテゴリーのコードです。`AssetDatabase.MoveAsset` で移すため GUID は保たれます。旧表記と現在の表記が別のフォルダとして両方ある場合（大文字小文字を区別する環境）は、自動ではまとめずエラーを出して初期化を止めます。片方へ手でまとめてから開き直してください。
 - **Project Settingsの画面を開いただけでは生成されません。** 設定画面は未生成である旨と生成ボタンを表示するだけで、生成そのものは `SymphonyEditorOrchestrator` の入口を通ります。`AssetDatabase.Refresh` を1回へまとめる集約の外側でアセットが変わらないようにするためです。
 
 ---

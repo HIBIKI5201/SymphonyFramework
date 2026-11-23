@@ -5,9 +5,9 @@ using Newtonsoft.Json.Linq;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Core;
+using SymphonyFramework.Core;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> Frameworkが直接使用するUnity提供パッケージのmanifest宣言を検証する。 </summary>
     public sealed class PackageDependencyTests

@@ -3,11 +3,12 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.Debugger.Logger;
+using SymphonyFramework.Debugger.Logger;
 
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Utility
+namespace SymphonyFramework.Utility
 {
     /// <summary>
     ///     UnityのAwaitableを合成し、Taskとの相互変換を提供する。
@@ -15,6 +16,11 @@ namespace SymphonyFrameWork.Utility
     /// <remarks>
     ///     未完了側を安全に消費する一般契約が無いため、WhenAnyは提供しない。
     /// </remarks>
+    // 6.x の名前（SymphonyFrameWork.Utility）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Utility",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyAwaitable
     {
         #region 外部向けAPI

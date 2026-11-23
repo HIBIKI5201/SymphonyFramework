@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Core
+namespace SymphonyFramework.Core
 {
     /// <summary>
     ///     Core層のログを、上位層のロガーへ中継する。
@@ -10,7 +10,7 @@ namespace SymphonyFrameWork.Core
     /// <remarks>
     ///     <para>
     ///         フレームワーク内のログは <c>SymphonyDebugLogger</c> へ集約し、Editorの購読者が
-    ///         <c>Library/SymphonyFrameWork/Cache/Log.txt</c> へ書き出す。しかし <c>SymphonyDebugLogger</c> はRuntime
+    ///         <c>Library/SymphonyFramework/Cache/Log.txt</c> へ書き出す。しかし <c>SymphonyDebugLogger</c> はRuntime
     ///         アセンブリにあり、Coreはその下位にあるため直接参照できない。
     ///     </para>
     ///     <para>

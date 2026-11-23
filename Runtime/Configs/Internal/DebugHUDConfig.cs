@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SymphonyFrameWork.Config
+namespace SymphonyFramework.Config
 {
     /// <summary>
     ///     Debug HUDの表示切り替えに使用するInput Actionを保持する。

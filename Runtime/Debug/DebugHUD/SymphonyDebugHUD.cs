@@ -2,18 +2,24 @@
 using System.Collections.Generic;
 using System.Threading;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Exceptions;
-using SymphonyFrameWork.System;
+using SymphonyFramework.Core;
+using SymphonyFramework.Exceptions;
+using SymphonyFramework.Pause;
 
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Debugger.HUD
+namespace SymphonyFramework.Debugger.HUD
 {
     /// <summary>
     ///     画面上にデバッグ用のHUDを表示する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Debugger.HUD）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Debugger.HUD",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyDebugHUD
     {
         #region 外部向けAPI

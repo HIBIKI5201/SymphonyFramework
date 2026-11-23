@@ -1,4 +1,413 @@
-# Changelog
+﻿# Changelog
+
+## [7.0.0] - 2026-11-21
+名前空間・アセンブリ・主要な型の名前をそろえ直したメジャー更新です（#227）。6.16.0〜6.20.0 の変更をまとめて配布し、**6.x の名前から移るための転送を加えました。** 6.x（6.15.2）から上げる手順は [Migration7.md](./Documentation~/Migration7.md) にまとめています。
+
+### Breaking
+
+- **6.16.0〜6.20.0 の変更がすべて入ります。** 名前空間 `SymphonyFrameWork.*` は `SymphonyFramework.*` へ、`System` の下の機能は `Services` / `Scenes` / `SaveData` / `Audio` / `Pause` へ移りました。Facade は `Partitura`、`Attacca`、`Suite`、`Manuscript`、`Sonority`、`Fermata` へ改名しました。個々の対応は下の 6.16.0〜6.20.0 と移行ガイドを見てください。
+- 6.x で `[Obsolete]` にしていた API（`SymphonyDebugLogger.DirectLog` など）は、転送を残さず削除しています（6.20.0）。
+
+### Add
+
+- **6.x の名前の Facade を、新しい Facade へ転送する `[Obsolete]` 型として残しました。** `ServiceLocator`、`ServiceInjector`、`SymphonyLocateObject<T>`、`SceneLoader`、`SceneBlockLoader`、`SaveStore`、`AudioManager`、`PauseManager` です。6.x と同じ名前空間・同じシグネチャで呼べます。戻り値の意味は 6.x に合わせています（`ServiceLocator.GetInstance`、`SymphonyLocateObject<T>.GetInstance`、`AudioManager.GetAudioSource` は未登録で `null`、インスタンスを渡す `DestroyInstance` / `IsExistInstance` は型だけで処理）。
+- **利用側が実装・継承する 6.x の型を、新しい型を継承した `[Obsolete]` 型として残しました。** `IInjectable` / `IInjectable<T0…T3>`、`PauseManager.IPausable`（`RegisterPauseManager` 付き）、`SaveDataContent`、`SaveDataLoaderStrategy`、`PlayerPrefsSaveDataLoaderStrategy`、`LocateTypeEnum` です。旧ローダーは、旧 `SaveDataContent` を受け取る `SerializeToJson` / `OverwriteFromJson` の override がそのまま動くよう橋渡しします。
+- **6.x の名前空間を残し、`using SymphonyFrameWork.X;` の行がコンパイルできるようにしました。** 名前空間だけ移った型と、`SceneBlock*` から `Suite*` へ改名した型、`ServiceLocateComponent`、`IInitializeAsync` には 6.x の名前を指す `[MovedFrom]` を付け、Unity の API Updater が利用側スクリプトを書き換えます。
+- 移行ガイド `Documentation~/Migration7.md` を加えました。
+- **6.x の名前を使う利用側スクリプトを書き換えるメニュー `Tools > SymphonyFramework > Migrate 6.x Names` を加えました。** Unity の API Updater は、パッケージが Assets 内にある構成では `[MovedFrom]` を使って利用側を書き換えなかったためです（Unity 6000.3.10f1 で確認）。名前空間だけ移った型と `SceneBlock*` → `Suite*` などの改名を、`using` と型名ごと書き換えます。転送用の旧名（`ServiceLocator` など）は書き換えません。Editor の起動時に、対象のスクリプトがあれば Console の警告で知らせます。
+
+### Change
+
+- 旧 `PauseManager.IPausable` をカテゴリーに指定した場合と、旧 `PauseManager.IPausable` だけを実装した対象は、6.x と同じく既定カテゴリー（新しい `IPausable`）として扱います。これにより 6.x のポーズカテゴリーの生成物がコンパイルでき、Editor の起動時の移行（6.20.0）が走ります。
+- 転送用の旧名は [Deprecations.md](./Documentation~/Deprecations.md) に載せ、8.0.0 で削除します。
+- **6.x の表記のフォルダ（`Assets/Resources/SymphonyFrameWork` など）を移す起動時の処理が、Windows で途中失敗していました。** 一時名 `SymphonyFramework__case_migration` へ移したあと、現在の表記へ移す2段目が「is not a valid path」で止まり、一時名のフォルダが残っていました。移動をファイルシステムで `.meta` ごと行い、最後にまとめて取り込み直すようにしました。GUID は変わりません。**一時名のフォルダだけが残っているプロジェクトは、次の起動で現在の表記へ移し直します。** Windows で改名直後のフォルダが一時的にアクセス拒否になる場合に備え、移動は間隔を延ばしながら数回まで再試行します。
+
+## [6.20.0] - 2026-11-21
+`PauseManager` を `Fermata` へ改名し、非推奨APIをすべて片付けました。ポーズカテゴリーの生成物は自動生成enumのアセンブリへまとめました。7.0.0 へ向けた命名の全面整理（#227）の5つ目です（#225）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`PauseManager` を `Fermata`（名前空間 `SymphonyFramework.Pause`）へ改名しました。** これで `SymphonyFramework.System` 名前空間は無くなりました。名前の対応は次のとおりです。
+
+| 6.19.0 | 6.20.0 |
+| --- | --- |
+| `using SymphonyFramework.System;`（Pause） | `using SymphonyFramework.Pause;` |
+| `PauseManager.IPausable`（入れ子） | `IPausable`（トップレベル） |
+| `PauseManager.IPausable.RegisterPauseManager(x)` / `UnregisterPauseManager(x)` | `Fermata.Register(x)` / `Fermata.Unregister(x)` |
+| `PauseManager.PausableNextFrameAsync` | `Fermata.NextFrameAsync` |
+| `PauseManager.PausableWaitForSecond` / `PausableWaitForSecondAsync` | `Fermata.WaitForSeconds` / `WaitForSecondsAsync` |
+| `PauseManager.PausableWaitUntil` | `Fermata.WaitUntilAsync` |
+| `PauseManager.PausableDestroy` / `PausableInvoke` | `Fermata.DestroyAsync` / `InvokeAsync` |
+| 待機・遅延の秒数の引数名 `time` / `t` | `seconds` |
+| `PauseManager.Pause`（プロパティ） | `Fermata.SetPauseAll` / `Fermata.IsPausedAny` |
+| `PauseManager.OnPauseChanged`（イベント） | `Fermata.AddPauseChangedHandler(Action<bool>)` / `RemovePauseChangedHandler(Action<bool>)` |
+| `SymphonyDocumentPageEnum.PauseManager` | `SymphonyDocumentPageEnum.Fermata` |
+
+- **カテゴリーを指定しない待機・遅延・購読は、非推奨をやめて正式なAPIにしました。** すべてのカテゴリーが対象で、どれか1つでもポーズ中なら止まります（動作は 6.12.0 以降の非推奨版と同じ）。
+- **ポーズカテゴリーの生成物は、専用の `SymphonyFramework.PauseCategory` アセンブリをやめ、`SymphonyFramework.Enum` アセンブリに入れます。** 生成先のフォルダは自動生成enumのフォルダの下で、変わりません。参照の向きも逆にしました: `SymphonyFramework.Enum` が `SymphonyFramework` を参照し、`SymphonyFramework` は `SymphonyFramework.Enum` を参照しません。Editor の起動時に、既存の生成物を新しい名前へ書き換え、専用 asmdef を削除し、参照を付け替えます。**自前の asmdef から `SymphonyFramework.PauseCategory` を参照していた場合は、`SymphonyFramework.Enum` の参照へ置き換えてください。**
+- **非推奨にしていた次のAPIを削除しました**（一覧は [Deprecations.md](./Documentation~/Deprecations.md#削除済み)）。
+  - `SymphonyDebugLogger.DirectLog` / `TextLog` / `CheckComponentNull` / `IsComponentNotNull` → `LogDirect` / `LogText` / `LogAndCheckComponentNull`
+  - `SymphonyTween.TweeningLerp` / `TweeningCurve` → `Tweening`
+  - `EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE` と `ignore.txt` からの移行処理 → `PackagerConfig.json`
+  - `AssetStoreToolsPackager.PackageModeEnum` と `Export(string[], PackageModeEnum, bool, bool)` → `Export(string[], AssetStoreToolsPackagePipeline)`。統合パッケージ出力は `AssetStoreToolsCombinePackageStrategy` で引き続き使えます
+  - `AssetStoreToolsPackageContext` → `AssetStoreToolsPackageExportContext`
+
+### Change
+
+- `PauseInfo` は名前を変えず、名前空間だけ移しました。
+- Symphony Administrator のパネル名を `Fermata` に、モジュール文書を `Fermata.md` に、サンプルを `Fermata Sample` にしました。
+
+## [6.19.0] - 2026-11-21
+`SaveStore` を `Manuscript`、`AudioManager` を `Sonority` へ改名しました。7.0.0 へ向けた命名の全面整理（#227）の4つ目です（#225）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`SaveStore` を `Manuscript`（名前空間 `SymphonyFramework.SaveData`）、`AudioManager` を `Sonority`（名前空間 `SymphonyFramework.Audio`）へ改名しました。** 名前の対応は次のとおりです。
+
+| 6.18.0 | 6.19.0 |
+| --- | --- |
+| `using SymphonyFramework.System.SaveSystem;` | `using SymphonyFramework.SaveData;` |
+| `SaveStore`（`Exists` / `Get` / `IsLoaded` / `LoadAsync` / `SaveAsync` / `DeleteAsync` / `GetEntries`） | `Manuscript`（メソッド名は同じ） |
+| `using SymphonyFramework.System;`（Audio） | `using SymphonyFramework.Audio;` |
+| `AudioManager.VolumeSliderChanged(name, value)` | `Sonority.SetVolume(name, value)` |
+| `AudioManager.GetAudioSource(name)`（未登録は `null`） | `Sonority.GetSource(name)`（未登録は例外） / `Sonority.TryGetSource(name, out source)` |
+| `SymphonyMcpTools.GetSaveDataJson` | `SymphonyMcpTools.GetManuscriptJson` |
+| `SymphonyDocumentPageEnum.SaveDataSystem` / `.AudioManager` | `SymphonyDocumentPageEnum.Manuscript` / `.Sonority` |
+
+- **`Sonority.GetSource` は、Config に無いグループ名で `ArgumentException` を投げます。** 6.18.0 までの `GetAudioSource` は `null` を返していました。無いかもしれないグループは `TryGetSource` を使ってください。`TryGetSource` は空の名前にも例外を投げず `false` を返します。
+- **`Manuscript.GetEntries()` は、未初期化のとき他の API と同じく `SymphonyNotInitializedException` を投げます。** 6.18.0 までの `SaveStore.GetEntries()` は空の一覧を返していました。Play 前にも動く表示は例外を受け取り、未初期化として扱ってください（Manuscript Sample はそうしています）。
+
+### Change
+
+- `SaveDataContent` / `SaveDataLoaderStrategy` / `PlayerPrefsSaveDataLoaderStrategy` / `SaveDataEntryInfo` / `SaveDataOperationEnum` / `SaveDataOperationException` は名前を変えず、名前空間だけ移しました。
+- 既存のセーブデータはそのまま読めます。保存キーは利用側のデータ型の名前で、フレームワークの名前空間に依存しません。`SaveDataConfig` に保存したローダーは、6.15 の名前からの `[MovedFrom]` で引き続き解決します。
+- Symphony Administrator のパネル名と Project Settings の項目名を `Manuscript` に、モジュール文書を `Manuscript.md` / `Sonority.md` に、サンプルを `Manuscript Sample` / `Sonority Sample` にしました。サンプルのデータ型の名前が変わったため、6.18.0 までにサンプルで保存した値は読み込まれません。
+- パッケージの `AGENTS.md` に残っていた `SceneLoader.md` へのリンクを `Attacca.md` / `Suite.md` へ直しました。
+
+## [6.18.0] - 2026-11-18
+Scene Loader を `Attacca`、Scene Block を `Suite` へ改名し、シーン操作の入口を整理しました。7.0.0 へ向けた命名の全面整理（#227）の3つ目です（#232）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`SceneLoader` を `Attacca`、`SceneBlockLoader` を `Suite` へ改名し、どちらも名前空間 `SymphonyFramework.Scenes` へ移しました。** 名前の対応は次のとおりです。
+
+| 6.17.0 | 6.18.0 |
+| --- | --- |
+| `using SymphonyFramework.System.SceneLoad;` / `using SymphonyFramework.System.SceneBlock;` | `using SymphonyFramework.Scenes;` |
+| `SceneLoader.LoadSceneAsync` / `LoadScenesAsync` | `Attacca.LoadAsync`（単体・配列の overload） |
+| `SceneLoader.UnloadSceneAsync` / `UnloadScenesAsync` | `Attacca.UnloadAsync`（単体・配列の overload） |
+| 進捗の `Action<float> loadingAction` | `IProgress<float> progress`（すべての overload） |
+| `SceneLoader.IsExist` / `GetExistScene` | `Attacca.IsLoaded` / `TryGetScene` |
+| `SceneLoader.RegisterAfterSceneLoad` / `WaitForLoadSceneAsync` | `Attacca.WhenLoaded` / `WaitForLoadAsync` |
+| `SceneBlockLoader.TryGetBlockInfo` / `GetBlockInfos` | `Suite.TryGetInfo` / `GetInfos` |
+| `SceneBlockAsset` / `SceneBlockEntry` / `SceneBlockInfo` / `SceneBlockLoadStateEnum` / `SceneBlockPlanException` | `SuiteAsset` / `SuiteEntry` / `SuiteInfo` / `SuiteLoadStateEnum` / `SuitePlanException` |
+| `SceneBlockAsset.BlockName` / `SceneBlockInfo.BlockName` | `SuiteAsset.SuiteName` / `SuiteInfo.SuiteName` |
+| `SymphonyMcpTools.GetSceneLoaderJson` | `SymphonyMcpTools.GetAttaccaJson` |
+| `SymphonyDocumentPageEnum.SceneLoader` / `.SceneBlock` | `SymphonyDocumentPageEnum.Attacca` / `.Suite` |
+
+- **`Attacca.UnloadAsync` は、Suite が保持しているシーンをアンロードしなくなりました。** 警告をログへ出し、何もせず `false` を返します。複数指定に1つでも含まれる場合は、どのシーンもアンロードしません。Suite のシーンは `Suite.UnloadAsync` で片付けてください。6.17.0 までは単体アンロードで Suite の保持を無視して落とせたため、Suite の状態と実際のシーンがずれていました。
+
+### Add
+
+- **`SceneLoadConfig` に「初期化時にロードするSuite」を加えました。** Play 開始時の初期シーン処理が有効なとき、初期シーンの後で設定順にロードし、そのシーンは起動時のシーン整理でアンロードしません。初期シーンか Suite のどちらかのロードに失敗した場合は、シーン整理を行いません。
+
+### Change
+
+- `SuiteAsset` は 6.17.0 までに保存した `Block Name` の値をそのまま読み込みます（`[FormerlySerializedAs]`）。スクリプトの `.meta` を保っているため、既存の `SceneBlockAsset` アセットも `SuiteAsset` として開けます。
+- アセットの作成メニューを `Assets > Create > Symphony Framework > Suite` にしました。
+- Symphony Administrator のパネル名、モジュール文書（`Documentation~/Modules/Attacca.md`、`Suite.md`）、サンプル（`Attacca Sample`、`Suite Sample`）を新しい名前にしました。
+- `IInitializeAsync` は引き続き `Task` を返します。
+
+## [6.17.0] - 2026-11-18
+Service Locator を `Partitura` へ改名し、取得・解除の入口を整理しました。7.0.0 へ向けた命名の全面整理（#227）の2つ目です（#225、#233）。**旧名からの自動移行（`[Obsolete]` の転送）は 7.0.0 でまとめて入れます。** この版は単独では配布しません。
+
+### Breaking
+
+- **`ServiceLocator` と `ServiceInjector` を `Partitura`（名前空間 `SymphonyFramework.Services`）へまとめました。** 名前の対応は次のとおりです。
+
+| 6.16.0 | 6.17.0 |
+| --- | --- |
+| `using SymphonyFramework.System.ServiceLocate;` | `using SymphonyFramework.Services;` |
+| `ServiceLocator.RegisterInstance` / `RegisterInstanceWithAutoDispose` | `Partitura.Register` / `RegisterWithAutoDispose` |
+| `ServiceLocator.UnregisterInstance` / `DestroyInstance` / `IsExistInstance` | `Partitura.Unregister` / `Destroy` / `IsRegistered` |
+| `ServiceLocator.GetRequiredInstance<T>()` | `Partitura.Get<T>()` |
+| `ServiceLocator.GetInstance<T>()`（無ければ `null`） | 削除。`Partitura.TryGet<T>(out T)` を使う |
+| `ServiceLocator.TryGetInstance` / `GetInstanceAsync` / `TryGetInstanceAsync` | `Partitura.TryGet` / `GetAsync` / `TryGetAsync` |
+| `ServiceLocator.RegisterAfterLocate<T>(Action<T>)` | `Partitura.WhenRegistered<T>(Action<T>)` |
+| `ServiceLocator.RegisterAfterLocate<T>(Action)` | 削除。`WhenRegistered<T>(_ => …)` と書く |
+| `ServiceInjector.Inject` / `CreateInstance` | `Partitura.Inject` / `CreateInstance` |
+| `ServiceLocateComponent` | `ServiceComponent` |
+| `SymphonyLocateObject<T>`（`GetInstance` / `GetInstanceAsync` / `TryGetInstance`） | `PartituraReference<T>`（`Get` / `GetAsync` / `TryGet`） |
+| `LocateTypeEnum.Singleton` / `.Locator` | `ServiceLifetimeEnum.Persistent` / `.Scene` |
+| `ServiceRegistrationInfo.LocateType` | `ServiceRegistrationInfo.Lifetime` |
+| `SymphonyConfigLocator`（public） | `SymphonyConfigProvider`（internal） |
+| `SymphonyEditorConfigLocator` | `SymphonyEditorConfigProvider` |
+| `SymphonyMcpTools.GetServiceLocatorJson`（`effectiveLocateType`） | `SymphonyMcpTools.GetPartituraJson`（`effectiveLifetime`） |
+| `SymphonyDocumentPageEnum.ServiceLocator` | `SymphonyDocumentPageEnum.Partitura` |
+
+- **インスタンスを渡す `Destroy(instance)` と `IsRegistered(instance)` は、現在の登録と同じ参照のときだけ動くようにしました。** 6.16.0 までの `DestroyInstance(instance)` と `IsExistInstance(instance)` は、渡したインスタンスを見ずに型だけで処理していました。`Unregister(instance)` は 6.15.2 から同じ動きです。
+- **`PartituraReference<T>.Get()` は、キャッシュが無く登録も無い場合に `ServiceNotRegisteredException` を投げます。** 6.16.0 までの `SymphonyLocateObject<T>.GetInstance()` は `null` を返していました。無いかもしれない場合は `TryGet` を使ってください。
+
+### Change
+
+- `ServiceComponent` の Inspector に保存された登録方式は、値の順序を変えていないためそのまま引き継がれます。`UserSettings` のログ設定も引き継がれます。
+- Symphony Administrator のパネル名、Project Settings のログ設定の項目名（`Register` / `Get` / `Unregister / Destroy`）、モジュール文書（`Documentation~/Modules/Partitura.md`）、サンプル（`Partitura Sample`）を新しい名前にしました。モジュール文書へ「どの入口を使うか」の表を加えました。
+
+## [6.16.0] - 2026-11-18
+ルート名前空間、アセンブリ名、生成物のフォルダ名の表記を `SymphonyFrameWork` から `SymphonyFramework` へそろえました。7.0.0 へ向けた命名の全面整理（#227）の1つ目です。**利用側コードの `using` と、名前で参照している asmdef は書き換えが必要です。** 旧名前空間からの自動移行は 7.0.0 でまとめて入れます。
+
+### Breaking
+
+- **名前空間 `SymphonyFrameWork` とその配下を `SymphonyFramework` へ改名しました。** 型名とメンバー名は変えていません。`using SymphonyFrameWork.System.ServiceLocate;` は `using SymphonyFramework.System.ServiceLocate;` のように、`W` を小文字にしてください。
+- **asmdef を `SymphonyFramework` / `SymphonyFramework.Core` / `SymphonyFramework.Editor` へ改名しました。** `.meta` を保っているので、GUID で参照している asmdef はそのまま動きます。名前で参照している場合は書き換えてください。自動生成の asmdef も `SymphonyFramework.Enum` / `SymphonyFramework.PauseCategory` になります。
+- メニュー（`Tools`、`Window`）と Project Settings の項目名が `SymphonyFramework` になりました。
+
+### Change
+
+- **6.15以前の表記で作られた生成物のフォルダを、Editor の起動時に現在の表記へ移すようにしました。** `Assets/Resources/`、`Assets/Scripts/`、`Assets/Editor/`、`UserSettings/` の直下の `SymphonyFrameWork` が対象です。GUID を保つので、設定アセットとその値、生成 asmdef への参照は引き継がれます。旧表記と現在の表記が別のフォルダとして両方ある場合は、自動ではまとめずエラーで止めます。
+- `SaveDataConfig` に保存されたセーブローダーと、Asset Store Tools Package Pipeline のアセットに保存された手順（`AssetStoreTools*Strategy`）を、6.x の名前空間・アセンブリ名から解決できるようにしました（`[MovedFrom]`）。**2.x 以前の旧型名（`JsonUtilitySaveDataLoader` など）のまま保存されている設定は解決できません。** 6.x で一度開いて保存したプロジェクトは影響を受けません。
+
+## [6.15.2] - 2026-11-18
+Service Locatorの自動解除とキャッシュの不具合を直しました。公開APIとシリアライズ形式は6.15.1から変更していません。
+
+### Fix
+
+- **`ServiceLocateComponent`を無効化すると、同じ型で登録された別のインスタンスまで解除していました。** 自動解除（`Auto Unregister`）が登録の有無を型だけで確かめていたためです。自分が登録したインスタンスと同じ場合だけ解除するようにしました。
+- **`SymphonyLocateObject<T>`が、破棄済みのUnity Objectをキャッシュから返し続けていました。** 型引数の`== null`ではUnity Objectの破棄を判定できなかったためです。キャッシュが破棄済みなら捨てて、`ServiceLocator`から取り直すようにしました。`ServiceLocator.GetInstance<T>()`と同じ結果になります。
+
+## [6.15.1] - 2026-11-18
+モジュール文書を、利用者が使うための情報だけをまとめた形へ書き直しました。公開APIとシリアライズ形式は6.15.0から変更していません。
+
+### Change
+
+- **`Documentation~/Modules/` の全13本を、同じ節の並びにそろえました。** 概要 → 目的と範囲（すること・しないこと） → 入口 → 仕組みの要点 → 機能一覧（`SL-01`のようなID付き） → クイックスタート → 状態 → うまくいかないとき → 守ること → Editor機能 → 確かめ方 → 関連 の順です。該当しない節は省いています。これまで「実装時の注意」に混ざっていた例外と失敗時の動きは「うまくいかないとき」の表へ、守るべき決まりは「守ること」へ分けました。
+- **モジュール文書と `Documentation~/Architecture.md` から、内部のクラス構成図と内部構造の節を外しました。** 利用側のコードを書くのに要らない情報で、読む量を増やしていたためです。内部構造はワークスペース側の開発者向け文書へ移しています。`Architecture.md` は、アセンブリの参照、公開の入口と拡張点、起動と終了の順序、シーンロード時の連携を表と手順で示す形にしました。
+- mermaidの図が無くなったため、`Documentation~/Html/Diagrams/` を削除しました。
+- 文書の書き直しで分かった誤りを直しました。Audio Managerは「グループごとに必要になった時点で」ではなく、最初の呼び出しで全グループのAudioSourceをまとめて作ります。Scene Loaderの状態に`Unloading`を加えました。
+
+## [6.15.0] - 2026-09-30
+UXML/USSの依存切れとフォント設定の不備を、手動実行とプレイヤービルド前に検出するBuild Validationを追加しました。
+
+### Add
+
+- **`Tools > SymphonyFrameWork > Build Validation > Validate UXML Dependencies`** を追加しました。UXMLの`Template` / `Style`の`src`を再帰的にたどり、参照先や`.meta`の欠落、`src`のGUIDと実GUIDの不一致、循環、インポートエラー、インポート結果から名前付き要素が消えている状態を検出します。Editorでは`Library/`に残ったインポート結果で表示できてしまい、クリーンな環境のビルドで初めて画面が欠ける種類の不備です。起点のUXMLと必須要素名は設定で指定でき、未指定なら`Assets/`配下の全UXMLを検証します。
+- **`Tools > SymphonyFrameWork > Build Validation > Validate Fonts`** を追加しました。TextMesh ProとUI Toolkitの既定フォントについて、Dynamicデータのビルド時消去、Source Font Fileの設定とビルド依存、必須文字の有無、Panel SettingsのText Settings参照の一致を検証します。Editorでは動的に生成されたグリフが見えているため気づけず、ビルド後に文字が表示されなくなる種類の不備です。TMPのアセンブリへの参照は追加していません。
+- **`Project Settings > SymphonyFrameWork > Build Validation`** を追加しました。保存先は`ProjectSettings/Packages/symphonyframework/BuildValidationConfig.asset`です。**ビルド前の検証（`Validate On Build`）はUXML・Fontとも既定で無効です。** 更新しただけで既存プロジェクトのビルドが止まらないようにするためで、手動検証で結果を確認してから有効にしてください。
+- いずれも利用側から呼ぶ公開APIは追加していません。
+
+## [6.14.6] - 2026-09-06
+`ServiceLocateComponent`の自動登録から`DefaultExecutionOrder`依存を取り除き、Unity低レベルAPI（PlayerLoop）によるOrchestrator駆動の同期フェーズへ置き換えました。
+
+### Fix
+
+- **`ServiceLocateComponent`の`[DefaultExecutionOrder(-1000)]`を削除しました。** 自動登録（`Auto Register`）は`OnEnable`で即時反映する代わりに保留し、`SymphonyOrchestrator`が`UnityEngine.LowLevel.PlayerLoop`へ挿入した同期フェーズ（`Update.ScriptRunBehaviourUpdate`の直前）でまとめて反映します。他コンポーネントの有効化順に依存せず、同じフレームの`Start`呼び出しより必ず先に登録が完了します。実行時に`Instantiate`したオブジェクトでも、次フレームの`Start`から確実に取得できるようになりました。
+
+## [6.14.5] - 2026-09-06
+文書索引が同梱HTMLを解決できない環境で開いたときのフォールバック先を、古いディレクトリ一覧からindex.mdへ修正しました。Issue [#215](https://github.com/HIBIKI5201/SymphonyFramework/issues/215) の再オープン分の対応です。
+
+### Fix
+
+- **索引（Index）を同梱HTMLが無い環境で開くと、`Documentation~/Modules`のディレクトリ一覧へ飛んでいました。** `SymphonyDocumentPathResolver.ResolveFallbackUrl`が「索引には正本のMarkdownが無い」という古い前提の特別扱いを残したままでした。`Documentation~/index.md`は既に存在するため、特別扱いを削除し、他のページと同じ経路で`index.md`を直接指すようにしました。
+
+## [6.14.4] - 2026-09-06
+Scene Blockのロード/アンロードで、同じブロックへの重複要求と失敗後の再試行を正しく扱うよう修正しました。Issue [#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202) の再オープン分の対応です。
+
+### Fix
+
+- **同じブロックへのロード要求が、ロード未完了でも成功していました。** `SceneBlockService` は登録済みEntityの存在だけを見て即`true`を返しており、実行中の要求や、失敗して`Loading`のまま止まった要求へも同じ扱いをしていました。実行中の要求は同じ`Task`を共有して待つようにし、失敗して停止した場合は同じEntityで未完了の層だけを再試行するようにしました。
+- **アンロード失敗後、同じAPIで再試行できませんでした。** 一部のシーンのアンロードに失敗しても無条件で追跡から削除しており、再度`UnloadAsync`を呼んでも「未追跡」として何もせず成功を返していました。失敗した場合は追跡を維持し、実際にロードされたままのシーンだけを次回の呼び出しで再試行するようにしました。あわせて、失敗・キャンセル後もシーンの保持（Holder）情報が実際のロード状態と食い違わないよう復元する処理を追加しています。
+- **ロード中のブロックへのアンロード要求、アンロード中のブロックへのロード要求は`InvalidOperationException`になります。** 逆方向の同時要求を扱う契約が未定義だったため、明示的に拒否するようにしました。`SceneBlockLoader.LoadAsync`/`UnloadAsync`のXMLドキュメントと`Documentation~/Modules/SceneBlock.md`を更新しています。
+
+## [6.14.3] - 2026-09-06
+セレクター(SceneName/Tag)のフィルターで現在値が候補から外れたとき、Inspectorを開いただけで保存値が書き換わる不具合を修正しました。Issue [#199](https://github.com/HIBIKI5201/SymphonyFramework/issues/199) の再オープン分の対応です。
+
+### Fix
+
+- **`SceneNameSelectorDrawer` / `TagSelectorDrawer` が、保存済みの値をフィルター候補から外れているだけで書き換えていました。** Popup表示用に補正した既定indexをそのまま保存値へ代入していたためです。`EditorGUI.BeginChangeCheck` / `EndChangeCheck` でPopupを囲み、**ユーザーが実際に選択を変えた場合だけ**保存値を書き換えるようにしました。表示用のindex解決は `SelectorFilterUtility.ResolveDisplayIndex`（internal）へ切り出し、EditModeテストで検証しています。利用側のコードや属性の使い方に変更はありません。
+
+## [6.14.2] - 2026-09-05
+Documentation~ に文書の入口を追加し、ライセンスファイル名と package.json の説明文を Unity パッケージの標準レイアウトへ揃えました。Issue [#215](https://github.com/HIBIKI5201/SymphonyFramework/issues/215) の対応です。
+
+### Add
+
+- **`Documentation~/index.md` を追加しました。** 全文書への索引です。**これまでMarkdown側に入口がなく**、`Documentation~/` を開いた人がどれから読むかを決められませんでした。ブラウザ向けの `Documentation~/Html/index.html` は、このMarkdownから生成します。
+- **`package.json` へ `documentationUrl` を追加しました。** Package Managerの`Documentation`から、GitHub Pagesで配信している文書へ移動できます。**このURLは`main`への反映時に更新されます。**
+
+### Change
+
+- **`LICENSE.txt` を `LICENSE.md` へリネームしました。** Unityのパッケージ検証（US-0032）が探すのは `LICENSE.md` で、`.txt` では見つかりません。**ファイルの位置と内容は変えていません。** `.meta` ごとリネームしているため、GUIDは変わりません。ライセンスファイルをパスで参照している場合は拡張子を変更してください。
+- **`package.json` の `description` を実際の説明へ差し替えました。** これまで `"This is Symphony Framework"` というテンプレートのままで、Package Managerの一覧にそのまま表示されていました。
+- **ドキュメント索引の正本をMarkdownへ移しました。** これまで `index.html` だけが生成スクリプト内のPythonから作られており、Markdownの正本を持ちませんでした。併せて、**索引がモジュール文書を漏れなく、決めた順でリンクしているかを検査**するようにしています。利用側への影響はありません。
+
+## [6.14.1] - 2026-09-05
+ドキュメント索引から Scene Block の文書が抜けていたのを修正しました。
+
+### Fix
+
+- **ドキュメント索引（`Documentation~/Html/index.html`）に Scene Block の文書へのリンクがありませんでした。** 索引がモジュール文書の一覧を生成スクリプト内の定数から作っており、そこへ `SceneBlock` を足し忘れたためです。文書自体は 6.6.0 から存在していましたが、索引からは辿れませんでした。
+
+## [6.14.0] - 2026-09-03
+Symphony Administratorへカテゴリー別の表示を追加し、サンプルと文書をカテゴリー対応にしました。Issue [#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168) はこれで完了です。
+
+### Add
+
+- **Symphony Administratorの Pause パネルへ `Categories` の一覧を追加しました。** カテゴリーごとのポーズ状態と、そのカテゴリーに属する対象の件数を表示します。**表示名の昇順で並びます** — 辞書の列挙順は保証されず、並びが揺れると内容が同じでも表示が更新され続けるためです。
+- **`PauseManagerSample` をカテゴリー対応へ書き換えました。** 白いCubeが Gameplay、水色のCubeが UI のカテゴリーに属し、**片方を止めてももう片方は動き続ける**ことを実演します。カテゴリーの定義はサンプル内で手書きしており、生成を使わなくても書けることを示しています。
+
+### Change
+
+- **`Documentation~/Modules/PauseManager.md` をカテゴリー前提の内容へ書き換えました。** カテゴリーの定義、複数カテゴリーに属する場合の合成規則、カテゴリーを指定しない場合の既定カテゴリー、旧APIからの移行を追加しています。
+
+## [6.13.0] - 2026-09-03
+ポーズカテゴリーのinterfaceをProject Settingsから自動生成できるようにしました。
+
+### Add
+
+- **`Project Settings > SymphonyFrameWork > Pause Category` を追加しました。** カテゴリー名を登録して生成を実行すると、`Assets/Scripts/SymphonyFrameWork/PauseCategory/` へ `PauseManager.IPausable` を継承した空のinterfaceを生成します。**設定した名前は `I` と `Pausable` で挟まれます**（`Gameplay` → `IGameplayPausable`）。生成される名前は入力欄の隣にその場で表示されます（[#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168)）。
+- **生成物は専用の `SymphonyFrameWork.PauseCategory` アセンブリへ置きます。** カテゴリーは `PauseManager.IPausable` を継承するため `SymphonyFrameWork` の参照が要りますが、`SymphonyFrameWork` 側が `SymphonyFrameWork.Enum` を参照しているため、**自動生成enumと同じ場所へは置けません**（参照が循環します）。生成物からフレームワークへの片方向の参照になります。
+- **C#の識別子として使えない名前は除外し、警告を出します。** 同じinterface名へ解決される候補は1件だけ残します。黙って消すと、設定したのに生成されない理由が分かりません。
+
+### Change
+
+- **設定から消したカテゴリーのファイルは削除しません。** 利用側のコードがそのinterfaceを実装している場合、黙って消すとコンパイルが壊れるためです。残っているものは警告で知らせるので、確認したうえで削除してください。
+
+## [6.12.0] - 2026-09-03
+待機系APIをカテゴリー対応にし、カテゴリーを指定しない旧APIを非推奨にしました。
+
+### Add
+
+- **待機系APIへ型パラメータ版を追加しました。** `PausableNextFrameAsync<TCategory>` / `PausableWaitForSecond<TCategory>` / `PausableWaitForSecondAsync<TCategory>` / `PausableWaitUntil<TCategory>` / `PausableDestroy<TCategory>` / `PausableInvoke<TCategory>` の6件です。指定したカテゴリーがポーズ中の間だけ待機が進みません（[#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168)）。
+- **`SymphonyTween.Tweening` にカテゴリーを指定するオーバーロードを追加しました。** 既存のシグネチャは変えていません。
+
+### Change
+
+- **カテゴリーを指定しない公開API 8件を `[Obsolete]` にしました。** `Pause`、`OnPauseChanged`、待機系6件です。**削除はしていません。** 「全カテゴリーのいずれかがポーズ中か」を見て従来どおり動き続けます。移行先と削除予定は [Deprecations.md](Documentation~/Deprecations.md) にあります。
+- **`Symphony Administrator` のポーズ切り替えを `SetPauseAll` へ移しました。** 表示は変わりません。
+- **待機処理の本体を共通化しました。** 全体版とカテゴリー版が同じ待機処理を共有します。`PausableWaitForSecond` がイテレータであり、**検証も最初の `MoveNext` まで遅延する**という従来からの挙動は保っています。
+
+## [6.11.0] - 2026-09-03
+カテゴリーを指定してポーズを操作する公開APIを追加しました。
+
+### Add
+
+- **`PauseManager.SetPause<TCategory>(bool)` と `IsPaused<TCategory>()` を追加しました。** カテゴリーは `PauseManager.IPausable` を継承した空のinterfaceで表し、そのカテゴリーを実装した対象だけが停止します。他のカテゴリーの対象は動き続けます（[#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168)）。
+- **`SetPauseAll(bool)` と `IsPausedAny()` を追加しました。** 「全部止める」はカテゴリーではなく操作として提供します。全体を表すカテゴリー型を作ると、利用側が「それも実装するべきか」を毎回考えることになるためです。
+- **`AddPauseChangedHandler<TCategory>(Action<bool>)` と `RemovePauseChangedHandler<TCategory>(Action<bool>)` を追加しました。** カテゴリー単位の通知を購読します。**C#の`event`は型パラメータを持てない**ため、`OnPauseChanged`のようなevent形式ではなくメソッドで提供します。
+- **`GetPauseInfo<TCategory>()` を追加し、`PauseInfo` へ `Category` を追加しました。** カテゴリー単位のポーズ状態と、そのカテゴリーに属する対象の件数を取得できます。`Category` は全体の情報では `null` です。
+- **`IPausable` 自身を型引数に指定できます。** カテゴリーを明示していない対象を指します。一方、`IPausable` を実装した具象クラスを指定すると `ArgumentException` になります。型制約 `where TCategory : IPausable` は具象クラスも通してしまうため、実行時に弾いています。
+
+### Change
+
+- **`PauseManager` と `IPausable` を、テスト未実装の公開型の一覧から外しました。** 両方に `PauseManagerTests` で実テストを置いています。
+
+## [6.10.0] - 2026-09-03
+ポーズ状態をカテゴリーごとに持てるよう、内部の状態管理を作り替えました。公開APIは変わりません。
+
+### Add
+
+- **ポーズ状態をカテゴリー単位で保持するようにしました。** これまでは真偽値1つで「ポーズ中か否か」だけを持っていたため、止めたいものだけを止められませんでした。カテゴリーは `PauseManager.IPausable` を継承した空のinterfaceで表し、状態は型をキーにした辞書で持ちます（[#168](https://github.com/HIBIKI5201/SymphonyFramework/issues/168)）。
+- **カテゴリーを解決する `PauseCategoryResolver` を追加しました。** ポーズ対象が実装しているinterfaceから、属するカテゴリーを列挙します。**カテゴリーを1つも実装していない対象は既定カテゴリーに属します。** どのカテゴリーを止めても動き続ける対象が黙って生まれると、ポーズしても止まらない原因を追えないためです。
+- **複数のカテゴリーに属する対象は、どれか1つでもポーズなら停止し、すべて解除されたときだけ再開します。** 停止要因を件数で保持しており、2カテゴリーがポーズ中に片方だけ解除しても再開を通知しません。
+
+### Change
+
+- **`PauseManager.Pause` と待機系APIの公開シグネチャと挙動は変わりません。** `Pause` の設定は登録済みの全カテゴリーへ、取得は「どれか1つでもポーズ中か」へ対応します。`OnPauseChanged` はこれまでどおり「ポーズ中か否か」が変化したときだけ発行し、カテゴリー単位の変化では発行しません。
+- **ポーズ中に登録した対象を、さかのぼって停止させない挙動は従来どおりです。** 登録時点の停止要因数だけを引き継ぎ、解除されたときに再開が届きます。
+
+## [6.9.0] - 2026-09-02
+Scene Blockの依存先の選択肢を、同じブロックに登録済みのシーンだけに絞りました。
+
+### Change
+
+- **`Entries > Depends On` の候補を、同じブロックに登録済みのシーンだけに絞りました。** これまではBuild Settingsの全シーンが並び、ブロックの外のシーンを選べてしまい、選んだ後にInspectorの検証で「存在しないシーンへの依存」として弾かれる形でした。**誤りを作れてしまう設計だったため、選択の時点で候補から外します。** 6.8.1 で取り除いたAuthoring実装が持っていた利点を、Issue [#199](https://github.com/HIBIKI5201/SymphonyFramework/issues/199) のセレクターのフィルター機能で実現しています。
+- **既に依存として保存済みのシーン名は、エントリから消えた後も候補に残します。** 候補から外すと `SceneNameSelectorDrawer` が保存済みの値を先頭の候補へ書き換えてしまい、記述が黙って変わるためです。外れた依存であること自体は、従来どおりInspectorの検証結果が知らせます。
+- **エントリを1件も追加していないブロックでは、`Depends On` の候補が空になります。** 先に `Scene Name` を埋めてから依存を書いてください。
+
+## [6.8.1] - 2026-09-02
+Scene Blockに二重に存在していたAuthoringアセットを1つへ統合しました。
+
+### Fix
+
+- **`SceneBlockAsset` と `SceneBlockAssetDrawer` の重複定義を解消しました。** `SymphonyFrameWork.System.SceneBlock` 名前空間に同名の型が2つ存在し、`CS0101` でコンパイルできない状態でした。Issue [#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202) で公開APIとして設計した側を正とし、シーン識別子と辺を別々に持つ内部実装を取り除いています。**両者は同じ `SceneBlockGraphPlanner` を土台にした同じ役割のAuthoring層で、取り除いた側は `CreateAssetMenu` を持たず、どこからも参照されていませんでした。**
+- **併せて `SceneBlockAssetPlanner` と `SceneBlockEdgeAuthoring` を削除しました。** 取り除いた `SceneBlockAsset` だけが参照しており、残しても到達できないためです。
+
+## [6.8.0] - 2026-08-30
+ピュアC#の型をコンストラクタ注入で生成できるようにしました。
+
+### Add
+
+- **`ServiceInjector.CreateInstance<T>()`と`CreateInstance(Type)`を追加しました。** コンストラクタの引数をService Locatorの登録から解決してインスタンスを生成します。従来は`IInjectable<T...>`を実装して`Inject`メソッドを書き、フィールドへ代入する手作業を型ごとに繰り返す必要がありましたが、コンストラクタで受け取れば`readonly`にでき、未注入の状態が存在しなくなります（[#109](https://github.com/HIBIKI5201/SymphonyFramework/issues/109)）。
+- **`public`なコンストラクタのうち引数が最も多いものを使います。** 引数の数が同じものが並ぶ場合は`InvalidOperationException`で、どちらを使うか推測しません。登録が無い引数は既定値があればそれを使い、既定値も無い場合は`ServiceNotRegisteredException`にしてインスタンスを生成しません。**全引数を解決してからコンストラクタを1回だけ呼ぶ**ため、半端に構築された対象が残りません。
+- **`Scene Locator Sample`へコンストラクタ注入の実演を追加しました。** シーケンスの最後で`ServiceLocatorSample_Consumer`を生成し、依存2件と既定値1件の解決結果を実況ログへ出します。
+
+### Change
+
+- **`IInjectable<T...>`と`ServiceInjector.Inject(...)`は従来どおりです。** Unityが生成する`MonoBehaviour`はコンストラクタ注入ができないため、3つの経路を「生成を誰が握るか」で使い分ける形にしました。使い分けはモジュール文書の表にあります。
+
+## [6.7.1] - 2026-08-30
+Scene Blockのロード状態をSymphony Administratorへ表示し、依存グラフの検証結果をInspectorへ出すようにしました。
+
+### Add
+
+- **Symphony Administratorへ Scene Block パネルを追加しました。** Play Mode中、追跡しているブロックの名前、状態、進捗、実行層の数、保持しているシーン名を一覧表示します。Runtimeの状態はViewModelの`ReactiveProperty`を購読して反映し、Editor更新ごとのpollingは行いません（[#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202)）。
+- **`SceneBlockAsset`のInspectorへ依存グラフの検証結果を表示するようにしました。** 解決できる場合は何段階でロードするかと各段階のシーン名、解決できない場合は検出した異常をすべて並べます。**Play Modeに入る前に循環依存や欠落参照へ気づけます。** 判定はRuntimeと同じ内部型を使い、Editorへ規則を複製していません。
+- **ドキュメントページへ`SceneBlock`を追加しました。** パネルの「ドキュメント」ボタンからモジュール文書を開けます。
+
+## [6.7.0] - 2026-08-30
+Scene Blockを依存順にロードし、単体シーンのロードと共存できるようにしました。
+
+### Add
+
+- **`SceneBlockLoader`を追加しました。** `LoadAsync`が`SceneBlockAsset`の依存グラフからトポロジカル層を作り、依存の無いシーンを同じ層でまとめてロードします。`UnloadAsync`は依存の後ろから保持を解きます。`IsLoaded` / `TryGetBlockInfo` / `GetBlockInfos`で追跡中のブロックの状態を取得できます（[#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202)）。
+- **ブロック単位のロードと`SceneLoader`による単体ロードを併用できます。** シーンごとに「どのブロックが保持しているか」を追跡し、保持が空になったときだけアンロードします。**ブロックのロード開始時点で既にロード済みだったシーンは、利用側の所有物としてブロックのアンロード対象から外します。** フレームワークが利用側のロードを勝手に取り消さないための規則です。
+- **エントリの`Is Persistent`を有効にしたシーンは、そのシーンを含むブロックをすべてアンロードしても残ります。** どのブロックにも属さないが常駐させたいシーンを、ブロックの定義だけで表現できます。
+- **`SceneBlockInfo`と`SceneBlockLoadStateEnum`を追加しました。** ブロック名、ロード状態、進捗、保持しているシーン名、実行層の数を不変なスナップショットとして取得できます。
+- **`Scene Block Sample`を追加しました。** 依存順ロード、ブロック切り替えでの共有シーンの保持、`Is Persistent`、単体ロードとの共存の4点を、ボタン操作と実況ログで確認できます。
+
+### Change
+
+- **`SymphonyOrchestrator`が`SceneLoader`の後段で`SceneBlockLoader`を初期化するようにしました。** Scene BlockはScene Loadの操作を土台にするため、初期化順を明示的に固定しています。終了処理は登録の逆順で走ります。
+
+## [6.6.0] - 2026-08-30
+Scene Blockのシーン構成をアセットとして定義できるようにしました。
+
+### Add
+
+- **`SceneBlockAsset`と`SceneBlockEntry`を追加しました。** `Assets > Create > Symphony Framework > Scene Block`で作成し、まとめてロードする複数シーンと依存関係をInspectorで定義できます。エントリごとにシーン名、先にロードするシーン（`Depends On`）、Active Scene選択の優先度、ブロックのアンロードで残すかを持ちます。依存は「このシーンより先に読むシーン」を各エントリが宣言する形にし、エントリを足すときに既存のエントリを編集しなくて済むようにしました（[#202](https://github.com/HIBIKI5201/SymphonyFramework/issues/202)）。
+- **`SceneBlockPlanException`を追加しました。** シーン名の重複、自分自身への依存、存在しないシーンへの依存、循環依存、シーン名や依存が空、のいずれかがあるアセットを読み込むと発生します。**1件目で打ち切らず、検出した異常をすべて`Descriptions`へ載せます。** 直すたびに読み込み直す回数を減らすためです。
+- **6.4.1で追加した`SceneBlockGraphPlanner`へ、Authoringのエントリ一覧から到達する経路を用意しました。** 依存グラフの検証とトポロジカル層の算出は、Unity APIへ触れない内部型が担当します。
+
+## [6.5.1] - 2026-08-30
+Scene Blockの依存グラフを検証する内部DomainモデルとDAG Plannerを追加しました。
+
+### Add
+
+- **`SymphonyFrameWork.System.SceneBlock`名前空間へ、Scene Block実行順を決定する内部DomainモデルとDAG Plannerを追加しました。** `SceneBlockGraphPlanner.Plan`が、ノード識別子と依存辺（`SceneBlockEdge`）からKahnのアルゴリズムでトポロジカル層を算出します。重複ノード、自己依存、欠落参照、循環依存を`SceneBlockPlanResult`のエラー一覧として決定的な順序で報告し、Unity APIに依存しないためEditModeテストだけで全異常系を固定できます。現時点では`internal`のDomain層のみで、`SceneBlock` ScriptableObjectや`SceneLoadService`統合、公開APIは含みません（[#110](https://github.com/HIBIKI5201/SymphonyFramework/issues/110)）。
+
+## [6.5.0] - 2026-08-30
+セレクター属性のドロップダウンへ並べる候補を、利用側のメソッドで絞り込めるようにしました。
+
+### Add
+
+- **`[SceneNameSelector]`、`[TagSelector]`、`[SubclassSelector]`へフィルターメソッド名の引数を追加しました。** 従来はプロジェクトのシーン・タグ・派生型がすべて並び、候補を絞るには利用側でPropertyDrawerを書き直すしかありませんでした。属性の引数はコンパイル時定数に限られデリゲートを渡せないため、`[TagSelector(nameof(IsEnemyTag))]`のようにメソッド名で指定し、Drawerが描画時に解決します。メソッドはフィールドを持つ型かその基底型へ`bool(string)`（`[SubclassSelector]`は`bool(Type)`）として定義し、staticとinstanceのどちらでもよく`private`で構いません。引数を渡さない既存の使い方と保存済みの値は変わりません（[#199](https://github.com/HIBIKI5201/SymphonyFramework/issues/199)）。
+
+### Change
+
+- **フィルターの指定ミスと、候補が空になった場合はドロップダウンを描かず、Inspectorへ理由を表示するようにしました。** `OnGUI`は毎フレーム走るためログでは埋もれます。表示している間はシリアライズ済みの値を書き換えないため、条件を直せば元の値のまま選び直せます。あわせて`TagSelectorDrawer`へ候補が空のときの分岐を追加しました。フィルターを指定しない場合は候補が空にならないため、既存の表示は変わりません。
+
+## [6.4.0] - 2026-08-26
+Asset Store Tools Packagerの出力完了ログから出力先フォルダを開けるようにしました。
+
+### Add
+
+- **Packagerの出力完了ログの出力先を、Unity Consoleのリッチテキストリンクにしました。** 従来は出力先がプレーンテキストで、利用者がパスをコピーしてファイルブラウザーへ貼り付ける必要がありました。表示は従来どおりの短いパスのまま、`file:`のURIリンクとしてクリックできるようにし、OSのファイルブラウザーで出力先を直接開けます。URIへ変換できない場合は従来のプレーンテキストへフォールバックし、リンク生成の失敗を出力の失敗として扱いません（[#113](https://github.com/HIBIKI5201/SymphonyFramework/issues/113)）。
+
+## [6.3.2] - 2026-08-24
+非アクティブな直下の子を既定の子Component検索から除外するよう修正しました。
+
+### Fix
+
+- **`SymphonyComponentUtil.GetComponentInChildrenExcludeSelf`が、`includeInactive: false`でも非アクティブな直下の子を返す不具合を修正しました。** Unityの`GetComponentInChildren`が検索起点自身を`includeInactive`にかかわらず含めるため、直下の子を検索起点にする前に`activeInHierarchy`を確認します。`includeInactive: true`の挙動は変わりません（[#179](https://github.com/HIBIKI5201/SymphonyFramework/issues/179)）。
 
 ## [6.3.1] - 2026-08-18
 DebugログをAssetsやPackageCacheではなくプロジェクトのLibrary配下へ出力するよう修正しました。
@@ -279,7 +688,7 @@ Editorからドキュメントをブラウザで開けるようにしました�
 
 - **`Window > SymphonyFrameWork > Documentation` を追加しました。** 同梱ドキュメントの索引がブラウザで開きます。ドキュメントの在り処を知らないと読めない状態を解消するためです。
 
-- **`Project Settings > SymphonyFrameWork` の各画面へ `ドキュメントを開く` ボタンを追加しました。** 設定画面から、その設定を説明している文書へ直接移動できます。`SymphonyFrameWork` は[Editor機能](./Documentation~/EditorTools.md)、`Save System` は[Save Data System](./Documentation~/Modules/SaveDataSystem.md)、`Asset Store Tools Packager` は[Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)を開きます。
+- **`Project Settings > SymphonyFrameWork` の各画面へ `ドキュメントを開く` ボタンを追加しました。** 設定画面から、その設定を説明している文書へ直接移動できます。`SymphonyFrameWork` は[Editor機能](./Documentation~/EditorTools.md)、`Save System` は[Save Data System](./Documentation~/Modules/Manuscript.md)、`Asset Store Tools Packager` は[Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)を開きます。
 
 - **Editor専用の公開API `SymphonyFrameWork.Editor.SymphonyDocumentation.Open(SymphonyDocumentPageEnum)` を追加しました。** 利用側のEditor拡張からも同じ経路でドキュメントを開けます。
 

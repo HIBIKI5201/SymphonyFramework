@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace SymphonyFrameWork
+namespace SymphonyFramework
 {
     /// <summary>
-    ///     AudioManagerが使用するミキサーとグループ設定を保持する。
+    ///     Sonorityが使用するミキサーとグループ設定を保持する。
     /// </summary>
     /// <remarks>
     ///     利用側コードへ設定型を公開せず、InspectorとProject Settingsだけを編集経路とする。

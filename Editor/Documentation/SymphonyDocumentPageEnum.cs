@@ -1,9 +1,16 @@
-﻿namespace SymphonyFrameWork.Editor
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace SymphonyFramework.Editor
 {
     /// <summary>
     ///     ブラウザで開けるFrameworkのドキュメントページ。
     /// </summary>
     /// <remarks> 各値は<c>Documentation~/</c>配下の文書と1対1で対応する。 </remarks>
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public enum SymphonyDocumentPageEnum
     {
         #region 外部向けAPI
@@ -11,20 +18,23 @@
         /// <summary> 全ドキュメントの索引。 </summary>
         Index,
 
-        /// <summary> Service Locatorモジュール。 </summary>
-        ServiceLocator,
+        /// <summary> Partituraモジュール。 </summary>
+        Partitura,
 
-        /// <summary> Scene Loaderモジュール。 </summary>
-        SceneLoader,
+        /// <summary> Attaccaモジュール。 </summary>
+        Attacca,
 
-        /// <summary> Save Data Systemモジュール。 </summary>
-        SaveDataSystem,
+        /// <summary> Suiteモジュール。 </summary>
+        Suite,
 
-        /// <summary> Audio Managerモジュール。 </summary>
-        AudioManager,
+        /// <summary> Manuscriptモジュール。 </summary>
+        Manuscript,
 
-        /// <summary> Pause Managerモジュール。 </summary>
-        PauseManager,
+        /// <summary> Sonorityモジュール。 </summary>
+        Sonority,
+
+        /// <summary> Fermataモジュール。 </summary>
+        Fermata,
 
         /// <summary> HUD、ログ、処理時間計測のモジュール。 </summary>
         Debug,
@@ -46,6 +56,9 @@
 
         /// <summary> Editor機能の索引と、単一モジュールに属さない横断的な仕組み。 </summary>
         EditorTools,
+
+        /// <summary> ビルド前のUXML依存とフォント設定の検証。 </summary>
+        BuildValidation,
 
         #endregion
     }

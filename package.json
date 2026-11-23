@@ -1,9 +1,10 @@
 {
   "name": "symphonyframework",
-  "version": "6.3.1",
+  "version": "7.0.0",
   "displayName": "Symphony Framework",
-  "description": "This is Symphony Framework",
+  "description": "シーン遷移、サービス共有、セーブ、オーディオ、ポーズを同じ使い方で扱えるようにまとめたUnity向けフレームワークです。最初のシーンより前に自動で初期化されるため、Bootstrapシーンやマネージャープレハブを用意せずに、必要な機能から使い始められます。",
   "unity": "6000.0",
+  "documentationUrl": "https://hibiki5201.github.io/SymphonyFramework/",
   "author": {
     "email": "takuto5201@gmail.com",
     "name": "HIBIKI_5201",
@@ -21,29 +22,34 @@
   },
   "samples": [
     {
-      "displayName": "Service Locator Sample",
-      "description": "サービスの登録、必須取得、非同期待機を行うService Locatorサンプルが含まれています。",
-      "path": "Samples~/Runtime/ServiceLocatorSample"
+      "displayName": "Partitura Sample",
+      "description": "サービスの登録、必須取得、非同期待機を行うPartitura（Service Locator）サンプルが含まれています。",
+      "path": "Samples~/Runtime/PartituraSample"
     },
     {
-      "displayName": "Save Data System Sample",
-      "description": "SaveDataRegistry と SaveDataContent を使用したセーブデータ管理のサンプルが含まれています。",
-      "path": "Samples~/Runtime/SaveDataSystemSample"
+      "displayName": "Manuscript Sample",
+      "description": "Manuscript と SaveDataContent を使用したセーブデータ管理のサンプルが含まれています。",
+      "path": "Samples~/Runtime/ManuscriptSample"
     },
     {
-      "displayName": "Scene Loader Sample",
-      "description": "SceneLoader を使用した追加ロード、優先度によるActive Scene切り替え、ロード完了待機のサンプルが含まれています。",
-      "path": "Samples~/Runtime/SceneLoaderSample"
+      "displayName": "Attacca Sample",
+      "description": "Attacca を使用した追加ロード、優先度によるActive Scene切り替え、ロード完了待機のサンプルが含まれています。",
+      "path": "Samples~/Runtime/AttaccaSample"
     },
     {
-      "displayName": "Pause Manager Sample",
-      "description": "PauseManager を使用したポーズ状態の切り替え、IPausable、Pause対応の待機処理のサンプルが含まれています。",
-      "path": "Samples~/Runtime/PauseManagerSample"
+      "displayName": "Suite Sample",
+      "description": "Suite を使用したブロック単位の依存順ロード、ブロック切り替え時の共有シーンの保持、Attacca による単体ロードとの共存のサンプルが含まれています。",
+      "path": "Samples~/Runtime/SuiteSample"
     },
     {
-      "displayName": "Audio Manager Sample",
-      "description": "AudioManager を使用したAudioSource取得と音量制御のサンプルが含まれています。",
-      "path": "Samples~/Runtime/AudioManagerSample"
+      "displayName": "Fermata Sample",
+      "description": "Fermata を使用したカテゴリーごとのポーズ切り替え、IPausable、ポーズ対応の待機処理のサンプルが含まれています。",
+      "path": "Samples~/Runtime/FermataSample"
+    },
+    {
+      "displayName": "Sonority Sample",
+      "description": "Sonority を使用したAudioSource取得と音量制御のサンプルが含まれています。",
+      "path": "Samples~/Runtime/SonoritySample"
     },
     {
       "displayName": "Debugger Sample",

@@ -15,45 +15,25 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 
 ## 削除予定の一覧
 
-| 対象 | 場所 | 移行先 | 非推奨にした版 | 削除予定 | 備考 |
-| --- | --- | --- | --- | --- | --- |
-| `SymphonyDebugLogger.DirectLog(string, LogKindEnum)` | `Runtime/Debug/SymphonyDebugLogger.cs` | `SymphonyDebugLogger.LogDirect` | 記録なし | **未定** | 非推奨にした版がCHANGELOGから特定できていない |
-| `SymphonyDebugLogger.TextLog(LogKindEnum, bool)` | `Runtime/Debug/SymphonyDebugLogger.cs` | `SymphonyDebugLogger.LogText` | 記録なし | **未定** | 同上 |
-| `SymphonyDebugLogger.CheckComponentNull<T>(T)` | `Runtime/Debug/SymphonyDebugLogger.cs` | `SymphonyDebugLogger.LogAndCheckComponentNull` | 記録なし | **未定** | 拡張メソッド。同上 |
-| `SymphonyDebugLogger.IsComponentNotNull<T>(T)` | `Runtime/Debug/SymphonyDebugLogger.cs` | `SymphonyDebugLogger.LogAndCheckComponentNull` | 記録なし | **未定** | 拡張メソッド。「安全性が保障されていない」ことを理由に非推奨化されている。同上 |
-| `SymphonyTween.TweeningLerp<T>(...)` | `Runtime/Utility/SymphonyTween.cs` | `SymphonyTween.Tweening` | 記録なし | **未定** | `Task` を返す旧型式。移行先は `Awaitable` を返す |
-| `SymphonyTween.TweeningCurve<T>(...)` | `Runtime/Utility/SymphonyTween.cs` | `SymphonyTween.Tweening` | 記録なし | **未定** | 同上 |
-| `EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE` | `Core/Editor/EditorSymphonyConstant.cs` | `EditorSymphonyConstant.ASSET_STORE_TOOLS_CONFIG_FILE_NAME` | 3.1.0 | 次のメジャー更新 | 削除時は `AssetStoreToolsPackagerConfigStore` の `ignore.txt` 移行処理（`IGNORE_FILE_NAME`、`ReadIgnoreFile`、`CreateConfigFile` の移行分岐）も一緒に削除する |
-| `AssetStoreToolsPackager.PackageModeEnum.Combine` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `AssetStoreToolsCombinePackageStrategy` | 3.4.0 | 次のメジャー更新 | **enum の選択肢としては消すが、統合パッケージ出力そのものは Strategy として残す。** 下記「Combineの削除手順」を参照 |
-| `AssetStoreToolsPackager.PackageModeEnum` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `AssetStoreToolsPackagePipeline` | 3.7.0 | 次のメジャー更新 | `Combine` を除くと `Singles` と `Nothing` しか残らず、enum として意味を失う。下記「Combineの削除手順」を参照 |
-| `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackager.cs` | `Export(string[], AssetStoreToolsPackagePipeline)` | 3.7.0 | 次のメジャー更新 | `PackageModeEnum` と同時に削除する。3.7.0 以降フレームワーク内部では使用していない |
-| `AssetStoreToolsPackageContext` | `Editor/Generator/AssetStoreToolsPackager/AssetStoreToolsPackageContext.cs` | `AssetStoreToolsPackageExportContext` | 3.6.0 | 次のメジャー更新 | `ref struct` はフィールドへ保持できず、パイプラインの拡張点へ渡せない。3.6.0 以降フレームワーク内部では使用していない |
+### 7.0.0（6.x の名前からの転送）
 
-### Combineの削除手順
+6.x（名前空間 `SymphonyFrameWork.*`）から上げた利用側が、まず警告付きでコンパイルできるように残した転送です。移行方法は [Migration7.md](./Migration7.md) にまとめています。置き場は `Runtime/Obsolete/<旧名前空間>/` です。
 
-`Combine` を削除すると `PackageModeEnum` に `Singles` と `Nothing` しか残らず、enum 自体が意味を失います。**次のメジャー更新で enum ごと削除します。** そのとき一緒に直す箇所を記録しておきます。
-
-**削除するのは enum の選択肢であって、統合パッケージ出力の機能ではありません。** 3.6.0 で `AssetStoreToolsCombinePackageStrategy` として残しました。「差分インポートの単位にならない」という 3.4.0 の判断は変わらないため、**既定テンプレートには含めず、必要な利用者が自分でパイプラインへ追加する**位置付けです（Issue #124）。この Strategy に `[Obsolete]` は付けていません。
-
-| 対象 | 変更内容 |
-| --- | --- |
-| `AssetStoreToolsPackager.PackageModeEnum` | 削除する |
-| `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` | 削除する。代替は `Export(string[], AssetStoreToolsPackagePipeline)`（3.6.0 で追加済み） |
-| `AssetStoreToolsPackager.CreateStepsFromOptions` と `LEGACY_PIPELINE_NAME` | 削除する |
-| `AssetStoreToolsPackager` 内の `#pragma warning disable CS0618` | 抑止ごと削除する |
-| ワークスペースの `Documentation/DesignPhilosophy.md` | enum 命名の実例から `PackageModeEnum` を外す |
-
-`AssetStoreToolsPackageWindow` は 3.7.0 でパイプラインのポップアップへ置き換え済みのため、削除時に触る必要はありません。
-
-**旧シグネチャを `[Obsolete]` のシムとして残せません。** `PackageModeEnum` 自体が消えるため、旧シグネチャは型として成立しないためです。メジャー更新で直接削除し、CHANGELOG の `### Breaking` へ移行方法を明記します。
-
-### 「未定」について
-
-**削除予定が「未定」の項目は、判断がまだ行われていないことを表します。** 空欄にせず未定と書くのは、判断が必要な項目が何件あるかを見えるようにするためです。
-
-現在6件が未定です。**CHANGELOGの `### Deprecated` 節をすべて確認しましたが、これら6件の非推奨化はどの版にも記載がありませんでした。** 記載があるのは `SaveDataLoader`（2.20.0）、`SaveDataRegistry`（2.19.0）、`SymphonyTask`（2.6.0）、旧namespaceのFacade（2.2.0）、`ASSET_STORE_TOOLS_IGNORE_FILE`（3.1.0）で、いずれも別の対象です。
-
-非推奨化がCHANGELOGへ記載されないまま残っていたことが、この文書を作った理由の1つです。次のメジャー更新を計画するときに、6件の削除時期をまとめて判断してください。
+| 対象（`SymphonyFrameWork.*`） | 移行先 | 非推奨にした版 | 削除予定 | 備考 |
+| --- | --- | --- | --- | --- |
+| `System.ServiceLocate.ServiceLocator` | `Partitura` | 7.0.0 | 8.0.0 | `GetInstance` は 6.x と同じく未登録で `null`。インスタンスを渡す `DestroyInstance` / `IsExistInstance` は型だけで処理する |
+| `System.ServiceLocate.ServiceInjector` | `Partitura.Inject` / `CreateInstance` | 7.0.0 | 8.0.0 | |
+| `System.ServiceLocate.SymphonyLocateObject<T>` | `PartituraReference<T>` | 7.0.0 | 8.0.0 | `GetInstance` は未登録で `null` |
+| `System.ServiceLocate.IInjectable` / `IInjectable<T0…T3>` | `SymphonyFramework.Services.IInjectable` | 7.0.0 | 8.0.0 | 新しい型を継承する。明示的な実装は対象外 |
+| `System.ServiceLocate.LocateTypeEnum` | `ServiceLifetimeEnum` | 7.0.0 | 8.0.0 | 値の順序は同じ |
+| `System.SceneLoad.SceneLoader` | `Attacca` | 7.0.0 | 8.0.0 | `Action<float>` の進捗は `IProgress<float>` へ包む |
+| `System.SceneBlock.SceneBlockLoader` | `Suite` | 7.0.0 | 8.0.0 | 引数と戻り値は `SuiteAsset` / `SuiteInfo` |
+| `System.SaveSystem.SaveStore` | `Manuscript` | 7.0.0 | 8.0.0 | `GetEntries` は未初期化で例外（6.19.0 の変更） |
+| `System.SaveSystem.SaveDataContent` | `SymphonyFramework.SaveData.SaveDataContent` | 7.0.0 | 8.0.0 | 新しい型を継承する |
+| `System.SaveSystem.SaveDataLoaderStrategy` / `PlayerPrefsSaveDataLoaderStrategy` | `SymphonyFramework.SaveData` の同名の型 | 7.0.0 | 8.0.0 | 旧 `SaveDataContent` を受け取る抽象メソッドへ橋渡しする |
+| `System.AudioManager` | `Sonority` | 7.0.0 | 8.0.0 | `GetAudioSource` は未登録で `null` |
+| `System.PauseManager`（入れ子の `IPausable` を含む） | `Fermata`、`IPausable` | 7.0.0 | 8.0.0 | 旧 `IPausable` は既定カテゴリーとして扱う |
+| 6.x の名前空間ごとの目印（internal） | — | 7.0.0 | 8.0.0 | `using SymphonyFrameWork.X;` を通すためだけの空の型。`[MovedFrom]`（API Updater と書き換えツール `Migrate 6.x Names` の対応表に使う）は 8.0.0 以降も残す |
 
 ---
 
@@ -73,7 +53,25 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 
 削除が完了したものをここへ移します。移行が終わっているかの確認に使ってください。
 
-現時点で削除済みの項目はありません。3.0.0での破壊的変更は[CHANGELOG.md](../CHANGELOG.md)の `### Breaking` を参照してください。
+3.0.0での破壊的変更は[CHANGELOG.md](../CHANGELOG.md)の `### Breaking` を参照してください。
+
+### 6.20.0（7.0.0 の命名整理 Round 5）
+
+| 対象 | 移行先 | 非推奨にした版 | 備考 |
+| --- | --- | --- | --- |
+| `SymphonyDebugLogger.DirectLog(string, LogKindEnum)` | `SymphonyDebugLogger.LogDirect` | 記録なし | |
+| `SymphonyDebugLogger.TextLog(LogKindEnum, bool)` | `SymphonyDebugLogger.LogText` | 記録なし | |
+| `SymphonyDebugLogger.CheckComponentNull<T>(T)` | `SymphonyDebugLogger.LogAndCheckComponentNull` | 記録なし | 拡張メソッド |
+| `SymphonyDebugLogger.IsComponentNotNull<T>(T)` | `SymphonyDebugLogger.LogAndCheckComponentNull` | 記録なし | 拡張メソッド。戻り値の意味が逆（nullならtrue）になる点に注意 |
+| `SymphonyTween.TweeningLerp<T>(...)` | `SymphonyTween.Tweening` | 記録なし | 移行先は `Awaitable` を返す |
+| `SymphonyTween.TweeningCurve<T>(...)` | `SymphonyTween.Tweening`（`curve` 引数） | 記録なし | 同上 |
+| `EditorSymphonyConstant.ASSET_STORE_TOOLS_IGNORE_FILE` | `EditorSymphonyConstant.ASSET_STORE_TOOLS_CONFIG_FILE_NAME` | 3.1.0 | `ignore.txt` から `PackagerConfig.json` への移行処理も削除した |
+| `AssetStoreToolsPackager.PackageModeEnum`（`Combine` を含む） | `AssetStoreToolsPackagePipeline` | 3.4.0 / 3.7.0 | 統合パッケージ出力は `AssetStoreToolsCombinePackageStrategy` として残している |
+| `AssetStoreToolsPackager.Export(string[], PackageModeEnum, bool, bool)` | `Export(string[], AssetStoreToolsPackagePipeline)` | 3.7.0 | |
+| `AssetStoreToolsPackageContext` | `AssetStoreToolsPackageExportContext` | 3.6.0 | |
+| `PauseManager.Pause` | `Fermata.SetPauseAll` / `Fermata.IsPausedAny` | 6.12.0 | `PauseManager` は `Fermata` へ改名した。旧名の転送は 7.0.0 で入れる |
+| `PauseManager.OnPauseChanged` | `Fermata.AddPauseChangedHandler(Action<bool>)` / `RemovePauseChangedHandler(Action<bool>)` | 6.12.0 | 同上 |
+| カテゴリーを指定しない `PauseManager.Pausable*` 6件 | `Fermata.NextFrameAsync` / `WaitForSeconds` / `WaitForSecondsAsync` / `WaitUntilAsync` / `DestroyAsync` / `InvokeAsync` | 6.12.0 | **非推奨を取り消し、全カテゴリーを対象にする正式なAPIとして改名した。** どれか1つでもポーズ中なら止まる（動作は 6.12.0 以降と同じ） |
 
 ---
 

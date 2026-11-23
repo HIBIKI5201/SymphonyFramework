@@ -285,7 +285,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10f125c3f784c37498fd1fb2dd6ca101, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Samples.DebuggerSample.DebuggerSample_Controller
+  m_EditorClassIdentifier: SymphonyFramework::SymphonyFramework.Samples.DebuggerSample.DebuggerSample_Controller
   _hudProbe: {fileID: 2002}
 --- !u!114 &2002
 MonoBehaviour:
@@ -298,7 +298,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 80017922b9959c0499a910faed8eac06, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SymphonyFrameWork::SymphonyFrameWork.Samples.DebuggerSample.DebuggerSample_HudProbe
+  m_EditorClassIdentifier: SymphonyFramework::SymphonyFramework.Samples.DebuggerSample.DebuggerSample_HudProbe
 --- !u!4 &2003
 Transform:
   m_ObjectHideFlags: 0

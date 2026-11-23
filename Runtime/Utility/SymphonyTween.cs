@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Pause;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Utility
+namespace SymphonyFramework.Utility
 {
     /// <summary>
     ///     値をフレーム単位で補間するTweenを提供する。
     /// </summary>
+    // 6.x の名前（SymphonyFrameWork.Utility）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Utility",
+        sourceAssembly: "SymphonyFrameWork")]
     public static class SymphonyTween
     {
         #region 外部向けAPI
@@ -65,9 +70,75 @@ namespace SymphonyFrameWork.Utility
         /// <param name="d"> 補間時間。 </param>
         /// <param name="curve"> x軸を正規化して適用するカーブ。 </param>
         /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        public static async Awaitable PausableTweening<T>(T s, Action<T> action, T e, float d,
+        /// <remarks>
+        ///     どれか1つでもカテゴリーがポーズ中なら進行を止める。
+        ///     止める対象を分けたい場合は
+        ///     <see cref="PausableTweening{T, TCategory}" />を使う。
+        /// </remarks>
+        public static Awaitable PausableTweening<T>(T s, Action<T> action, T e, float d,
             AnimationCurve curve = null,
             CancellationToken token = default) where T : struct
+        {
+            return PausableTweeningCore(
+                static () => Fermata.IsPausedAny(), s, action, e, d, curve, token);
+        }
+
+        /// <summary>
+        ///     カテゴリーのPause中の経過を除外し、指定時間にわたり開始値から終了値まで補間する。
+        /// </summary>
+        /// <typeparam name="T"> 補間する値の型。 </typeparam>
+        /// <typeparam name="TCategory"> 進行を止めるカテゴリー。 </typeparam>
+        /// <param name="s"> 開始値。 </param>
+        /// <param name="action"> 補間値を受け取る処理。 </param>
+        /// <param name="e"> 終了値。 </param>
+        /// <param name="d"> 補間時間。 </param>
+        /// <param name="curve"> x軸を正規化して適用するカーブ。 </param>
+        /// <param name="token"> Tweenを中断するためのトークン。 </param>
+        /// <returns> 補間処理を表すAwaitable。 </returns>
+        /// <remarks>
+        ///     **既存のシグネチャは変えていない。** 型引数を増やしたオーバーロードとして足すことで、
+        ///     従来の呼び出しをそのまま残している。
+        /// </remarks>
+        public static Awaitable PausableTweening<T, TCategory>(T s, Action<T> action, T e, float d,
+            AnimationCurve curve = null,
+            CancellationToken token = default)
+            where T : struct
+            where TCategory : IPausable
+        {
+            return PausableTweeningCore(
+                static () => Fermata.IsPaused<TCategory>(), s, action, e, d, curve, token);
+        }
+
+        #endregion
+
+        #region 内部処理
+
+        /// <summary>
+        ///     対応する型の線形補間値を返す。
+        /// </summary>
+        /// <typeparam name="T"> 線形補間する値の型。 </typeparam>
+        /// <param name="value"> 補間の開始値と終了値。 </param>
+        /// <param name="t"> 0から1までの補間割合。 </param>
+        /// <returns> 対応型の補間値。未対応型の場合はnull。 </returns>
+        /// <summary>
+        ///     ポーズ判定を差し替えられる形で補間の本体を実行する。
+        /// </summary>
+        /// <typeparam name="T"> 補間する値の型。 </typeparam>
+        /// <param name="isPaused"> 現在ポーズ中かを判定する処理。 </param>
+        /// <param name="s"> 開始値。 </param>
+        /// <param name="action"> 補間値を受け取る処理。 </param>
+        /// <param name="e"> 終了値。 </param>
+        /// <param name="d"> 補間時間。 </param>
+        /// <param name="curve"> x軸を正規化して適用するカーブ。 </param>
+        /// <param name="token"> Tweenを中断するためのトークン。 </param>
+        /// <returns> 補間処理を表すAwaitable。 </returns>
+        /// <remarks>
+        ///     **判定だけを差し替える形で、全体版とカテゴリー版が同じ補間処理を共有する。**
+        /// </remarks>
+        private static async Awaitable PausableTweeningCore<T>(
+            Func<bool> isPaused, T s, Action<T> action, T e, float d,
+            AnimationCurve curve,
+            CancellationToken token) where T : struct
         {
             // カーブの最終キー時刻に依存せず、0から1の経過率で評価できる形へ揃える。
             curve = NormalizeCurve(curve);
@@ -77,7 +148,7 @@ namespace SymphonyFrameWork.Utility
             while (Time.time <= timer + d)
             {
                 // Pause中は補間値を進めず、キャンセルを受け取れるフレーム待機だけを行う。
-                if (PauseManager.Pause)
+                if (isPaused())
                 {
                     timer += Time.deltaTime;
                     await Awaitable.NextFrameAsync(token);
@@ -104,94 +175,6 @@ namespace SymphonyFrameWork.Utility
             action?.Invoke(e);
         }
 
-        /// <summary>
-        ///     指定時間にわたり開始値から終了値まで線形補間する。
-        /// </summary>
-        /// <typeparam name="T"> 線形補間する値の型。 </typeparam>
-        /// <param name="s"> 開始値。 </param>
-        /// <param name="action"> 補間値を受け取る処理。 </param>
-        /// <param name="e"> 終了値。 </param>
-        /// <param name="d"> 補間時間。 </param>
-        /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        [Obsolete("旧型式です。" + nameof(Tweening) + "を使用する事を推奨します")]
-        public static async Task TweeningLerp<T>(T s, Action<T> action, T e, float d,
-            CancellationToken token = default) where T : struct
-        {
-            float timer = Time.time;
-
-            // 旧APIの既存契約どおり、指定時間内は毎フレーム線形補間値を通知する。
-            while (Time.time <= timer + d)
-            {
-                float elapsed = Time.time - timer;
-                float t = Mathf.Clamp01(elapsed / d);
-                T? result = LerpValue((s, e), t);
-
-                // 補間を定義していない型は実行を継続できないため、実行環境でも確認できるログを残す。
-                if (result == null)
-                {
-                    SymphonyDebugLogger.LogDirect($"{typeof(T).Name}型は{nameof(TweeningLerp)}に対応していません");
-                    return;
-                }
-                // action未指定は通知だけを省略し、時間待機自体は継続する既存契約を維持する。
-                action?.Invoke(result.Value);
-                await Awaitable.NextFrameAsync();
-            }
-
-            // フレーム間隔による端数にかかわらず、正常完了時は終了値を必ず通知する。
-            action?.Invoke(e);
-        }
-
-        /// <summary>
-        ///     指定時間にわたりカーブを適用して開始値から終了値まで補間する。
-        /// </summary>
-        /// <typeparam name="T"> カーブ補間する値の型。 </typeparam>
-        /// <param name="s"> 開始値。 </param>
-        /// <param name="action"> 補間値を受け取る処理。 </param>
-        /// <param name="e"> 終了値。 </param>
-        /// <param name="d"> 補間時間。 </param>
-        /// <param name="curve"> 補間割合へ適用するAnimationCurve。 </param>
-        /// <param name="token"> Tweenを中断するためのトークン。 </param>
-        [Obsolete("旧型式です。" + nameof(Tweening) + "を使用する事を推奨します")]
-        public static async Task TweeningCurve<T>(T s, Action<T> action, T e, float d, AnimationCurve curve,
-            CancellationToken token = default) where T : struct
-        {
-            // 旧APIでもカーブの最終キー時刻に依存せず、0から1の経過率で評価できる形へ揃える。
-            curve = NormalizeCurve(curve);
-            float timer = Time.time;
-
-            // 旧APIの既存契約どおり、指定時間内は毎フレームカーブ補間値を通知する。
-            while (Time.time <= timer + d)
-            {
-                float elapsed = Time.time - timer;
-                float t = Mathf.Clamp01(elapsed / d);
-                T? result = CurveValue((s, e), t, curve);
-
-                // 補間を定義していない型は実行を継続できないため、実行環境でも確認できるログを残す。
-                if (result == null)
-                {
-                    SymphonyDebugLogger.LogDirect($"{typeof(T).Name}型は{nameof(TweeningCurve)}に対応していません");
-                    return;
-                }
-                // action未指定は通知だけを省略し、時間待機自体は継続する既存契約を維持する。
-                action?.Invoke(result.Value);
-                await Awaitable.NextFrameAsync();
-            }
-
-            // フレーム間隔による端数にかかわらず、正常完了時は終了値を必ず通知する。
-            action?.Invoke(e);
-        }
-
-        #endregion
-
-        #region 内部処理
-
-        /// <summary>
-        ///     対応する型の線形補間値を返す。
-        /// </summary>
-        /// <typeparam name="T"> 線形補間する値の型。 </typeparam>
-        /// <param name="value"> 補間の開始値と終了値。 </param>
-        /// <param name="t"> 0から1までの補間割合。 </param>
-        /// <returns> 対応型の補間値。未対応型の場合はnull。 </returns>
         private static T? LerpValue<T>((T s, T e) value, float t) where T : struct
         {
             // 型ごとのUnity標準補間へ振り分け、未対応型は呼び出し元で診断できるnullにする。

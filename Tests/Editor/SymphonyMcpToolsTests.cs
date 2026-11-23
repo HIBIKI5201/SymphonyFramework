@@ -2,41 +2,41 @@
 
 using System.IO;
 
-using SymphonyFrameWork.Editor.Debugger;
+using SymphonyFramework.Editor.Debugger;
 
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> 未初期化時のSymphonyMcpToolsが有効なJSONを返すことを検証する。 </summary>
     public sealed class SymphonyMcpToolsTests
     {
-        /// <summary> Service Locatorが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Partituraが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
-        public void GetServiceLocatorJson_WhenUninitialized_ReturnsValidJson()
+        public void GetPartituraJson_WhenUninitialized_ReturnsValidJson()
         {
-            AssertUninitializedJson(SymphonyMcpTools.GetServiceLocatorJson);
+            AssertUninitializedJson(SymphonyMcpTools.GetPartituraJson);
         }
 
-        /// <summary> Scene Loaderが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Attaccaが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
-        public void GetSceneLoaderJson_WhenUninitialized_ReturnsValidJson()
+        public void GetAttaccaJson_WhenUninitialized_ReturnsValidJson()
         {
-            JObject result = AssertUninitializedJson(SymphonyMcpTools.GetSceneLoaderJson);
+            JObject result = AssertUninitializedJson(SymphonyMcpTools.GetAttaccaJson);
 
             Assert.That(result["scenes"], Is.Empty);
             Assert.That(result["activeSceneName"].Type, Is.EqualTo(JTokenType.Null));
         }
 
-        /// <summary> Save Data Registryが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Manuscriptが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
-        public void GetSaveDataJson_WhenUninitialized_ReturnsValidJson()
+        public void GetManuscriptJson_WhenUninitialized_ReturnsValidJson()
         {
-            AssertUninitializedJson(SymphonyMcpTools.GetSaveDataJson);
+            AssertUninitializedJson(SymphonyMcpTools.GetManuscriptJson);
         }
 
-        /// <summary> Pause Managerが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
+        /// <summary> Fermataが未初期化でも例外なく有効なJSONを返すことを検証する。 </summary>
         [Test]
         public void GetPauseJson_WhenUninitialized_ReturnsValidJson()
         {

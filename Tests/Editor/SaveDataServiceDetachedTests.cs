@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.SaveData;
+using SymphonyFramework.Utility;
 
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     SaveDataServiceのdetached I/OがRegistryから独立する契約を検証する。

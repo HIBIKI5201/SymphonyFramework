@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
-using SymphonyFrameWork.Config;
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Debugger.HUD;
-using SymphonyFrameWork.Debugger.Logger;
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.System.SaveSystem;
-using SymphonyFrameWork.System.SceneLoad;
-using SymphonyFrameWork.System.ServiceLocate;
+using SymphonyFramework.Audio;
+using SymphonyFramework.Config;
+using SymphonyFramework.Core;
+using SymphonyFramework.Debugger.HUD;
+using SymphonyFramework.Debugger.Logger;
+using SymphonyFramework.Pause;
+using SymphonyFramework.SaveData;
+using SymphonyFramework.Scenes;
+using SymphonyFramework.Services;
 
 using UnityEngine;
 
-namespace SymphonyFrameWork.Orchestrator
+namespace SymphonyFramework.Orchestrator
 {
     /// <summary>
-    ///     SymphonyFrameWorkの永続オブジェクトを管理するComposition Root。
+    ///     SymphonyFrameworkの永続オブジェクトを管理するComposition Root。
     /// </summary>
     internal static class SymphonyOrchestrator
     {
@@ -52,29 +54,41 @@ namespace SymphonyFrameWork.Orchestrator
                 _systemObject = systemGameObject.AddComponent<SymphonyLifetimeComponent>();
                 UnityEngine.Object.DontDestroyOnLoad(systemGameObject);
 
+                // OnEnableとStartの間で実行するフレームワークの同期フェーズをPlayerLoopへ挿入する。
+                // ここへ登録した処理は、その回のUpdate.ScriptRunBehaviourUpdate（Start呼び出しを含む）より必ず先に走る。
+                SymphonyFrameworkLifecycleLoop.Install(RunFrameworkLifecycleTick);
+
                 // Save → Pause → Service → Scene → Audio → HUDの起動契約を保ち、途中失敗時も成功済み処理を逆順で戻せるようにする。
                 SaveDataInitializer.Initialize(ResolveSaveDataLoader);
-                RecordInitializedSubsystem(SaveStore.ResetRuntimeState);
+                RecordInitializedSubsystem(Manuscript.ResetRuntimeState);
 
-                PauseManager.Initialize();
-                RecordInitializedSubsystem(PauseManager.ResetRuntimeState);
+                Fermata.Initialize();
+                RecordInitializedSubsystem(Fermata.ResetRuntimeState);
 
                 ServiceHostComponent serviceHost =
                     systemObjectFactory.CreateComponent<ServiceHostComponent>(
                         nameof(ServiceHostComponent));
-                ServiceLocator.Initialize(serviceHost);
-                RecordInitializedSubsystem(ServiceLocator.ResetRuntimeState);
+                Partitura.Initialize(serviceHost);
+                RecordInitializedSubsystem(Partitura.ResetRuntimeState);
+                RecordFrameworkTick(Partitura.FlushPendingRegistrations);
 
-                SceneLoader.Initialize();
-                RecordInitializedSubsystem(SceneLoader.ResetRuntimeState);
+                Attacca.Initialize();
+                RecordInitializedSubsystem(Attacca.ResetRuntimeState);
 
-                AudioManager.Initialize(
-                    SymphonyConfigLocator.GetConfig<AudioConfig>(),
+                // SuiteはScene Loadの操作を土台にするため、必ずその後段で初期化する。
+                Suite.Initialize(Attacca.CurrentService);
+                RecordInitializedSubsystem(Suite.ResetRuntimeState);
+
+                // Suiteが保持中のシーンをAttaccaの単体アンロードから守る。
+                Attacca.SetSuiteHoldQuery(Suite.IsSceneHeld);
+
+                Sonority.Initialize(
+                    SymphonyConfigProvider.GetConfig<AudioConfig>(),
                     systemObjectFactory);
-                RecordInitializedSubsystem(AudioManager.ResetRuntimeState);
+                RecordInitializedSubsystem(Sonority.ResetRuntimeState);
 
                 DebugHUDConfig debugHUDConfig =
-                    SymphonyConfigLocator.GetConfig<DebugHUDConfig>();
+                    SymphonyConfigProvider.GetConfig<DebugHUDConfig>();
                 SymphonyDebugHUD.Initialize(
                     systemObjectFactory,
                     debugHUDConfig?.ToggleAction,
@@ -109,10 +123,20 @@ namespace SymphonyFrameWork.Orchestrator
         {
             // InspectorとProject Settingsで構成された内部設定を、初期シーンの準備完了後に適用する。
             SceneLoadConfig config =
-                SymphonyConfigLocator.GetConfig<SceneLoadConfig>();
+                SymphonyConfigProvider.GetConfig<SceneLoadConfig>();
 
-            // Runtime初期化コールバックは同期入口のため、以後の非同期処理をSceneLoaderへ引き渡す。
-            _ = SceneLoader.AfterSceneLoad(config);
+            // 起動時のSuiteは初期シーンの後でロードし、そのシーンは起動時の整理で残す。
+            SuiteAsset[] initializeSuites = config?.InitializeSuiteList;
+            IReadOnlyCollection<string> suiteSceneNames = null;
+            Func<Task<bool>> loadSuitesAsync = null;
+            if (initializeSuites != null && 0 < initializeSuites.Length)
+            {
+                suiteSceneNames = Suite.CollectSceneNames(initializeSuites);
+                loadSuitesAsync = () => Suite.LoadInitialAsync(initializeSuites);
+            }
+
+            // Runtime初期化コールバックは同期入口のため、以後の非同期処理をAttaccaへ引き渡す。
+            _ = Attacca.AfterSceneLoad(config, suiteSceneNames, loadSuitesAsync);
         }
 
         #endregion
@@ -120,6 +144,7 @@ namespace SymphonyFrameWork.Orchestrator
         #region 内部処理
 
         private static readonly List<Action> _resetActions = new();
+        private static readonly List<Action> _frameworkTickActions = new();
 
         private static CancellationTokenRegistration _destroyRegistration;
         private static bool _isShuttingDown;
@@ -133,7 +158,7 @@ namespace SymphonyFrameWork.Orchestrator
         {
             // 利用側コードへinternalなConfigを公開せず、InspectorとProject Settingsの選択結果だけを解決する。
             SaveDataConfig config =
-                SymphonyConfigLocator.GetConfig<SaveDataConfig>();
+                SymphonyConfigProvider.GetConfig<SaveDataConfig>();
 
             // ConfigまたはLoaderが未設定の場合も、既定実装で初期化を継続する。
             return config?.Loader ?? new JsonUtilitySaveDataLoaderStrategy();
@@ -150,6 +175,37 @@ namespace SymphonyFrameWork.Orchestrator
         }
 
         /// <summary>
+        ///     OnEnableとStartの間で毎フレーム実行する処理を登録順に記録する。
+        /// </summary>
+        /// <param name="tickAction"> Start呼び出しの直前に実行する処理。 </param>
+        private static void RecordFrameworkTick(Action tickAction)
+        {
+            _frameworkTickActions.Add(tickAction);
+        }
+
+        /// <summary>
+        ///     登録済みの同期フェーズ処理を順に実行する。
+        /// </summary>
+        /// <remarks>
+        ///     <see cref="SymphonyFrameworkLifecycleLoop"/>からUpdate.ScriptRunBehaviourUpdateの直前に呼ばれる。
+        /// </remarks>
+        private static void RunFrameworkLifecycleTick()
+        {
+            // 1件の失敗で残りの同期処理を止めない。Shutdownの逆順解放と同じ例外集約方針にする。
+            for (int i = 0; i < _frameworkTickActions.Count; i++)
+            {
+                try
+                {
+                    _frameworkTickActions[i]();
+                }
+                catch (Exception exception)
+                {
+                    SymphonyDebugLogger.LogException(exception);
+                }
+            }
+        }
+
+        /// <summary>
         ///     初期化済みサブシステムを構築順の逆順で解放する。
         /// </summary>
         private static void Shutdown()
@@ -159,6 +215,10 @@ namespace SymphonyFrameWork.Orchestrator
 
             _isShuttingDown = true;
             List<Exception> exceptions = null;
+
+            // 同期フェーズを先に取り除き、解放処理の途中でフレームワークのtickが割り込まないようにする。
+            SymphonyFrameworkLifecycleLoop.Uninstall();
+            _frameworkTickActions.Clear();
 
             // 構築時の依存関係を壊さないよう、初期化に成功した順序の逆から解放する。
             for (int i = _resetActions.Count - 1; i >= 0; i--)

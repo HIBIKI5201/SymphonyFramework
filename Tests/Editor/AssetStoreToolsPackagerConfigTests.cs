@@ -1,10 +1,10 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Editor;
 
 using System.Collections.Generic;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> パッケージ化設定の正規化と、強制包含拡張子の一致判定を検証する。 </summary>
     public sealed class AssetStoreToolsPackagerConfigTests

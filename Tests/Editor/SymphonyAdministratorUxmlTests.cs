@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
 
-using SymphonyFrameWork.Core;
-using SymphonyFrameWork.Editor;
+using SymphonyFramework.Core;
+using SymphonyFramework.Editor;
 
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary> Symphony AdministratorのUXMLがカスタムパネル型を解決できることを検証する。 </summary>
     public sealed class SymphonyAdministratorUxmlTests
@@ -22,8 +22,8 @@ namespace SymphonyFrameWork.Tests
 
             TemplateContainer container = windowTree.Instantiate();
             PauseWindow pauseWindow = container.Q<PauseWindow>();
-            ServiceLocateWindow serviceLocateWindow = container.Q<ServiceLocateWindow>();
-            SceneLoadWindow sceneLoadWindow = container.Q<SceneLoadWindow>();
+            PartituraWindow serviceLocateWindow = container.Q<PartituraWindow>();
+            AttaccaWindow sceneLoadWindow = container.Q<AttaccaWindow>();
             SaveDataWindow saveDataWindow = container.Q<SaveDataWindow>();
             AutoEnumGeneratorWindow autoEnumGeneratorWindow =
                 container.Q<AutoEnumGeneratorWindow>();

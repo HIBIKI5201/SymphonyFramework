@@ -2,10 +2,10 @@
 
 using NUnit.Framework;
 
-using SymphonyFrameWork.Editor;
-using SymphonyFrameWork.System.SaveSystem;
+using SymphonyFramework.Editor;
+using SymphonyFramework.SaveData;
 
-namespace SymphonyFrameWork.Tests
+namespace SymphonyFramework.Tests
 {
     /// <summary>
     ///     セーブデータ型カタログのAssembly判定と型判定を検証する。

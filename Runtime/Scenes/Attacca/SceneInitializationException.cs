@@ -1,0 +1,52 @@
+﻿using System;
+using UnityEngine.Scripting.APIUpdating;
+
+namespace SymphonyFramework.Scenes
+{
+    /// <summary>
+    ///     ロードしたシーンのルートオブジェクト初期化に失敗した場合に発生する例外。
+    /// </summary>
+    // 6.x の名前（SymphonyFrameWork.System.SceneLoad）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.System.SceneLoad",
+        sourceAssembly: "SymphonyFrameWork")]
+    public sealed class SceneInitializationException : Exception
+    {
+        #region 外部向けAPI
+
+        /// <summary>
+        ///     初期化に失敗したシーンと対象を指定して例外を生成する。
+        /// </summary>
+        /// <param name="sceneName"> 初期化中だったシーン名。 </param>
+        /// <param name="gameObjectName"> 初期化対象のルートGameObject名。 </param>
+        /// <param name="initializerType"> DIまたは非同期初期化を実行していた型。 </param>
+        /// <param name="innerException"> 原因となった例外。 </param>
+        public SceneInitializationException(
+            string sceneName,
+            string gameObjectName,
+            Type initializerType,
+            Exception innerException)
+            : base(
+                $"[{nameof(Attacca)}] シーン {sceneName} のルートオブジェクト {gameObjectName} を初期化できませんでした。"
+                + $" Initializer: {initializerType?.FullName ?? "(null)"}",
+                innerException)
+        {
+            // 例外メッセージと構造化プロパティへ同じ初期化文脈を保持する。
+            SceneName = sceneName;
+            GameObjectName = gameObjectName;
+            InitializerType = initializerType;
+        }
+
+        /// <summary> 初期化中だったシーン名。 </summary>
+        public string SceneName { get; }
+
+        /// <summary> 初期化対象のルートGameObject名。 </summary>
+        public string GameObjectName { get; }
+
+        /// <summary> DIまたは非同期初期化を実行していた型。 </summary>
+        public Type InitializerType { get; }
+
+        #endregion
+    }
+}

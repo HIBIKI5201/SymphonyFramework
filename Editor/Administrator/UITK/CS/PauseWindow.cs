@@ -1,19 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using SymphonyFrameWork.System;
-using SymphonyFrameWork.Utility;
+using SymphonyFramework.Pause;
+using SymphonyFramework.Utility;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace SymphonyFrameWork.Editor
+namespace SymphonyFramework.Editor
 {
     /// <summary>
-    ///     PauseManagerの状態表示と操作を提供する。
+    ///     Fermataの状態表示と操作を提供する。
     /// </summary>
     [UxmlElement]
+    // 6.x の名前（SymphonyFrameWork.Editor）を使う利用側スクリプトを、Unity の API Updater が書き換えるための対応。
+    [MovedFrom(
+        true,
+        sourceNamespace: "SymphonyFrameWork.Editor",
+        sourceAssembly: "SymphonyFrameWork.Editor")]
     public sealed partial class PauseWindow : SymphonyVisualElement, IDisposable
     {
         #region 外部向けAPI
@@ -55,7 +62,15 @@ namespace SymphonyFrameWork.Editor
         private VisualElement _pauseVisual;
         private Button _pauseButton;
         private Button _resumeButton;
+        private ListView _categoryList;
         private bool _isDisposed;
+
+        /// <summary> ListViewへ渡す表示用の一覧。 </summary>
+        /// <remarks>
+        ///     **同じListを使い回して中身を入れ替える。** 毎回新しいListを差すと、
+        ///     ListViewがスクロール位置と選択状態を作り直す。
+        /// </remarks>
+        private readonly List<PauseCategoryDto> _categoryItems = new();
 
         /// <summary>
         ///     Play Mode遷移に合わせて現在のViewModelへ接続し直す。
@@ -81,7 +96,7 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     PauseManagerへの操作ボタンと状態表示要素を構成する。
+        ///     Fermataへの操作ボタンと状態表示要素を構成する。
         /// </summary>
         /// <param name="container"> UXMLから生成されたルート要素。 </param>
         /// <returns> 同期的に完了する初期化処理。 </returns>
@@ -91,7 +106,7 @@ namespace SymphonyFrameWork.Editor
             if (_isDisposed) { return SymphonyAwaitable.Completed(); }
 
             // 状態表示と操作に使うVisualElementを、生成済みのUXMLから取得する。
-            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.PauseManager);
+            SymphonyDocumentationGUI.BindOpenButton(container, SymphonyDocumentPageEnum.Fermata);
 
             _pauseVisual = container.Q<VisualElement>("pause");
             _pauseText = container.Q<Label>("pause-text");
@@ -102,6 +117,9 @@ namespace SymphonyFrameWork.Editor
             _pauseButton.clicked += () => SetPause(true);
             _resumeButton.clicked += () => SetPause(false);
 
+            _categoryList = container.Q<ListView>("category-list");
+            BindCategoryList();
+
             // VisualElementの匿名ラムダは要素と同時に破棄されるが、static eventは明示解除できる形で購読する。
             EditorApplication.playModeStateChanged += PlayModeStateChangedHandler;
             BindViewModel();
@@ -110,7 +128,7 @@ namespace SymphonyFrameWork.Editor
         }
 
         /// <summary>
-        ///     Pause Manager初期化後のEditor callbackでViewModelへ接続する。
+        ///     Fermata初期化後のEditor callbackでViewModelへ接続する。
         /// </summary>
         private void DelayedBindViewModel()
         {
@@ -130,13 +148,13 @@ namespace SymphonyFrameWork.Editor
             // Window破棄後またはEdit ModeではViewModelへ接続せず、未接続表示を維持する。
             if (_isDisposed
                 || !EditorApplication.isPlaying
-                || !PauseManager.IsInitialized)
+                || !Fermata.IsInitialized)
             {
                 ApplyState(default, false);
                 return;
             }
 
-            PauseViewModel viewModel = PauseManager.CurrentViewModel;
+            PauseViewModel viewModel = Fermata.CurrentViewModel;
             // CompositionがまだViewModelを公開していない場合は、操作不能な未接続表示にする。
             if (viewModel == null)
             {
@@ -162,7 +180,7 @@ namespace SymphonyFrameWork.Editor
         ///     最新の表示値を管理パネルへ反映する。
         /// </summary>
         /// <param name="pauseDto"> ViewModelが公開した表示値。 </param>
-        /// <param name="isConnected"> Pause Managerへ接続できているかどうか。 </param>
+        /// <param name="isConnected"> Fermataへ接続できているかどうか。 </param>
         private void ApplyState(PauseDto pauseDto, bool isConnected)
         {
             // Window破棄後またはUXML構築前に遅延通知が届いた場合は表示へ触れない。
@@ -178,9 +196,60 @@ namespace SymphonyFrameWork.Editor
                 ? $"IPausable: {pauseDto.PausableSubscriberCount}"
                 : "IPausable: -";
 
-            // Play Mode外ではPauseManagerが未初期化であり、操作すると例外になる。
+            ApplyCategories(pauseDto, isConnected);
+
+            // Play Mode外ではFermataが未初期化であり、操作すると例外になる。
             _pauseButton.SetEnabled(isConnected);
             _resumeButton.SetEnabled(isConnected);
+        }
+
+        /// <summary>
+        ///     カテゴリー一覧のListViewを構成する。
+        /// </summary>
+        private void BindCategoryList()
+        {
+            if (_categoryList == null) { return; }
+
+            _categoryList.itemsSource = _categoryItems;
+            _categoryList.makeItem = static () => new Label();
+            _categoryList.bindItem = BindCategoryItem;
+
+            // 表示専用の一覧であり、選択しても行える操作が無い。
+            _categoryList.selectionType = SelectionType.None;
+        }
+
+        /// <summary>
+        ///     カテゴリー1件を行の表示へ反映する。
+        /// </summary>
+        /// <param name="element"> 行のVisualElement。 </param>
+        /// <param name="index"> 行の位置。 </param>
+        private void BindCategoryItem(VisualElement element, int index)
+        {
+            if (element is not Label label) { return; }
+            if (index < 0 || index >= _categoryItems.Count) { return; }
+
+            PauseCategoryDto category = _categoryItems[index];
+            label.text =
+                $"{category.CategoryName}: {category.IsPaused} / IPausable: {category.PausableCount}";
+        }
+
+        /// <summary>
+        ///     カテゴリー一覧の表示を最新の値へ入れ替える。
+        /// </summary>
+        /// <param name="pauseDto"> ViewModelが公開した表示値。 </param>
+        /// <param name="isConnected"> Fermataへ接続できているかどうか。 </param>
+        /// <remarks>
+        ///     未接続では空にする。Edit Modeで前回のPlay Modeの内容を残すと、
+        ///     今の状態だと誤解される。
+        /// </remarks>
+        private void ApplyCategories(PauseDto pauseDto, bool isConnected)
+        {
+            if (_categoryList == null) { return; }
+
+            _categoryItems.Clear();
+            if (isConnected) { _categoryItems.AddRange(pauseDto.Categories); }
+
+            _categoryList.RefreshItems();
         }
 
         /// <summary>
@@ -190,10 +259,10 @@ namespace SymphonyFrameWork.Editor
         /// <param name="isPaused"> 設定するポーズ状態。 </param>
         private static void SetPause(bool isPaused)
         {
-            // Edit ModeまたはComposition初期化前は、PauseManagerへ触れると例外になるため操作しない。
-            if (!EditorApplication.isPlaying || !PauseManager.IsInitialized) { return; }
+            // Edit ModeまたはComposition初期化前は、Fermataへ触れると例外になるため操作しない。
+            if (!EditorApplication.isPlaying || !Fermata.IsInitialized) { return; }
 
-            PauseManager.Pause = isPaused;
+            Fermata.SetPauseAll(isPaused);
         }
 
         #endregion

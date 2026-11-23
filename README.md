@@ -5,18 +5,19 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 最初のシーンより前に自動で初期化されるため、専用のBootstrapシーンやManagerプレハブを用意せず、必要な機能から使い始められます。
 
 - 対応Unity: **Unity 6（6000.0）以降**
-- 現在のバージョン: **6.3.1**
+- 現在のバージョン: **7.0.0**（6.x から上げる場合は [移行ガイド](./Documentation~/Migration7.md)）
 - ライセンス: **MIT**
 
 ## Symphony Frameworkでできること
 
 | やりたいこと | 使う機能 |
 | --- | --- |
-| シーンを非同期で読み込み、進捗やActive Sceneを管理したい | [Scene Loader](./Documentation~/Modules/SceneLoader.md) |
-| シーンを跨いでサービスやComponentを共有したい | [Service Locator](./Documentation~/Modules/ServiceLocator.md) |
-| データ型ごとに保存・読み込み・削除したい | [Save Data System](./Documentation~/Modules/SaveDataSystem.md) |
-| AudioMixerGroupごとの再生元と音量をまとめたい | [Audio Manager](./Documentation~/Modules/AudioManager.md) |
-| ゲーム全体を止め、待機やTweenもポーズへ追従させたい | [Pause Manager](./Documentation~/Modules/PauseManager.md) |
+| シーンを非同期で読み込み、進捗やActive Sceneを管理したい | [Attacca](./Documentation~/Modules/Attacca.md) |
+| 複数のシーンを依存順にまとめて読み込みたい | [Suite](./Documentation~/Modules/Suite.md) |
+| シーンを跨いでサービスやComponentを共有したい | [Partitura](./Documentation~/Modules/Partitura.md) |
+| データ型ごとに保存・読み込み・削除したい | [Manuscript](./Documentation~/Modules/Manuscript.md) |
+| AudioMixerGroupごとの再生元と音量をまとめたい | [Sonority](./Documentation~/Modules/Sonority.md) |
+| ゲーム全体を止め、待機やTweenもポーズへ追従させたい | [Fermata](./Documentation~/Modules/Fermata.md) |
 | 実行中の状態、FPS、ログ、処理時間を確認したい | [Debug](./Documentation~/Modules/Debug.md) |
 | Scene、Tag、Layer等をenum化し、Inspector入力を安全にしたい | [Editor機能](./Documentation~/EditorTools.md) |
 
@@ -29,7 +30,7 @@ Symphony Frameworkは、Unityゲームで何度も作ることになる「シー
 3. Package Managerの`Samples`から、試したい機能のサンプルをインポートします。
 4. サンプルシーンを開いてPlayします。
 
-Scene Loader Sampleは対象シーンをBuild Settingsへ追加、Audio Manager SampleはAudioMixerの設定が必要です。各サンプルの説明は[サンプル](#サンプル)にあります。
+Attacca SampleとSuite Sampleは対象シーンをBuild Settingsへ追加、Sonority SampleはAudioMixerの設定が必要です。各サンプルの説明は[サンプル](#サンプル)にあります。
 
 ## インストール
 
@@ -58,7 +59,7 @@ https://github.com/HIBIKI5201/SymphonyFramework.git
 ソースを直接配置する場合は、フレームワークのルートを次のパスにします。
 
 ```text
-Assets/SymphonyFrameWork
+Assets/SymphonyFramework
 ```
 
 Editor拡張のパス判定とアセット保護がこの配置を前提とするため、フォルダ名は変更しないでください。
@@ -81,43 +82,44 @@ Editor拡張のパス判定とアセット保護がこの配置を前提とす�
 
 ```text
 Assets/
-├─ Resources/SymphonyFrameWork/
+├─ Resources/SymphonyFramework/
 │  ├─ SceneLoadConfig.asset
 │  ├─ AudioConfig.asset
 │  ├─ SaveDataConfig.asset
 │  └─ DebugHUDConfig.asset
-└─ Scripts/SymphonyFrameWork/
+└─ Scripts/SymphonyFramework/
    ├─ SceneListEnum.cs
    ├─ TagsEnum.cs
    ├─ LayersEnum.cs
    ├─ AudioGroupTypeEnum.cs
-   └─ SymphonyFrameWork.Enum.asmdef
+   └─ SymphonyFramework.Enum.asmdef
 ```
 
 主な設定場所:
 
-- `Window > SymphonyFrameWork > Symphony Administrator`: 各機能の状態確認とenum生成
-- `Project Settings > SymphonyFrameWork`: Debug HUD Shortcut、アセット保護、Service Locatorのログ設定
-- `Project Settings > SymphonyFrameWork > Save System`: セーブデータローダーの選択と、Save Dataパネルで管理する型の選択
+- `Window > SymphonyFramework > Symphony Administrator`: 各機能の状態確認とenum生成
+- `Project Settings > SymphonyFramework`: Debug HUD Shortcut、アセット保護、Partituraのログ設定
+- `Project Settings > SymphonyFramework > Manuscript`: セーブデータローダーの選択と、Manuscriptパネルで管理する型の選択
 - `SceneLoadConfig.asset`: 再生開始時のシーン初期化
 - `AudioConfig.asset`: AudioMixerとグループ設定
 
-asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してください。自動生成enumを直接使う場合だけ`SymphonyFrameWork.Enum`も追加します。
+asmdefを使うゲーム側コードは`SymphonyFramework`を参照してください。自動生成enumを直接使う場合だけ`SymphonyFramework.Enum`も追加します。
 
 ## 機能ごとの使い方
 
 | モジュール | 内容 |
 | --- | --- |
-| [Service Locator](./Documentation~/Modules/ServiceLocator.md) | 登録、取得、注入、Service Locate パネル、ログ設定 |
-| [Scene Loader](./Documentation~/Modules/SceneLoader.md) | 非同期ロード、進捗、初期化、Scene Load パネル |
-| [Save Data System](./Documentation~/Modules/SaveDataSystem.md) | 保存、ローダー、Save System設定、Save Data パネル |
-| [Audio Manager](./Documentation~/Modules/AudioManager.md) | AudioSource取得、音量制御、AudioConfig |
-| [Pause Manager](./Documentation~/Modules/PauseManager.md) | ポーズ、通知、ポーズ対応待機、Pause パネル |
+| [Partitura](./Documentation~/Modules/Partitura.md) | 登録、取得、注入、Partitura パネル、ログ設定 |
+| [Attacca](./Documentation~/Modules/Attacca.md) | 非同期ロード、進捗、初期化、Attacca パネル |
+| [Suite](./Documentation~/Modules/Suite.md) | 複数シーンの依存定義、依存順ロード、単体ロードとの共存 |
+| [Manuscript](./Documentation~/Modules/Manuscript.md) | 保存、ローダー、Manuscript設定、Manuscript パネル |
+| [Sonority](./Documentation~/Modules/Sonority.md) | AudioSource取得、音量制御、AudioConfig |
+| [Fermata](./Documentation~/Modules/Fermata.md) | ポーズ、通知、ポーズ対応待機、Pause パネル |
 | [Debug](./Documentation~/Modules/Debug.md) | `SymphonyDebugHUD`、`SymphonyDebugLogger`、`SymphonyStopWatch`、ログのファイル出力 |
 | [Utility](./Documentation~/Modules/Utility.md) | `SymphonyAwaitable`、`SymphonyTween`、`SymphonyStringUtil`、`SymphonyComponentUtil`、`SymphonyVisualElement` |
 | [Inspector属性](./Documentation~/Modules/InspectorAttributes.md) | `[ReadOnly]`、`[DisplayText]`、`[TagSelector]`、`[SceneNameSelector]`、`[SubclassSelector]` |
 
-各モジュールの文書に、クイックスタート、実装時の注意、対応するEditor機能、内部構造がまとまっています。
+各モジュールの文書に、目的と範囲、機能一覧、クイックスタート、うまくいかないとき、守ること、対応するEditor機能、確かめ方がまとまっています。
 
 ## Editor・デバッグ支援
 
@@ -126,48 +128,54 @@ asmdefを使うゲーム側コードは`SymphonyFrameWork`を参照してくだ�
 | 機能 | 内容 |
 | --- | --- |
 | [Main Toolbar](./Documentation~/EditorTools.md#メインツールバー拡張) | 音符アイコン付き`Symphony Framework > Scene Init`から次回再生時の初期シーン処理を切り替える（Unity 6000.3以降） |
-| [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Service Locator、Scene Loader、Save Data、Pauseの状態確認 |
+| [Symphony Administrator](./Documentation~/EditorTools.md#symphony-administrator) | Partitura、Attacca、Suite、Save Data、Pauseの状態確認 |
 | [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md) | Scene、Tag、Layer、Audio Groupのenum生成 |
 | [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md) | Asset Store Toolsの出力、差分インポート、出力パイプライン |
 | [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md) | FolderGenerator、AssemblyGenerator、SymphonyPackageLoader |
+| [Build Validation](./Documentation~/Modules/BuildValidation.md) | UXML依存とフォント設定の手動・ビルド前検証。既定ではビルド時の検証は無効 |
 
-Runtimeモジュールに紐づくEditor機能（Save System設定、Service Locatorのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
+Runtimeモジュールに紐づくEditor機能（Manuscript設定、Partituraのログ設定、`SymphonyDebugHUD`、`SymphonyMcpTools`、Inspector属性）は、上の[機能ごとの使い方](#機能ごとの使い方)から各モジュール文書を参照してください。
 
 ## サンプル
 
 Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプルを利用プロジェクトへインポートできます。**インポートするまでプロジェクトには入りません。**
 
-- `ServiceLocatorSample`: 登録、同期取得、非同期取得、Singleton
-- `SaveDataSystemSample`: 複数データ型の編集、保存、再ロード、削除
-- `SceneLoaderSample`: 追加ロード、Active Scene切り替え、アンロード
-- `PauseManagerSample`: Pause切り替え、`IPausable`、ポーズ対応待機
-- `AudioManagerSample`: AudioSource取得と音量制御
+- `PartituraSample`: 登録、同期取得、非同期取得、Singleton
+- `ManuscriptSample`: 複数データ型の編集、保存、再ロード、削除
+- `AttaccaSample`: 追加ロード、Active Scene切り替え、アンロード
+- `SuiteSample`: 依存順ロード、ブロック切り替え時の共有シーンの保持、単体ロードとの共存
+- `FermataSample`: カテゴリーごとのポーズ切り替え、`IPausable`、ポーズ対応待機
+- `SonoritySample`: AudioSource取得と音量制御
 - `DebuggerSample`: Logger、HUD、StopWatch
 
 ## ドキュメント
 
+- [ドキュメントの入口](./Documentation~/index.md) — 全文書の索引。ブラウザで読む場合はこのページのHTMLがトップになります
 - [変更履歴](./CHANGELOG.md)
 - [パッケージ構成・クラス図](./Documentation~/Architecture.md)
 - [Editor機能](./Documentation~/EditorTools.md)
+- [6.x から 7.0.0 への移行](./Documentation~/Migration7.md)
 - [非推奨APIと削除予定](./Documentation~/Deprecations.md)
 - Modules/
-  - [Service Locator](./Documentation~/Modules/ServiceLocator.md)
-  - [Scene Loader](./Documentation~/Modules/SceneLoader.md)
-  - [Save Data System](./Documentation~/Modules/SaveDataSystem.md)
-  - [Audio Manager](./Documentation~/Modules/AudioManager.md)
-  - [Pause Manager](./Documentation~/Modules/PauseManager.md)
+  - [Partitura](./Documentation~/Modules/Partitura.md)
+  - [Attacca](./Documentation~/Modules/Attacca.md)
+  - [Suite](./Documentation~/Modules/Suite.md)
+  - [Manuscript](./Documentation~/Modules/Manuscript.md)
+  - [Sonority](./Documentation~/Modules/Sonority.md)
+  - [Fermata](./Documentation~/Modules/Fermata.md)
   - [Debug](./Documentation~/Modules/Debug.md)
   - [Utility](./Documentation~/Modules/Utility.md)
   - [Inspector属性](./Documentation~/Modules/InspectorAttributes.md)
   - [AutoEnumGenerator](./Documentation~/Modules/AutoEnumGenerator.md)
   - [Asset Store Tools Packager](./Documentation~/Modules/AssetStoreToolsPackager.md)
   - [Project Structure Tools](./Documentation~/Modules/ProjectStructureTools.md)
+  - [Build Validation](./Documentation~/Modules/BuildValidation.md)
 - [AGENTS.md（AIエージェント向けの導線と常時ルール）](./AGENTS.md)
   - [AIエージェント向けAPI索引](./Documentation~/AgentUsage.md)
   - [利用コードの検証手順](./Documentation~/AgentVerification.md)
 - [Symphony Framework Document](https://lying-foxglove-81a.notion.site/Symphony-Framework-Document-19b7c2c6cc02806b9b97cb8a97c9f11a?pvs=74)
 
-同じ内容をブラウザで読めるHTMLが`Documentation~/Html/`にあります。**Unityから`Window > SymphonyFrameWork > Documentation`を選ぶと索引がブラウザで開きます。** Project Settingsの各画面にある`ドキュメントを開く`からは、その画面に対応するモジュール文書が開きます。
+同じ内容をブラウザで読めるHTMLが`Documentation~/Html/`にあります。**Unityから`Window > SymphonyFramework > Documentation`を選ぶと索引がブラウザで開きます。** Project Settingsの各画面にある`ドキュメントを開く`からは、その画面に対応するモジュール文書が開きます。
 
 **正本はMarkdownで、HTMLは生成物です。** 内容の修正はMarkdown側へ行ってください。
 
@@ -188,4 +196,4 @@ Package Managerから[`Samples~/Runtime`](./Samples~/Runtime)の各サンプル�
 
 Copyright (c) 2026 HIBIKI_5201
 
-このプロジェクトはMIT Licenseで公開されています。詳細は[LICENSE.txt](./LICENSE.txt)を参照してください。
+このプロジェクトはMIT Licenseで公開されています。詳細は[LICENSE.md](./LICENSE.md)を参照してください。
