@@ -65,7 +65,9 @@ namespace SymphonyFramework.Tests
 
                     Assert.That(resolvedPath, Is.Not.Empty,
                         $"{uxmlPath} のStyle要素のGUIDがどのアセットにも解決できません。");
-                    Assert.That(declaredPath, Is.EqualTo(resolvedPath),
+                    // 既存のWindowsクローンではsubmoduleのフォルダ名が6.xの表記（SymphonyFrameWork）のまま残り、
+                    // GUIDの解決先だけが旧表記になる。大文字小文字だけの違いは同じアセットとみなす。
+                    Assert.That(declaredPath, Is.EqualTo(resolvedPath).IgnoreCase,
                         $"{uxmlPath} のStyle要素のsrcが、GUIDの解決先と違うパスを指しています。");
                 }
             }

@@ -381,11 +381,26 @@ namespace SymphonyFramework.Tests
         [Test]
         public void SaveStore_GetEntries_NotInitialized_Throws()
         {
-            Manuscript.ResetRuntimeState();
+            // Edit ModeでもManuscriptは初期化済みのため、Serviceを一時的に外して未初期化の状態を作る。
+            FieldInfo serviceField = typeof(Manuscript).GetField(
+                "_service",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.That(serviceField, Is.Not.Null, "Manuscript._service が見つかりません。");
 
-            Assert.That(
-                () => LegacySave.SaveStore.GetEntries(),
-                Throws.TypeOf<SymphonyNotInitializedException>());
+            object service = serviceField.GetValue(null);
+            try
+            {
+                serviceField.SetValue(null, null);
+
+                Assert.That(
+                    () => LegacySave.SaveStore.GetEntries(),
+                    Throws.TypeOf<SymphonyNotInitializedException>());
+            }
+            finally
+            {
+                // 他のテストとEditorの表示が使う状態へ戻す。
+                serviceField.SetValue(null, service);
+            }
         }
 
         #endregion
