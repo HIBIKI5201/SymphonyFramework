@@ -33,7 +33,7 @@ CHANGELOGだけでは、非推奨化した版まで遡らないと一覧でき�
 | `System.SaveSystem.SaveDataLoaderStrategy` / `PlayerPrefsSaveDataLoaderStrategy` | `SymphonyFramework.SaveData` の同名の型 | 7.0.0 | 8.0.0 | 旧 `SaveDataContent` を受け取る抽象メソッドへ橋渡しする |
 | `System.AudioManager` | `Sonority` | 7.0.0 | 8.0.0 | `GetAudioSource` は未登録で `null` |
 | `System.PauseManager`（入れ子の `IPausable` を含む） | `Fermata`、`IPausable` | 7.0.0 | 8.0.0 | 旧 `IPausable` は既定カテゴリーとして扱う |
-| 6.x の名前空間ごとの目印（internal） | — | 7.0.0 | 8.0.0 | `using SymphonyFrameWork.X;` を通すためだけの空の型。`[MovedFrom]`（API Updater 用）は 8.0.0 以降も残す |
+| 6.x の名前空間ごとの目印（internal） | — | 7.0.0 | 8.0.0 | `using SymphonyFrameWork.X;` を通すためだけの空の型。`[MovedFrom]`（API Updater と書き換えツール `Migrate 6.x Names` の対応表に使う）は 8.0.0 以降も残す |
 
 ---
 

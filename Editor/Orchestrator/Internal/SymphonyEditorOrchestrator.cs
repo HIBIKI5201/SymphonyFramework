@@ -205,6 +205,9 @@ namespace SymphonyFramework.Editor
                 ProcessPendingHostChanges();
 
                 SymphonyDebugLogger.LogDirect("Symphony Framework Initialized");
+
+                // 6.x の名前が残るスクリプトがあれば、書き換えのメニューを知らせる。失敗しても初期化は止めない。
+                LegacyNameMigration.NotifyIfNeeded();
             }
             catch (Exception exception)
             {
