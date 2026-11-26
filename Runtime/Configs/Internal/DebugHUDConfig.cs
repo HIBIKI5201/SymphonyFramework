@@ -22,11 +22,20 @@ namespace SymphonyFramework.Config
         /// <returns> 呼び出し側が所有する新しいInput Action。 </returns>
         internal static InputAction CreateDefaultToggleAction()
         {
+            // CompositeSyntax.With は内部で InputSystem.manager を参照するため、Input System の初期化前に呼ぶと
+            // NullReferenceException になる。このメソッドはフィールド初期化子からも呼ばれ、Domain Reload 直後の
+            // デシリアライズでは Input System より先に実行されることがあるため、Binding 構造体を直接追加する。
+            // 未有効化の新規 Action への AddBinding は InputSystem.manager を参照しない。
             InputAction action = new("Toggle Debug HUD", InputActionType.Button);
-            action.AddCompositeBinding("ButtonWithTwoModifiers")
-                .With("Modifier1", "<Keyboard>/shift")
-                .With("Modifier2", "<Keyboard>/d")
-                .With("Button", "<Keyboard>/p");
+            action.AddBinding(new InputBinding
+            {
+                name = "ButtonWithTwoModifiers",
+                path = "ButtonWithTwoModifiers",
+                isComposite = true,
+            });
+            AddCompositePart(action, "Modifier1", "<Keyboard>/shift");
+            AddCompositePart(action, "Modifier2", "<Keyboard>/d");
+            AddCompositePart(action, "Button", "<Keyboard>/p");
             return action;
         }
 
@@ -56,6 +65,22 @@ namespace SymphonyFramework.Config
         #endregion
 
         #region 内部処理
+
+        /// <summary>
+        ///     Input System の初期化状態に依存せず、Composite の part Binding を追加する。
+        /// </summary>
+        /// <param name="action"> part を追加する Input Action。 </param>
+        /// <param name="partName"> Composite の part 名。 </param>
+        /// <param name="path"> part が参照する Control path。 </param>
+        private static void AddCompositePart(InputAction action, string partName, string path)
+        {
+            action.AddBinding(new InputBinding
+            {
+                name = partName,
+                path = path,
+                isPartOfComposite = true,
+            });
+        }
 
         [SerializeField, Tooltip("Debug HUDの表示と非表示を切り替えるInput Action。")]
         private InputAction _toggleAction = CreateDefaultToggleAction();
